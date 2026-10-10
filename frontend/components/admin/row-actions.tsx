@@ -7,9 +7,10 @@ import { can } from "@/lib/admin/permissions";
 import {
   Archive, ArchiveRestore, ArrowRight, Ban, Banknote, CalendarDays, Copy,
   CheckCircle2, CornerUpLeft, FilePlus2, FolderPlus, MessageSquarePlus, Move, Pencil,
-  Receipt, Send, Trash2, Undo2, UserPlus, Users, Wallet,
+  Receipt, Printer, Send, Trash2, Undo2, UserPlus, Users, Wallet,
   type LucideIcon,
 } from "lucide-react";
+import {currencyOf,money} from "@/lib/money/currency";
 import { SERVICES } from "@/lib/services";
 import {
   ENTERABLE_METHODS, STAGES, estimateState, estimateTotals, invoiceStatus,
@@ -103,7 +104,7 @@ export function ProjectMenu({
       render: (close) => (
         <Form action={moveStage} onDone={() => close()}>
           <Fields>
-            <Hidden name="id" value={project.id} />
+            <Hidden name="id" value={project.id} /><Hidden name="expectedStage" value={project.stage} />
             <Select
               name="stage" label="Move to" required defaultValue={project.stage}
               options={STAGES.map((s) => ({ value: s, label: s }))}
@@ -124,7 +125,7 @@ export function ProjectMenu({
       render: (close) => (
         <Form action={setDue} onDone={() => close()}>
           <Fields>
-            <Hidden name="id" value={project.id} />
+            <Hidden name="id" value={project.id} /><Hidden name="expectedStage" value={project.stage} />
             <Field name="due" label="Due" type="date"
                    defaultValue={project.due ? project.due.slice(0, 10) : ""}
                    hint="Clear the field and save to remove it." />
@@ -141,7 +142,7 @@ export function ProjectMenu({
       render: (close) => (
         <Form action={addNote} onDone={() => close()}>
           <Fields>
-            <Hidden name="id" value={project.id} />
+            <Hidden name="id" value={project.id} /><Hidden name="expectedStage" value={project.stage} />
             <Area name="note" label="What happened" rows={3} required
                   placeholder="Client approved the second route." />
           </Fields>
@@ -280,6 +281,7 @@ export function InvoiceMenu({
   edit?: { clientName: string; projectTitle?: string };
   noReceipt?: string;
 }) {
+  const naira=(amount:number)=>money(amount,currencyOf(invoice));
   const status = invoiceStatus(invoice);
   const draft = status === "Draft";
   const owed = invoiceTotals(invoice).due;
@@ -288,6 +290,10 @@ export function InvoiceMenu({
     { kind: "link", label: "Open the invoice", href: `/admin/money/${invoice.id}`, icon: ArrowRight },
   ];
 
+  if(!draft && invoice.paid>0)items.push({kind:"link",label:"Print latest receipt",href:`/admin/money/${invoice.id}/receipt`,external:true,icon:Printer});
+  if(!draft && invoice.paid>0)items.push({kind:"dialog",label:"Send latest receipt",title:`Receipt for ${invoice.number}`,icon:Receipt,render:close=><ReceiptSendForm latest fields={{invoiceId:invoice.id}} close={close} noEmail={noReceipt}/>});
+
+  if(!draft)items.push({kind:"link",label:"Print invoice",href:`/i/${invoice.token}`,external:true,icon:Printer});
   /* EDITING IS OFFERED WHERE IT IS TRUE: a draft, and an issued invoice that is
      still unpaid or part paid. The total can never be taken below what has been
      received (the action says so with the figure if it is tried). */
@@ -468,6 +474,10 @@ export function InvoiceMenu({
   return <RowMenu items={items} label={invoice.number} />;
 }
 
+function ReceiptSendForm({fields,close,noEmail,latest=false}:{fields:Record<string,string>;close:()=>void;noEmail?:string;latest?:boolean}){
+ return <Form action={sendReceipt} onDone={close}>{Object.entries(fields).map(([name,value])=><Hidden key={name} name={name} value={value}/>)}{latest?<p>This sends the receipt for the latest recorded payment. For another payment, use its own row menu. A receipt records that payment, including any outstanding balance.</p>:null}<p>Send the receipt PDF and its live link. Leave the address blank to use the client&apos;s email. A different address gets this copy only; the client&apos;s details stay the same.</p><Field name="receiptEmail" type="email" label="Send a copy to another email" hint="Check that this person may receive these payment details. At most one copy per address each day."/>{noEmail?<p>{noEmail} You can still send a requested copy to another address.</p>:null}<Actions><Submit icon={Receipt}>Email the receipt</Submit></Actions></Form>;
+}
+
 /* --------------------------------------------------------------- payments */
 
 export function PaymentMenu({
@@ -478,7 +488,9 @@ export function PaymentMenu({
   /** Why the client cannot be emailed about this (no address, updates off). */
   noEmail?: string;
 }) {
+  const naira=(amount:number)=>money(amount,currencyOf(payment));
   const items: RowMenuItem[] = [
+    {kind:"link",label:"Print receipt",href:`/r/${payment.token}`,external:true,icon:Printer},
     { kind: "link", label: "Open the invoice", href: `/admin/money/${payment.invoiceId}`, icon: ArrowRight },
   ];
 
@@ -493,13 +505,7 @@ export function PaymentMenu({
       kind: "dialog", label: "Send the receipt", icon: Receipt,
       title: `Receipt ${payment.receiptNo}`,
       render: (close) => (
-        <Sure action={sendReceipt as never} fields={{ id: payment.id }}
-              verb="Email the receipt" icon={Receipt} close={close}>
-          Emails the link to receipt {payment.receiptNo} ({naira(payment.amount)}) to the client:
-          again if it has been sent before, or for the first time if it has not.
-          The receipt page is the live document, so it always shows refunds and reversals.
-          At most one copy a day.{noEmail ? ` Note: ${noEmail}` : ""}
-        </Sure>
+        <ReceiptSendForm fields={{id:payment.id}} close={close} noEmail={noEmail}/>
       ),
     });
   }
@@ -714,6 +720,7 @@ export function SubmissionMenu({
  * prices have been doing.
  */
 export function EstimateMenu({ estimate, noEmail }: { estimate: Estimate; noEmail?: string }) {
+  const naira=(amount:number)=>money(amount,currencyOf(estimate));
   const state = estimateState(estimate);
   const total = estimateTotals(estimate).total;
 

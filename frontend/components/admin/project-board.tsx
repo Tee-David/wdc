@@ -116,7 +116,7 @@ export function ProjectBoard({ columns, cards }: { columns: BoardColumn[]; cards
       return;
     }
     setSaid(`${titleOf(id)} is now in ${stage}.`);
-    const r = await moveOnBoard({ id, stage, order: orderRef.current[stage] }).catch(() => null);
+    const r = await moveOnBoard({ id, stage, expectedStage:from || "", order: orderRef.current[stage] }).catch(() => null);
     if (!r?.ok) {
       reorder(before.current);
       toast(r?.message ?? "That move could not be saved. It has been put back.", "bad");

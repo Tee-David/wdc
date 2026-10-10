@@ -1,4 +1,7 @@
+import {moneySummary} from "@/lib/money/summary";
+import {currencyOf,money} from "@/lib/money/currency";
 import { StageScroll } from "@/components/admin/stage-scroll";
+import { ProjectWorkspace } from "@/components/workspace/project-workspace";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -7,12 +10,14 @@ import {
   MessageSquareReply, ScrollText, User,
 } from "lucide-react";
 import { getPortalRequest } from "@/lib/portal/session";
-import { getDeliverablesFor, getInvoicesFor, getProject, getUpdatesFor } from "@/lib/admin/store";
+import { getClient, getDeliverablesFor, getInvoicesFor, getProject, getUpdatesFor } from "@/lib/admin/store";
 import { STAGES, invoiceTotals, naira } from "@/lib/admin/types";
 import { SERVICE_BY_SLUG } from "@/lib/services";
 import { projectGlyph, projectTileStyle } from "@/components/client/service-glyph";
 import { ApprovalPill, Empty, HealthPill, Panel, StagePill, when } from "@/components/admin/bits";
 import { ProfileCard } from "@/components/admin/profile-card";
+import type {Deliverable} from "@/lib/admin/types";
+import {clientDeliverable} from "@/lib/workspace/service-deliverable-policy";
 import { DeliverableActions } from "@/components/client/deliverable-actions";
 import "@/components/client/portal.css";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
@@ -22,9 +27,9 @@ import { ProjectTimeline } from "@/components/client/project-timeline";
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   await syncStore();
   const { id } = await params;
-  const { client } = await getPortalRequest();
-  const p = client ? getProject(id) : null;
-  if (!p || !client || p.clientId !== client.id) notFound();
+  const request = await getPortalRequest();
+  const p = getProject(id);
+  if (!p || !request.allowedProjectIds.includes(p.id)) notFound();
   return { title: p.title };
 }
 
@@ -39,25 +44,27 @@ export default async function PortalProjectDetail({ params }: { params: Promise<
   await syncStore();
   persistSoon();
   const { id } = await params;
-  const { client } = await getPortalRequest();
-  const p = client ? getProject(id) : null;
+  const request = await getPortalRequest();
+  const p = getProject(id);
   /* SAME OWNERSHIP CHECK AS THE METADATA ABOVE, deliberately re-run here
      rather than trusted from it: `generateMetadata` and the page body are
      two separate invocations, and a project that belongs to another client
      must 404 from either one on its own. */
-  if (!p || !client || p.clientId !== client.id) notFound();
+  if (!p || !request.allowedProjectIds.includes(p.id)) notFound();
+  const client=getClient(p.clientId);
+  if(!client)notFound();
 
   const at = STAGES.indexOf(p.stage);
   const service = SERVICE_BY_SLUG.get(p.service);
   const updates = getUpdatesFor(p.id).filter((u) => u.clientVisible).sort((a, b) => b.at.localeCompare(a.at));
   const next = updates.find((u) => u.next)?.next ?? null;
-  const deliverables = getDeliverablesFor(p.id);
-  const waiting = deliverables.filter((d) => d.approval === "Awaiting client");
-  const rest = deliverables.filter((d) => d.approval !== "Awaiting client");
-  const started = p.events.map((e) => e.at).sort()[0] ?? null;
+  const deliverables = getDeliverablesFor(p.id).flatMap(d=>{const shared=clientDeliverable(d);return shared?[shared]:[];});
+  const waiting = deliverables.filter((d) => request.reviewProjectIds.includes(p.id) && d.approval === "Awaiting client" && d.clientReviewable!==false);
+  const rest = deliverables.filter((d) => !waiting.some(w=>w.id===d.id));
+  const started = p.events.filter(event=>event.visibility!=="internal").map((e) => e.at).sort()[0] ?? null;
 
   /* Money on this project: its invoices, not a figure typed anywhere. */
-  const invoices = getInvoicesFor(client.id).filter((inv) => inv.projectId === p.id && !inv.voided && inv.status !== "Draft");
+  const invoices = (request.billingProjectIds.includes(p.id)?getInvoicesFor(client.id):[]).filter((inv) => inv.projectId === p.id && !inv.voided && inv.status !== "Draft");
   const billed = invoices.reduce((n, inv) => n + invoiceTotals(inv).total, 0);
   const paid = invoices.reduce((n, inv) => n + Math.min(inv.paid, invoiceTotals(inv).total), 0);
   const owing = invoices.filter((inv) => invoiceTotals(inv).due > 0).sort((a, b) => a.due.localeCompare(b.due))[0] ?? null;
@@ -97,7 +104,7 @@ export default async function PortalProjectDetail({ params }: { params: Promise<
 
       <div className="ad__split">
         <div className="ad__stack">
-          <ProjectTimeline project={p} email={client.email} updates={updates} deliverables={deliverables} started={started} />
+          <ProjectTimeline project={p} email={request.session?.user?.email||client.email} updates={updates} deliverables={deliverables} started={started} />
 
           <Panel title="Deliverables" id="deliverables">
             {deliverables.length ? (
@@ -111,12 +118,13 @@ export default async function PortalProjectDetail({ params }: { params: Promise<
                         <span className="cpDeliv__icon cpDeliv__icon--live" aria-hidden="true"><FileText /></span>
                         <div className="cpDeliv__body">
                           <div className="cpDeliv__title"><b>{d.name}</b><span className="ad__pill ad__pill--flat">v{latest.v}</span><span className="ad__pill ad__pill--live">Waiting for you</span></div>
-                          <small>Sent {when(latest.at)}</small>
+                          <small>{latest.sharedAt?`Shared ${when(latest.sharedAt)}`:"Shared with you"}{latest.reviewDueAt?` ? review due ${when(latest.reviewDueAt)}`:""}</small>
                           {latest.note ? <p>{latest.note}</p> : null}
                           <div className="cpDeliv__acts">
                             {latest.url ? <a className="ad__btn" href={latest.url} target="_blank" rel="noopener noreferrer"><Eye aria-hidden="true" /> Open link</a> : null}
                             <DeliverableFiles files={latest.files} button />
                             <DeliverableActions deliverable={d} />
+                            <DeliverableDecisionHistory deliverable={d} />
                           </div>
                         </div>
                       </article>
@@ -134,6 +142,7 @@ export default async function PortalProjectDetail({ params }: { params: Promise<
                             {d.approval === "Revision requested" && d.approvalNote ? <>Your note: “{d.approvalNote}”</> : `${when(latest.at)}${latest.note ? ` · ${latest.note}` : ""}`}
                           </small>
                           <DeliverableFiles files={latest.files} />
+                          <DeliverableDecisionHistory deliverable={d} />
                           {older.length ? (
                             /* EVERY VERSION IS KEPT, so "which logo did they approve"
                                stays answerable -- see the type's own comment on why
@@ -198,29 +207,30 @@ export default async function PortalProjectDetail({ params }: { params: Promise<
             </dl>
           </Panel>
 
-          <Panel title="Money on this project" action={<Link href="/portal/billing">Billing <ChevronRight aria-hidden="true" /></Link>}>
+          {request.billingProjectIds.includes(p.id)?<Panel title="Money on this project" action={<Link href="/portal/billing">Billing <ChevronRight aria-hidden="true" /></Link>}>
             {invoices.length ? (
               <div className="cpMoney">
                 <dl className="cpFacts">
                   {p.budget !== null ? <div><dt>Agreed</dt><dd>{naira(p.budget)}</dd></div> : null}
-                  <div><dt>Invoiced</dt><dd>{naira(billed)}</dd></div>
-                  <div><dt>Paid</dt><dd>{naira(paid)}</dd></div>
+                  <div><dt>Invoiced</dt><dd>{moneySummary(invoices,inv=>invoiceTotals(inv).total)}</dd></div>
+                  <div><dt>Paid</dt><dd>{moneySummary(invoices,inv=>Math.min(inv.paid,invoiceTotals(inv).total))}</dd></div>
                 </dl>
                 <span className="cpMoney__bar" role="img" aria-label={`${Math.round((paid / billed) * 100)}% of what is invoiced is paid`}>
                   <i style={{ width: `${Math.min(100, (paid / billed) * 100)}%` }} />
                 </span>
                 {owing ? (
                   <a className="ad__btn ad__btn--primary cpMoney__pay" href={`/i/${owing.token}`} target="_blank" rel="noopener noreferrer">
-                    Pay {naira(invoiceTotals(owing).due)}
+                    Pay {money(invoiceTotals(owing).due,currencyOf(owing))}
                   </a>
                 ) : <p className="cpScope">Everything invoiced is paid.</p>}
               </div>
             ) : (
               <p className="cpScope">Nothing has been invoiced on this project yet.</p>
             )}
-          </Panel>
+          </Panel>:null}
         </div>
       </div>
+      <ProjectWorkspace projectId={p.id} />
     </>
   );
 }
@@ -240,4 +250,9 @@ async function DeliverableFiles({ files, button = false, compact = false }: { fi
       ))}
     </span>
   );
+}
+
+function DeliverableDecisionHistory({deliverable}:{deliverable:Deliverable}) {
+  if(!deliverable.decisions?.length)return null;
+  return <details className="cpDeliv__older"><summary>Decision history</summary>{deliverable.decisions.map((decision,index)=><p key={index}>v{decision.version} - {decision.decision} - {when(decision.at)}{decision.actor?` - ${decision.actor}`:""}{decision.note?` - ${decision.note}`:""}</p>)}</details>;
 }

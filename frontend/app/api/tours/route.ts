@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { db } from "@/lib/db/pool";
 import { requestOriginIsAllowed } from "@/lib/onboarding-server";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
+import { supportCookiePresent } from '@/lib/users/support';
 
 /**
  * A signed-in person's tour progress, read and written by the tour provider.
@@ -19,11 +20,15 @@ import { callerKey, rateLimit } from "@/lib/rate-limit";
 const TOUR = /^[a-z0-9-]{1,60}@\d{1,4}$/;
 
 async function userId(): Promise<string | null> {
+  if(await supportCookiePresent())return null;
   if (!process.env.DATABASE_URL && !process.env.COCKROACHDB_URL) return null;
   try {
     const { auth } = await import("@/lib/auth");
     const session = await auth.api.getSession({ headers: await headers() });
-    return session?.user?.id ?? null;
+    const id=session?.user?.id;
+    if(!id)return null;
+    const active=await db.query('SELECT 1 FROM "user" WHERE id=$1 AND "deactivatedAt" IS NULL',[id]);
+    return active.rowCount?id:null;
   } catch {
     return null;
   }
@@ -39,13 +44,14 @@ export async function GET() {
       "SELECT tour, status, at FROM tour_progress WHERE user_id = $1 LIMIT 200", [id],
     );
     const records = Object.fromEntries(rows.rows.map((r) => [r.tour, { status: r.status, at: new Date(r.at).toISOString() }]));
-    return NextResponse.json({ records }, { headers: { "cache-control": "no-store" } });
+    return NextResponse.json({ records,userId:id }, { headers: { "cache-control": "no-store" } });
   } catch {
     return NextResponse.json({ error: "Unavailable." }, { status: 503 });
   }
 }
 
 export async function POST(request: NextRequest) {
+  if(await supportCookiePresent())return NextResponse.json({error:'Exit the read-only support view first.'},{status:403});
   if (!requestOriginIsAllowed(request)) return NextResponse.json({ error: "Not allowed." }, { status: 403 });
   /* Loose: a tour writes once when it ends. This is abuse control on one
      instance's memory, not a quota -- see lib/rate-limit.ts. */

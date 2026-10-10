@@ -1,5 +1,6 @@
+import {currencyOf,money} from "@/lib/money/currency";
 import {
-  invoiceTotals, lineTotal, naira, notifyAllows, paidFrom, paymentNet, refundedTotal,
+  invoiceTotals, lineTotal, notifyAllows, paidFrom, paymentNet, refundedTotal,
 } from "./types";
 import type { Client, Credit, Invoice, Method, NotifyKind, Payment } from "./types";
 
@@ -107,7 +108,7 @@ export type EditCheck = { ok: true; before: number; after: number } | { ok: fals
  * a refunded one what is left), passed in by the caller that holds the rows.
  */
 export function checkInvoiceEdit(
-  inv: Pick<Invoice, "status" | "voided" | "vatRate" | "lines">,
+  inv: Pick<Invoice, "status" | "voided" | "vatRate" | "lines" | "currency">,
   paid: number,
   next: { lines: Invoice["lines"]; vatRate: number },
 ): EditCheck {
@@ -117,7 +118,7 @@ export function checkInvoiceEdit(
   if (inv.status !== "Draft" && after < paid) {
     return {
       ok: false,
-      say: `${naira(paid)} has already been received against this invoice, so its total cannot drop below that (the new total would be ${naira(after)}). Refund or reverse a payment first, or keep the total at ${naira(paid)} or more.`,
+      say: `${money(paid,currencyOf(inv))} has already been received against this invoice, so its total cannot drop below that (the new total would be ${money(after,currencyOf(inv))}). Refund or reverse a payment first, or keep the total at ${money(paid,currencyOf(inv))} or more.`,
     };
   }
   return { ok: true, before, after };
@@ -166,17 +167,18 @@ export function paymentReference(how: Method | null, typed: string): { ok: true;
  * the invoice is refused: the excess belongs on the client's balance, which is
  * a decision to make on purpose, not a side effect of a typing slip.
  */
-export function advanceAmount(total: number, typed: number | null): { ok: true; amount: number } | { ok: false; say: string } {
+export function advanceAmount(total: number, typed: number | null,currency="NGN"): { ok: true; amount: number } | { ok: false; say: string } {
   if (total <= 0) return { ok: false, say: "An invoice for nothing has nothing to be paid." };
   if (typed === null) return { ok: true, amount: total };
   if (typed <= 0) return { ok: false, say: "The amount has to be more than nothing." };
-  if (typed > total) return { ok: false, say: `That is more than the invoice (${naira(total)}). Record the invoice amount here, and put the excess on their balance afterwards.` };
+  if (typed > total) return { ok: false, say: `That is more than the invoice (${money(total,currency)}). Record the invoice amount here, and put the excess on their balance afterwards.` };
   return { ok: true, amount: typed };
 }
 
 /* ------------------------------------------------------- reconciliation */
 
 export type InvoiceRecon = {
+  currency?:string;
   id: string; number: string; voided: boolean;
   /** What the invoice is for. */
   total: number;
@@ -209,7 +211,7 @@ export function reconcileInvoice(inv: Invoice, payments: Payment[]): InvoiceReco
   const t = invoiceTotals(inv, rows);
   const paid = paidFrom(rows, inv.id);
   return {
-    id: inv.id, number: inv.number, voided: Boolean(inv.voided),
+    id: inv.id, number: inv.number, currency:currencyOf(inv),voided: Boolean(inv.voided),
     total: t.total,
     received: live.reduce((n, p) => n + p.amount, 0),
     refunded: live.reduce((n, p) => n + refundedTotal(p), 0),
@@ -223,6 +225,8 @@ export function reconcileInvoice(inv: Invoice, payments: Payment[]): InvoiceReco
 }
 
 export type ClientRecon = {
+  currency?:string;
+  groups?:ClientRecon[];
   /** Billed, on the books (issued and not struck). */
   invoiced: number;
   /** Received against those invoices, counted up to each invoice's total. */
@@ -239,13 +243,16 @@ export type ClientRecon = {
 };
 
 /** Every figure summed from the invoice rows, so the summary cannot disagree with the table under it. */
-export function reconcileClient(invoices: Invoice[], payments: Payment[], credits: Pick<Credit, "amount" | "applied">[]): ClientRecon {
-  const rows = invoices.filter((i) => i.status !== "Draft").map((i) => reconcileInvoice(i, payments));
-  const onBooks = rows.filter((r) => !r.voided);
-  const invoiced = onBooks.reduce((n, r) => n + r.total, 0);
-  const outstanding = onBooks.reduce((n, r) => n + r.due, 0);
-  const overpaid = onBooks.reduce((n, r) => n + r.over, 0);
-  const received = onBooks.reduce((n, r) => n + (r.paid - r.over), 0);
-  const held = credits.filter((c) => !c.applied).reduce((n, c) => n + c.amount, 0);
-  return { invoiced, received, outstanding, overpaid, held, balanced: invoiced === received + outstanding, invoices: rows };
+export function reconcileClient(invoices: Invoice[], payments: Payment[], credits: (Pick<Credit, "amount" | "applied"> & {currency?:string})[]): ClientRecon {
+ const rows=invoices.filter(i=>i.status!=="Draft").map(i=>reconcileInvoice(i,payments));
+ const currencies=[...new Set([...rows.map(currencyOf),...credits.filter(c=>!c.applied).map(currencyOf)])];
+ const groups=currencies.map(currency=>{
+  const own=rows.filter(row=>currencyOf(row)===currency),live=own.filter(row=>!row.voided);
+  const sum=(value:(row:InvoiceRecon)=>number)=>live.reduce((total,row)=>total+value(row),0);
+  const invoiced=sum(r=>r.total),outstanding=sum(r=>r.due),received=sum(r=>r.paid-r.over);
+  return {currency,invoices:own,invoiced,outstanding,received,overpaid:sum(r=>r.over),held:credits.filter(c=>!c.applied&&currencyOf(c)===currency).reduce((total,c)=>total+c.amount,0),balanced:invoiced===received+outstanding};
+ });
+ const ngn=groups.find(group=>group.currency==="NGN")??{currency:"NGN",invoices:[],invoiced:0,outstanding:0,received:0,overpaid:0,held:0,balanced:true};
+ // Legacy numeric consumers keep NGN totals; the display renders every group separately.
+ return {...ngn,invoices:rows,groups,balanced:groups.every(group=>group.balanced)};
 }

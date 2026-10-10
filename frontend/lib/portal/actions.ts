@@ -8,6 +8,10 @@ import { FAIL, OK, str, type ActionState } from "@/lib/admin/validate";
 import { supportCookiePresent } from "@/lib/users/support";
 import { SUPPORT_READ_ONLY } from "@/lib/users/support-policy";
 import { getPortalRequest } from "./session";
+import {decideLegacyDeliverable} from "@/lib/workspace/service-deliverable-decisions";
+import {stageSupportNotice,stageSupportReceipt} from "@/lib/support-mail";
+import {requireWorkspaceUser} from "@/lib/workspace/access";
+import {dispatchWorkspaceEvents} from "@/lib/workspace/events";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 /**
@@ -29,12 +33,12 @@ import { persistSoon, syncStore } from "@/lib/admin/persist";
 /* A CLIENT, AND ONLY A CLIENT. The portal layout redirects other roles, but
    an action is reachable without the layout, and an owner whose address
    happens to match a client record must not be able to act as that client. */
-async function requireClient() {
+async function requireClient(primaryOnly = true) {
   try {
     if (await supportCookiePresent()) return null;
-    const { session, client } = await getPortalRequest();
+    const { session, client, isPrimaryContact } = await getPortalRequest();
     const role = (session?.user as { role?: string } | undefined)?.role;
-    return role === "client" ? client : null;
+    return role === "client" && (!primaryOnly || isPrimaryContact) ? client : null;
   } catch {
     return null;
   }
@@ -46,7 +50,9 @@ async function requireClient() {
    the page. */
 async function whyNoClient() {
   if (await supportCookiePresent()) return SUPPORT_READ_ONLY;
-  const signedIn = await getPortalRequest().then((r) => Boolean(r.session?.user)).catch(() => false);
+  const request = await getPortalRequest().catch(() => null);
+  if (request?.client && !request.isPrimaryContact) return "This action belongs to the primary company contact. Use your project conversation to contact the team.";
+  const signedIn = Boolean(request?.session?.user);
   return signedIn
     ? "Your account isn't linked to a client record yet. Email us and we'll connect it."
     : "You've been signed out. Sign in again in a new tab, then press this again. What you typed is still here.";
@@ -54,59 +60,35 @@ async function whyNoClient() {
 
 export async function approveDeliverable(_prev: ActionState, fd: FormData): Promise<ActionState> {
   await syncStore();
-  persistSoon();
-  const client = await requireClient();
+  const client = await requireClient(false);
   if (!client) return FAIL({}, await whyNoClient());
-  const id = str(fd, "id");
-  const d = db.getDeliverable(id);
-  const project = d ? db.getProject(d.projectId) : null;
-  if (!d || !project || project.clientId !== client.id) return FAIL({}, "That deliverable is no longer there.");
-  /* APPROVE WHAT WAS SEEN. A tab left open while the studio shared a newer
-     version must not sign off on one the client has not looked at; and a
-     second press on something approved is not a second sign-off email. */
-  const latest = d.versions.at(-1)?.v ?? 0;
-  const seen = Number(str(fd, "version") || latest);
-  if (seen < latest) return FAIL({}, `A newer version (v${latest}) was shared since you opened this page. Reload and look at it first.`);
-  if (d.approval === "Approved") return OK(`${d.name} is already approved.`);
-  db.setApproval(id, "Approved");
-  /* A confirmation of what they agreed to, like a receipt, behind the
-     response. The name is the signed-in person's, not a form field. */
-  const { session } = await getPortalRequest();
-  const signedBy = session?.user?.name?.trim() || client.name;
-  after(async () => {
-    const { sendSignOffConfirmation } = await import("@/lib/project-mail");
-    await sendSignOffConfirmation({ project, deliverable: d, signedBy });
-    /* And the studio hears it was approved (Settings, Notifications). */
-    const { sendDeliverableApproved } = await import("@/lib/lifecycle-mail");
-    await sendDeliverableApproved({ project, deliverable: d, signedBy });
-  });
-  revalidatePath(`/portal/projects/${project.id}`);
-  revalidatePath("/portal");
-  return OK(`${d.name} marked approved.`);
+  const id=str(fd,"id"),d=db.getDeliverable(id),project=d?db.getProject(d.projectId):null;
+  if(!d||!project||!(await getPortalRequest()).reviewProjectIds.includes(project.id))return FAIL({},"That deliverable is no longer there.");
+  try {
+    const result=await decideLegacyDeliverable(project.id,id,str(fd,"version"),"Approved");
+    if(result.eventIds.length)after(()=>dispatchWorkspaceEvents({eventIds:result.eventIds}));
+    revalidatePath(`/portal/projects/${project.id}`);revalidatePath(`/admin/projects/${project.id}`);revalidatePath("/portal");
+    return OK(`${d.name} marked approved.`);
+  }catch(error){return FAIL({},error instanceof Error?error.message:"Approval could not be recorded.");}
 }
 
 export async function requestRevision(_prev: ActionState, fd: FormData): Promise<ActionState> {
   await syncStore();
-  persistSoon();
-  const client = await requireClient();
-  if (!client) return FAIL({}, await whyNoClient());
-  const id = str(fd, "id");
-  const note = str(fd, "note");
-  if (!note) return FAIL({ note: "Say what needs to change -- it goes straight to the team working on it." });
-  const d = db.getDeliverable(id);
-  const project = d ? db.getProject(d.projectId) : null;
-  if (!d || !project || project.clientId !== client.id) return FAIL({}, "That deliverable is no longer there.");
-  db.setApproval(id, "Revision requested", note);
-  /* The studio gets their note by email, behind the response (Settings, Notifications). */
-  const { session } = await getPortalRequest();
-  const by = session?.user?.name?.trim() || client.name;
-  after(() => import("@/lib/lifecycle-mail").then((m) => m.sendRevisionRequested({ project, deliverable: d, note, by })));
-  revalidatePath(`/portal/projects/${project.id}`);
-  revalidatePath("/portal");
-  return OK("Revision request sent.");
+  const client=await requireClient(false);
+  if(!client)return FAIL({},await whyNoClient());
+  const id=str(fd,"id"),note=str(fd,"note"),d=db.getDeliverable(id),project=d?db.getProject(d.projectId):null;
+  if(!note)return FAIL({note:"Say what needs to change - it goes straight to the team working on it."});
+  if(!d||!project||!(await getPortalRequest()).reviewProjectIds.includes(project.id))return FAIL({},"That deliverable is no longer there.");
+  try {
+    const result=await decideLegacyDeliverable(project.id,id,str(fd,"version"),"Revision requested",note);
+    if(result.eventIds.length)after(()=>dispatchWorkspaceEvents({eventIds:result.eventIds}));
+    revalidatePath(`/portal/projects/${project.id}`);revalidatePath(`/admin/projects/${project.id}`);revalidatePath("/portal");
+    return OK("Revision request recorded.");
+  }catch(error){return FAIL({},error instanceof Error?error.message:"Revision request could not be recorded.");}
 }
 
 export async function submitTicket(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await requireWorkspaceUser(true);
   await syncStore();
   persistSoon();
   const client = await requireClient();
@@ -125,9 +107,11 @@ export async function submitTicket(_prev: ActionState, fd: FormData): Promise<Ac
   const t = db.addTicket({ clientId: client.id, projectId, subject, body, author: client.name });
   if (!t) return FAIL({}, "Could not open that. Try again.");
   /* The studio hears about it by email, behind the response. */
-  after(() => import("@/lib/support-mail").then((m) => m.sendSupportNotice({ ticket: t, body, opened: true, messageId: `${t.id}-open` })));
+  const notice=await stageSupportNotice({ticket:t,body,opened:true,messageId:`${t.id}-open`});
+  if(typeof notice==='function')after(notice);
   /* And the client is told it arrived, and when to expect an answer. */
-  after(() => import("@/lib/lifecycle-mail").then((m) => m.sendTicketReceived({ ticket: t })));
+  const receipt=await stageSupportReceipt(t);
+  if(typeof receipt==='function')after(receipt);
   revalidatePath("/admin/clients/support");
   revalidatePath("/portal/support");
   revalidatePath("/portal");
@@ -135,6 +119,7 @@ export async function submitTicket(_prev: ActionState, fd: FormData): Promise<Ac
 }
 
 export async function replyToTicket(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await requireWorkspaceUser(true);
   await syncStore();
   persistSoon();
   const client = await requireClient();
@@ -145,7 +130,7 @@ export async function replyToTicket(_prev: ActionState, fd: FormData): Promise<A
   const t = db.getTicket(ticketId);
   if (!t || t.clientId !== client.id) return FAIL({}, "That conversation is no longer there.");
   const m = db.addTicketMessage({ ticketId: t.id, from: "client", author: client.name, body });
-  if (m) after(() => import("@/lib/support-mail").then((x) => x.sendSupportNotice({ ticket: t, body, opened: false, messageId: m.id })));
+  if(m){const run=await stageSupportNotice({ticket:t,body,opened:false,messageId:m.id});if(typeof run==='function')after(run);}
   revalidatePath("/admin/clients/support");
   revalidatePath(`/portal/support/${t.id}`);
   revalidatePath("/portal/support");
@@ -193,7 +178,7 @@ export async function updateMyDetails(_prev: ActionState, fd: FormData): Promise
 
 /* One other device, by its session id: only ever this person's own, never the one asking. */
 export async function signOutDevice(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  const client = await requireClient();
+  const client = await requireClient(false);
   if (!client) return FAIL({}, await whyNoClient());
   const { headers } = await import("next/headers");
   const { auth } = await import("@/lib/auth");
@@ -209,7 +194,7 @@ export async function signOutDevice(_prev: ActionState, fd: FormData): Promise<A
 
 /* Every other device signed in as this person is signed out; this one stays. */
 export async function signOutOtherDevices(): Promise<ActionState> {
-  const client = await requireClient();
+  const client = await requireClient(false);
   if (!client) return FAIL({}, await whyNoClient());
   const { headers } = await import("next/headers");
   const h = await headers();

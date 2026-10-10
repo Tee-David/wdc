@@ -1,3 +1,4 @@
+import type {PaymentAccountSnapshot} from "@/lib/money/currency";
 import type { ServiceSlug } from "@/lib/services";
 
 /**
@@ -114,7 +115,7 @@ export type Project = {
   /** ISO date, or null when nothing has been agreed. */
   due: string | null;
   /** Appended to, never rewritten: it is the project's history. */
-  events: { at: string; text: string }[];
+  events: { at: string; text: string; visibility?: "client" | "internal" }[];
   /** Who is answerable for it, as names (older records, and people not yet on the team). */
   owner: string;
   /** The same people as team accounts, so "my projects" is exact. Names stay as the readable copy. */
@@ -226,10 +227,13 @@ export type Deliverable = {
   id: Id;
   projectId: Id;
   name: string;
-  versions: { v: number; at: string; note: string; url?: string; files?: DeliverableFile[] }[];
+  versions: { v: number; at: string; note: string; url?: string; files?: DeliverableFile[]; shared?: boolean; sharedAt?: string; reviewDueAt?: string; approval?: Approval; approvalNote?: string }[];
   approval: Approval;
   /** What the client said when they asked for changes. Their words. */
   approvalNote?: string;
+  decisions?: { version:number; decision:Approval; at:string; actor?:string; actorId?:string; note?:string }[];
+  /** Portal projection only: a retained older shared version cannot decide on a newer studio draft. */
+  clientReviewable?: boolean;
 };
 
 /* ------------------------------------------------------------------- money */
@@ -249,6 +253,8 @@ export type InvoiceLine = {
 };
 
 export type Invoice = {
+  currency?: string;
+  paymentAccount?: PaymentAccountSnapshot | null;
   id: Id;
   /** INV-YY-XXXXXX (random). Older ones were INV-YYYY-NNN. */
   number: string;
@@ -317,6 +323,7 @@ export const ENTERABLE_METHODS = METHODS.filter((m) => m !== "Credit");
 export type Method = (typeof METHODS)[number];
 
 export type Payment = {
+  currency?: string;
   id: Id;
   invoiceId: Id;
   at: string;
@@ -451,6 +458,7 @@ export function paymentState(p: Payment): "Received" | "Part refunded" | "Refund
    money invented, and the day it happens the books are wrong in the client's
    favour by an amount nobody can trace. */
 export type Credit = {
+  currency?: string;
   id: Id;
   clientId: Id;
   at: string;
@@ -958,6 +966,8 @@ export const ESTIMATE_STATES = ["Draft", "Sent", "Accepted", "Declined", "Expire
 export type EstimateState = (typeof ESTIMATE_STATES)[number];
 
 export type Estimate = {
+  currency?: string;
+  paymentAccount?: PaymentAccountSnapshot | null;
   id: Id;
   /** EST-YYYY-NNN, issued in order and never reused. */
   number: string;

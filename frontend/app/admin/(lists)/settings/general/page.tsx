@@ -1,3 +1,4 @@
+import {paymentOptions} from "@/lib/money/payment-options";
 import { adminRole } from "@/lib/admin/guard";
 import { AdminState } from "@/components/admin/admin-state";
 import { financeSettings, getSetting, nextEstimateNumber, nextInvoiceNumber, nextReceiptNumber } from "@/lib/admin/store";
@@ -30,11 +31,12 @@ export default async function StudioSettingsPage() {
     );
   }
   const f = financeSettings();
+  const options=await paymentOptions();
   return (
     <>
       <Head title="Studio and invoices" line="How new invoices start, and when unpaid ones are chased."><PageTourButton /></Head>
       <div data-tour="settings-table">
-        <StudioForm vatRate={f.vatRate} vatOn={f.vatOn} dueInDays={f.dueInDays} reminders={f.reminders} days={REMINDER_DAYS}
+        <StudioForm currencies={options.currencies} accounts={options.accounts} vatRate={f.vatRate} vatOn={f.vatOn} dueInDays={f.dueInDays} reminders={f.reminders} days={REMINDER_DAYS}
           tin={getSetting("finance.tin") ?? ""} footerNote={getSetting("finance.footerNote") ?? ""} />
       </div>
       {/* Read only, on purpose: estimate and receipt numbers run in order from the highest already

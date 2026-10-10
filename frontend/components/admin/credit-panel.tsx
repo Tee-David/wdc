@@ -1,8 +1,10 @@
+import {currencyOf,money} from "@/lib/money/currency";
+import {moneySummary} from "@/lib/money/summary";
 import Link from "next/link";
 import {
-  creditBalance, getCreditsFor, getInvoice, getInvoicesFor,
+  getCreditsFor, getInvoice, getInvoicesFor,
 } from "@/lib/admin/store";
-import { invoiceTotals, naira } from "@/lib/admin/types";
+import { invoiceTotals } from "@/lib/admin/types";
 import { Empty, Panel, when } from "@/components/admin/bits";
 import { ApplyCredit } from "./credit-forms";
 
@@ -28,19 +30,20 @@ export default function CreditPanel({ clientId }: { clientId: string }) {
   const credits = getCreditsFor(clientId);
   if (!credits.length) return null;
 
-  const balance = creditBalance(clientId);
+  const unspent=credits.filter(c=>!c.applied);
+  const balance=unspent.length>0;
   /* Only invoices a credit could actually come off. */
   const open = getInvoicesFor(clientId)
     .filter((i) => i.status !== "Draft" && !i.voided && invoiceTotals(i).due > 0)
-    .map((i) => ({ id: i.id, number: i.number, due: invoiceTotals(i).due }));
+    .map((i) => ({ id: i.id, number: i.number, due: invoiceTotals(i).due,currency:currencyOf(i) }));
 
   return (
     <Panel title="Their balance with us" dataTour="client-credit">
       <div style={{ padding: ".9rem 1rem", borderBottom: "1px solid var(--ad-line)" }}>
         <p style={{ margin: 0 }}>
-          {balance > 0 ? (
+          {balance ? (
             <>
-              <b className="ad__num" style={{ fontSize: "1.3rem" }}>{naira(balance)}</b>{" "}
+              <b className="ad__num" style={{ fontSize: "1.3rem" }}>{moneySummary(unspent,c=>c.amount)}</b>{" "}
               is held for this client. It comes off their next invoice.
             </>
           ) : (
@@ -71,7 +74,7 @@ export default function CreditPanel({ clientId }: { clientId: string }) {
                       Put on account by {c.by}
                     </p>
                   </td>
-                  <td className="num">{naira(c.amount)}</td>
+                  <td className="num">{money(c.amount,currencyOf(c))}</td>
                   <td>
                     {c.applied ? (
                       <>
@@ -83,7 +86,7 @@ export default function CreditPanel({ clientId }: { clientId: string }) {
                           </Link>{" "}
                           on {when(c.applied.at)}
                           {c.applied.amount !== undefined && c.applied.amount < c.amount
-                            ? ` · ${naira(c.applied.amount)} used, the rest carried forward`
+                            ? ` · ${money(c.applied.amount,currencyOf(c))} used, the rest carried forward`
                             : ""}
                         </p>
                       </>
@@ -92,7 +95,7 @@ export default function CreditPanel({ clientId }: { clientId: string }) {
                     )}
                   </td>
                   <td className="ad__rmC">
-                    {!c.applied && open.length ? <ApplyCredit credit={c} invoices={open} /> : null}
+                    {!c.applied && open.some(i=>i.currency===currencyOf(c)) ? <ApplyCredit credit={c} invoices={open.filter(i=>i.currency===currencyOf(c))} /> : null}
                   </td>
                 </tr>
               ))}
@@ -103,7 +106,7 @@ export default function CreditPanel({ clientId }: { clientId: string }) {
         <Empty title="Nothing on account" />
       )}
 
-      {balance > 0 && !open.length ? (
+      {balance && !open.length ? (
         <p className="ad__dim" style={{ padding: "0 1rem 1rem", margin: 0 }}>
           There is no open invoice to put this against yet. Raise one and it can
           come off there.

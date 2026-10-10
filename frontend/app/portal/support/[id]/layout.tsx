@@ -12,8 +12,8 @@ import { getPortalRequest } from "@/lib/portal/session";
 export default async function RecordLayout({ children, params }: { children: React.ReactNode; params: Promise<{ id: string }> }) {
   await syncStore();
   const { id } = await params;
-  const { client } = await getPortalRequest();
+  const { client, isPrimaryContact } = await getPortalRequest();
   const t = client ? getTicket(id) : null;
-  if (!t || !client || t.clientId !== client.id) notFound();
+  if (!t || !client || !isPrimaryContact || t.clientId !== client.id) notFound();
   return children;
 }

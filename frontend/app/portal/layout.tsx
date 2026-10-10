@@ -37,7 +37,7 @@ export const dynamic = "force-dynamic";
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
   await syncStore();
   persistSoon();
-  const { session, client, support, supportUnavailable, capture } = await getPortalRequest();
+  const { session, client, support, supportUnavailable, capture,isPrimaryContact,billingProjectIds } = await getPortalRequest();
   if (supportUnavailable) return <div className="ad"><main className="ad__main"><SupportBanner /></main></div>;
 
   if (!session?.user) {
@@ -65,13 +65,13 @@ export default async function PortalLayout({ children }: { children: React.React
 
   const userId=(session.user as {id?:string}).id;
   // Missing migration never forces existing accounts through a new screen.
-  const profile=!support&&!capture&&userId ? await readClientProfile(userId).catch(()=>null) : null;
+  const profile=!support&&!capture&&isPrimaryContact&&userId ? await readClientProfile(userId).catch(()=>null) : null;
   const asked=(await headers()).get('x-wdc-path')?.split('?')[0];
   if(profile?.setup_state==='pending' && asked!=='/portal/welcome' && await requireProfileClient().then(()=>true).catch(()=>false)) redirect('/portal/welcome');
   if(profile?.display_name)user.name=profile.display_name;
   if(profile?.avatar_key)user.image='/api/client-profile/photo';
 
-  const shell = <ClientShell user={user} clientCompany={client.company}>
+  const shell = <ClientShell user={user} clientCompany={isPrimaryContact?client.company:"Your assigned projects"} canSupport={isPrimaryContact} canBilling={isPrimaryContact||billingProjectIds.length>0}>
     {support ? <SupportBanner name={support.name} expiresAt={support.expiresAt} /> : null}
     {children}
   </ClientShell>;

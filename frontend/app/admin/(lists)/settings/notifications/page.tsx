@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PersonalNotificationPreferences } from "@/components/workspace/personal-preferences";
 import { can } from "@/lib/admin/permissions";
 import { adminRole } from "@/lib/admin/guard";
 import { getSetting } from "@/lib/admin/store";
@@ -37,6 +38,7 @@ export default async function NotificationsPage() {
   return (
     <>
       <Head title="Notifications" line="What the studio is emailed about." />
+      <PersonalNotificationPreferences />
       <NotificationsForm
         tickets={getSetting("notify.tickets") !== "0"} payments={getSetting("notify.payments") !== "0"} estimates={getSetting("notify.estimates") !== "0"} staff={getSetting("notify.staff") !== "0"}
         signups={getSetting("notify.signups") !== "0"} approvals={getSetting("notify.approvals") !== "0"} meetings={getSetting("notify.meetings") !== "0"}

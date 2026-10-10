@@ -1,12 +1,14 @@
+import {moneySummary} from "@/lib/money/summary";
+import {currencyOf,money} from "@/lib/money/currency";
 import Link from "next/link";
 import {
   Banknote, Bell, ChevronRight, CircleCheck, FileCheck2, FolderKanban, LifeBuoy, MessageSquare, ReceiptText, Wallet,
 } from "lucide-react";
 import { getPortalRequest } from "@/lib/portal/session";
 import {
-  getDeliverablesFor, getInvoicesFor, getProjectsFor, getTicketsFor, getUpdatesFor,
+  getDeliverablesFor, getInvoices, getProjects, getTicketsFor, getUpdatesFor,
 } from "@/lib/admin/store";
-import { STAGES, invoiceStatus, invoiceTotals, naira, nairaShort } from "@/lib/admin/types";
+import { STAGES, invoiceStatus, invoiceTotals, nairaShort } from "@/lib/admin/types";
 import { SERVICE_BY_SLUG } from "@/lib/services";
 import { projectGlyph, projectTileStyle } from "@/components/client/service-glyph";
 import { Empty, Panel, Tile, when } from "@/components/admin/bits";
@@ -53,23 +55,23 @@ function plainStatus(stage: string, waitingOnClient: boolean) {
 export default async function PortalOverview({ searchParams }: { searchParams: Promise<{ studio?: string }> }) {
   await syncStore();
   persistSoon();
-  const { client, session } = await getPortalRequest();
+  const { client, session, allowedProjectIds, billingProjectIds, reviewProjectIds, isPrimaryContact } = await getPortalRequest();
   const fromStudioLink = (await searchParams).studio === "1";
   if (!client) return null; // the layout already renders the "not linked" state
 
   const { greeting, date } = today();
-  const projects = getProjectsFor(client.id);
+  const projects = getProjects(true).filter(p => allowedProjectIds.includes(p.id) && !p.archived);
   /* Archived work still belongs to the client; it is what "nothing in
      progress" points them to, rather than "no projects yet". */
-  const finished = getProjectsFor(client.id, true).length - projects.length;
-  const invoices = getInvoicesFor(client.id);
-  const tickets = getTicketsFor(client.id);
-  const firstName = client.name.split(" ")[0];
+  const finished = getProjects(true).filter(p => allowedProjectIds.includes(p.id)).length - projects.length;
+  const invoices = getInvoices().filter(inv => (isPrimaryContact && inv.clientId === client.id) || (Boolean(inv.projectId) && billingProjectIds.includes(inv.projectId!)));
+  const tickets = isPrimaryContact ? getTicketsFor(client.id) : [];
+  const firstName = (session?.user.name ?? client.name).split(" ")[0];
 
   const deliverables = projects.flatMap((project) => (
     getDeliverablesFor(project.id).map((d) => ({ deliverable: d, project }))
   ));
-  const awaitingApproval = deliverables.filter((x) => x.deliverable.approval === "Awaiting client");
+  const awaitingApproval = deliverables.filter((x) => reviewProjectIds.includes(x.project.id) && x.deliverable.approval === "Awaiting client");
 
   const outstandingInvoices = invoices.filter((inv) => {
     const s = invoiceStatus(inv);
@@ -86,7 +88,7 @@ export default async function PortalOverview({ searchParams }: { searchParams: P
   const nextStep = awaitingApproval[0]
     ? { tone: "live", title: `${awaitingApproval[0].deliverable.name} is ready for your review`, line: `${awaitingApproval[0].project.title}. Your approval keeps the project moving.`, href: `/portal/projects/${awaitingApproval[0].project.id}`, label: "Review now", external: false }
     : overdueFirst
-      ? { tone: invoiceStatus(overdueFirst) === "Overdue" ? "bad" : "warn", title: `${naira(invoiceTotals(overdueFirst).due)} to pay on ${overdueFirst.number}`, line: `${invoiceStatus(overdueFirst) === "Overdue" ? "This was due" : "Due"} ${when(overdueFirst.due)}. Pay by card or transfer on the invoice page.`, href: `/i/${overdueFirst.token}`, label: "Pay now", external: true }
+      ? { tone: invoiceStatus(overdueFirst) === "Overdue" ? "bad" : "warn", title: `${money(invoiceTotals(overdueFirst).due,currencyOf(overdueFirst))} to pay on ${overdueFirst.number}`, line: `${invoiceStatus(overdueFirst) === "Overdue" ? "This was due" : "Due"} ${when(overdueFirst.due)}. Pay by card or transfer on the invoice page.`, href: `/i/${overdueFirst.token}`, label: "Pay now", external: true }
       : answeredTickets[0]
         ? { tone: "neutral", title: `We replied to "${answeredTickets[0].subject}"`, line: `Replied ${when(answeredTickets[0].updatedAt)}.`, href: `/portal/support/${answeredTickets[0].id}`, label: "Read the reply", external: false }
         : null;
@@ -122,7 +124,7 @@ export default async function PortalOverview({ searchParams }: { searchParams: P
         </div>
       </header>
 
-      <PortalExampleNote clientId={client.id} />
+      {isPrimaryContact ? <PortalExampleNote clientId={client.id} /> : null}
 
       {nextStep ? (
         <section className={`cpStep cpStep--${nextStep.tone}`} aria-label="Your next step" data-tour="portal-next">
@@ -142,10 +144,10 @@ export default async function PortalOverview({ searchParams }: { searchParams: P
           note={byStage.length ? byStage.map(([s, n]) => `${n} ${s.toLowerCase()}`).join(", ") : `${projects.length} delivered`} />
         <Tile label="Awaiting your review" href="/portal/projects" value={String(awaitingApproval.length)} icon={FileCheck2} iconTone="live"
           note={awaitingApproval.length ? `${awaitingApproval[0].deliverable.name}${awaitingApproval.length > 1 ? ` and ${awaitingApproval.length - 1} more` : ""}` : "Nothing to look at yet"} />
-        <Tile label="Balance owed" href="/portal/billing" value={nairaShort(balance)} icon={Banknote} iconTone="warn"
-          note={balance ? `${naira(balance)}${nextDue ? `, due ${when(nextDue)}` : " across your invoices"}` : "Nothing outstanding"} />
-        <Tile label="Support" href="/portal/support" value={`${openTickets.length} open`} icon={LifeBuoy} iconTone="neutral"
-          note={answeredTickets.length ? `Reply from the studio ${when(answeredTickets[0].updatedAt)}` : openTickets.length ? "Waiting on the studio" : "No open questions"} />
+        {isPrimaryContact || billingProjectIds.length ? <Tile label="Balance owed" href="/portal/billing" value={nairaShort(balance)} icon={Banknote} iconTone="warn"
+          note={balance ? `${moneySummary(outstandingInvoices,inv=>invoiceTotals(inv).due)}${nextDue ? `, due ${when(nextDue)}` : " across your invoices"}` : "Nothing outstanding"} /> : null}
+        {isPrimaryContact ? <Tile label="Support" href="/portal/support" value={`${openTickets.length} open`} icon={LifeBuoy} iconTone="neutral"
+          note={answeredTickets.length ? `Reply from the studio ${when(answeredTickets[0].updatedAt)}` : openTickets.length ? "Waiting on the studio" : "No open questions"} /> : null}
       </dl>
 
       <div className="adDash__row">
@@ -173,7 +175,7 @@ export default async function PortalOverview({ searchParams }: { searchParams: P
                     <div className="adDash__attentionItem" key={inv.id}>
                       <span className={`adDash__attentionIcon adDash__attentionIcon--${overdue ? "bad" : "warn"}`}><ReceiptText aria-hidden="true" /></span>
                       <span className="adDash__attentionCopy">
-                        <b>{naira(invoiceTotals(inv).due)} left on {inv.number}</b>
+                        <b>{money(invoiceTotals(inv).due,currencyOf(inv))} left on {inv.number}</b>
                         <small>{overdue ? "Overdue" : "Due"} {when(inv.due)} · pay by card or bank transfer</small>
                       </span>
                       <span className="adDash__attentionActions"><a className="ad__btn" href={`/i/${inv.token}`} target="_blank" rel="noopener noreferrer">Pay now</a></span>
@@ -251,7 +253,7 @@ export default async function PortalOverview({ searchParams }: { searchParams: P
             )}
           </Panel>
 
-          <MeetingsPanel email={client.email} />
+          {isPrimaryContact ? <MeetingsPanel email={session?.user.email ?? client.email} /> : null}
 
           <Panel title="Quick actions">
             <div className="cpQuick">

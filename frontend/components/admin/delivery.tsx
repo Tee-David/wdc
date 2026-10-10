@@ -87,7 +87,7 @@ export function Tasks({ project, tasks }: { project: Project; tasks: Task[] }) {
                     works before hydration, announces its pending state, and
                     cannot fire twice from one press. */}
                 <Form action={toggleTask}>
-                  <Hidden name="id" value={t.id} />
+                  <Hidden name="id" value={t.id} /><Hidden name="expectedDone" value={String(t.done)} />
                   <button
                     type="submit"
                     className={`ad__tick${t.done ? " is-on" : ""}`}
@@ -114,7 +114,7 @@ export function Tasks({ project, tasks }: { project: Project; tasks: Task[] }) {
                 </span>
 
                 <Form action={removeTask} confirm={`Remove "${t.title}"? This one is not kept.`}>
-                  <Hidden name="id" value={t.id} />
+                  <Hidden name="id" value={t.id} /><Hidden name="expectedDone" value={String(t.done)} />
                   <button type="submit" className="ad__iconButton" aria-label={`Remove ${t.title}`}>
                     <Trash2 aria-hidden="true" />
                   </button>
@@ -288,11 +288,12 @@ export function Deliverables({
                   {(close) => (
                     <Form action={moveApproval} onDone={close}>
                       <Hidden name="id" value={d.id} />
+                      <Hidden name="version" value={String(d.versions.at(-1)?.v ?? "")} />
                       <Fields>
                         <Select name="approval" label="What happened" required
                                 placeholder="Pick one" options={APPROVAL_OPTIONS} />
-                        <Area name="note" label="What they asked for" rows={2}
-                              hint="Needed for a revision. A revision with no reason is not something anybody can act on." />
+                        <Area name="note" label="Review note or approval evidence" rows={2}
+                              hint="Required for changes or an approval recorded on the client's behalf. Say who decided and what was agreed." />
                       </Fields>
                       <Actions><Submit>Record it</Submit></Actions>
                     </Form>
@@ -322,6 +323,7 @@ function DeliverableForm({ projectId, id, onDone, previousVersion }: { projectId
     <Form action={fresh ? createDeliverable : addDeliverableVersion} onDone={onDone} resetOnDone={fresh}>
       {projectId ? <Hidden name="projectId" value={projectId} /> : null}
       {id ? <Hidden name="id" value={id} /> : null}
+      {!fresh ? <Hidden name="version" value={String(previousVersion ?? "")} /> : null}
       <Fields>
         {fresh ? <Field name="name" label="What it is" required placeholder="Identity routes" /> : null}
         <Area name="note" label={fresh ? "What this first version is" : "What changed"} required rows={2}

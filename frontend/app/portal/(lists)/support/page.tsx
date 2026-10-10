@@ -20,8 +20,9 @@ type Query = { new?: string; subject?: string; project?: string; show?: string }
 export default async function PortalSupport({ searchParams }: { searchParams: Promise<Query> }) {
   await syncStore();
   persistSoon();
-  const { client } = await getPortalRequest();
+  const { client, isPrimaryContact } = await getPortalRequest();
   if (!client) return null;
+  if (!isPrimaryContact) return <div className="adDash"><header className="adDash__head"><h1>Messages</h1></header><Empty title="Ask in your project" icon={MessageSquare} action={<Link className="ad__btn" href="/portal/projects">Open your projects</Link>}>Your invitation gives you access to specific projects. Use their shared conversations to speak with the team.</Empty></div>;
   const sp = await searchParams;
   const asking = sp.new === "1";
 

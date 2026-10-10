@@ -1,3 +1,4 @@
+import {money} from "@/lib/money/currency";
 import { naira } from "@/lib/admin/types";
 import { qrSvg } from "@/lib/qr";
 import {
@@ -1074,7 +1075,9 @@ ${url}`),
  * internal reason for a refund or a reversal; a void's reason is the same
  * sentence the invoice page already prints for the client.
  */
-export function invoiceVoidedEmail(input: { clientName: string; number: string; reason: string; url: string }): Email {
+export function invoiceVoidedEmail(input: {
+  currency?:string; clientName: string; number: string; reason: string; url: string }): Email {
+  const naira=(amount:number)=>money(amount,input.currency??"NGN");
   const { clientName, number, reason, url } = input;
   return {
     subject: `Invoice ${number} has been cancelled`,
@@ -1109,8 +1112,10 @@ The WDC team`),
 }
 
 export function paymentRefundedEmail(input: {
+  currency?:string;
   clientName: string; receiptNo: string; invoice: string; amount: number; toCredit: boolean; owedNow: number; url: string;
 }): Email {
+  const naira=(amount:number)=>money(amount,input.currency??"NGN");
   const { clientName, receiptNo, invoice, amount, toCredit, owedNow, url } = input;
   const what = toCredit
     ? `We are holding ${naira(amount)} for you on account. It comes off your next invoice.`
@@ -1149,8 +1154,10 @@ The WDC team`),
 }
 
 export function paymentReversedEmail(input: {
+  currency?:string;
   clientName: string; receiptNo: string; invoice: string; amount: number; owedNow: number; invoiceUrl: string; url: string;
 }): Email {
+  const naira=(amount:number)=>money(amount,input.currency??"NGN");
   const { clientName, receiptNo, invoice, amount, owedNow, invoiceUrl, url } = input;
   const left = owedNow > 0 ? `${naira(owedNow)} is now owed on ${invoice}.` : `Nothing is owed on ${invoice}.`;
   return {
@@ -1190,8 +1197,10 @@ The WDC team`),
 /* ============================================================ money: estimates */
 
 export function estimateSentEmail(input: {
+  currency?:string;
   clientName: string; number: string; total: number; expires: Date; notes?: string; url: string;
 }): Email {
+  const naira=(amount:number)=>money(amount,input.currency??"NGN");
   const { clientName, number, total, expires, notes, url } = input;
   return {
     subject: `Estimate ${number}: ${naira(total)}, holds until ${emailDate(expires)}`,
@@ -1266,8 +1275,10 @@ The WDC team`),
 
 /** The studio's own notice that an estimate was answered. Switch: notify.estimates. */
 export function estimateAnswerNoticeEmail(input: {
+  currency?:string;
   company: string; number: string; accepted: boolean; by: string; total: number; invoiceNumber?: string; note?: string; url: string;
 }): Email {
+  const naira=(amount:number)=>money(amount,input.currency??"NGN");
   const { company, number, accepted, by, total, invoiceNumber, note, url } = input;
   const heading = `${company} ${accepted ? "accepted" : "declined"} ${number}.`;
   return {
@@ -1300,7 +1311,7 @@ export function deliverableReadyEmail(input: {
   deliverable: string;
   url: string;
   /** When we need the answer, so the schedule cannot slip silently. */
-  respondBy: Date;
+  respondBy?: Date;
 }): Email {
   const { clientName, projectTitle, deliverable, url, respondBy } = input;
   return {
@@ -1314,9 +1325,9 @@ it back with changes:
 
 ${url}
 
-We have held ${emailDate(respondBy)} in the schedule for your answer. If it
+${respondBy ? `We have held ${emailDate(respondBy)} in the schedule for your answer. If it
 comes later than that, the stages after it move by the same amount -- which is
-the only reason we mention a date at all.
+the only reason we mention a date at all.` : "No review deadline has been recorded. Please agree a review date with your project lead."}
 
 The WDC team`),
     html: shell({
@@ -1329,8 +1340,8 @@ The WDC team`),
         p(`Hi ${escapeHtml(clientName)},`),
         p(`${escapeHtml(deliverable)} for <b>${escapeHtml(projectTitle)}</b> is ready. Open it, leave any comments directly on it, and either approve it or send it back with changes.`),
         action("Review and approve", url),
-        panel([["Project", projectTitle], ["We have held", emailDate(respondBy)]]),
-        p(`If your answer comes after ${escapeHtml(emailDate(respondBy))}, the stages after it move by the same amount &mdash; which is the only reason we mention a date at all.`),
+        panel([["Project", projectTitle], ["Review date", respondBy ? emailDate(respondBy) : "Not yet agreed"]]),
+        p(respondBy ? `If your answer comes after ${escapeHtml(emailDate(respondBy))}, please agree the effect on later stages with your lead.` : "Please agree a review date with your project lead."),
       ],
     }),
   };
@@ -2172,6 +2183,30 @@ The WDC team`),
         p("If that was you, there is nothing to do. If it was not, reset your password again now."),
         action("Reset my password", resetUrl),
       ],
+    }),
+  };
+}
+
+/** New workspace events share the existing transactional design and written plain-text part. */
+export function workspaceNotificationEmail(input: {
+  title: string; summary: string; url: string; dueAt?: string | null;
+  audience: "client" | "staff"; invitationReminder?:boolean;
+  items?: { title: string; summary: string; url: string }[];
+}): Email {
+  const deadline = input.dueAt ? `${emailDateTime(new Date(input.dueAt))} (WAT)` : "";
+  const detail = input.items?.length
+    ? input.items.map((item) => `${item.title}\n${item.summary}\n${item.url}`).join("\n\n")
+    : `${input.summary}${deadline ? `\n\nDue: ${deadline}` : ""}${input.invitationReminder?"":`\n\nOpen the record:\n${input.url}`}`;
+  return {
+    subject: input.title,
+    text: textShell(`${input.title}\n\n${detail}${input.invitationReminder?"":"\n\nThe project record keeps the decision and its history. Change these optional emails in your personal dashboard preferences."}\n\nThe WDC team`),
+    html: shell({
+      title: input.title, preheader: input.summary.slice(0,180), heading: input.title,
+      why: input.invitationReminder?"You receive this because your unaccepted portal invitation expires soon. Client reminder preferences apply.":"You receive this because the project has an update for your role. You choose whether these updates arrive immediately, in a summary, or only in the dashboard.",
+      manage: input.invitationReminder?undefined:input.audience,
+      blocks: input.items?.length
+        ? input.items.flatMap((item) => [p(`<strong>${escapeHtml(item.title)}</strong>`),p(escapeHtml(item.summary).replace(/\n/g,"<br>")),action("Open this record",item.url)])
+        : [p(escapeHtml(input.summary).replace(/\n/g,"<br>")),...(deadline?[panel([["Due",deadline]])]:[]),...(input.invitationReminder?[]:[action("Open the record",input.url),p("The project record keeps the decision and its history. Reading an email does not approve work or complete an action.")])],
     }),
   };
 }

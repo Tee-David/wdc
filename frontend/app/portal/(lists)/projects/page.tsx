@@ -3,7 +3,7 @@ import { ListSearch } from "@/components/admin/list-search";
 import { projectGlyph, projectTileStyle } from "@/components/client/service-glyph";
 import { Clock, FileCheck2, FolderKanban } from "lucide-react";
 import { getPortalRequest } from "@/lib/portal/session";
-import { getDeliverablesFor, getProjectsFor, getUpdatesFor } from "@/lib/admin/store";
+import { getDeliverablesFor, getProjects, getUpdatesFor } from "@/lib/admin/store";
 import { STAGES } from "@/lib/admin/types";
 import { SERVICES } from "@/lib/services";
 import { Empty, StagePill, when } from "@/components/admin/bits";
@@ -22,11 +22,11 @@ export const metadata = { title: "Projects" };
 export default async function PortalProjects({ searchParams }: { searchParams: Promise<{ show?: string }> }) {
   await syncStore();
   persistSoon();
-  const { client } = await getPortalRequest();
+  const { client, allowedProjectIds, reviewProjectIds, isPrimaryContact } = await getPortalRequest();
   if (!client) return null;
   const { show } = await searchParams;
 
-  const all = getProjectsFor(client.id, true);
+  const all = getProjects(true).filter(p => allowedProjectIds.includes(p.id));
   const isDone = (p: (typeof all)[number]) => p.archived || p.stage === "Delivered";
   const active = all.filter((p) => !isDone(p));
   const delivered = all.filter(isDone);
@@ -38,7 +38,7 @@ export default async function PortalProjects({ searchParams }: { searchParams: P
       <header className="adDash__head">
         <div>
           <h1>Your projects</h1>
-          <p>Everything we are making for {client.company}, and where each one is.</p>
+          <p>{isPrimaryContact ? `Everything we are making for ${client.company}, and where each one is.` : "The projects you have been invited to, and where each one is."}</p>
         </div>
         <nav className="ad__switch" aria-label="Which projects">
           <Link href="/portal/projects" aria-current={tab === "active" ? "true" : undefined}>Active {active.length}</Link>
@@ -56,8 +56,8 @@ export default async function PortalProjects({ searchParams }: { searchParams: P
           {projects.map((project) => {
             const service = SERVICES.find((s) => s.slug === project.service);
             const at = STAGES.indexOf(project.stage);
-            const waiting = getDeliverablesFor(project.id).find((d) => d.approval === "Awaiting client");
-            const updates = getUpdatesFor(project.id);
+            const waiting = reviewProjectIds.includes(project.id) ? getDeliverablesFor(project.id).find((d) => d.approval === "Awaiting client") : undefined;
+            const updates = getUpdatesFor(project.id).filter(u => u.clientVisible);
             const latest = updates.slice().sort((a, b) => b.at.localeCompare(a.at))[0];
             const opened = project.events[0]?.at;
             return (

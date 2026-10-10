@@ -5,7 +5,7 @@ import { SUPPORT_EXIT } from "@/lib/users/support-policy";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { ArrowLeft, ChevronDown, Globe, LogOut, Moon, PanelLeft, Sun } from "lucide-react";
+import { ArrowLeft, Bell, ChevronDown, Globe, LogOut, Moon, PanelLeft, Sun } from "lucide-react";
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { authClient } from "@/lib/auth-client";
 import { saveAppearance } from "@/lib/client-profile-actions";
@@ -47,10 +47,11 @@ async function signOut(router: ReturnType<typeof useRouter>) {
 }
 
 function Sidebar({
-  collapsed = false, onTogglePin, pinnedCollapsed = false, clientCompany, user,
+  collapsed = false, onTogglePin, pinnedCollapsed = false, clientCompany, user, canSupport=true, canBilling=true,
 }: {
   collapsed?: boolean; onTogglePin?: () => void; pinnedCollapsed?: boolean;
   clientCompany: string | null; user: PortalUser;
+  canSupport?:boolean;canBilling?:boolean;
 }) {
   const supportReadOnly = useSupportReadOnly();
   const path = usePathname();
@@ -82,7 +83,7 @@ function Sidebar({
         <nav className="ad__nav" aria-label="Portal sections">
           {!collapsed ? <p className="ad__navLabel">Your work</p> : null}
           <div className="ad__navGroup">
-            {CLIENT_NAV.map(({ href, label, Icon, tour }) => {
+            {CLIENT_NAV.filter(item=>(item.href!=="/portal/support"||canSupport)&&(item.href!=="/portal/billing"||canBilling)).map(({ href, label, Icon, tour }) => {
               const active = isClientNavActive(href, path);
               return (
                 <Link
@@ -200,8 +201,8 @@ function AccountMenu({ user, clientCompany }: { user: PortalUser; clientCompany:
 }
 
 export default function ClientShell({
-  children, user, clientCompany,
-}: { children: ReactNode; user: PortalUser; clientCompany: string | null }) {
+  children, user, clientCompany,canSupport=true,canBilling=true,
+}: { children: ReactNode; user: PortalUser; clientCompany: string | null;canSupport?:boolean;canBilling?:boolean }) {
   const supportReadOnly = useSupportReadOnly();
   const path = usePathname();
   const [pinnedCollapsed, setPinnedCollapsed] = useState(false);
@@ -235,7 +236,7 @@ export default function ClientShell({
         onMouseEnter={() => pinnedCollapsed && setHoverExpanded(true)}
         onMouseLeave={() => setHoverExpanded(false)}
       >
-        <Sidebar collapsed={visuallyCollapsed} onTogglePin={togglePin} pinnedCollapsed={pinnedCollapsed} clientCompany={clientCompany} user={user} />
+        <Sidebar collapsed={visuallyCollapsed} onTogglePin={togglePin} pinnedCollapsed={pinnedCollapsed} clientCompany={clientCompany} user={user} canSupport={canSupport} canBilling={canBilling} />
       </aside>
 
       <div className="ad__column">
@@ -250,6 +251,7 @@ export default function ClientShell({
               h1, and a second one here made two per page. */}
           <p className="ad__topTitle">{active?.label ?? "Portal"}</p>
           <div className="ad__topActions">
+            <Link href="/portal/notifications" className="ad__topIcon" aria-label="Your project inbox" title="Your project inbox" data-tour="workspace-inbox-link"><Bell aria-hidden="true" /></Link>
             {!supportReadOnly ? <TourLauncher /> : null}
             <ThemeButton />
             <span className="ad__topRule" aria-hidden="true" />
@@ -263,7 +265,7 @@ export default function ClientShell({
       </div>
 
       <NavDrawer open={drawer.open} onClose={drawer.hide} label="Portal menu" tools={<ThemeButton />}>
-        <Sidebar clientCompany={clientCompany} user={user} />
+        <Sidebar clientCompany={clientCompany} user={user} canSupport={canSupport} canBilling={canBilling} />
       </NavDrawer>
     </div>
   );

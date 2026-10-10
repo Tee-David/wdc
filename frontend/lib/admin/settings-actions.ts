@@ -1,5 +1,6 @@
 "use server";
 
+import {requireWorkspaceUser} from "@/lib/workspace/access";
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { actorName, allow, owner } from "./guard";
@@ -65,11 +66,14 @@ export async function saveStudioSettings(_prev: ActionState, fd: FormData): Prom
   await syncStore();
   const refused = await owner();
   if (refused) return refused;
+  try{const user=await requireWorkspaceUser(true);if(user.role!=="owner")return FAIL({},"Owner only.");}catch{return FAIL({},"Reload this page and sign in again before saving.");}
   const on = str(fd, "remindersOn") === "1";
   const days = fd.getAll("finance.reminders").map(String);
   if (on && !days.length) return FAIL({ "finance.reminders": "Pick at least one day, or switch reminders off." }, "Nothing was saved.");
   try {
     const r = await writeKeys({
+      "finance.currencies": JSON.stringify(fd.getAll("finance.currencies").map(String)),
+      "finance.accounts": str(fd,"finance.accounts") || "[]",
       "finance.vatRate": str(fd, "finance.vatRate"),
       "finance.dueInDays": str(fd, "finance.dueInDays"),
       "finance.vatOn": str(fd, "finance.vatOn"),
