@@ -1,3 +1,21 @@
+## Dashboard overhaul audit and security items, 10 October 2026
+
+The owner asked for a full audit of the admin, staff and client dashboards before a redesign. Two source-level audits are kept in `docs/audits/dashboard-overhaul-ui-audit.md` (components, drift, page structure, quality gates) and `docs/audits/dashboard-overhaul-ux-audit.md` (roles, flows, per-service gaps, money, business lifecycle). Nothing in them was run in a browser. No application code has changed for this work yet.
+
+Owner decisions: staff see and edit work in the departments tied to the six services plus the clients assigned to them, with a permission grid under Settings and the minimum as the default; one work system (the workspace model replaces the legacy tasks, updates and deliverables); one messaging system inside projects, with files; lead pipeline; contracts and e-signature (held off until `LAWYER_APPROVED`); no staff hour tracking; email, in-app and installed-app push notifications; Naira first with more currencies, several banks per currency and payment methods tied to currency; the PDF look is kept. Proposed structure: client 5 pages, admin 7, staff 4. The next step is three dashboard concepts per role, then the design system, then the full prototype. Code follows in stages after approval.
+
+Security and data items the owner marked as required (all open):
+
+- No two-factor sign-in for any account, including the owner account that can refund, export and switch Paystack to Live.
+- Backups are weekly and the restore drill has never run (see Backups below); no restore screen exists.
+- Privacy erasure and export (`lib/privacy/requests.ts`) skip clients, projects, tickets, invoices, deliverables, workspace notes and meetings.
+- Admin data is whole-record JSON in `admin_records`, held in memory, last write wins; only stage and task ticks have concurrency tokens.
+- `createDeliverable` (`lib/admin/actions.ts`) has no project scope check, audit row or notification; non-lead staff see write controls that refuse with a misleading "sign in again" message.
+- Staff can read every client record and browse every client's files in the shared media library.
+- Deactivating a staff account reassigns none of their projects, tasks or handovers.
+- `app/dev-receipt` and `app/dev-stamps` must be confirmed blocked in production.
+- Email runs on one SMTP path with a GitHub Actions heartbeat; production secret activation was blocked by the deploy quota.
+
 ## Client workspace design artifact, 10 October 2026
 
 Two owner-requested agents produced communications and service modules, integrated by root into `prototypes/client-workspace/artifact.html`. The portable interactive proposal renders the actual WDC AdminShell, ClientShell, Panel, DemoNote, logo, Lucide icons, dashboard CSS/tokens and current runtime fonts. A detailed plain-English walkthrough accompanies it. It covers 146 source-audited and proposed communication flows; personal inbox/preferences; private team handovers; shared requests, scope changes, exact-version reviews and handover; social, branding, websites, apps, software/AI, SEO and an additional paid-advertising example.
