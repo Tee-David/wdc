@@ -257,7 +257,7 @@ export default async function PaymentDone({
               </p>
             ) : null}
             <p className="doc__actions">
-              <Link className="doc__btn" href={outcome.receiptUrl}>Open your receipt</Link>
+              <Link className="doc__btn" href={outcome.receiptUrl}>View full receipt</Link>
               {signedInClient ? <Link className="doc__btn doc__btn--ghost" href="/portal/billing">Back to billing</Link> : null}
             </p>
           </>

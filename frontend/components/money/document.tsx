@@ -79,9 +79,9 @@ export function DocumentShell({
         <footer className="doc__foot">
           <small>
             {note ? <span className="doc__studioNote">{note}</span> : null}
-            {COMPANY_NAME}. Questions about this {kind.toLowerCase()} go to{" "}
-            <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. This page is
-            the live version: scan the code to reopen it from a printed copy.
+            {COMPANY_NAME}<br />
+            <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a><br />
+            Scan to verify {kind.toLowerCase()}.
           </small>
           <div className="doc__qr">
             {/* `animate={false}`: this is a document, and on a printed one the

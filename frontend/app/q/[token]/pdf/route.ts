@@ -11,5 +11,5 @@ export async function GET(request:NextRequest,{params}:{params:Promise<{token:st
  await syncStore();await hydrateSettings();const record=getEstimateByToken(token);
  if(!record||record.state==="Draft")return new NextResponse("Not found",{status:404});
  const bytes=await renderFinancialDocumentPdf({record,kind:"Estimate",client:getClient(record.clientId),projectTitle:record.projectId?getProject(record.projectId)?.title??null:null,tin:getSetting("finance.tin")??"",footerNote:getSetting("finance.footerNote")??"",currency:record.currency??"NGN",payments:undefined});
- return new NextResponse(Buffer.from(bytes),{headers:{"Content-Type":"application/pdf","Content-Disposition":`attachment; filename="estimate-${record.number.replace(/[^a-zA-Z0-9_-]/g,"-")}.pdf"`,"Cache-Control":"private, no-store","X-Robots-Tag":"noindex, nofollow"}});
+ return new NextResponse(Buffer.from(bytes),{headers:{"Content-Type":"application/pdf","Content-Disposition":`${request.nextUrl.searchParams.get("print")==="1"?"inline":"attachment"}; filename="estimate-${record.number.replace(/[^a-zA-Z0-9_-]/g,"-")}.pdf"`,"Cache-Control":"private, no-store","X-Robots-Tag":"noindex, nofollow"}});
 }
