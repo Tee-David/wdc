@@ -202,3 +202,7 @@ Release 6711897327d5f4631ae3163b18f2fc28c461ed56 is READY in production and expl
 ### Receipt simplification ? 10 October 2026
 
 Removed the explanatory refund box from the public receipt and generated PDF. Standard payment labels, concise refund destinations and a compact contact/verification footer replace repeated prose. Print actions open an inline generated PDF rather than printing the website, excluding browser webpage headers and third-party furniture. The existing POS receipt remains on confirmed online-payment completion; its detail link now reads ?View full receipt?. TypeScript, targeted lint, native multi-page PDF checks and a rendered one-page refund fixture passed. Full release build and canonical deployment verification remain pending for this milestone. Responsive release sweep timed out; it is not recorded as passed.
+
+### POS receipt flow restored ? 10 October 2026
+
+Every recorded payment token now opens the existing POS printer component, including manual transfers. View full receipt opens the detailed document with `?view=full`. NGN/USD and refund/reversal state come from persisted records; changed payments no longer show a success tick or thank-you. Old checkout replay retains the same status. Payment-row and latest-receipt print shortcuts open the inline PDF. Native server-rendered component checks, TypeScript, targeted lint and both printer feed/reduced-motion tests pass. ded9c6b is READY in production; this POS follow-up still needs its own deployed-commit verification.
