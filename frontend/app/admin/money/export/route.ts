@@ -1,3 +1,4 @@
+import {currencyOf} from "@/lib/money/currency";
 import { NextResponse } from "next/server";
 import { getAdminRequest } from "@/lib/admin/session";
 import { getClient, getInvoices } from "@/lib/admin/store";
@@ -43,12 +44,12 @@ export async function GET(request: Request) {
     .map(({ invoice, client, computed }) => {
       const t = invoiceTotals(invoice);
       return [
-        invoice.number, client?.company ?? "Unknown", computed, invoice.due,
+        invoice.number, client?.company ?? "Unknown", computed, invoice.due, currencyOf(invoice),
         (t.total / 100).toFixed(2), (invoice.paid / 100).toFixed(2), (t.due / 100).toFixed(2),
       ];
     });
 
-  const header = ["Number", "Client", "Status", "Due", "Total NGN", "Paid NGN", "Owed NGN"];
+  const header = ["Number", "Client", "Status", "Due", "Currency", "Total", "Paid", "Owed"];
   return new NextResponse(csvBody([header, ...rows]), {
     headers: CSV_HEADERS("wdc-invoices.csv"),
   });
