@@ -454,7 +454,7 @@ export async function updateInvoice(_prev: ActionState, fd: FormData): Promise<A
 
   const errors: Record<string, string> = {};
   let choice:Awaited<ReturnType<typeof documentPaymentChoice>>;
-  try{choice=await documentPaymentChoice(str(fd,"currency")||currencyOf(inv),str(fd,"paymentAccountId"),inv.paymentAccount,currencyOf(inv));}catch(error){return FAIL({currency:error instanceof Error?error.message:"Check the currency and account."});}
+  try{choice=await documentPaymentChoice(str(fd,"currency")||currencyOf(inv),str(fd,"paymentAccountId"),inv.status==="Draft"?undefined:inv.paymentAccount,currencyOf(inv));}catch(error){return FAIL({currency:error instanceof Error?error.message:"Check the currency and account."});}
   const { lines, bad } = readLines(fd);
   if (bad) errors.lines = bad;
   const due = isoDate(fd, "due");

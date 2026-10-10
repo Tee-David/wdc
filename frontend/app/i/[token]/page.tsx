@@ -265,7 +265,7 @@ export default async function PublicInvoice({
         <section className="doc__pay">
           <h2>How to pay</h2>
           {inv.paymentAccount?<PaymentAccount account={inv.paymentAccount} reference={inv.number}/>:null}
-          {currencyOf(inv)!=="NGN"?<p>Pay in {currencyOf(inv)} using the payment account shown. The studio checks your transfer before recording payment. Contact us if no payment account is shown.</p>:null}
+          {currencyOf(inv)!=="NGN"?<p>{currencyOf(inv)==="USD"?"Pay in USD with Flutterwave, or transfer using the payment account shown.":`Pay in ${currencyOf(inv)} using the payment account shown.`} The studio checks manual transfers before recording payment. Contact us if no payment account is shown.</p>:null}
 
           {/* SAID BEFORE THE BUTTON, NOT AFTER IT. Something went wrong on the
               last attempt and the payer is standing here wondering whether
