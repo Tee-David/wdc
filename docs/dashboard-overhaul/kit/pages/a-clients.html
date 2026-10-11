@@ -1,62 +1,106 @@
 <div class="pageHead rise">
               <div>
                 <h1 class="h1">Clients</h1>
-                <p class="lede">{{lede}}</p>
+                <p class="lede">{{ledeA}} <strong style="color: var(--ad-ink)">{{ledeB}}</strong> {{ledeC}}</p>
               </div>
               <div class="headActs">
                 <button class="btn" onClick="{{newClient}}" data-tour="new"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>New client</button>
                 <button class="ibtn" data-menu="chores" aria-label="More for clients" aria-haspopup="menu" onClick="{{openChores}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg></button>
               </div>
             </div>
-            %%SKELLIST%%
+            %%SKEL%%
             <sc-if value="{{ready}}" hint-placeholder-val="{{ true }}">
-            <div class="tiles" data-tour="figures">
-              <sc-for list="{{stats}}" as="k" hint-placeholder-count="3">
-                <button class="card lift rise stat {{k.delay}}" onClick="{{k.open}}" aria-label="{{k.aria}}" style="--k: {{k.dot}}; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; text-align: left; min-height: 104px">
-                  <span style="color: var(--ad-dim); font-size: 13px; display: flex; align-items: center; gap: 6px"><span style="width: 8px; height: 8px; border-radius: 50%; background: {{k.dot}}; flex: none"></span>{{k.label}}</span>
-                  <span class="num" style="font-size: clamp(22px, 2.4vw, 26px); font-weight: 700; line-height: 1.1">{{k.value}}</span>
-                  <span style="font-size: 12px; font-weight: 600; color: {{k.noteCol}}">{{k.note}}</span>
-                </button>
-              </sc-for>
-            </div>
+            <div class="layout">
+              <div class="col">
+                %%DECK%%
 
-            <section class="card cq rise d2" aria-label="All clients" data-tour="table" style="overflow: hidden">
-              <div style="display: flex; align-items: center; gap: 10px; padding: 16px 20px 12px; flex-wrap: wrap">
-                <h2 style="font-size: 17px; font-weight: 700">All clients</h2>
-                <span class="tag num" style="background: var(--ad-tone-flat); color: var(--ad-on-flat)">{{total}}</span>
-                <span style="flex: 1"></span>
-                <label class="sfield" data-tour="search2">
-                  <svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="color: var(--ad-dim)"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"></path></svg>
-                  <span class="sr">Search clients</span>
-                  <input id="cq" value="{{q2}}" onChange="{{onQ2}}" placeholder="Client or contact">
-                  <sc-if value="{{hasQ2}}" hint-placeholder-val="{{ false }}"><button class="clr" aria-label="Clear search" onClick="{{clearQ2}}"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></sc-if>
-                </label>
-              </div>
-              <div role="tablist" aria-label="Client status" class="tabs">
-                <sc-for list="{{tabs}}" as="tb" hint-placeholder-count="4">
-                  <button role="tab" class="tab {{tb.cls}}" aria-selected="{{tb.sel}}" onClick="{{tb.pick}}">{{tb.label}}<span class="tag num" style="background: var(--ad-tone-flat); color: var(--ad-on-flat); height: 20px; padding: 0 7px">{{tb.n}}</span></button>
-                </sc-for>
-              </div>
-              <div class="tblWrap" tabindex="0" aria-label="Clients table, scrolls sideways">
-                <table class="tbl">
-                  <thead><tr><th scope="col">Client</th><th scope="col">Services</th><th scope="col" class="r">Live projects</th><th scope="col" class="r">Outstanding</th><th scope="col">Last activity</th><th scope="col"><span class="sr">Actions</span></th></tr></thead>
-                  <tbody>
-                    <sc-for list="{{rows}}" as="r" hint-placeholder-count="5">
-                      <tr class="rowIn" tabindex="0" aria-label="{{r.aria}}" onClick="{{r.open}}" onKeyDown="{{r.key}}" style="animation-name: {{r.anim}}; animation-delay: {{r.delay}}">
-                        <td><span style="display: flex; align-items: center; gap: 10px; min-height: 44px"><span class="av0" style="width: 34px; height: 34px; font-size: 11px; border-radius: 10px; background: {{r.tone}}">{{r.ini}}</span><span style="display: flex; flex-direction: column; min-width: 0"><strong style="font-weight: 600">{{r.name}}</strong><span style="color: var(--ad-dim); font-size: 12px">{{r.contact}}</span></span></span></td>
-                        <td><span style="display: inline-flex; gap: 6px"><sc-for list="{{r.svc}}" as="sv" hint-placeholder-count="2"><span class="tag" style="background: var(--ad-tone-flat); color: var(--ad-on-flat)">{{sv}}</span></sc-for></span></td>
-                        <td class="r num">{{r.liveTxt}}</td>
-                        <td class="r"><span style="display: inline-flex; align-items: center; gap: 8px"><sc-if value="{{r.isLate}}" hint-placeholder-val="{{ false }}"><span class="tag" style="background: var(--ad-tone-bad); color: #fff">Late</span></sc-if><span class="num" style="font-weight: 600; color: {{r.owedCol}}">{{r.owedTxt}}</span></span></td>
-                        <td><span style="display: flex; flex-direction: column"><span>{{r.last}}</span><span style="color: var(--ad-dim); font-size: 12px">{{r.lastWhen}}</span></span></td>
-                        <td style="text-align: right"><button class="ibtn ghostB" data-menu="row" aria-label="{{r.menuAria}}" aria-haspopup="menu" onClick="{{r.menu}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg></button></td>
-                      </tr>
+                <section class="card cq rise d2" aria-label="All clients" data-tour="table" style="overflow: hidden">
+                  <div style="display: flex; align-items: center; gap: 10px; padding: 16px 20px 12px; flex-wrap: wrap">
+                    <h2 style="font-size: 17px; font-weight: 700">All clients</h2>
+                    <span class="tag num" style="background: var(--ad-tone-flat); color: var(--ad-on-flat)">{{total}}</span>
+                    <span style="flex: 1"></span>
+                    <label class="sfield">
+                      <svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="color: var(--ad-dim)"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"></path></svg>
+                      <span class="sr">Search clients</span>
+                      <input id="cq" value="{{q2}}" onChange="{{onQ2}}" placeholder="Client or contact">
+                      <sc-if value="{{hasQ2}}" hint-placeholder-val="{{ false }}"><button class="clr" aria-label="Clear search" onClick="{{clearQ2}}"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></sc-if>
+                    </label>
+                  </div>
+                  <div class="chips svcChips" role="group" aria-label="Service" style="padding: 0 20px 12px"><sc-for list="{{svcs}}" as="c" hint-placeholder-count="7"><button class="chip {{c.cls}}" aria-pressed="{{c.pressed}}" onClick="{{c.pick}}">{{c.t}}<span class="num" style="opacity: .75">{{c.n}}</span></button></sc-for></div>
+                  <div role="tablist" aria-label="Client status" class="tabs">
+                    <sc-for list="{{tabs}}" as="tb" hint-placeholder-count="4">
+                      <button role="tab" class="tab {{tb.cls}}" aria-selected="{{tb.sel}}" onClick="{{tb.pick}}">{{tb.label}}<span class="tag num" style="background: var(--ad-tone-flat); color: var(--ad-on-flat); height: 20px; padding: 0 7px">{{tb.n}}</span></button>
                     </sc-for>
-                  </tbody>
-                </table>
-                <sc-if value="{{empty}}" hint-placeholder-val="{{ false }}">
-                  <div class="emptyRow rowIn" style="animation-name: rinA"><strong>{{emptyTitle}}</strong><span style="color: var(--ad-dim)">{{emptyBody}}</span><sc-if value="{{hasQ2}}" hint-placeholder-val="{{ false }}"><button class="btn2" onClick="{{clearQ2}}">Clear search</button></sc-if></div>
-                </sc-if>
+                  </div>
+                  <div class="tblWrap" tabindex="0" aria-label="Clients table, scrolls sideways">
+                    <table class="tbl">
+                      <thead><tr><th scope="col">Client</th><th scope="col">Next step</th><th scope="col">Services</th><th scope="col" class="r">Outstanding</th><th scope="col"><span class="sr">Actions</span></th></tr></thead>
+                      <tbody>
+                        <sc-for list="{{rows}}" as="r" hint-placeholder-count="5">
+                          <tr class="rowIn" tabindex="0" aria-label="{{r.aria}}" onClick="{{r.open}}" onKeyDown="{{r.key}}" style="animation-name: {{r.anim}}; animation-delay: {{r.delay}}">
+                            <td><span style="display: flex; align-items: center; gap: 10px; min-height: 44px"><span class="av0" style="width: 34px; height: 34px; font-size: 11px; border-radius: 10px; background: {{r.tone}}">{{r.ini}}</span><span style="display: flex; flex-direction: column; min-width: 0"><strong style="font-weight: 600">{{r.name}}</strong><span style="color: var(--ad-dim); font-size: 12px">{{r.contact}}</span></span></span></td>
+                            <td><span style="display: flex; flex-direction: column; gap: 4px; min-width: 180px"><span style="display: flex; align-items: center; gap: 8px"><span class="tag" style="background: {{r.nTone}}; color: {{r.nInk}}">{{r.nTag}}</span><span class="num" style="font-size: 12px; color: var(--ad-dim)">{{r.nWhen}}</span></span><span style="font-size: 13px">{{r.nText}}</span></span></td>
+                            <td><span style="display: flex; flex-wrap: wrap; gap: 6px; max-width: 220px"><sc-for list="{{r.svc}}" as="sv" hint-placeholder-count="2"><span class="tag" style="background: var(--ad-tone-flat); color: var(--ad-on-flat)">{{sv}}</span></sc-for></span></td>
+                            <td class="r"><span class="num" style="font-weight: 600; color: {{r.owedCol}}">{{r.owedTxt}}</span></td>
+                                                        <td style="text-align: right"><button class="ibtn ghostB" data-menu="row" aria-expanded="{{r.menuX}}" aria-label="{{r.menuAria}}" aria-haspopup="menu" onClick="{{r.menu}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg></button></td>
+                          </tr>
+                        </sc-for>
+                      </tbody>
+                    </table>
+                    <sc-if value="{{empty}}" hint-placeholder-val="{{ false }}">
+                      <div class="emptyRow rowIn" style="animation-name: rinA"><strong>{{emptyTitleT}}</strong><span style="color: var(--ad-dim)">{{emptyBodyT}}</span><sc-if value="{{hasFilter}}" hint-placeholder-val="{{ false }}"><button class="btn2" onClick="{{clearFilters}}">Clear filters</button></sc-if><sc-if value="{{noFilterEmpty}}" hint-placeholder-val="{{ false }}"><button class="btn" onClick="{{newClient}}">New client</button></sc-if></div>
+                    </sc-if>
+                  </div>
+                  %%PAGER:CP:Client%%
+                </section>
               </div>
-              %%PAGER:CP:Client%%
-            </section>
+
+              <aside class="railCards" aria-label="Client pulse" data-tour="rail">
+                <div class="bentoWrap" style="display: flex; flex-direction: column; gap: 10px">
+                  <div style="display: flex; align-items: center"><h2 style="font-size: 16px; font-weight: 700; flex: 1">Client pulse</h2></div>
+                  <div class="bento">
+                    <sc-for list="{{stats}}" as="k" hint-placeholder-count="4">
+                      <button class="card lift rise stat {{k.delay}}" onClick="{{k.open}}" aria-label="{{k.aria}}" style="--k: {{k.dot}}; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; text-align: left; min-height: 104px">
+                        <span class="statHd"><span class="statIc" style="background: {{k.tile}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="{{k.ic}}"></path></svg></span><span class="statLbl">{{k.label}}</span></span>
+                        <span class="num" style="font-size: clamp(22px, 2.4vw, 26px); font-weight: 700; line-height: 1.1">{{k.value}}</span>
+                        <span style="font-size: 12px; font-weight: 600; color: {{k.noteCol}}">{{k.note}}</span>
+                      </button>
+                    </sc-for>
+                  </div>
+                </div>
+
+                <section class="card rise d3" aria-label="Pipeline" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 4px">
+                  <div style="display: flex; align-items: center; gap: 8px"><h2 style="font-size: 16px; font-weight: 700; flex: 1">Pipeline</h2><span class="num" style="font-size: 13px; color: var(--ad-dim)">{{pipeValue}}</span></div>
+                  <sc-for list="{{pipe}}" as="pl" hint-placeholder-count="4">
+                    <button class="rowh pipeRow" onClick="{{pl.open}}" aria-label="{{pl.aria}}">
+                      <span style="display: flex; align-items: baseline; gap: 8px; width: 100%"><strong style="font-size: 13px; flex: 1">{{pl.t}}</strong><span class="num" style="font-size: 13px; font-weight: 600">{{pl.n}}</span></span>
+                      <span class="miniBar" aria-hidden="true"><span style="width: {{pl.pct}}%; background: {{pl.bar}}"></span></span>
+                      <span style="font-size: 12px; color: var(--ad-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%">{{pl.s}}</span>
+                    </button>
+                  </sc-for>
+                  <p style="font-size: 12px; color: var(--ad-dim); display: flex; gap: 6px; align-items: flex-start"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" style="margin-top: 1px; flex: none; color: var(--ad-accent-ink)"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"></path></svg><span>Same day quotes won 11 of your last 20 leads.</span></p>
+                </section>
+
+                <section class="card rise d4" aria-label="Clients by service" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 6px">
+                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px"><h2 style="font-size: 16px; font-weight: 700; flex: 1">By service</h2><span style="font-size: 12px; color: var(--ad-dim)">Tap to filter</span></div>
+                  <sc-for list="{{bySvc}}" as="bs" hint-placeholder-count="6">
+                    <button class="rowh svcRow {{bs.cls}}" onClick="{{bs.pick}}" aria-pressed="{{bs.pressed}}" aria-label="{{bs.aria}}">
+                      <span class="svcIc" style="background: {{bs.tone}}"><svg class="ic" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="{{bs.d}}"></path></svg></span>
+                      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px"><span style="display: flex; gap: 8px; font-size: 13px"><strong style="flex: 1; font-weight: 600">{{bs.t}}</strong><span class="num" style="color: var(--ad-dim)">{{bs.n}}</span></span><span class="miniBar" aria-hidden="true"><span style="width: {{bs.pct}}%"></span></span></span>
+                    </button>
+                  </sc-for>
+                </section>
+
+                <section class="card rise d5" aria-label="Client activity" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+                  <div style="display: flex; align-items: center; gap: 8px"><h2 style="font-size: 16px; font-weight: 700; flex: 1">Client activity</h2><span class="liveDot" aria-hidden="true"></span></div>
+                  <sc-for list="{{feed}}" as="p" hint-placeholder-count="4">
+                    <button class="rowh" onClick="{{p.open}}" style="display: flex; gap: 10px; padding: 8px; border-radius: 12px; text-align: left; width: 100%">
+                      <span class="av0" style="width: 32px; height: 32px; font-size: 11px; border-radius: 10px; background: {{p.tone}}">{{p.i}}</span>
+                      <span style="display: flex; flex-direction: column; min-width: 0; font-size: 13px"><span><strong>{{p.who}}</strong> {{p.what}}</span><span style="color: var(--ad-dim)">{{p.where}} · {{p.when}}</span></span>
+                    </button>
+                  </sc-for>
+                  <button class="lnk viewAll" style="align-self: flex-start" onClick="{{openFeed}}">All client activity<svg class="ic arr" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"></path></svg></button>
+                </section>
+              </aside>
+            </div>
             </sc-if>
