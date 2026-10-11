@@ -1,15 +1,13 @@
 import Link from "next/link";
-import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { DismissDetails } from "./dismiss-details";
 
 /**
  * THE ONE PAGER every admin list uses (the mockups' .pager).
  *
- * "1–25 of 132 people" and the rows-per-page choice on the left; Previous,
- * "Page 2 of 6" and Next on the right, each button with its chevron beside
- * the word. On a phone the range and the rows choice share one line and the
- * three controls become a full-width bar underneath, 48px tall (the approved
- * Contacts design). A server component with a native <details> list for the
+ * "1 to 5 of 9" on the left, the page numbers centred between chevrons, the
+ * rows choice and "View all" on the right (the approved boards). On a phone
+ * the range and the rows choice share one line and the numbers sit under them. A server component with a native <details> list for the
  * per-page choice, of links, so it works before hydration and with JavaScript
  * off, and the state lives in the URL where a reload or a shared link keeps it.
  *
@@ -44,40 +42,53 @@ export function Pager({
   perOptions?: readonly number[];
 }) {
   const pages = Math.max(1, Math.ceil(total / per));
-  const first = total ? (page - 1) * per + 1 : 0;
-  const last = Math.min(page * per, total);
+  const cur = Math.min(page, pages);
+  const first = total ? (cur - 1) * per + 1 : 0;
+  const last = Math.min(cur * per, total);
+  /* Numbers, with gaps once there are more than seven: 1 … 4 5 6 … 12. */
+  const nums: (number | "gap")[] = [];
+  for (let n = 1; n <= pages; n++) {
+    if (n === 1 || n === pages || Math.abs(n - cur) <= 1 || (pages <= 7)) nums.push(n);
+    else if (nums[nums.length - 1] !== "gap") nums.push("gap");
+  }
   return (
     <nav className="ad__pager" aria-label={label}>
-      <span className="ad__pgRange ad__num">{first}–{last} of {total} {noun}</span>
-      {perOptions.length ? (
-        <DismissDetails className="ad__perPage">
-          <summary aria-label={`Rows per page, ${per >= VIEW_ALL ? "all" : per}`}>
-            {per >= VIEW_ALL ? "View all" : `${per} per page`} <ChevronDown aria-hidden="true" />
-          </summary>
-          <div className="ad__perMenu">
-            {perOptions.map((n) => (
-              <Link key={n} href={href({ per: n, page: 1 })} aria-current={n === per ? "true" : undefined}>
-                {n} per page
-              </Link>
-            ))}
-            {perOptions === PER_PAGE_OPTIONS ? (
-              <Link href={href({ per: VIEW_ALL, page: 1 })} aria-current={per >= VIEW_ALL ? "true" : undefined}>View all</Link>
-            ) : null}
-          </div>
-        </DismissDetails>
-      ) : <span />}
+      <span className="ad__pgRange ad__num" aria-label={`${first} to ${last} of ${total} ${noun}`}>{first} to {last} of {total}</span>
       <div className="ad__pgNav">
-        {page > 1 ? (
-          <Link className="ad__pgBtn" href={href({ page: page - 1 })} rel="prev"><ChevronLeft aria-hidden="true" />Previous</Link>
+        {cur > 1 ? (
+          <Link className="ad__pgBtn" href={href({ page: cur - 1 })} rel="prev" aria-label="Previous page"><ChevronLeft aria-hidden="true" /></Link>
         ) : (
-          <span className="ad__pgBtn" aria-disabled="true"><ChevronLeft aria-hidden="true" />Previous</span>
+          <span className="ad__pgBtn" aria-disabled="true"><ChevronLeft aria-hidden="true" /><span className="ad__sr">Previous page</span></span>
         )}
-        <span className="ad__pgPage ad__num">Page {Math.min(page, pages)} of {pages}</span>
-        {page < pages ? (
-          <Link className="ad__pgBtn" href={href({ page: page + 1 })} rel="next">Next<ChevronRight aria-hidden="true" /></Link>
+        {nums.map((n, i) => n === "gap" ? <span key={`g${i}`} className="ad__pgGap" aria-hidden="true">…</span> : n === cur ? (
+          <span key={n} className="ad__pgBtn ad__pgNum is-on" aria-current="page"><span className="ad__sr">Page </span>{n}</span>
         ) : (
-          <span className="ad__pgBtn" aria-disabled="true">Next<ChevronRight aria-hidden="true" /></span>
+          <Link key={n} className="ad__pgBtn ad__pgNum" href={href({ page: n })} aria-label={`Page ${n}`}>{n}</Link>
+        ))}
+        {cur < pages ? (
+          <Link className="ad__pgBtn" href={href({ page: cur + 1 })} rel="next" aria-label="Next page"><ChevronRight aria-hidden="true" /></Link>
+        ) : (
+          <span className="ad__pgBtn" aria-disabled="true"><ChevronRight aria-hidden="true" /><span className="ad__sr">Next page</span></span>
         )}
+      </div>
+      <div className="ad__pgEnd">
+        {perOptions.length ? (
+          <DismissDetails className="ad__perPage">
+            <summary aria-label={`Rows per page, ${per >= VIEW_ALL ? "all" : per}`}>
+              {per >= VIEW_ALL ? "All" : `${per} per page`} <ChevronDown aria-hidden="true" />
+            </summary>
+            <div className="ad__perMenu">
+              {perOptions.map((n) => (
+                <Link key={n} href={href({ per: n, page: 1 })} aria-current={n === per ? "true" : undefined}>
+                  {n} per page
+                </Link>
+              ))}
+            </div>
+          </DismissDetails>
+        ) : null}
+        {perOptions === PER_PAGE_OPTIONS && per < VIEW_ALL && total > per ? (
+          <Link className="ad__pgAll" href={href({ per: VIEW_ALL, page: 1 })}>View all <ArrowRight aria-hidden="true" /></Link>
+        ) : null}
       </div>
     </nav>
   );

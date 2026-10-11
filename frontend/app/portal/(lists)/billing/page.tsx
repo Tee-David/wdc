@@ -13,6 +13,8 @@ import { Empty, InvoicePill, Panel, when } from "@/components/admin/bits";
 import { Pager, readPer } from "@/components/admin/pager";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 import "@/components/client/portal.css";
+import "@/components/admin/dashboard.css";
+import { Deck, type DeckItem } from "@/components/admin/deck";
 
 export const metadata = { title: "Billing" };
 
@@ -37,7 +39,7 @@ export default async function PortalBilling({ searchParams }: { searchParams: Pr
   persistSoon();
   const { client, isPrimaryContact, billingProjectIds } = await getPortalRequest();
   if (!client) return null;
-  if (!isPrimaryContact && !billingProjectIds.length) return <div className="adDash"><header className="adDash__head"><h1>Billing</h1></header><Empty title="Billing access is not included" icon={Lock}>Your project invitation does not include invoices or payment details. Ask the studio if you need billing access.</Empty></div>;
+  if (!isPrimaryContact && !billingProjectIds.length) return <div className="adFlow"><header className="ad__head"><div><h1>Billing</h1></div></header><Empty title="Billing access is not included" icon={Lock}>Your project invitation does not include invoices or payment details. Ask the studio if you need billing access.</Empty></div>;
   const query = await searchParams;
   const paymentMode = await selectedPaystackMode().catch(() => null);
 
@@ -61,56 +63,42 @@ export default async function PortalBilling({ searchParams }: { searchParams: Pr
     if (show === "paid") return !inv.voided && due <= 0;
     return true;
   });
-  const per = readPer(query.per, 25);
+  const per = readPer(query.per, 5);
   const pages = Math.max(1, Math.ceil(rows.length / per));
   const page = Math.min(pages, Math.max(1, Number.parseInt(query.page ?? "1", 10) || 1));
   const shown = rows.slice((page - 1) * per, page * per);
   const methods = [...new Set(payments.map(({ p }) => p.method.toLowerCase()))];
 
+  const owing = live.filter((inv) => invoiceTotals(inv).due > 0).sort((a, b) => a.due.localeCompare(b.due));
+  const deckItems: DeckItem[] = owing.map((inv): DeckItem => {
+    const overdue = invoiceStatus(inv) === "Overdue";
+    const due = invoiceTotals(inv).due;
+    return {
+      id: `bill-${inv.id}`, kind: "Invoice", tone: overdue ? "bad" : "warn", urgency: overdue ? "Overdue" : `Due ${when(inv.due)}`, label: inv.number,
+      title: `Pay ${money(due, currencyOf(inv))} on ${inv.number}`,
+      body: "Pay by card or bank transfer on the invoice page. A paid invoice cannot be paid twice, and you get a receipt straight away.",
+      facts: [{ k: "Due", v: when(inv.due) }, { k: "Invoice total", v: money(invoiceTotals(inv).total, currencyOf(inv)) }],
+      primary: { label: `Pay ${money(due, currencyOf(inv))}`, href: `/i/${inv.token}` },
+      open: `/i/${inv.token}`,
+    };
+  });
+
   return (
-    <div className="adDash">
-      <header className="adDash__head">
+    <div className="adFlow">
+      <header className="ad__head">
         <div>
           <h1>Billing</h1>
-          <p>Every invoice for your projects, what you have paid and what is left.</p>
+          <p>{balance > 0 ? <>You have paid {moneySummary(payments.map(({p,inv})=>({...p,currency:currencyOf(inv)})),p=>p.reversed?0:p.amount-refundedTotal(p))}. <b>{moneySummary(live,inv=>invoiceTotals(inv).due)} is still to pay.</b></> : "Every invoice for your projects, what you have paid and what is left."}</p>
         </div>
       </header>
       {paymentMode !== "live" ? <p>{paymentMode === "test" ? "Online checkout is in test mode. Simulated payments leave your invoices unpaid. Open an invoice for bank details to make a real payment." : "Online checkout is temporarily unavailable. Open an invoice for bank details or contact the studio."}</p> : null}
 
-      <CurrencyBalances invoices={invoices}/>
-      <dl className="pBill__kpis">
-        <div className="ad__tile pBill__owed">
-          <dt><span>Balance owed</span><span className="ad__tileIcon ad__tileIcon--live" aria-hidden="true"><Wallet /></span></dt>
-          <dd>{balance > 0 ? moneySummary(live,inv=>invoiceTotals(inv).due) : "Nil"}</dd>
-          <small>
-            {next ? <>On {next.number} · due {when(next.due)}</> : "Nothing to pay. Thank you."}
-          </small>
-          {next && canPay && ["NGN","USD"].includes(currencyOf(next)) ? (
-            /* A real POST, as on the invoice itself: a link that spends money
-               can be followed by a prefetcher. The amount comes off the
-               token, never from this page. */
-            <PayForm currency={currencyOf(next)} action={`/api/pay/${next.token}`}>
-              <button type="submit" className="pBill__pay">
-                <CreditCard aria-hidden="true" /> Pay {money(invoiceTotals(next).due,currencyOf(next))}
-              </button>
-            </PayForm>
-          ) : null}
-        </div>
-        <div className="ad__tile">
-          <dt><span>Paid to date</span><span className="ad__tileIcon ad__tileIcon--good" aria-hidden="true"><CheckCircle2 /></span></dt>
-          <dd>{paidTotal ? moneySummary(payments.map(({p,inv})=>({...p,currency:currencyOf(inv)})),p=>p.reversed?0:p.amount-refundedTotal(p)) : "Nil"}</dd>
-          <small>
-            {payments.length
-              ? `${payments.length} ${payments.length === 1 ? "payment" : "payments"}${methods.length ? `, by ${methods.join(" and ")}` : ""}`
-              : "No payments yet"}
-          </small>
-        </div>
-        {isPrimaryContact ? <div className="ad__tile">
-          <dt><span>Credit on account</span><span className="ad__tileIcon ad__tileIcon--neutral" aria-hidden="true"><Banknote /></span></dt>
-          <dd>{creditBalance ? moneySummary(credits,c=>c.amount) : "Nil"}</dd>
-          <small>{creditBalance ? "Taken off your next invoice" : "Overpayments or refunds would show here"}</small>
-        </div> : null}
-      </dl>
+      <div className="adFlow__grid">
+        <div className="adFlow__main">
+          <Deck id="billing" title="To pay" items={deckItems}
+            emptyTitle="Nothing to pay."
+            emptyBody="You are up to date. Thank you."
+            emptyNext={{ label: "See your projects", href: "/portal/projects" }} />
 
       <Panel dataTour="portal-billing" title="Invoices">
         <div id="invoices" className="ad__filterBar">
@@ -238,6 +226,44 @@ export default async function PortalBilling({ searchParams }: { searchParams: Pr
           </div>
         </Panel>
       ) : null}
+        </div>
+        <aside className="adFlow__rail" aria-label="Your balance">
+      <dl className="adFlow__tiles">
+        <div className="ad__tile pBill__owed">
+          <dt><span>Balance owed</span><span className="ad__tileIcon ad__tileIcon--live" aria-hidden="true"><Wallet /></span></dt>
+          <dd>{balance > 0 ? moneySummary(live,inv=>invoiceTotals(inv).due) : "Nil"}</dd>
+          <small>
+            {next ? <>On {next.number} · due {when(next.due)}</> : "Nothing to pay. Thank you."}
+          </small>
+          {next && canPay && ["NGN","USD"].includes(currencyOf(next)) ? (
+            /* A real POST, as on the invoice itself: a link that spends money
+               can be followed by a prefetcher. The amount comes off the
+               token, never from this page. */
+            <PayForm currency={currencyOf(next)} action={`/api/pay/${next.token}`}>
+              <button type="submit" className="pBill__pay">
+                <CreditCard aria-hidden="true" /> Pay {money(invoiceTotals(next).due,currencyOf(next))}
+              </button>
+            </PayForm>
+          ) : null}
+        </div>
+        <div className="ad__tile">
+          <dt><span>Paid to date</span><span className="ad__tileIcon ad__tileIcon--good" aria-hidden="true"><CheckCircle2 /></span></dt>
+          <dd>{paidTotal ? moneySummary(payments.map(({p,inv})=>({...p,currency:currencyOf(inv)})),p=>p.reversed?0:p.amount-refundedTotal(p)) : "Nil"}</dd>
+          <small>
+            {payments.length
+              ? `${payments.length} ${payments.length === 1 ? "payment" : "payments"}${methods.length ? `, by ${methods.join(" and ")}` : ""}`
+              : "No payments yet"}
+          </small>
+        </div>
+        {isPrimaryContact ? <div className="ad__tile">
+          <dt><span>Credit on account</span><span className="ad__tileIcon ad__tileIcon--neutral" aria-hidden="true"><Banknote /></span></dt>
+          <dd>{creditBalance ? moneySummary(credits,c=>c.amount) : "Nil"}</dd>
+          <small>{creditBalance ? "Taken off your next invoice" : "Overpayments or refunds would show here"}</small>
+        </div> : null}
+      </dl>
+          <CurrencyBalances invoices={invoices}/>
+        </aside>
+      </div>
     </div>
   );
 }
