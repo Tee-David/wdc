@@ -1017,6 +1017,69 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .imgHost{position:relative;overflow:hidden}
 .imgHost.hasImg{background:#fff !important;color:var(--ad-ink);box-shadow:inset 0 0 0 1px var(--ad-line-2)}
 .logoImg{position:absolute;inset:15%;width:70%;height:70%;object-fit:contain}
+/* Sheet quick actions: a row of chips under the details */
+.quickRow{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+/* Email builder */
+.ebGrid{display:grid;grid-template-columns:260px minmax(0,1fr) 300px;gap:16px;align-items:start}
+@container app (max-width:1180px){.ebGrid{grid-template-columns:minmax(0,1fr) 280px}.ebSide{grid-column:1/-1;order:3}}
+@container app (max-width:760px){.ebGrid{grid-template-columns:minmax(0,1fr)}.ebSet{order:2}.ebStage{order:1}}
+.ebSide .tabs{overflow-x:auto}
+.ebBar .seg button{min-height:44px;white-space:nowrap}
+.ebSide,.ebSet{padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.ebStage{padding:12px;min-width:0;display:flex;flex-direction:column;gap:10px}
+.ebBar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ebHint{font-size:12px;color:var(--ad-dim);overflow-wrap:anywhere}
+.ebList{display:flex;flex-direction:column;gap:8px}
+.ebAdd{display:flex;align-items:center;gap:10px;min-height:48px;padding:6px 8px;border-radius:12px;border:1px solid var(--ad-line);background:var(--ad-panel);color:var(--ad-ink);cursor:pointer;width:100%}
+.ebAdd:hover{background:var(--ad-hover)}
+.ebAdd:focus-visible{outline:2px solid var(--ad-focus);outline-offset:2px}
+.ebCheck{display:flex;align-items:center;gap:10px}
+.ebTick{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;flex:none;color:#fff;background:var(--ad-tone-good)}
+.ebTick.no{background:var(--ad-tone-warn)}
+.ebFrame{background:var(--ad-panel-2);border-radius:14px;padding:16px;display:flex;justify-content:center;overflow:auto;max-height:70vh}
+.ebMail{width:100%;max-width:600px;background:#fff;color:#0e0e2c;border-radius:6px;padding:20px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.ebFrame.phone .ebMail{max-width:340px}
+.ebBlk{position:relative;border-radius:8px;padding:8px;outline:2px solid transparent;cursor:pointer;min-width:0}
+.ebBlk:hover{outline-color:#c9ccdc}
+.ebBlk.on{outline-color:#0e0e2c}
+.ebH{font:700 24px/1.2 'Space Grotesk',sans-serif;overflow-wrap:anywhere}
+.ebP{font-size:15px;line-height:1.5;overflow-wrap:anywhere;white-space:pre-wrap}
+.ebPic{display:grid;place-items:center;aspect-ratio:16/7;background:#e4e6f0;border-radius:8px;color:#5c5c7a;font-size:13px;text-align:center;padding:8px}
+.ebBtn{display:inline-block;padding:12px 22px;border-radius:999px;background:#000065;color:#fff;font-weight:600}
+.ebCols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ebFrame.phone .ebCols{grid-template-columns:1fr}
+.ebHr{border:0;border-top:1px solid #c9ccdc;margin:8px 0}
+.ebSmall{font-size:12px;color:#5c5c7a}
+.ebRule{display:inline-block;margin-top:4px;padding:2px 8px;border-radius:999px;background:#5c5c7a;color:#fff;font-size:11px}
+.ebFoot{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;border-top:1px solid #e4e6f0;margin-top:12px;padding-top:12px;font-size:12px;color:#5c5c7a}
+.ebUnsub{text-decoration:underline}
+.ebTools{position:absolute;top:-16px;right:8px;display:flex;gap:2px;background:#0e0e2c;border-radius:10px;padding:2px;z-index:2}
+.ebT{display:grid;place-items:center;width:32px;height:32px;border-radius:8px;border:0;background:transparent;color:#fff;cursor:pointer;position:relative}
+.ebT::after{content:"";position:absolute;inset:-6px}
+.ebT:hover{background:#33366a}.ebT.bad:hover{background:#c62828}
+/* Automation flow canvas */
+.afBar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--ad-line)}
+.afZoom{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+.afCanvas{background:var(--ad-panel-2);padding:24px 16px;overflow:auto;max-height:72vh;display:flex;justify-content:center}
+.afFlow{display:flex;flex-direction:column;align-items:center;width:min(100%,680px);min-width:0}
+.afNode{display:flex;align-items:center;gap:12px;width:min(100%,340px);min-height:64px;padding:10px 12px;border-radius:16px;border:1px solid var(--ad-line-2);background:var(--ad-panel);color:var(--ad-ink);cursor:pointer;min-width:0}
+.afNode:hover{background:var(--ad-hover)}
+.afNode.on{border-color:var(--ad-ink);box-shadow:0 0 0 4px var(--ad-ring,rgba(14,14,44,.12))}
+.afNode:focus-visible{outline:2px solid var(--ad-focus);outline-offset:2px}
+.afLink{display:block;width:2px;height:14px;background:var(--ad-line-2)}
+.afPlus{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;border:1px solid var(--ad-line-2);background:var(--ad-panel);color:var(--ad-ink);cursor:pointer;position:relative}
+.afPlus::after{content:"";position:absolute;inset:-6px}
+.afPlus:hover{background:var(--ad-ink);color:var(--ad-panel)}
+.afLanes{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;align-items:start}
+@container app (max-width:640px){.afLanes{grid-template-columns:1fr}}
+.afLane{display:flex;flex-direction:column;align-items:center;gap:0;min-width:0;border-radius:16px;border:1px dashed var(--ad-line-2);padding:10px 8px}
+.afLaneT{font-size:11px;font-weight:700;padding:2px 10px;border-radius:999px;color:#fff;margin-bottom:8px}
+.afLaneT.yes{background:var(--ad-tone-good)}.afLaneT.no{background:var(--ad-tone-neutral)}
+.afEnd{margin-top:10px;font-size:12px;color:var(--ad-dim)}
+.afPlus,.afLink,.afNode{flex:none}
+/* Support view bar: read-only view of another account */
+.svBar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 16px;background:var(--ad-tone-warn);color:#fff;font-size:14px}
+.svBar .svExit{min-height:44px}
 
 </style>
 </helmet>
@@ -1105,6 +1168,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
             
           </header>
 
+          <sc-if value="{{svOn}}" hint-placeholder-val="{{ false }}"><div class="svBar" role="status"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path></svg><span style="flex: 1; min-width: 0"><strong>Support view: {{svName}}.</strong> Read-only. Changes, payments and downloads are off. Your owner account stays signed in. Ends at {{svEnds}}.</span><a class="btn2 svExit" href="A-Users.dc.html">Exit support view</a></div></sc-if>
           <main id="main" class="mainPad">
             <div class="pageHead rise">
               <div>
@@ -1429,6 +1493,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
             <div class="noticeB" role="status" style="--nt: {{sheet.notice.tone}}"><span class="noticeIc"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="{{sheet.notice.icon}}"></path></svg></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><strong>{{sheet.notice.title}}</strong><span>{{sheet.notice.body}}</span></span><sc-if value="{{sheet.notice.hasAct}}" hint-placeholder-val="{{ false }}"><button class="btn2" style="min-height: 40px" onClick="{{sheet.notice.act}}">{{sheet.notice.actLabel}}</button></sc-if></div>
           </sc-if>
           <sc-if value="{{sheet.hasRows}}" hint-placeholder-val="{{ true }}"><dl class="dl"><sc-for list="{{sheet.rows}}" as="r" hint-placeholder-count="4"><div style="min-width: 0"><dt>{{r.k}}</dt><dd class="num">{{r.v}}</dd></div></sc-for></dl></sc-if>
+          <sc-if value="{{sheet.hasQuick}}" hint-placeholder-val="{{ false }}"><div class="quickRow" role="group" aria-label="More for this item"><sc-for list="{{sheet.quick}}" as="q" hint-placeholder-count="3"><button type="button" class="chip" onClick="{{q.fn}}">{{q.t}}</button></sc-for></div></sc-if>
           <sc-if value="{{sheet.hasBody}}" hint-placeholder-val="{{ true }}"><p style="max-width: 62ch">{{sheet.body}}</p></sc-if>
           <sc-if value="{{sheet.hasPreview}}" hint-placeholder-val="{{ false }}">
             <div class="preview"><span style="font-size: 12px; color: var(--ad-dim)">To <strong style="color: var(--ad-ink)">{{sheet.preview.to}}</strong></span><strong>{{sheet.preview.subject}}</strong><span>{{sheet.preview.text}}</span></div>
@@ -1746,7 +1811,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 
           <sc-if value="{{sheet.hasFeed}}" hint-placeholder-val="{{ false }}">
             <div style="display: flex; flex-direction: column">
-              <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 10px">History</h3>
+              <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 10px">{{sheet.feedTitle}}</h3>
               <sc-for list="{{sheet.feed}}" as="f" hint-placeholder-count="3"><div class="feedRow"><span style="display: flex; flex-direction: column; align-items: center"><span class="d"></span><span style="flex: 1; width: 2px; background: var(--ad-line)"></span></span><span style="padding-bottom: 14px"><span style="font-weight: 600">{{f.t}}</span><br><span style="color: var(--ad-dim); font-size: 13px">{{f.when}}</span></span></div></sc-for>
             </div>
           </sc-if>
@@ -2232,12 +2297,12 @@ class Component extends DCLogic {
 
   /* ---------- the values every template shares ---------- */
   kit() {
-    var s = this.state, self = this, I = this.icons();
+    var s = this.state, self = this, I = this.icons(); var svq = (function () { try { return new URLSearchParams(window.location.search); } catch (e) { return new URLSearchParams(''); } })();
     var DEV = [['desktop', 'Desktop', 'M2 4h20v12H2zM8 20h8M12 16v4', '100%', 'auto', 'Full width'], ['tablet', 'Tablet', 'M6 2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM11 18h2', '834px', '1112px', '834 × 1112'], ['phone', 'Phone', 'M8 2h8a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM11 18h2', '390px', '844px', '390 × 844']];
     var devI = 0; DEV.forEach(function (d, i) { if (d[0] === s.dev) devI = i; });
     var cur = DEV[devI];
     var navOn = this.navSection ? this.navSection() : this.pageName();
-    var mk = function (n) { var on = n.label === navOn; return { label: n.label, d: n.d, href: n.href || '#', hasCount: n.count > 0, count: n.count, tone: n.tone || 'var(--ad-tone-brand)', aria: n.label + (n.count ? ', ' + n.count + ' new' : ''), cls: on ? 'on' : '', current: on ? 'page' : 'false', go: function (e) { if (on || !n.href || n.href === '#') { if (e && e.preventDefault) e.preventDefault(); self.setState({ drawer: false }); } } }; };
+    var mk = function (n) { var on = n.label === navOn; return {  label: n.label, d: n.d, href: n.href || '#', hasCount: n.count > 0, count: n.count, tone: n.tone || 'var(--ad-tone-brand)', aria: n.label + (n.count ? ', ' + n.count + ' new' : ''), cls: on ? 'on' : '', current: on ? 'page' : 'false', go: function (e) { if (on || !n.href || n.href === '#') { if (e && e.preventDefault) e.preventDefault(); self.setState({ drawer: false }); } } }; };
     var nav2 = this.roleNav().filter(function (n) { return n.second; }).map(mk);
     var nav = this.navData().map(function (n) { var on = n.label === navOn; return { label: n.label, d: n.d, href: n.href || '#', hasCount: n.count > 0, count: n.count, tone: n.tone || 'var(--ad-tone-brand)', aria: n.label + (n.count ? ', ' + n.count + ' new' : ''), cls: on ? 'on' : '', current: on ? 'page' : 'false', go: function (e) { if (on || !n.href || n.href === '#') { if (e && e.preventDefault) e.preventDefault(); self.setState({ drawer: false }); if (!on) self.later(n.label + ' opens in the full prototype.'); } } }; });
     var notesRaw = this.notesData();
@@ -2291,7 +2356,7 @@ class Component extends DCLogic {
     if (raw.primaryDis) { var pd = raw.primaryDis(ctx, s); if (pd) { dis = 'y'; reqText = pd; } }
     var galRaw = typeof raw.gallery === 'function' ? raw.gallery(s) : (raw.gallery || []), galEmpty = typeof raw.galleryEmpty === 'function' ? raw.galleryEmpty(s) : false;
     var sheet = Object.assign({}, raw, {
-      hasGallery: galRaw.length > 0, gallery: galRaw, galleryEmpty: galEmpty, back: s.stack.length > 0, hasChip: !!raw.chip, hasIcon: !!raw.icon, icon: raw.icon || '', iconTone: raw.iconTone || 'var(--ad-tone-brand)', hasRows: raw.rows.length > 0, hasBody: !!raw.body, hasPreview: !!raw.preview, preview: raw.preview || {},
+      feedTitle: raw.feedTitle || 'History', hasQuick: !!(raw.quick && raw.quick.length), quick: (raw.quick || []).map(function (q) { return { t: q.t, d: q.d || '', fn: function () { if (q.fn) q.fn(); } }; }), hasGallery: galRaw.length > 0, gallery: galRaw, galleryEmpty: galEmpty, back: s.stack.length > 0, hasChip: !!raw.chip, hasIcon: !!raw.icon, icon: raw.icon || '', iconTone: raw.iconTone || 'var(--ad-tone-brand)', hasRows: raw.rows.length > 0, hasBody: !!raw.body, hasPreview: !!raw.preview, preview: raw.preview || {},
       hasList: list.length > 0 || ss.has, list: list, ss: ss, listRole: raw.select ? (raw.multi ? 'group' : 'radiogroup') : 'list', hasChecks: checks.length > 0, checks: checks, checksTitle: raw.checksTitle || 'Checklist', checksDone: ckDone + ' of ' + checks.length, checksPct: checks.length ? Math.round(ckDone / checks.length * 100) : 0,
       hasFeed: raw.feed.length > 0, hasNote: !!raw.note, reason: !!raw.reason, reasonLabel: raw.reason ? raw.reason.label : '', reasonPh: raw.reason ? raw.reason.ph : '', ack: !!raw.ack, ackText: raw.ack || '',
       hasFields: fields.length > 0, fields: fields, fieldsCls: raw.chipsFirst ? 'fieldsLate' : '', listCls: raw.chipsFirst ? 'listLate' : '', chipsCls: raw.chipsFirst ? 'chipsMid' : '', hasChipSets: chipSets.length > 0, chipSets: chipSets, hasNotice: !!notice, notice: notice || {}, primaryLabel: plabel, primaryCls: raw.danger ? 'btnD' : (raw.green ? 'btnG' : 'btn'), primaryDis: !!dis, why: reqText, hasSecondary: !!raw.secondary, secondaryLabel: typeof raw.secondary === 'function' ? raw.secondary(ctx, s) : raw.secondary, chip: typeof raw.chip === 'function' ? raw.chip(ctx, s) : raw.chip, tone: typeof raw.tone === 'function' ? raw.tone(ctx, s) : raw.tone, hasFoot: !raw.noFoot, busy: !!raw.busy
@@ -2306,7 +2371,7 @@ class Component extends DCLogic {
     }
     var client = s.vis === 'client';
     var anyOverlay = !!(s.sheet || s.drawer || s.pal || (s.pop && s.pop.asSheet) || s.tour >= 0);
-    return {
+    return { svOn: !!svq.get('sv'), svName: svq.get('who') ? svq.get('who') + ' as ' + svq.get('sv') : 'read only', svEnds: '09:00',
       rootCls: 'wdc' + (s.dark ? ' dark' : '') + (s.dev === 'phone' ? ' isPhone' : '') + (anyOverlay ? ' locked' : ''),
       themeLabel: s.dark ? 'Switch to light mode' : 'Switch to dark mode', themeIcon: s.dark ? I.sun : I.moon, themeShort: s.dark ? 'Light' : 'Dark', themeLong: s.dark ? 'Light mode' : 'Dark mode',
       toggleTheme: function () { self.setState({ dark: !self.state.dark }); },
@@ -3355,7 +3420,10 @@ class Component extends DCLogic {
       { when: '60 days', what: 'Play developer account', client: 'Kora Logistics', amount: '$25', tone: 'var(--ad-tone-neutral)', sheet: S({ eyebrow: 'Renewal', title: 'Google Play account', icon: I.link, rows: [{ k: 'Owner', v: 'WDC, movable on request' }, { k: 'Renews', v: '9 Dec 2026' }], primary: 'Remind me in November', pToast: 'Reminder set for 1 November.' }) }
     ].map(function (r) { return Object.assign({}, r, { open: function () { self.open(r.sheet); } }); });
 
+    var pn = this.shared('dashPanels', ['Cash in', 'Team today']);
     return Object.assign(this.kit(), this.extraVals(), dv, {
+      showCash: pn.indexOf('Cash in') >= 0, showTeam: pn.indexOf('Team today') >= 0,
+      customise: function () { var all = ['Cash in', 'Team today']; self.open(self.sh({ eyebrow: 'Customise', title: 'What the dashboard shows', icon: I.layers, keepOpen: true, body: 'Untick what you do not need. You can bring it back here. The studio pulse figures always stay.', form: { pn: pn.slice() }, chipSets: [{ key: 'pn', label: 'Panels beside the deck', multi: true, opts: all }], primary: 'Save', secondary: 'Cancel', onPrimary: function (ctx) { self.setShared('dashPanels', ctx.form.pn); self.setState({ ra: self.state.ra + 1, sheet: null, stack: [] }); self.say('Saved. The dashboard is updated.'); } })); },
       deckTitle: 'Up next', deckKeys: 'Focus the card: D done, S snooze', snoozeLabel: 'Snooze', snoozeShort: 'Snooze', canPass: true,
       emptyTitle: 'You are clear, Babatope.', emptyBody: 'Nothing needs you right now. Next on the calendar:', emptyNext: 'Discovery call with Zara Events at 11:00.', emptyPrimaryLabel: 'Plan tomorrow', emptySecondaryLabel: 'Bring everything back',
       emptyPrimary: function () { self.open(S({ eyebrow: 'Tomorrow', title: 'Sunday 11 October', icon: I.cal, listTitle: 'Already booked', list: [{ t: '09:00 · Send November retainers', s: '4 drafts ready · ₦1,450,000', tag: 'Money', tone: 'var(--ad-tone-live)' }, { t: '10:00 · Halo milestone 2 demo', s: 'Google Meet · Daniel', tag: 'Meeting', tone: 'var(--ad-tone-brand)' }], body: 'Anything you snooze to tomorrow lands here at 09:00.', primary: 'Close' })); },
@@ -3578,7 +3646,7 @@ class Component extends DCLogic {
       pageTitle: C.title, ledeA: C.ledeA(this), ledeB: C.ledeB(this), newLabel: C.newLabel, newPost: function () { C.newFn(self); }, openChores: function (e) { self.openPop(e, 'chores', 'chores', 260, 220, 'More for ' + C.title); }, choresX: this.popOn('chores', 'chores'),
       deckTitle: C.deckTitle, deckKeys: 'Focus the card: D done, S snooze', snoozeLabel: 'Snooze', snoozeShort: 'Snooze', canPass: true,
       emptyTitle: C.emptyTitle, emptyBody: 'Nothing needs a decision. Next:', emptyNext: C.emptyNext, emptyPrimaryLabel: C.newLabel, emptySecondaryLabel: 'Bring everything back', emptyPrimary: function () { C.newFn(self); },
-      tabsAria: C.title + ' sections', tabs: tabs, tabTitle: T.title, total: list.length, chips: chipsV, cols: T.cols, rows: rows, BP: BP, TBL: TBL, qPh: T.ph, q: s.hq, hasQ: !!s.hq,
+      tabsAria: C.title + ' sections', tabs: tabs, tabTitle: T.title, total: list.length, chips: chipsV, cols: typeof T.cols === 'function' ? T.cols(self) : T.cols, rows: rows, BP: BP, TBL: TBL, qPh: T.ph, q: s.hq, hasQ: !!s.hq,
       onQ: function (e) { self.setState({ hq: e.target.value, hpg: 0, ra: self.state.ra + 1 }); }, clearQ: function () { self.setState({ hq: '', ra: self.state.ra + 1 }); },
       tabActLabel: T.actLabel, tabActD: T.actD, tabAct: function () { T.act(self); },
       empty: !list.length, hasFilter: hasFilter && !!all.length, noFilterEmpty: !all.length, clearFilters: function () { self.setState({ hq: '', chip: 'all', hpg: 0, flt: {}, ra: self.state.ra + 1 }); }, emptyTitleT: q ? 'Nothing matches "' + s.hq + '".' : (all.length ? 'Nothing in this view.' : T.emptyT), emptyBodyT: q ? T.ph + '.' : (all.length ? 'Try another filter.' : T.emptyB),
@@ -3609,6 +3677,27 @@ class Component extends DCLogic {
   }
   rcTone(st) { return { 'To match': ['var(--ad-tone-live)', '#fff'], Matched: ['var(--ad-tone-good)', '#fff'], Ignored: ['var(--ad-tone-flat)', 'var(--ad-on-flat)'] }[st]; }
   naira(n) { return (n < 0 ? '-' : '') + '₦' + Math.abs(n).toLocaleString('en-NG'); }
+  rcEvents() {
+    return this.hubApply('pe', [
+      { id: 'pe1', name: 'charge.success · 9PL2WX', sub: 'Paystack reference TRF_0092', amt: 300000, when: 'Thu 8 Oct, 14:22', st: 'Needs somebody', why: 'The reference matches INV-26-9PL2WX but the invoice already shows paid by transfer.', inv: 'INV-26-9PL2WX' },
+      { id: 'pe2', name: 'charge.success · 4KQ8ZD', sub: 'Paystack reference TRF_0098', amt: 850000, when: 'Fri 9 Oct, 08:52', st: 'Matched', why: 'Banked against INV-26-4KQ8ZD. Receipt RCT-2026-041 sent.', inv: 'INV-26-4KQ8ZD' },
+      { id: 'pe3', name: 'charge.success · no invoice', sub: 'Paystack reference TRF_0101', amt: 120000, when: 'Today, 07:12', st: 'Unmatched', why: 'No invoice carries this reference. The client may have paid a wrong one.', inv: '' },
+      { id: 'pe4', name: 'refund.processed · 7DM3QA', sub: 'Paystack reference RF_0007', amt: -45000, when: 'Wed 7 Oct', st: 'Matched', why: 'Part refund recorded on INV-26-7DM3QA.', inv: 'INV-26-7DM3QA' }
+    ]);
+  }
+  rcMails() {
+    return this.hubApply('pm', [
+      { id: 'pm1', name: 'Receipt RCT-2026-041', sub: 'To adaeze@miraskincare.ng', when: 'Fri 9 Oct', st: 'Failed', why: 'The mail server refused it: mailbox full.' },
+      { id: 'pm2', name: 'Invoice INV-26-9PL2WX', sub: 'To tunde@zaraevents.ng', when: 'Thu 8 Oct', st: 'Failed', why: 'Interrupted before sending.' }
+    ]);
+  }
+  rcEventSheet(e) {
+    var self = this, I = this.icons(), t = { Matched: 'var(--ad-tone-good)', 'Needs somebody': 'var(--ad-tone-warn)', Unmatched: 'var(--ad-tone-bad)' }[e.st], todo = e.st !== 'Matched';
+    return this.sh({ eyebrow: 'Paystack · ' + e.st, title: e.name, chip: e.st, tone: t, icon: I.cash, iconTone: t, rows: [{ k: 'Reference', v: e.sub.replace('Paystack reference ', '') }, { k: 'Amount', v: this.naira(e.amt) }, { k: 'When', v: e.when }, { k: 'Invoice', v: e.inv || 'None' }, { k: 'What happened', v: e.why }], body: todo ? 'Choose what to do. A write off cannot be edited afterwards, so write it for whoever reads it next year.' : 'Done. Nothing more to do.',
+      quick: [{ t: 'View on Paystack', fn: function () { self.say('The payment opens on Paystack in a new tab.'); } }].concat(e.inv && todo ? [{ t: 'Email the client a receipt', fn: function () { self.say('Receipt sent behind the scenes. The log shows whether it arrived.'); } }] : []), primary: todo ? 'Match to an invoice' : 'Close', secondary: todo ? 'Write it off' : '',
+      onPrimary: function () { if (!todo) return; self.open(self.sh({ eyebrow: 'Match', title: 'Against which invoice', icon: I.link, keepOpen: true, body: 'The amount is banked against the invoice. The client gets a receipt if you tick it.', listTitle: 'Invoice', select: true, selectWhy: 'Choose an invoice.', searchPh: 'Search invoices', list: [['INV-26-9PL2WX', 'Zara Events · ₦300,000'], ['INV-26-7DM3QA', 'Kora Logistics · ₦1,015,000'], ['INV-26-4KQ8ZD', 'Mira Skincare · paid']].map(function (x) { return { t: x[0], s: x[1], ini: '#', av: 'var(--ad-tone-brand)' }; }), form: { who: 'Babatope A.', tell: ['Email the client a receipt'] }, chipSets: [{ key: 'tell', label: 'Tell the client by email', multi: true, opts: ['Email the client a receipt'] }], primary: 'Bank it', secondary: 'Cancel', primaryDis: function (ctx) { return ctx.pick < 0 ? 'Choose an invoice.' : ''; }, onPrimary: function (ctx) { self.hubPatch(e.id, { st: 'Matched', inv: ctx.item.t, why: 'Banked against ' + ctx.item.t + ' by you.' }); self.setState({ sheet: null, stack: [] }); self.say('Matched. ' + ctx.item.t + ' is banked.'); } }), true); return 'stay'; },
+      onSecondary: function () { self.open(self.sh({ eyebrow: 'Write off', title: 'Write off ' + self.naira(e.amt), icon: I.ban, iconTone: 'var(--ad-tone-warn)', keepOpen: true, body: 'This cannot be edited afterwards. Write it for whoever reads it next year.', form: { done: '', who: 'Babatope A.' }, fields: [{ key: 'done', label: 'What was done', type: 'area', wide: true, ph: 'Refunded through Paystack on 14 September; the client had paid the wrong invoice.' }], chipSets: [{ key: 'who', label: 'Who dealt with it', opts: self.teamData().map(function (m) { return m.name; }) }], primary: 'Write it down', secondary: 'Cancel', ack: 'This cannot be edited afterwards.', primaryDis: function (ctx) { return (ctx.form.done || '').trim().length < 20 ? 'Write what was done, at least 20 characters.' : ''; }, onPrimary: function (ctx) { self.hubPatch(e.id, { st: 'Matched', why: 'Written off: ' + ctx.form.done.trim() + ' (' + ctx.form.who + ')' }); self.setState({ sheet: null, stack: [] }); self.say('Saved. The write off is on the books.'); } }), true); return 'stay'; } });
+  }
   rcSheet(b) {
     var self = this, I = this.icons(), t = this.rcTone(b.st), todo = b.st === 'To match', exp = b.amt < 0;
     return this.sh({ eyebrow: 'Bank line · ' + b.st, title: b.name, chip: b.st, tone: t[0], icon: I.cash, iconTone: t[0],
@@ -3642,7 +3731,14 @@ class Component extends DCLogic {
         exportCols: [{ t: 'Date', v: function (b) { return b.date; } }, { t: 'Narration', v: function (b) { return b.name; } }, { t: 'Amount', v: function (b) { return b.amt; } }, { t: 'State', v: function (b) { return b.st; } }, { t: 'Matched to', v: function (b) { return b.sug; } }],
         sheet: function (b) { return self.rcSheet(b); },
         actions: function (b, it, I2) { var o = [it('Open line', I2.open, function () { self.open(self.rcSheet(b)); })]; if (b.st === 'To match') { if (b.sug) o.push(it('Confirm the match…', I2.check, function () { self.open(self.rcSheet(b)); })); o.push(it('Ignore', I2.ban, function () { self.hubPatch(b.id, { st: 'Ignored', score: 'Ignored by you' }); self.say('Ignored.', { undo: function () { self.hubPatch(b.id, { st: 'To match' }); } }); })); } return o; },
-        bulk: function () { return [{ label: 'Ignore', icon: I.ban, fn: function (sel, done) { sel.filter(function (b) { return b.st === 'To match'; }).forEach(function (b) { self.hubPatch(b.id, { st: 'Ignored' }); }); self.say('Ignored.'); done(); } }]; } }],
+        bulk: function () { return [{ label: 'Ignore', icon: I.ban, fn: function (sel, done) { sel.filter(function (b) { return b.st === 'To match'; }).forEach(function (b) { self.hubPatch(b.id, { st: 'Ignored' }); }); self.say('Ignored.'); done(); } }]; } },
+        { key: 'pe', label: 'Paystack', title: 'Everything Paystack has said', noun: 'events', one: 'event', ph: 'Reference, event or amount', file: 'wdc-paystack-events', actLabel: 'Open Paystack', actD: I.out, act: function () { self.say('Paystack opens in a new tab.'); }, emptyT: 'Paystack has not said anything yet.', emptyB: 'Events land here as they arrive.', warn: function () { return self.rcEvents().some(function (e) { return e.st !== 'Matched'; }); },
+          cols: [{ t: 'Event' }, { t: 'When' }, { t: 'State' }, { t: 'Amount', cls: 'r' }], items: function () { return self.rcEvents().map(function (e) { var tn = { Matched: [G, '#fff'], 'Needs somebody': ['var(--ad-tone-warn)', '#fff'], Unmatched: ['var(--ad-tone-bad)', '#fff'] }[e.st]; return Object.assign({}, e, { hay: e.name + ' ' + e.sub + ' ' + e.inv, cells: [{ t: e.when }, { tag: true, t: e.st, tone: tn[0], ink: tn[1] }, { t: self.naira(e.amt), cls: 'r num' }] }); }); },
+          chips: [['all', 'All', function () { return true; }], ['todo', 'Needs somebody', function (x) { return x.st !== 'Matched'; }], ['done', 'Matched', function (x) { return x.st === 'Matched'; }]], exportCols: [{ t: 'Event', v: function (e) { return e.name; } }, { t: 'Reference', v: function (e) { return e.sub; } }, { t: 'Amount', v: function (e) { return e.amt; } }, { t: 'State', v: function (e) { return e.st; } }],
+          sheet: function (e) { return self.rcEventSheet(e); }, actions: function (e, it, I2) { var o = [it('Open', I2.open, function () { self.open(self.rcEventSheet(e)); })]; if (e.st !== 'Matched') o.push(it('Match to an invoice', I2.link, function () { self.open(self.rcEventSheet(e)); })); return o; } },
+        { key: 'pm', label: 'Emails that failed', title: 'Messages that did not go', noun: 'emails', one: 'email', ph: 'Subject or address', file: 'wdc-failed-emails', actLabel: 'Open the message log', actD: I.mail, act: function () { window.location.href = 'A-Settings.dc.html'; }, emptyT: 'Everything went.', emptyB: 'A failed email shows here with the reason.', warn: function () { return self.rcMails().length > 0; },
+          cols: [{ t: 'Email' }, { t: 'When' }, { t: 'Why' }], items: function () { return self.rcMails().map(function (m) { return Object.assign({}, m, { hay: m.name + ' ' + m.sub, cells: [{ t: m.when }, { t: m.why }] }); }); }, chips: [['all', 'All', function () { return true; }]], exportCols: [{ t: 'Email', v: function (m) { return m.name; } }, { t: 'To', v: function (m) { return m.sub; } }, { t: 'Why', v: function (m) { return m.why; } }],
+          sheet: function (m) { return self.sh({ eyebrow: 'Did not go', title: m.name, chip: 'Failed', tone: 'var(--ad-tone-bad)', icon: I.mail, rows: [{ k: 'To', v: m.sub.replace('To ', '') }, { k: 'When', v: m.when }, { k: 'Why', v: m.why }], body: 'Sent behind the scenes. The log shows whether it arrived.', primary: 'Send it again', secondary: 'Close', onPrimary: function () { self.hubGone([m.id], 'Sent again. The log shows whether it arrived.'); }, onSecondary: function () {} }); }, actions: function (m, it, I2) { return [it('Send it again', I2.send, function () { self.hubGone([m.id], 'Sent again. The log shows whether it arrived.'); })]; } }],
       stats: function () { var a = self.rcAll(), cr = a.filter(function (b) { return b.amt > 0; }).reduce(function (s, b) { return s + b.amt; }, 0); return [
         { label: 'To match', value: String(a.filter(function (b) { return b.st === 'To match'; }).length), note: self.naira(a.filter(function (b) { return b.st === 'To match' && b.amt > 0; }).reduce(function (s, b) { return s + b.amt; }, 0)) + ' in', noteCol: 'var(--ad-accent-ink)', dot: 'var(--ad-tone-live)', ic: I.cash, fn: function () { self.setState({ chip: 'todo', hpg: 0, ra: self.state.ra + 1 }); } },
         { label: 'Money in', value: self.naira(cr), note: 'On this statement', noteCol: 'var(--ad-dim)', dot: G, ic: I.wallet, fn: function () {} },

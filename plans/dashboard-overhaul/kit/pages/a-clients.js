@@ -1,6 +1,6 @@
   /* ======================= Owner · Clients ======================= */
   /* The home's Focus idea applied to clients: a deck of relationship work first (leads to close, a client going cold, a request, a renewal, a win back), then the table, with the client pulse on the right. */
-  pageState() { return { ctab: 'all', cpage: 0, cper: 5, q2: '', svc: 'all', ra: 0, trashed: {}, converted: {}, added: [], patch: {}, feedAdd: [] }; }
+  pageState() { return { ctab: 'all', cpage: 0, cper: 5, q2: '', svc: 'all', ra: 0, trashed: {}, archived: {}, converted: {}, added: [], patch: {}, feedAdd: [] }; }
   pageName() { return 'Clients'; }
   tourSteps() {
     var I = this.icons();
@@ -15,7 +15,7 @@
     var s = this.state;
     return s.added.concat(this.clientsData().filter(function (c) { return c.isNew; }), this.clientsData().filter(function (c) { return !c.isNew; })).filter(function (c) { return !s.trashed[c.id]; }).map(function (c) {
       var x = s.converted[c.id] ? Object.assign({}, c, { status: 'active', since: 'Oct 2026', portal: 'Invite sent today', last: 'Converted from a lead', lastWhen: 'Just now' }) : c;
-      return s.patch[c.id] ? Object.assign({}, x, s.patch[c.id]) : x;
+      return Object.assign({}, s.patch[c.id] ? Object.assign({}, x, s.patch[c.id]) : x, { archived: !!s.archived[c.id] });
     });
   }
   patchClient(id, p) { var all = Object.assign({}, this.state.patch); all[id] = Object.assign({}, all[id] || {}, p); this.setState({ patch: all, ra: this.state.ra + 1 }); }
@@ -75,8 +75,44 @@
     return [
       { label: 'Message', icon: I.msg, fn: function (sel, done) { self.open(self.sh({ eyebrow: 'Message', title: 'Message ' + sel.length + (sel.length === 1 ? ' client' : ' clients'), icon: I.msg, compose: true, composeLabel: 'Message', composePh: 'Each person gets this in their portal and by email', vis: 'client', required: true, body: sel.map(function (c) { return c.contact; }).join(', ') + '.', primary: 'Send to ' + sel.length, secondary: 'Cancel', onPrimary: function (ctx) { done(); self.say('Sending to ' + sel.length + ' in 8s', { delay: 8, pending: function (n) { return 'Sending to ' + sel.length + (sel.length === 1 ? ' client' : ' clients') + ' in ' + n + 's'; }, cancel: function () { }, cancelled: 'Cancelled. Nothing was sent.' }); } })); } },
       { label: 'Send portal invite', icon: I.mail, fn: function (sel, done) { var need = sel.filter(function (c) { return /Never|No portal|Invite sent/.test(c.portal); }); if (!need.length) { self.say('Everyone selected already signs in. No invites needed.'); return; } self.ask({ eyebrow: 'Portal', title: 'Send ' + need.length + (need.length === 1 ? ' portal invite?' : ' portal invites?'), body: need.map(function (c) { return c.contact; }).join(', ') + ' get a link to set a password. Clients who already sign in are left out.', to: need.map(function (c) { return c.email; }).join(', '), subject: 'Your WDC portal is ready', preview: 'Hello,\nYour client portal is ready. Approve work, pay invoices and message us in one place.', ok: 'Send invites', icon: I.mail, onOk: function () { done(); self.say('Sending ' + need.length + (need.length === 1 ? ' invite' : ' invites') + ' in 8s', { delay: 8, pending: function (n) { return 'Sending ' + need.length + ' invites in ' + n + 's'; }, cancel: function () { }, cancelled: 'Cancelled. Nothing was sent.' }); } }); } },
+      { label: 'Archive', icon: I.folder, fn: function (sel, done) { self.ask({ eyebrow: 'Archive', title: 'Archive ' + sel.length + (sel.length === 1 ? ' client?' : ' clients?'), body: 'They leave the lists and keep everything. You can restore them from the Archived tab.', ok: 'Archive', icon: I.folder, tone: 'var(--ad-tone-warn)', onOk: function () { var a = Object.assign({}, self.state.archived); sel.forEach(function (c) { a[c.id] = true; }); self.setState({ archived: a, ra: self.state.ra + 1 }); self.say(sel.length + ' archived.'); done(); } }); } },
       { label: 'Move to Trash', icon: I.trash, danger: true, fn: function (sel, done) { self.ask({ eyebrow: 'Trash', title: 'Move ' + sel.length + (sel.length === 1 ? ' client' : ' clients') + ' to Trash?', body: 'Their projects, files and invoices go with them. Invoices keep their numbers. You can restore everything from Settings, Trash, for 30 days.', ok: 'Move to Trash', danger: true, tone: 'var(--ad-tone-bad)', icon: I.trash, onOk: function () { var t = Object.assign({}, self.state.trashed); sel.forEach(function (c) { t[c.id] = true; }); self.setState({ trashed: t, ra: self.state.ra + 1 }); done(); self.say(sel.length + (sel.length === 1 ? ' client' : ' clients') + ' moved to Trash.', { undo: function () { var u = Object.assign({}, self.state.trashed); sel.forEach(function (c) { delete u[c.id]; }); self.setState({ trashed: u, ra: self.state.ra + 1 }); } }); } }); } }
     ];
+  }
+  clientForm(c) {
+    var self = this, I = this.icons(), SEC = ['Fashion', 'Food and drink', 'Health', 'Real estate', 'Events', 'Logistics', 'Education', 'Technology', 'Other'];
+    var start = { name: c.name, contact: c.contact, email: c.email, phone: c.phone === 'Not given' ? '' : c.phone, sector: c.sector || 'Other', svc: (c.services || []).filter(function (x) { return x !== 'Not set'; }), tags: (c.tagsC || []).join(', '), others: (c.others || ''), notes: c.notes || '' };
+    this.open(this.sh({ wide: true, eyebrow: 'Edit client', title: c.name, icon: I.edit, keepOpen: true, body: 'Changing the email or phone here updates the portal sign-in too. Duplicates are checked before saving.', form: start,
+      fields: [{ key: 'name', label: 'Company', wide: true }, { key: 'contact', label: 'Who you deal with' }, { key: 'email', label: 'Email', type: 'email' }, { key: 'phone', label: 'Phone', mode: 'tel' }, { key: 'tags', label: 'Tags', ph: 'vip, referred-by-ade', wide: true, hint: 'Your own labels, comma separated. Searchable on the Clients screen.' }, { key: 'others', label: 'Other contacts', type: 'area', wide: true, ph: 'Ada Obi, marketing lead, ada@company.ng, +234 803 000 0000', hint: 'One person per line: name, role, email, phone. Only the name is needed.' }, { key: 'notes', label: 'Notes', type: 'area', wide: true, hint: 'Anything the next person opening this record should know.' }],
+      chipSets: [{ key: 'sector', label: 'Sector', opts: SEC, hint: 'What business they are in.' }, { key: 'svc', label: 'What they buy', multi: true, opts: ['Brand identity', 'Website', 'Social media', 'SEO', 'Apps', 'Software & AI'], hint: 'A client appears under each of these on the Clients screen.' }], primary: 'Save', secondary: 'Cancel',
+      primaryDis: function (ctx) { var f = ctx.form, e = (f.email || '').trim().toLowerCase(); if (!(f.name || '').trim() || !(f.contact || '').trim()) return 'Add the company and who you deal with.'; if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) return 'Add a valid email.'; if (self.temp(e)) return 'Temporary inboxes are refused.'; var hit = self.allClients().filter(function (x) { return x.id !== c.id && x.email.toLowerCase() === e; })[0]; if (hit) return hit.name + ' already uses this email. Merge the two records instead.'; return ''; },
+      onPrimary: function (ctx) { var f = ctx.form; self.patchClient(c.id, { name: f.name.trim(), contact: f.contact.trim(), email: f.email.trim(), phone: (f.phone || '').trim() || 'Not given', sector: f.sector, services: f.svc.length ? f.svc : ['Not set'], tagsC: f.tags.split(',').map(function (x) { return x.trim(); }).filter(Boolean), others: f.others, notes: f.notes }); self.setState({ sheet: null, stack: [] }); self.say('Updated. ' + f.name.trim() + ' is saved.'); } }));
+  }
+  logSheet(c) {
+    var self = this, I = this.icons();
+    this.open(this.sh({ eyebrow: 'Log', title: 'Log a call or message with ' + c.name, icon: I.phone, keepOpen: true, body: 'For what happened outside the portal, so the history stays in one place.', form: { who: c.contact, wayy: 'Phone call', dir: 'They did', about: '', said: '' },
+      fields: [{ key: 'who', label: 'With', wide: true, hint: 'A person, or the project group.' }, { key: 'about', label: 'About', wide: true, ph: 'Sent the three identity routes' }, { key: 'said', label: 'What was said', type: 'area', wide: true, ph: 'Asked for a pick by Friday. Tobi prefers route two.' }],
+      chipSets: [{ key: 'wayy', label: 'How', opts: ['Phone call', 'WhatsApp', 'In person', 'Other'] }, { key: 'dir', label: 'Who started it', opts: ['We did', 'They did'] }], primary: 'Log it', secondary: 'Cancel',
+      primaryDis: function (ctx) { return !(ctx.form.about || '').trim() ? 'Say what it was about.' : (!(ctx.form.said || '').trim() ? 'Write what was said.' : ''); },
+      onPrimary: function (ctx) { self.patchClient(c.id, { last: ctx.form.wayy + ': ' + ctx.form.about.trim(), lastWhen: 'Just now' }); self.setState({ sheet: null, stack: [] }); self.say('Saved. It is on ' + c.name + '’s history.'); } }));
+  }
+  archiveSheet(c) {
+    var self = this, I = this.icons();
+    this.ask({ eyebrow: 'Archive', title: 'Archive ' + c.name + '?', body: (c.owed ? c.name + ' still owes ' + this.ngn(c.owed) + '. ' : '') + 'Archiving keeps everything and can be undone. They leave the lists and cannot sign in until you restore them. Invoices keep their numbers.', ok: 'Archive client', icon: I.folder, tone: 'var(--ad-tone-warn)',
+      onOk: function () { var a = Object.assign({}, self.state.archived); a[c.id] = true; self.setState({ archived: a, ra: self.state.ra + 1 }); self.say(c.name + ' archived.', { undo: function () { var u = Object.assign({}, self.state.archived); delete u[c.id]; self.setState({ archived: u, ra: self.state.ra + 1 }); } }); } });
+  }
+  deleteForever(c) {
+    var self = this, I = this.icons(), blocked = c.owed > 0;
+    this.open(this.sh({ eyebrow: 'Delete permanently', title: blocked ? 'It cannot be deleted yet' : 'Delete ' + c.name + ' for good?', icon: I.trash, iconTone: 'var(--ad-tone-bad)',
+      rows: [{ k: 'Goes with it', v: 'Their record, contacts, notes, projects, files and portal account.' }, { k: 'Stays', v: 'Invoices and receipts, with their numbers, in Money. Emails already sent stay in the message log.' }].concat(blocked ? [{ k: 'Why not yet', v: c.name + ' still owes ' + this.ngn(c.owed) + '. Settle or write it off first.' }] : []),
+      body: blocked ? 'Archiving keeps everything and can be undone. Deleting cannot.' : 'This cannot be undone. Archiving keeps everything and can be undone.', primary: 'Delete permanently', secondary: 'Keep archived', primaryDis: function () { return blocked ? 'Settle or write off what they owe first.' : ''; }, ack: 'This cannot be undone.',
+      onPrimary: function () { var t = Object.assign({}, self.state.trashed); t[c.id] = true; self.setState({ trashed: t, ra: self.state.ra + 1 }); self.say(c.name + ' deleted permanently.'); } }));
+  }
+  mergeSheet(c) {
+    var self = this, I = this.icons(), others = this.allClients().filter(function (x) { return x.id !== c.id && !x.archived; });
+    this.open(this.sh({ eyebrow: 'Merge', title: 'Merge a duplicate into ' + c.name, icon: I.layers, body: 'Pick the record to fold in. Its projects, invoices, files, contacts and history move to ' + c.name + ', and the duplicate is archived. Search by name, email or phone.', listTitle: 'The duplicate', select: true, searchPh: 'Search by name, email or phone', selectWhy: 'Pick the duplicate.',
+      list: others.map(function (x) { return { t: x.name, s: x.contact + ' · ' + x.email, ini: x.ini, av: x.tone, ref: x, k: x.phone }; }), primary: 'Merge it', secondary: 'Cancel', primaryDis: function (ctx) { return ctx.pick < 0 ? 'Pick the duplicate.' : ''; },
+      onPrimary: function (ctx) { var d = ctx.item.ref; self.ask({ eyebrow: 'Merge', title: 'Fold ' + d.name + ' into ' + c.name + '?', body: 'Everything of ' + d.name + ' moves to ' + c.name + '. The duplicate is archived and its portal sign-in stops. This cannot be undone.', ok: 'Merge ' + d.name, danger: true, needAck: true, icon: I.layers, tone: 'var(--ad-tone-bad)', onOk: function () { var a = Object.assign({}, self.state.archived); a[d.id] = true; self.setState({ archived: a, ra: self.state.ra + 1 }); self.patchClient(c.id, { last: 'Merged with ' + d.name, lastWhen: 'Just now' }); self.say('Merged. ' + d.name + ' is now part of ' + c.name + '.'); } }, true); return 'stay'; } }));
   }
   rowMenu(c) {
     var self = this, I = this.icons(), it = this.menuItem.bind(this), lead = c.status === 'lead', out = [];
@@ -84,7 +120,12 @@
     out.push(it('Message ' + c.contact.split(' ')[0], I.msg, function () { self.open(self.sh({ eyebrow: 'Message', title: 'Message ' + c.contact, icon: I.msg, compose: true, composeLabel: 'Message', composePh: 'Write to ' + c.contact.split(' ')[0], vis: 'client', required: true, primary: 'Send', onPrimary: function (ctx) { self.say(ctx.vis === 'client' ? 'Sent to ' + c.contact.split(' ')[0] + '. They get an email and a portal notice.' : 'Saved as a team note on ' + c.name + '.'); } })); }));
     if (lead) out.push(it('Convert to client', I.users, function () { self.ask({ eyebrow: 'Convert', title: 'Make ' + c.name + ' a client?', body: c.contact + ' gets a portal invite by email and the lead history moves to their record.', ok: 'Convert and invite', icon: I.users, onOk: function () { var cv = Object.assign({}, self.state.converted); cv[c.id] = true; self.setState({ converted: cv, ra: self.state.ra + 1 }); self.say(c.name + ' is now a client. Invite sent to ' + c.email + '.'); } }); }));
     else out.push(it('New invoice', I.file, function () { window.location.href = 'A-Money.dc.html'; }, { hint: 'Money' }));
+    out.push(it('Edit details', I.edit, function () { self.clientForm(c); }));
+    out.push(it('Log a call or message', I.phone, function () { self.logSheet(c); }));
     out.push(this.menuSep());
+    if (c.archived) { out.push(it('Restore client', I.undo, function () { var a = Object.assign({}, self.state.archived); delete a[c.id]; self.setState({ archived: a, ra: self.state.ra + 1 }); self.say('Updated. ' + c.name + ' is back in the list.'); })); out.push(it('Delete permanently…', I.trash, function () { self.deleteForever(c); }, { danger: true })); return out; }
+    out.push(it('Merge a duplicate…', I.layers, function () { self.mergeSheet(c); }));
+    out.push(it('Archive client…', I.folder, function () { self.archiveSheet(c); }, { hint: 'Kept for history' }));
     out.push(it('Move to Trash…', I.trash, function () {
       self.ask({ eyebrow: 'Trash', title: 'Move ' + c.name + ' to Trash?', body: c.owed ? c.name + ' still owes ' + self.ngn(c.owed) + '. Their invoices stay in Money and keep their numbers. You can restore the client from Settings, Trash, for 30 days.' : 'Their projects, files and invoices go with them. You can restore everything from Settings, Trash, for 30 days.', ok: 'Move to Trash', danger: true, tone: 'var(--ad-tone-bad)', icon: I.trash,
         onOk: function () { var t = Object.assign({}, self.state.trashed); t[c.id] = true; self.setState({ trashed: t, ra: self.state.ra + 1 }); self.say(c.name + ' moved to Trash.', { undo: function () { var u = Object.assign({}, self.state.trashed); delete u[c.id]; self.setState({ trashed: u, ra: self.state.ra + 1 }); } }); } });
@@ -204,12 +245,12 @@
 
   renderVals() {
     var s = this.state, self = this, p = s.p, I = this.icons(), S = this.sh.bind(this);
-    var all = this.allClients(), q = s.q2.trim().toLowerCase(), FAM = this.families();
+    var allIn = this.allClients(), all = allIn.filter(function (c) { return !c.archived; }), q = s.q2.trim().toLowerCase(), FAM = this.families();
     var dk = this.deck(), dv = this.deckView(dk), queue = dk.filter(function (d) { return !s.gone[d.id] && !s.snoozed[d.id]; });
 
     var match = function (c) { return !q || (c.name + ' ' + c.contact + ' ' + c.email + ' ' + c.services.join(' ')).toLowerCase().indexOf(q) >= 0; };
-    var inTab = function (c, t) { return t === 'all' || c.status === t; };
-    var FACETS = this.clientFacets(FAM), list0 = all.filter(function (c) { return inTab(c, s.ctab) && self.hasFamily(c, s.svc) && match(c); }), list = this.applyFlt('clients', list0, FACETS);
+    var inTab = function (c, t) { return t === 'archived' ? !!c.archived : (!c.archived && (t === 'all' || c.status === t)); };
+    var FACETS = this.clientFacets(FAM), list0 = allIn.filter(function (c) { return inTab(c, s.ctab) && self.hasFamily(c, s.svc) && match(c); }), list = this.applyFlt('clients', list0, FACETS);
     var cp = Math.min(s.cpage, Math.max(0, Math.ceil(list.length / s.cper) - 1)), pageList = list.slice(cp * s.cper, cp * s.cper + s.cper);
     var rows = pageList.map(function (c, i) {
       var n = self.nextStep(c);
@@ -222,7 +263,7 @@
     });
     rows.forEach(function (r, i) { Object.assign(r, self.rowSel('clients', pageList[i].id, pageList[i].name)); });
     var TCL = this.toolsView('clients', { noun: 'clients', one: 'client', pageIds: pageList.map(function (c) { return c.id; }), allIds: list.map(function (c) { return c.id; }), rowsById: function (ids) { return list.filter(function (c) { return ids.indexOf(c.id) >= 0; }); }, rows: list0, unfiltered: all, facets: FACETS, acts: this.clientBulk(), exportFn: function (sel) { self.exportClients(sel, list); }, importFn: function () { self.importClients(); } });
-    var tabs = [['all', 'All'], ['active', 'Active'], ['lead', 'Leads'], ['past', 'Past']].map(function (tb) { var on = s.ctab === tb[0]; return { label: tb[1], n: all.filter(function (c) { return inTab(c, tb[0]) && self.hasFamily(c, s.svc) && match(c); }).length, cls: on ? 'on' : '', sel: on ? 'true' : 'false', pick: function () { if (!on) self.setState({ ctab: tb[0], cpage: 0, ra: self.state.ra + 1 }); } }; });
+    var tabs = [['all', 'All'], ['active', 'Active'], ['lead', 'Leads'], ['past', 'Past'], ['archived', 'Archived']].map(function (tb) { var on = s.ctab === tb[0]; return { label: tb[1], n: allIn.filter(function (c) { return inTab(c, tb[0]) && self.hasFamily(c, s.svc) && match(c); }).length, cls: on ? 'on' : '', sel: on ? 'true' : 'false', pick: function () { if (!on) self.setState({ ctab: tb[0], cpage: 0, ra: self.state.ra + 1 }); } }; });
     var pickSvc = function (k) { self.setState({ svc: k, cpage: 0, ra: self.state.ra + 1 }); };
     var svcs = [{ k: 'all', t: 'All services' }].concat(FAM.map(function (f) { return { k: f.k, t: f.k }; })).map(function (c) { var on = s.svc === c.k; return { t: c.t, n: all.filter(function (x) { return inTab(x, s.ctab) && self.hasFamily(x, c.k); }).length, cls: on ? 'on' : '', pressed: on ? 'true' : 'false', pick: function () { pickSvc(c.k); } }; });
     var CP = Object.assign(this.pager('clients', list.length, s.cper, cp, function (k) { self.setState({ cpage: k, ra: self.state.ra + 1 }); }, function (n) { self.setState({ cper: n, cpage: 0, ra: self.state.ra + 1 }); }), { all: function () { self.setState({ cper: 20, cpage: 0, ra: self.state.ra + 1 }); self.say('Showing all ' + list.length + ' on one page.'); } });

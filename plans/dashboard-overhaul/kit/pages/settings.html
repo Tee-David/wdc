@@ -1,9 +1,10 @@
 <div class="pageHead rise">
               <div>
-                <h1 class="h1">Settings</h1>
+                <h1 class="h1">{{pageTitle}}</h1>
                 <p class="lede">{{lede}}</p>
               </div>
               <div class="headActs">
+                <sc-if value="{{hasHeadAct}}" hint-placeholder-val="{{ false }}"><button class="btn" onClick="{{headAct}}">{{headActLabel}}</button></sc-if>
                 <button class="ibtn" data-menu="chores" aria-label="More for settings" aria-haspopup="menu" aria-expanded="{{choresX}}" onClick="{{openChores}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg></button>
               </div>
             </div>

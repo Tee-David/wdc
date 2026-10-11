@@ -1017,6 +1017,69 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .imgHost{position:relative;overflow:hidden}
 .imgHost.hasImg{background:#fff !important;color:var(--ad-ink);box-shadow:inset 0 0 0 1px var(--ad-line-2)}
 .logoImg{position:absolute;inset:15%;width:70%;height:70%;object-fit:contain}
+/* Sheet quick actions: a row of chips under the details */
+.quickRow{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+/* Email builder */
+.ebGrid{display:grid;grid-template-columns:260px minmax(0,1fr) 300px;gap:16px;align-items:start}
+@container app (max-width:1180px){.ebGrid{grid-template-columns:minmax(0,1fr) 280px}.ebSide{grid-column:1/-1;order:3}}
+@container app (max-width:760px){.ebGrid{grid-template-columns:minmax(0,1fr)}.ebSet{order:2}.ebStage{order:1}}
+.ebSide .tabs{overflow-x:auto}
+.ebBar .seg button{min-height:44px;white-space:nowrap}
+.ebSide,.ebSet{padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.ebStage{padding:12px;min-width:0;display:flex;flex-direction:column;gap:10px}
+.ebBar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ebHint{font-size:12px;color:var(--ad-dim);overflow-wrap:anywhere}
+.ebList{display:flex;flex-direction:column;gap:8px}
+.ebAdd{display:flex;align-items:center;gap:10px;min-height:48px;padding:6px 8px;border-radius:12px;border:1px solid var(--ad-line);background:var(--ad-panel);color:var(--ad-ink);cursor:pointer;width:100%}
+.ebAdd:hover{background:var(--ad-hover)}
+.ebAdd:focus-visible{outline:2px solid var(--ad-focus);outline-offset:2px}
+.ebCheck{display:flex;align-items:center;gap:10px}
+.ebTick{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;flex:none;color:#fff;background:var(--ad-tone-good)}
+.ebTick.no{background:var(--ad-tone-warn)}
+.ebFrame{background:var(--ad-panel-2);border-radius:14px;padding:16px;display:flex;justify-content:center;overflow:auto;max-height:70vh}
+.ebMail{width:100%;max-width:600px;background:#fff;color:#0e0e2c;border-radius:6px;padding:20px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.ebFrame.phone .ebMail{max-width:340px}
+.ebBlk{position:relative;border-radius:8px;padding:8px;outline:2px solid transparent;cursor:pointer;min-width:0}
+.ebBlk:hover{outline-color:#c9ccdc}
+.ebBlk.on{outline-color:#0e0e2c}
+.ebH{font:700 24px/1.2 'Space Grotesk',sans-serif;overflow-wrap:anywhere}
+.ebP{font-size:15px;line-height:1.5;overflow-wrap:anywhere;white-space:pre-wrap}
+.ebPic{display:grid;place-items:center;aspect-ratio:16/7;background:#e4e6f0;border-radius:8px;color:#5c5c7a;font-size:13px;text-align:center;padding:8px}
+.ebBtn{display:inline-block;padding:12px 22px;border-radius:999px;background:#000065;color:#fff;font-weight:600}
+.ebCols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ebFrame.phone .ebCols{grid-template-columns:1fr}
+.ebHr{border:0;border-top:1px solid #c9ccdc;margin:8px 0}
+.ebSmall{font-size:12px;color:#5c5c7a}
+.ebRule{display:inline-block;margin-top:4px;padding:2px 8px;border-radius:999px;background:#5c5c7a;color:#fff;font-size:11px}
+.ebFoot{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;border-top:1px solid #e4e6f0;margin-top:12px;padding-top:12px;font-size:12px;color:#5c5c7a}
+.ebUnsub{text-decoration:underline}
+.ebTools{position:absolute;top:-16px;right:8px;display:flex;gap:2px;background:#0e0e2c;border-radius:10px;padding:2px;z-index:2}
+.ebT{display:grid;place-items:center;width:32px;height:32px;border-radius:8px;border:0;background:transparent;color:#fff;cursor:pointer;position:relative}
+.ebT::after{content:"";position:absolute;inset:-6px}
+.ebT:hover{background:#33366a}.ebT.bad:hover{background:#c62828}
+/* Automation flow canvas */
+.afBar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--ad-line)}
+.afZoom{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+.afCanvas{background:var(--ad-panel-2);padding:24px 16px;overflow:auto;max-height:72vh;display:flex;justify-content:center}
+.afFlow{display:flex;flex-direction:column;align-items:center;width:min(100%,680px);min-width:0}
+.afNode{display:flex;align-items:center;gap:12px;width:min(100%,340px);min-height:64px;padding:10px 12px;border-radius:16px;border:1px solid var(--ad-line-2);background:var(--ad-panel);color:var(--ad-ink);cursor:pointer;min-width:0}
+.afNode:hover{background:var(--ad-hover)}
+.afNode.on{border-color:var(--ad-ink);box-shadow:0 0 0 4px var(--ad-ring,rgba(14,14,44,.12))}
+.afNode:focus-visible{outline:2px solid var(--ad-focus);outline-offset:2px}
+.afLink{display:block;width:2px;height:14px;background:var(--ad-line-2)}
+.afPlus{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;border:1px solid var(--ad-line-2);background:var(--ad-panel);color:var(--ad-ink);cursor:pointer;position:relative}
+.afPlus::after{content:"";position:absolute;inset:-6px}
+.afPlus:hover{background:var(--ad-ink);color:var(--ad-panel)}
+.afLanes{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;align-items:start}
+@container app (max-width:640px){.afLanes{grid-template-columns:1fr}}
+.afLane{display:flex;flex-direction:column;align-items:center;gap:0;min-width:0;border-radius:16px;border:1px dashed var(--ad-line-2);padding:10px 8px}
+.afLaneT{font-size:11px;font-weight:700;padding:2px 10px;border-radius:999px;color:#fff;margin-bottom:8px}
+.afLaneT.yes{background:var(--ad-tone-good)}.afLaneT.no{background:var(--ad-tone-neutral)}
+.afEnd{margin-top:10px;font-size:12px;color:var(--ad-dim)}
+.afPlus,.afLink,.afNode{flex:none}
+/* Support view bar: read-only view of another account */
+.svBar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 16px;background:var(--ad-tone-warn);color:#fff;font-size:14px}
+.svBar .svExit{min-height:44px}
 
 </style>
 </helmet>
@@ -1105,6 +1168,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
             
           </header>
 
+          <sc-if value="{{svOn}}" hint-placeholder-val="{{ false }}"><div class="svBar" role="status"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path></svg><span style="flex: 1; min-width: 0"><strong>Support view: {{svName}}.</strong> Read-only. Changes, payments and downloads are off. Your owner account stays signed in. Ends at {{svEnds}}.</span><a class="btn2 svExit" href="A-Users.dc.html">Exit support view</a></div></sc-if>
           <main id="main" class="mainPad">
             <div class="pageHead rise">
               <div>
@@ -1429,6 +1493,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
             <div class="noticeB" role="status" style="--nt: {{sheet.notice.tone}}"><span class="noticeIc"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="{{sheet.notice.icon}}"></path></svg></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><strong>{{sheet.notice.title}}</strong><span>{{sheet.notice.body}}</span></span><sc-if value="{{sheet.notice.hasAct}}" hint-placeholder-val="{{ false }}"><button class="btn2" style="min-height: 40px" onClick="{{sheet.notice.act}}">{{sheet.notice.actLabel}}</button></sc-if></div>
           </sc-if>
           <sc-if value="{{sheet.hasRows}}" hint-placeholder-val="{{ true }}"><dl class="dl"><sc-for list="{{sheet.rows}}" as="r" hint-placeholder-count="4"><div style="min-width: 0"><dt>{{r.k}}</dt><dd class="num">{{r.v}}</dd></div></sc-for></dl></sc-if>
+          <sc-if value="{{sheet.hasQuick}}" hint-placeholder-val="{{ false }}"><div class="quickRow" role="group" aria-label="More for this item"><sc-for list="{{sheet.quick}}" as="q" hint-placeholder-count="3"><button type="button" class="chip" onClick="{{q.fn}}">{{q.t}}</button></sc-for></div></sc-if>
           <sc-if value="{{sheet.hasBody}}" hint-placeholder-val="{{ true }}"><p style="max-width: 62ch">{{sheet.body}}</p></sc-if>
           <sc-if value="{{sheet.hasPreview}}" hint-placeholder-val="{{ false }}">
             <div class="preview"><span style="font-size: 12px; color: var(--ad-dim)">To <strong style="color: var(--ad-ink)">{{sheet.preview.to}}</strong></span><strong>{{sheet.preview.subject}}</strong><span>{{sheet.preview.text}}</span></div>
@@ -1746,7 +1811,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 
           <sc-if value="{{sheet.hasFeed}}" hint-placeholder-val="{{ false }}">
             <div style="display: flex; flex-direction: column">
-              <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 10px">History</h3>
+              <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 10px">{{sheet.feedTitle}}</h3>
               <sc-for list="{{sheet.feed}}" as="f" hint-placeholder-count="3"><div class="feedRow"><span style="display: flex; flex-direction: column; align-items: center"><span class="d"></span><span style="flex: 1; width: 2px; background: var(--ad-line)"></span></span><span style="padding-bottom: 14px"><span style="font-weight: 600">{{f.t}}</span><br><span style="color: var(--ad-dim); font-size: 13px">{{f.when}}</span></span></div></sc-for>
             </div>
           </sc-if>
@@ -2232,12 +2297,12 @@ class Component extends DCLogic {
 
   /* ---------- the values every template shares ---------- */
   kit() {
-    var s = this.state, self = this, I = this.icons();
+    var s = this.state, self = this, I = this.icons(); var svq = (function () { try { return new URLSearchParams(window.location.search); } catch (e) { return new URLSearchParams(''); } })();
     var DEV = [['desktop', 'Desktop', 'M2 4h20v12H2zM8 20h8M12 16v4', '100%', 'auto', 'Full width'], ['tablet', 'Tablet', 'M6 2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM11 18h2', '834px', '1112px', '834 × 1112'], ['phone', 'Phone', 'M8 2h8a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM11 18h2', '390px', '844px', '390 × 844']];
     var devI = 0; DEV.forEach(function (d, i) { if (d[0] === s.dev) devI = i; });
     var cur = DEV[devI];
     var navOn = this.navSection ? this.navSection() : this.pageName();
-    var mk = function (n) { var on = n.label === navOn; return { label: n.label, d: n.d, href: n.href || '#', hasCount: n.count > 0, count: n.count, tone: n.tone || 'var(--ad-tone-brand)', aria: n.label + (n.count ? ', ' + n.count + ' new' : ''), cls: on ? 'on' : '', current: on ? 'page' : 'false', go: function (e) { if (on || !n.href || n.href === '#') { if (e && e.preventDefault) e.preventDefault(); self.setState({ drawer: false }); } } }; };
+    var mk = function (n) { var on = n.label === navOn; return {  label: n.label, d: n.d, href: n.href || '#', hasCount: n.count > 0, count: n.count, tone: n.tone || 'var(--ad-tone-brand)', aria: n.label + (n.count ? ', ' + n.count + ' new' : ''), cls: on ? 'on' : '', current: on ? 'page' : 'false', go: function (e) { if (on || !n.href || n.href === '#') { if (e && e.preventDefault) e.preventDefault(); self.setState({ drawer: false }); } } }; };
     var nav2 = this.roleNav().filter(function (n) { return n.second; }).map(mk);
     var nav = this.navData().map(function (n) { var on = n.label === navOn; return { label: n.label, d: n.d, href: n.href || '#', hasCount: n.count > 0, count: n.count, tone: n.tone || 'var(--ad-tone-brand)', aria: n.label + (n.count ? ', ' + n.count + ' new' : ''), cls: on ? 'on' : '', current: on ? 'page' : 'false', go: function (e) { if (on || !n.href || n.href === '#') { if (e && e.preventDefault) e.preventDefault(); self.setState({ drawer: false }); if (!on) self.later(n.label + ' opens in the full prototype.'); } } }; });
     var notesRaw = this.notesData();
@@ -2291,7 +2356,7 @@ class Component extends DCLogic {
     if (raw.primaryDis) { var pd = raw.primaryDis(ctx, s); if (pd) { dis = 'y'; reqText = pd; } }
     var galRaw = typeof raw.gallery === 'function' ? raw.gallery(s) : (raw.gallery || []), galEmpty = typeof raw.galleryEmpty === 'function' ? raw.galleryEmpty(s) : false;
     var sheet = Object.assign({}, raw, {
-      hasGallery: galRaw.length > 0, gallery: galRaw, galleryEmpty: galEmpty, back: s.stack.length > 0, hasChip: !!raw.chip, hasIcon: !!raw.icon, icon: raw.icon || '', iconTone: raw.iconTone || 'var(--ad-tone-brand)', hasRows: raw.rows.length > 0, hasBody: !!raw.body, hasPreview: !!raw.preview, preview: raw.preview || {},
+      feedTitle: raw.feedTitle || 'History', hasQuick: !!(raw.quick && raw.quick.length), quick: (raw.quick || []).map(function (q) { return { t: q.t, d: q.d || '', fn: function () { if (q.fn) q.fn(); } }; }), hasGallery: galRaw.length > 0, gallery: galRaw, galleryEmpty: galEmpty, back: s.stack.length > 0, hasChip: !!raw.chip, hasIcon: !!raw.icon, icon: raw.icon || '', iconTone: raw.iconTone || 'var(--ad-tone-brand)', hasRows: raw.rows.length > 0, hasBody: !!raw.body, hasPreview: !!raw.preview, preview: raw.preview || {},
       hasList: list.length > 0 || ss.has, list: list, ss: ss, listRole: raw.select ? (raw.multi ? 'group' : 'radiogroup') : 'list', hasChecks: checks.length > 0, checks: checks, checksTitle: raw.checksTitle || 'Checklist', checksDone: ckDone + ' of ' + checks.length, checksPct: checks.length ? Math.round(ckDone / checks.length * 100) : 0,
       hasFeed: raw.feed.length > 0, hasNote: !!raw.note, reason: !!raw.reason, reasonLabel: raw.reason ? raw.reason.label : '', reasonPh: raw.reason ? raw.reason.ph : '', ack: !!raw.ack, ackText: raw.ack || '',
       hasFields: fields.length > 0, fields: fields, fieldsCls: raw.chipsFirst ? 'fieldsLate' : '', listCls: raw.chipsFirst ? 'listLate' : '', chipsCls: raw.chipsFirst ? 'chipsMid' : '', hasChipSets: chipSets.length > 0, chipSets: chipSets, hasNotice: !!notice, notice: notice || {}, primaryLabel: plabel, primaryCls: raw.danger ? 'btnD' : (raw.green ? 'btnG' : 'btn'), primaryDis: !!dis, why: reqText, hasSecondary: !!raw.secondary, secondaryLabel: typeof raw.secondary === 'function' ? raw.secondary(ctx, s) : raw.secondary, chip: typeof raw.chip === 'function' ? raw.chip(ctx, s) : raw.chip, tone: typeof raw.tone === 'function' ? raw.tone(ctx, s) : raw.tone, hasFoot: !raw.noFoot, busy: !!raw.busy
@@ -2306,7 +2371,7 @@ class Component extends DCLogic {
     }
     var client = s.vis === 'client';
     var anyOverlay = !!(s.sheet || s.drawer || s.pal || (s.pop && s.pop.asSheet) || s.tour >= 0);
-    return {
+    return { svOn: !!svq.get('sv'), svName: svq.get('who') ? svq.get('who') + ' as ' + svq.get('sv') : 'read only', svEnds: '09:00',
       rootCls: 'wdc' + (s.dark ? ' dark' : '') + (s.dev === 'phone' ? ' isPhone' : '') + (anyOverlay ? ' locked' : ''),
       themeLabel: s.dark ? 'Switch to light mode' : 'Switch to dark mode', themeIcon: s.dark ? I.sun : I.moon, themeShort: s.dark ? 'Light' : 'Dark', themeLong: s.dark ? 'Light mode' : 'Dark mode',
       toggleTheme: function () { self.setState({ dark: !self.state.dark }); },
@@ -3355,7 +3420,10 @@ class Component extends DCLogic {
       { when: '60 days', what: 'Play developer account', client: 'Kora Logistics', amount: '$25', tone: 'var(--ad-tone-neutral)', sheet: S({ eyebrow: 'Renewal', title: 'Google Play account', icon: I.link, rows: [{ k: 'Owner', v: 'WDC, movable on request' }, { k: 'Renews', v: '9 Dec 2026' }], primary: 'Remind me in November', pToast: 'Reminder set for 1 November.' }) }
     ].map(function (r) { return Object.assign({}, r, { open: function () { self.open(r.sheet); } }); });
 
+    var pn = this.shared('dashPanels', ['Cash in', 'Team today']);
     return Object.assign(this.kit(), this.extraVals(), dv, {
+      showCash: pn.indexOf('Cash in') >= 0, showTeam: pn.indexOf('Team today') >= 0,
+      customise: function () { var all = ['Cash in', 'Team today']; self.open(self.sh({ eyebrow: 'Customise', title: 'What the dashboard shows', icon: I.layers, keepOpen: true, body: 'Untick what you do not need. You can bring it back here. The studio pulse figures always stay.', form: { pn: pn.slice() }, chipSets: [{ key: 'pn', label: 'Panels beside the deck', multi: true, opts: all }], primary: 'Save', secondary: 'Cancel', onPrimary: function (ctx) { self.setShared('dashPanels', ctx.form.pn); self.setState({ ra: self.state.ra + 1, sheet: null, stack: [] }); self.say('Saved. The dashboard is updated.'); } })); },
       deckTitle: 'Up next', deckKeys: 'Focus the card: D done, S snooze', snoozeLabel: 'Snooze', snoozeShort: 'Snooze', canPass: true,
       emptyTitle: 'You are clear, Babatope.', emptyBody: 'Nothing needs you right now. Next on the calendar:', emptyNext: 'Discovery call with Zara Events at 11:00.', emptyPrimaryLabel: 'Plan tomorrow', emptySecondaryLabel: 'Bring everything back',
       emptyPrimary: function () { self.open(S({ eyebrow: 'Tomorrow', title: 'Sunday 11 October', icon: I.cal, listTitle: 'Already booked', list: [{ t: '09:00 · Send November retainers', s: '4 drafts ready · ₦1,450,000', tag: 'Money', tone: 'var(--ad-tone-live)' }, { t: '10:00 · Halo milestone 2 demo', s: 'Google Meet · Daniel', tag: 'Meeting', tone: 'var(--ad-tone-brand)' }], body: 'Anything you snooze to tomorrow lands here at 09:00.', primary: 'Close' })); },
@@ -3578,7 +3646,7 @@ class Component extends DCLogic {
       pageTitle: C.title, ledeA: C.ledeA(this), ledeB: C.ledeB(this), newLabel: C.newLabel, newPost: function () { C.newFn(self); }, openChores: function (e) { self.openPop(e, 'chores', 'chores', 260, 220, 'More for ' + C.title); }, choresX: this.popOn('chores', 'chores'),
       deckTitle: C.deckTitle, deckKeys: 'Focus the card: D done, S snooze', snoozeLabel: 'Snooze', snoozeShort: 'Snooze', canPass: true,
       emptyTitle: C.emptyTitle, emptyBody: 'Nothing needs a decision. Next:', emptyNext: C.emptyNext, emptyPrimaryLabel: C.newLabel, emptySecondaryLabel: 'Bring everything back', emptyPrimary: function () { C.newFn(self); },
-      tabsAria: C.title + ' sections', tabs: tabs, tabTitle: T.title, total: list.length, chips: chipsV, cols: T.cols, rows: rows, BP: BP, TBL: TBL, qPh: T.ph, q: s.hq, hasQ: !!s.hq,
+      tabsAria: C.title + ' sections', tabs: tabs, tabTitle: T.title, total: list.length, chips: chipsV, cols: typeof T.cols === 'function' ? T.cols(self) : T.cols, rows: rows, BP: BP, TBL: TBL, qPh: T.ph, q: s.hq, hasQ: !!s.hq,
       onQ: function (e) { self.setState({ hq: e.target.value, hpg: 0, ra: self.state.ra + 1 }); }, clearQ: function () { self.setState({ hq: '', ra: self.state.ra + 1 }); },
       tabActLabel: T.actLabel, tabActD: T.actD, tabAct: function () { T.act(self); },
       empty: !list.length, hasFilter: hasFilter && !!all.length, noFilterEmpty: !all.length, clearFilters: function () { self.setState({ hq: '', chip: 'all', hpg: 0, flt: {}, ra: self.state.ra + 1 }); }, emptyTitleT: q ? 'Nothing matches "' + s.hq + '".' : (all.length ? 'Nothing in this view.' : T.emptyT), emptyBodyT: q ? T.ph + '.' : (all.length ? 'Try another filter.' : T.emptyB),
@@ -3597,16 +3665,18 @@ class Component extends DCLogic {
       { target: 'new', title: 'New campaign', icon: I.plus, body: 'Write it, pick who gets it, send it now or book it. Every send shows a recipient count and can be tested first.' }
     ];
   }
-  emAud() { return ['All contacts', 'Clients', 'Leads', 'Newsletter', 'Past clients']; }
+  emTags() { return ['newsletter', 'client', 'lead', 'past-client', 'interested-in-web', 'vip']; }
+  emTagN() { return { newsletter: 398, client: 58, lead: 87, 'past-client': 64, 'interested-in-web': 41, vip: 12 }; }
+  emReach(inc, exc) { var N = this.emTagN(), a = (inc || []).reduce(function (t, k) { return t + (N[k] || 0); }, 0), b = (exc || []).reduce(function (t, k) { return t + Math.round((N[k] || 0) * 0.2); }, 0); return Math.max(0, Math.min(412, a) - b); }
   emCampaigns() {
     var B = [
-      { id: 'c1', name: 'October studio news', sub: 'Three launches, one offer for returning clients', subject: 'Three launches and an offer for returning clients', aud: 'Newsletter', n: 412, status: 'scheduled', date: 'Wed 14 Oct, 09:00', open: 0, click: 0 },
-      { id: 'c2', name: 'Brand guide offer', sub: 'A free review of your current guide', subject: 'A free review of your brand guide', aud: 'Past clients', n: 64, status: 'draft', date: 'Edited yesterday', open: 0, click: 0 },
-      { id: 'c3', name: 'September round up', sub: 'What we shipped in September', subject: 'What we shipped in September', aud: 'Newsletter', n: 398, status: 'sent', date: '2 Oct', open: 46, click: 9 },
-      { id: 'c4', name: 'Paystack and Flutterwave, explained', sub: 'Which one your shop should use', subject: 'Which payment provider should your shop use?', aud: 'Leads', n: 87, status: 'sent', date: '18 Sep', open: 52, click: 14 },
-      { id: 'c5', name: 'Holiday hours', sub: 'Studio hours for the end of year', subject: 'Our hours over the holidays', aud: 'Clients', n: 58, status: 'sent', date: '4 Sep', open: 71, click: 6 }
+      { id: 'c1', name: 'October studio news', sub: 'Three launches, one offer for returning clients', subject: 'Three launches and an offer for returning clients', inc: ['newsletter'], exc: ['vip'], n: 392, status: 'scheduled', date: 'Wed 14 Oct, 09:00', track: 'Per person', rep: null },
+      { id: 'c2', name: 'Brand guide offer', sub: 'A free review of your current guide', subject: 'A free review of your brand guide', inc: ['past-client'], exc: [], n: 64, status: 'draft', date: 'Edited yesterday', track: 'Counts only', rep: null },
+      { id: 'c3', name: 'September round up', sub: 'What we shipped in September', subject: 'What we shipped in September', inc: ['newsletter'], exc: [], n: 398, status: 'sent', date: '2 Oct', track: 'Per person', rep: { delivered: 391, opened: 183, clicked: 36, bounced: 7, stopped: 2, links: [['wdc.ng/work/mira-skincare', 21], ['wdc.ng/blog/brief-a-logo-designer', 11], ['wdc.ng/contact', 4]] } },
+      { id: 'c4', name: 'Paystack and Flutterwave, explained', sub: 'Which one your shop should use', subject: 'Which payment provider should your shop use?', inc: ['lead'], exc: [], n: 87, status: 'sent', date: '18 Sep', track: 'Per person', rep: { delivered: 85, opened: 45, clicked: 12, bounced: 2, stopped: 0, links: [['wdc.ng/blog/paystack-or-flutterwave', 12]] } },
+      { id: 'c5', name: 'Holiday hours', sub: 'Studio hours for the end of year', subject: 'Our hours over the holidays', inc: ['client'], exc: [], n: 58, status: 'sent', date: '4 Sep', track: 'Counts only', rep: { delivered: 58, opened: 41, clicked: 3, bounced: 0, stopped: 0, links: [] } }
     ];
-    return this.hubApply('camp', B);
+    return this.hubApply('camp', B).map(function (c) { return Object.assign({ open: c.rep ? Math.round(c.rep.opened / c.rep.delivered * 100) : 0, click: c.rep ? Math.round(c.rep.clicked / c.rep.delivered * 100) : 0 }, c); });
   }
   emSteps(a) { return a.steps || ({ a1: [['Immediately', 'Welcome to your portal'], ['2 days', 'Newsletter layout'], ['7 days', 'Newsletter layout']], a2: [['3 days before', 'Invoice'], ['On the day', 'Invoice'], ['3 days after', 'Invoice']], a3: [['7 days after', 'Review ready']], a4: [['90 days quiet', 'Newsletter layout']], a5: [['Immediately', 'Welcome to your portal']] }[a.id] || [['Immediately', 'Invoice']]).map(function (x, i) { return { id: a.id + 's' + i, wait: x[0], tpl: x[1], at: '09:00' }; }); }
   emAutos() {
@@ -3630,44 +3700,48 @@ class Component extends DCLogic {
   }
   emContacts() {
     return this.hubApply('ct', [
-      { id: 'p1', name: 'Adaeze Okonkwo', sub: 'adaeze@miraskincare.ng', src: 'Client', status: 'Subscribed', added: '12 Mar' },
-      { id: 'p2', name: 'Tunde Bakare', sub: 'tunde@zaraevents.ng', src: 'Client', status: 'Subscribed', added: '2 Feb' },
-      { id: 'p3', name: 'Ifeoma Eze', sub: 'ifeoma@lumenads.com', src: 'Newsletter', status: 'Subscribed', added: '30 Sep' },
-      { id: 'p4', name: 'Temi Adeoye', sub: 'temi@oakandivy.ng', src: 'Form entry', status: 'Subscribed', added: '8 Oct' },
-      { id: 'p5', name: 'Halima Sule', sub: 'halima@haloai.dev', src: 'Newsletter', status: 'Unsubscribed', added: '14 Jun' },
-      { id: 'p6', name: 'Segun Ojo', sub: 'segun@korapp.ng', src: 'Client', status: 'Bounced', added: '19 Jan' },
-      { id: 'p7', name: 'Bola Shittu', sub: 'bola@bloomseo.ng', src: 'Past client', status: 'Subscribed', added: '5 Nov 2025' }
+      { id: 'p1', name: 'Adaeze Okonkwo', sub: 'adaeze@miraskincare.ng', type: 'Client', src: 'Client', status: 'Subscribed', added: '12 Mar', tags: ['client', 'vip'], opens: 14, notes: [{ t: 'Prefers WhatsApp for quick questions.', when: '4 Sep' }] },
+      { id: 'p2', name: 'Tunde Bakare', sub: 'tunde@zaraevents.ng', type: 'Client', src: 'Client', status: 'Subscribed', added: '2 Feb', tags: ['client'], opens: 9, notes: [] },
+      { id: 'p3', name: 'Ifeoma Eze', sub: 'ifeoma@lumenads.com', type: 'Lead', src: 'Newsletter', status: 'Subscribed', added: '30 Sep', tags: ['newsletter', 'lead'], opens: 3, notes: [] },
+      { id: 'p4', name: 'Temi Adeoye', sub: 'temi@oakandivy.ng', type: 'Lead', src: 'Form entry', status: 'Subscribed', added: '8 Oct', tags: ['lead', 'interested-in-web'], opens: 0, notes: [] },
+      { id: 'p5', name: 'Halima Sule', sub: 'halima@haloai.dev', type: 'Subscriber', src: 'Newsletter', status: 'Unsubscribed', added: '14 Jun', tags: ['newsletter'], opens: 6, notes: [] },
+      { id: 'p6', name: 'Segun Ojo', sub: 'segun@korapp.ng', type: 'Client', src: 'Client', status: 'Bounced', added: '19 Jan', tags: ['client'], opens: 0, notes: [] },
+      { id: 'p7', name: 'Bola Shittu', sub: 'bola@bloompharmacy.ng', type: 'Past client', src: 'Past client', status: 'Subscribed', added: '5 Nov 2025', tags: ['past-client'], opens: 5, notes: [] }
     ]);
   }
   emStatus(x) { return { sent: ['Sent', 'var(--ad-tone-good)', '#fff'], scheduled: ['Scheduled', 'var(--ad-tone-brand)', '#fff'], draft: ['Draft', 'var(--ad-tone-flat)', 'var(--ad-on-flat)'] }[x]; }
   campaignSheet(c) {
-    var self = this, I = this.icons(), st = this.emStatus(c.status), sent = c.status === 'sent';
-    return this.sh({ eyebrow: c.aud + ' · ' + st[0], title: c.name, chip: st[0], tone: st[1], icon: I.mail, iconTone: st[1],
-      rows: [{ k: 'Subject', v: c.subject }, { k: 'Goes to', v: c.aud + ', ' + c.n + ' people' }, { k: sent ? 'Sent' : (c.status === 'scheduled' ? 'Goes out' : 'Last edit'), v: c.date }].concat(sent ? [{ k: 'Opened', v: c.open + '% (' + Math.round(c.n * c.open / 100) + ' people)' }, { k: 'Clicked', v: c.click + '%' }, { k: 'Unsubscribed', v: '2 people' }] : []),
-      body: sent ? 'Sent. Bounces and unsubscribes were removed from your lists.' : 'Nothing is sent until you confirm. Send a test to yourself first.',
-      primary: sent ? 'Send again to people who did not open' : 'Edit campaign', secondary: sent ? 'Duplicate' : 'Send a test',
-      onPrimary: function () { if (sent) { self.ask({ eyebrow: 'Resend', title: 'Send “' + c.name + '” to ' + Math.round(c.n * (100 - c.open) / 100) + ' people who did not open it?', body: 'They get the same email with a new subject line, “You may have missed this”. Nobody who opened it is emailed again.', ok: 'Send to ' + Math.round(c.n * (100 - c.open) / 100) + ' people', green: true, icon: I.send, tone: 'var(--ad-tone-good)', external: true, onOk: function () { self.say('Resent to ' + Math.round(c.n * (100 - c.open) / 100) + ' people.'); } }, true); return 'stay'; } self.closeSheet(true); setTimeout(function () { self.campaignEditor(c); }, 80); },
-      onSecondary: function () { if (sent) { self.closeSheet(true); setTimeout(function () { self.campaignEditor(Object.assign({}, c, { id: null, name: c.name + ' (copy)', status: 'draft' })); }, 80); return; } self.say('A test went to babatope@wendiloveee.com.'); return 'stay'; } });
+    var self = this, I = this.icons(), st = this.emStatus(c.status), sent = c.status === 'sent', r = c.rep;
+    var pc = function (n, of) { return of ? Math.round(n / of * 100) + '%' : '0%'; };
+    var rows = [{ k: 'Subject', v: c.subject }, { k: 'Goes to', v: (c.inc || []).join(', ') + (c.exc && c.exc.length ? ', not ' + c.exc.join(', ') : '') + ' · ' + c.n + ' people' }, { k: sent ? 'Sent' : (c.status === 'scheduled' ? 'Goes out' : 'Last edit'), v: c.date }, { k: 'Tracking', v: c.track }];
+    if (sent && r) rows = rows.concat([{ k: 'Delivered', v: r.delivered + ' of ' + c.n }, { k: 'Opened, approximately', v: r.opened + ' (' + pc(r.opened, r.delivered) + '). Mail apps load images early, so a click counts as an open.' }, { k: 'Clicked', v: r.clicked + ' (' + pc(r.clicked, r.delivered) + ')' }, { k: 'Bounced', v: r.bounced + '. Never emailed again.' }, { k: 'Asked to stop', v: r.stopped + '. Left out of every send from now on.' }]);
+    var next = !sent ? 'Nothing is sent until you confirm. Send a test to yourself first.' : (r && r.opened / r.delivered < 0.4 ? 'Fewer than four in ten opened it. Resend to the people who did not, with a new subject line.' : 'A good result. Tag the people who clicked so the next email can start from them.');
+    return this.sh({ eyebrow: (sent ? 'Report · ' : '') + st[0], title: c.name, chip: st[0], tone: st[1], icon: sent ? I.chart : I.mail, iconTone: st[1], rows: rows,
+      feedTitle: 'Clicks by link', feed: sent && r && r.links.length ? r.links.map(function (l) { return { t: l[0] + ': ' + l[1] + ' clicks', when: 'Opened in the email' }; }) : [],
+      body: 'What to do next. ' + next,
+      quick: sent ? [{ t: 'Tag everyone who clicked', fn: function () { self.ask({ eyebrow: 'Tag', title: 'Tag the ' + (r ? r.clicked : 0) + ' people who clicked?', body: 'They get the tag “clicked-' + c.name.toLowerCase().replace(/[^a-z]+/g, '-').slice(0, 24) + '” so the next campaign can target them.', ok: 'Tag them', icon: I.check, tone: 'var(--ad-tone-brand)', onOk: function () { self.say('Updated. ' + (r ? r.clicked : 0) + ' people are tagged.'); } }, true); } }, { t: 'Export who got it', fn: function () { self.say('The list of recipients downloaded as CSV.'); } }] : [{ t: 'Send a test', fn: function () { self.say('A test went to babatope@wendiloveee.com.'); } }, { t: 'Duplicate', fn: function () { self.closeSheet(true); setTimeout(function () { self.campaignEditor(Object.assign({}, c, { id: null, name: c.name + ' (copy)', status: 'draft' })); }, 80); } }].concat(c.status === 'scheduled' ? [{ t: 'Cancel this campaign', fn: function () { self.ask({ eyebrow: 'Cancel', title: 'Cancel “' + c.name + '”?', body: 'Nobody who has not got it yet will. This cannot be undone.', ok: 'Cancel campaign', danger: true, icon: I.ban, tone: 'var(--ad-tone-bad)', onOk: function () { self.hubPatch(c.id, { status: 'draft', date: 'Cancelled today' }); self.closeSheet(true); self.say('Cancelled. It is a draft again.'); } }, true); } }] : []),
+      primary: sent ? 'Resend to people who did not open' : 'Edit campaign', secondary: sent ? 'Duplicate' : 'Open the email',
+      onPrimary: function () { if (sent) { var n = r ? r.delivered - r.opened : 0; self.ask({ eyebrow: 'Resend', title: 'Send “' + c.name + '” to ' + n + ' people who did not open it?', body: 'They get the same email with a new subject line, “You may have missed this”. Nobody who opened it is emailed again.', ok: 'Send to ' + n + ' people', green: true, icon: I.send, tone: 'var(--ad-tone-good)', external: true, onOk: function () { self.say('Resent to ' + n + ' people.'); } }, true); return 'stay'; } self.closeSheet(true); setTimeout(function () { self.campaignEditor(c); }, 80); },
+      onSecondary: function () { if (sent) { self.closeSheet(true); setTimeout(function () { self.campaignEditor(Object.assign({}, c, { id: null, name: c.name + ' (copy)', status: 'draft', rep: null })); }, 80); return; } window.location.href = 'A-EmailBuilder.dc.html'; } });
   }
   campaignEditor(c) {
-    var self = this, I = this.icons(), edit = c && c.id;
-    var start = c ? { name: c.name, subject: c.subject, body: c.body || '', aud: c.aud, when: c.status === 'scheduled' ? 'Schedule' : 'Save as draft', sched: '2026-10-14', schedT: '09:00' } : { name: '', subject: '', body: '', aud: 'Newsletter', when: 'Save as draft', sched: '2026-10-14', schedT: '09:00' };
-    var count = function (a) { return ({ 'All contacts': 412, Clients: 58, Leads: 87, Newsletter: 398, 'Past clients': 64 })[a] || 0; };
-    this.open(this.sh({ wide: true, eyebrow: edit ? 'Edit campaign' : 'New campaign', title: edit ? c.name : 'Write a campaign', icon: I.mail, keepOpen: true, focus: 'f-name',
-      body: 'People who unsubscribed or bounced are left out automatically. Every email carries an unsubscribe link, which the law requires.',
-      guard: function (ctx) { var f = ctx.form; return ['name', 'subject', 'body'].some(function (k) { return (f[k] || '') !== (start[k] || ''); }); }, guardBody: 'The campaign is not saved. If you close now, what you wrote is lost.',
+    var self = this, I = this.icons(), edit = c && c.id, tags = this.emTags();
+    var start = c ? { name: c.name, subject: c.subject, inc: (c.inc || ['newsletter']).slice(), exc: (c.exc || []).slice(), track: c.track || 'Per person', tagClick: '', when: c.status === 'scheduled' ? 'Schedule' : 'Save as draft', sched: '2026-10-14', schedT: '09:00' } : { name: '', subject: '', inc: ['newsletter'], exc: [], track: 'Per person', tagClick: '', when: 'Save as draft', sched: '2026-10-14', schedT: '09:00' };
+    this.open(this.sh({ wide: true, eyebrow: edit ? 'Edit campaign' : 'New campaign', title: edit ? c.name : 'New campaign', icon: I.mail, keepOpen: true, focus: 'f-name',
+      body: 'People who unsubscribed or bounced are left out automatically. Every email carries an unsubscribe link and the reason they are getting it.',
+      guard: function (ctx) { var f = ctx.form; return ['name', 'subject'].some(function (k) { return (f[k] || '') !== (start[k] || ''); }); }, guardBody: 'The campaign is not saved. If you close now, what you wrote is lost.',
       form: start,
-      fields: function (st) { var f = st.form, out = [{ key: 'name', label: 'Campaign name', ph: 'October studio news', wide: true, hint: 'Only you see this.' }, { key: 'subject', label: 'Subject line', ph: 'Three launches and an offer', wide: true, hint: (f.subject || '').length + ' characters. Under 50 reads whole on a phone.' }, { key: 'body', type: 'editor', label: 'The email', ph: 'Start with the one thing the reader gains.', hint: 'Keep to one link and one ask.' }]; if (f.when === 'Schedule') out.push({ key: 'sched', type: 'datetime', label: 'Send on', timeLabel: 'Time', required: true, hint: 'Tuesday to Thursday mornings get the most opens.' }); return out; },
-      chipSets: [{ key: 'aud', label: 'Who gets it', opts: this.emAud(), hint: 'People on more than one list get it once.' }, { key: 'when', label: 'What now?', opts: ['Save as draft', 'Send now', 'Schedule'] }],
-      notice: function (ctx) { var f = ctx.form; return { tone: 'var(--ad-tone-brand)', icon: I.users, title: count(f.aud) + ' people', body: f.aud + '. Unsubscribed and bounced addresses are already removed.' }; },
-      primary: function (ctx) { var f = ctx.form; return f.when === 'Send now' ? 'Send now' : (f.when === 'Schedule' ? 'Schedule send' : 'Save draft'); }, secondary: 'Cancel',
-      primaryDis: function (ctx) { var f = ctx.form; if (!(f.name || '').trim()) return 'Name the campaign.'; if (!(f.subject || '').trim()) return 'Add a subject line.'; if (f.when !== 'Save as draft' && (f.body || '').trim().split(/\s+/).filter(Boolean).length < 20) return 'Write at least 20 words before it goes out.'; if (f.when === 'Schedule' && f.sched <= self.today()) return 'Pick a day after today.'; return ''; },
+      fields: function (st) { var f = st.form, out = [{ key: 'name', label: 'Title', ph: 'October notes', wide: true, hint: 'It is also the first subject line. You can change both.' }, { key: 'subject', label: 'Subject line', ph: 'Three launches and an offer', wide: true, hint: (f.subject || '').length + ' characters. Under 50 reads whole on a phone.' }]; if (f.when === 'Schedule') out.push({ key: 'sched', type: 'datetime', label: 'Send on', timeLabel: 'Time', required: true, hint: 'Studio time. It goes out in small batches, so the last person may get it a few minutes after the first.' }); out.push({ key: 'tagClick', label: 'Tag everyone who clicked', ph: 'clicked-october', wide: true, hint: 'Optional. A tag added to each person who clicks a link. Needs tracking per person.' }); return out; },
+      chipSets: function (st) { return [{ key: 'inc', label: 'Only with these tags', multi: true, opts: tags, hint: 'Anyone with at least one of them gets it.' }, { key: 'exc', label: 'Leave out these tags', multi: true, opts: tags }, { key: 'track', label: 'Tracking', opts: ['Per person', 'Counts only'], hint: 'Per person shows who opened and clicked. Counts only shows totals, no names. Opens are approximate.' }, { key: 'when', label: 'When to send', opts: ['Save as draft', 'Send now', 'Schedule'] }]; },
+      notice: function (ctx) { var f = ctx.form, n = self.emReach(f.inc, f.exc); return { tone: n ? 'var(--ad-tone-brand)' : 'var(--ad-tone-warn)', icon: n ? I.users : I.alert, title: n + ' people', body: n ? 'Subscribers with ' + (f.inc || []).join(' or ') + (f.exc && f.exc.length ? ', without ' + f.exc.join(' or ') : '') + '. Unsubscribed and bounced addresses are already removed.' : 'Nobody matches. Choose a tag to send to.' }; },
+      primary: function (ctx) { var f = ctx.form; return f.when === 'Send now' ? 'Send now' : (f.when === 'Schedule' ? 'Schedule send' : 'Save and open the email'); }, secondary: 'Cancel',
+      primaryDis: function (ctx) { var f = ctx.form; if (!(f.name || '').trim()) return 'Name the campaign.'; if (!(f.subject || '').trim()) return 'Add a subject line.'; if (!(f.inc || []).length) return 'Choose who gets it.'; if ((f.inc || []).some(function (t) { return (f.exc || []).indexOf(t) >= 0; })) return 'A tag cannot be both in and out.'; if (f.tagClick && f.track === 'Counts only') return 'Tagging clickers needs tracking per person.'; if (f.when === 'Schedule' && f.sched <= self.today()) return 'Pick a day after today.'; return ''; },
       onPrimary: function (ctx) {
-        var f = ctx.form, id = edit ? c.id : 'n' + Date.now(), n = count(f.aud);
-        var fin = function (status, date, toast) { var d = { id: id, name: f.name.trim(), sub: f.subject.trim(), subject: f.subject.trim(), body: f.body, aud: f.aud, n: n, status: status, date: date, open: 0, click: 0 }; self.setState({ sheet: null, stack: [] }); if (edit) self.hubPatch(id, d); else self.hubAdd('camp', d); self.say(toast); };
-        if (f.when === 'Send now') self.ask({ eyebrow: 'Send', title: 'Send “' + f.name.trim() + '” to ' + n + ' people now?', body: 'It goes to ' + f.aud + ' straight away. A sent email cannot be taken back.', ok: 'Send to ' + n + ' people', green: true, icon: I.send, tone: 'var(--ad-tone-good)', external: true, onOk: function () { fin('sent', 'Today', 'Sent to ' + n + ' people.'); } });
+        var f = ctx.form, id = edit ? c.id : 'n' + Date.now(), n = self.emReach(f.inc, f.exc);
+        var fin = function (status, date, toast, go) { var d = { id: id, name: f.name.trim(), sub: f.subject.trim(), subject: f.subject.trim(), inc: f.inc, exc: f.exc, track: f.track, n: n, status: status, date: date, rep: status === 'sent' ? { delivered: Math.round(n * 0.98), opened: 0, clicked: 0, bounced: Math.round(n * 0.02), stopped: 0, links: [] } : null }; self.setState({ sheet: null, stack: [] }); if (edit) self.hubPatch(id, d); else self.hubAdd('camp', d); self.say(toast); if (go) setTimeout(function () { window.location.href = 'A-EmailBuilder.dc.html'; }, 500); };
+        if (f.when === 'Send now') self.ask({ eyebrow: 'Send', title: 'Send “' + f.name.trim() + '” to ' + n + ' people now?', body: 'It goes out straight away, in small batches. A sent email cannot be taken back.', ok: 'Send to ' + n + ' people', green: true, icon: I.send, tone: 'var(--ad-tone-good)', external: true, onOk: function () { fin('sent', 'Today', 'Sent to ' + n + ' people.'); } });
         else if (f.when === 'Schedule') fin('scheduled', self.fmtDate(f.sched) + ', ' + f.schedT, 'Saved. It goes out ' + self.fmtDate(f.sched) + ' at ' + f.schedT + '.');
-        else fin('draft', 'Edited just now', 'Saved. “' + f.name.trim() + '” is a draft.');
+        else fin('draft', 'Edited just now', 'Saved. “' + f.name.trim() + '” is a draft. The email opens next.', true);
       } }));
   }
   tplEditor(t) {
@@ -3709,9 +3783,9 @@ class Component extends DCLogic {
     return this.sh({ eyebrow: 'Automation · ' + (a.on ? 'On' : 'Paused'), title: a.name, chip: a.on ? 'On' : 'Paused', tone: a.on ? 'var(--ad-tone-good)' : 'var(--ad-tone-flat)', icon: I.play, iconTone: a.on ? 'var(--ad-tone-good)' : 'var(--ad-tone-neutral)',
       rows: [{ k: 'Starts when', v: a.trig }, { k: 'Steps', v: self.emSteps(a).length + ': ' + a.sub }, { k: 'Sent, 30 days', v: String(a.sent) }, { k: 'Opened', v: a.sent ? a.open + '%' : 'Nothing sent yet' }],
       body: a.on ? 'Runs by itself. Pausing stops new sends and leaves emails already queued to go.' : 'Paused. Nothing is sent until you turn it on.',
-      primary: a.on ? 'Pause automation' : 'Turn on', secondary: 'Edit the emails',
+      primary: a.on ? 'Pause automation' : 'Turn on', secondary: 'Open the flow',
       onPrimary: function () { self.hubPatch(a.id, { on: !a.on }); self.say(a.on ? 'Paused. “' + a.name + '” stops sending.' : 'Updated. “' + a.name + '” is on.'); },
-      onSecondary: function () { self.autoSteps(a); return 'stay'; } });
+      onSecondary: function () { window.location.href = 'A-Automation.dc.html'; } });
   }
   tplSheet(t) {
     var self = this, I = this.icons();
@@ -3719,18 +3793,30 @@ class Component extends DCLogic {
       rows: [{ k: 'Used for', v: t.sub }, { k: 'Last edit', v: t.edited }, { k: 'Sender', v: 'WDC Studio, hello@wedigcreativity.com' }],
       body: 'Names and amounts are filled in when it is sent. Preview shows it with sample details.',
       primary: 'Edit template', secondary: t.custom ? 'Reset to default' : 'Send a test',
-      onPrimary: function () { self.closeSheet(true); setTimeout(function () { self.tplEditor(t); }, 80); },
+      onPrimary: function () { window.location.href = 'A-EmailBuilder.dc.html'; },
       onSecondary: function () { if (t.custom) { self.ask({ eyebrow: 'Reset', title: 'Reset “' + t.name + '” to the default?', body: 'Your wording is replaced by the studio default. This cannot be undone.', ok: 'Reset template', danger: true, icon: I.undo, tone: 'var(--ad-tone-warn)', confirmCheck: true, onOk: function () { self.hubPatch(t.id, { custom: false, edited: 'Default' }); self.say('Updated. “' + t.name + '” is back to the default.'); } }, true); return 'stay'; } self.say('A test went to babatope@wendiloveee.com.'); return 'stay'; } });
   }
+  contactTag(p) {
+    var self = this, I = this.icons(), all = this.emTags();
+    this.open(this.sh({ eyebrow: 'Tag', title: 'Add a tag to ' + p.name, icon: I.check, keepOpen: true, body: 'Tags decide who gets a campaign. Pick one that exists or make a new one.', form: { tag: [], fresh: '' }, fields: [{ key: 'fresh', label: 'Or a new tag', ph: 'interested-in-web', wide: true, hint: 'Small letters, numbers and dashes.', check: function (v) { return v.trim() && !/^[a-z0-9-]{2,30}$/.test(v.trim()) ? 'Small letters, numbers and dashes only.' : ''; } }], chipSets: [{ key: 'tag', label: 'Pick an existing tag', multi: true, opts: all.filter(function (t) { return (p.tags || []).indexOf(t) < 0; }) }], primary: 'Add tag', secondary: 'Cancel', primaryDis: function (ctx) { return (ctx.form.tag || []).length || (ctx.form.fresh || '').trim() ? '' : 'Pick a tag or write a new one.'; },
+      onPrimary: function (ctx) { var add = (ctx.form.tag || []).concat((ctx.form.fresh || '').trim() ? [ctx.form.fresh.trim()] : []); self.hubPatch(p.id, { tags: (p.tags || []).concat(add) }); self.setState({ sheet: null, stack: [] }); self.say('Updated. ' + p.name + ' is tagged ' + add.join(', ') + '.'); } }), true);
+  }
+  contactAdd() {
+    var self = this, I = this.icons();
+    this.open(this.sh({ eyebrow: 'Add a contact', title: 'Add a contact', icon: I.users, keepOpen: true, focus: 'f-name', body: 'If the email or phone already belongs to someone, we open that record instead of making a second one.', form: { name: '', email: '', phone: '', type: 'Subscriber', ok: [] },
+      fields: [{ key: 'name', label: 'Full name', wide: true }, { key: 'email', label: 'Email', type: 'email', wide: true }, { key: 'phone', label: 'Phone or WhatsApp', hint: 'Optional.', wide: true }],
+      chipSets: [{ key: 'type', label: 'Type', opts: ['Subscriber', 'Lead', 'Client', 'Past client'] }, { key: 'ok', label: 'Permission', multi: true, opts: ['They asked to hear from us'], hint: 'People who asked to stop are never added back, and temporary inboxes are refused.' }], primary: 'Save contact', secondary: 'Cancel',
+      primaryDis: function (ctx) { var f = ctx.form, em = (f.email || '').trim().toLowerCase(); if (!(f.name || '').trim()) return 'Add their name.'; if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return 'Add a valid email.'; if (self.isTempEmail && self.isTempEmail(em)) return 'Temporary inboxes are refused.'; var hit = self.emContacts().filter(function (p) { return p.sub.toLowerCase() === em; })[0]; if (hit) return hit.name + ' is already a contact.'; if (!(f.ok || []).length) return 'Confirm they asked to hear from you.'; return ''; },
+      onPrimary: function (ctx) { var f = ctx.form; self.hubAdd('ct', { id: 'pn' + Date.now(), name: f.name.trim(), sub: f.email.trim(), type: f.type, src: 'Added by you', status: 'Subscribed', added: 'Today', tags: [], opens: 0, notes: [] }); self.setState({ sheet: null, stack: [], tab: 3, chip: 'all' }); self.say('Saved. ' + f.name.trim() + ' is a contact.'); } }));
+  }
   contactSheet(p) {
-    var self = this, I = this.icons(), tone = { Subscribed: 'var(--ad-tone-good)', Unsubscribed: 'var(--ad-tone-flat)', Bounced: 'var(--ad-tone-bad)' }[p.status];
-    return this.sh({ eyebrow: p.src + ' · ' + p.status, title: p.name, chip: p.status, tone: tone, icon: I.users, iconTone: 'var(--ad-tone-neutral)',
-      rows: [{ k: 'Email', v: p.sub }, { k: 'Source', v: p.src }, { k: 'Added', v: p.added }, { k: 'Status', v: p.status === 'Bounced' ? 'Bounced. The address does not accept mail.' : (p.status === 'Unsubscribed' ? 'Unsubscribed themselves. Do not add them back without asking.' : 'Gets campaigns and automations') }],
-      body: p.src === 'Client' ? 'This person is a client. Their record and portal are in Clients.' : 'Added from ' + p.src.toLowerCase() + '.',
-      primary: p.status === 'Subscribed' ? 'Unsubscribe' : 'Back to subscribed', secondary: p.src === 'Client' ? 'Open the client' : 'Close',
-      primaryDis: p.status === 'Unsubscribed' || p.status === 'Bounced' ? 'They asked to leave, or the address fails. Ask them to join again.' : '',
-      onPrimary: function () { self.ask({ eyebrow: 'Unsubscribe', title: 'Unsubscribe ' + p.name + '?', body: 'They stop getting campaigns and automations. Invoices and receipts still reach them, because those are not marketing.', ok: 'Unsubscribe', icon: I.ban, tone: 'var(--ad-tone-warn)', onOk: function () { self.hubPatch(p.id, { status: 'Unsubscribed' }); self.say('Updated. ' + p.name + ' is unsubscribed.'); } }, true); return 'stay'; },
-      onSecondary: function () { if (p.src === 'Client') window.location.href = 'A-Clients.dc.html'; } });
+    var self = this, I = this.icons(), tone = { Subscribed: 'var(--ad-tone-good)', Unsubscribed: 'var(--ad-tone-flat)', Bounced: 'var(--ad-tone-bad)' }[p.status], ok = p.status === 'Subscribed';
+    return this.sh({ eyebrow: p.type + ' · ' + p.status, title: p.name, chip: p.status, tone: tone, icon: I.users, iconTone: 'var(--ad-tone-neutral)',
+      rows: [{ k: 'Email', v: p.sub }, { k: 'Source', v: p.src }, { k: 'Added', v: p.added }, { k: 'Tags', v: (p.tags || []).length ? p.tags.join(', ') : 'None' }, { k: 'Opens', v: String(p.opens) }, { k: 'Can get campaigns', v: p.status === 'Bounced' ? 'No. The address does not accept mail.' : (ok ? 'Yes. They asked to hear from us.' : 'No. They asked to stop, so campaigns cannot go to them.') }],
+      feed: (p.notes || []).map(function (n) { return { t: 'Note: ' + n.t, when: n.when }; }).concat([{ t: 'Added as ' + p.type.toLowerCase(), when: p.added }]),
+      quick: [{ t: 'Add tag', fn: function () { self.contactTag(p); } }, { t: 'Add a note', fn: function () { self.open(self.sh({ eyebrow: 'Note', title: 'Note on ' + p.name, icon: I.edit, compose: true, composeLabel: 'Note', composePh: 'Prefers WhatsApp.', required: true, primary: 'Save note', secondary: 'Cancel', onPrimary: function (ctx) { self.hubPatch(p.id, { notes: (p.notes || []).concat([{ t: ctx.draft, when: 'Just now' }]) }); self.say('Saved. The note is on ' + p.name + '.'); } }), true); } }].concat(ok ? [{ t: 'Suppress', fn: function () { self.ask({ eyebrow: 'Suppress', title: 'Stop marketing email to ' + p.name + '?', body: 'They stop getting campaigns and automations. Invoices and receipts still reach them, because those are not marketing.', ok: 'Suppress', icon: I.ban, tone: 'var(--ad-tone-warn)', onOk: function () { self.hubPatch(p.id, { status: 'Unsubscribed' }); self.closeSheet(true); self.say('Updated. ' + p.name + ' is suppressed.'); } }, true); } }] : []).concat(p.type === 'Client' ? [{ t: 'Open the client', fn: function () { window.location.href = 'A-Clients.dc.html'; } }] : []),
+      primary: 'Send an email', secondary: 'Close', primaryDis: ok ? '' : 'They cannot get marketing email. Ask them to join again.',
+      onPrimary: function () { self.closeSheet(true); setTimeout(function () { self.campaignEditor({ id: null, name: '', subject: '', inc: (p.tags || []).slice(0, 1).length ? p.tags.slice(0, 1) : ['newsletter'], exc: [], status: 'draft', track: 'Per person' }); }, 80); } });
   }
   hubCfg() {
     var self = this, I = this.icons(), G = 'var(--ad-tone-good)', W = 'var(--ad-tone-warn)', Bn = 'var(--ad-tone-brand)', Fl = 'var(--ad-tone-flat)';
@@ -3741,17 +3827,17 @@ class Component extends DCLogic {
       title: 'Email', statsTitle: 'Email pulse', deckTitle: 'Email this week', newLabel: 'New campaign', newFn: function () { self.campaignEditor(); },
       ledeA: function () { var c = camps(); return c.filter(function (x) { return x.status === 'sent'; }).length + ' sent this quarter, ' + c.filter(function (x) { return x.status === 'scheduled'; }).length + ' scheduled, ' + c.filter(function (x) { return x.status === 'draft'; }).length + ' in draft.'; },
       ledeB: function () { return 'Open rate is 56%.'; }, emptyTitle: 'Email is on track.', emptyNext: 'The next campaign goes out Wed 14 Oct.',
-      chores: function (it, I2) { return [it('New campaign', I2.mail, function () { self.campaignEditor(); }), it('Import contacts', I2.upload, function () { self.importSheet(self.emImport()); }, { hint: 'CSV or Excel' }), it('Email settings', I2.gear, function () { window.location.href = 'A-Settings.dc.html'; }, { hint: 'Sender and signature' })]; },
+      chores: function (it, I2) { return [it('New campaign', I2.mail, function () { self.campaignEditor(); }), it('Add a contact', I2.plus, function () { self.contactAdd(); }), it('Import contacts', I2.upload, function () { self.importSheet(self.emImport()); }, { hint: 'CSV, up to 5,000 rows' }), it('Email builder', I2.layers, function () { window.location.href = 'A-EmailBuilder.dc.html'; }), it('Email settings', I2.gear, function () { window.location.href = 'A-Settings.dc.html'; }, { hint: 'Sender and signature' })]; },
       tabs: [
         { key: 'camp', label: 'Campaigns', title: 'Campaigns', noun: 'campaigns', one: 'campaign', ph: 'Name, subject or audience', file: 'wdc-campaigns', actLabel: 'New campaign', actD: I.plus, act: function () { self.campaignEditor(); }, emptyT: 'No campaigns yet.', emptyB: 'Write your first one and send it to a list.',
-          cols: [{ t: 'Campaign' }, { t: 'Audience' }, { t: 'Status' }, { t: 'Date' }, { t: 'Opened', cls: 'r' }],
-          items: function () { return camps().map(function (c) { var st = self.emStatus(c.status); return Object.assign({}, c, { hay: c.name + ' ' + c.subject + ' ' + c.aud, cells: [{ t: c.aud + ' · ' + c.n }, pill(st[0], st[1], st[2]), { t: c.date }, { t: c.status === 'sent' ? c.open + '%' : 'Not sent', cls: 'r num' }] }); }); },
+          cols: [{ t: 'Campaign' }, { t: 'Sent to' }, { t: 'Status' }, { t: 'Date' }, { t: 'Opened', cls: 'r' }],
+          items: function () { return camps().map(function (c) { var st = self.emStatus(c.status); return Object.assign({}, c, { hay: c.name + ' ' + c.subject + ' ' + (c.inc || []).join(' '), cells: [{ t: (c.inc || []).join(', ') + ' · ' + c.n }, pill(st[0], st[1], st[2]), { t: c.date }, { t: c.status === 'sent' ? c.open + '%' : 'Not sent', cls: 'r num' }] }); }); },
           chips: [['all', 'All', function () { return true; }], ['draft', 'Drafts', function (x) { return x.status === 'draft'; }], ['scheduled', 'Scheduled', function (x) { return x.status === 'scheduled'; }], ['sent', 'Sent', function (x) { return x.status === 'sent'; }]],
-          exportCols: [{ t: 'Name', v: function (c) { return c.name; } }, { t: 'Subject', v: function (c) { return c.subject; } }, { t: 'Audience', v: function (c) { return c.aud; } }, { t: 'Recipients', v: function (c) { return c.n; } }, { t: 'Status', v: function (c) { return c.status; } }, { t: 'Date', v: function (c) { return c.date; } }, { t: 'Opened %', v: function (c) { return c.open; } }],
+          exportCols: [{ t: 'Name', v: function (c) { return c.name; } }, { t: 'Subject', v: function (c) { return c.subject; } }, { t: 'Audience tags', v: function (c) { return (c.inc || []).join('; '); } }, { t: 'Recipients', v: function (c) { return c.n; } }, { t: 'Status', v: function (c) { return c.status; } }, { t: 'Date', v: function (c) { return c.date; } }, { t: 'Opened %', v: function (c) { return c.open; } }],
           sheet: function (c) { return self.campaignSheet(c); },
           actions: function (c, it, I2) { var o = [it('Open campaign', I2.open, function () { self.open(self.campaignSheet(c)); })]; if (c.status !== 'sent') o.push(it('Edit campaign', I2.edit, function () { self.campaignEditor(c); })); o.push(it('Duplicate', I2.file, function () { self.campaignEditor(Object.assign({}, c, { id: null, name: c.name + ' (copy)', status: 'draft' })); })); o.push(self.menuSep()); o.push(it('Move to Trash…', I2.trash, function () { self.ask({ eyebrow: 'Trash', title: 'Move “' + c.name + '” to Trash?', body: 'Sent campaigns keep their numbers in reports. You can restore it from Settings, Trash, for 30 days.', ok: 'Move to Trash', danger: true, icon: I2.trash, tone: 'var(--ad-tone-bad)', onOk: function () { self.hubGone([c.id], '“' + c.name + '” moved to Trash.'); } }); }, { danger: true })); return o; },
           bulk: function () { return [{ label: 'Move to Trash', icon: I.trash, danger: true, fn: function (sel, done) { self.ask({ eyebrow: 'Trash', title: 'Move ' + sel.length + ' campaigns to Trash?', body: 'You can restore them from Settings, Trash, for 30 days.', ok: 'Move to Trash', danger: true, icon: I.trash, tone: 'var(--ad-tone-bad)', onOk: function () { self.hubGone(sel.map(function (x) { return x.id; }), sel.length + ' campaigns moved to Trash.'); done(); } }); } }]; } },
-        { key: 'auto', label: 'Automations', title: 'Automations', noun: 'automations', one: 'automation', ph: 'Name or trigger', file: 'wdc-automations', actLabel: 'New automation', actD: I.plus, act: function () { self.say('Start from a copy of Welcome series, then change the trigger and the steps.'); }, emptyT: 'No automations yet.', emptyB: 'Start from a welcome series.', warn: function () { return self.emAutos().some(function (a) { return !a.on; }); },
+        { key: 'auto', label: 'Automations', title: 'Automations', noun: 'automations', one: 'automation', ph: 'Name or trigger', file: 'wdc-automations', actLabel: 'New automation', actD: I.plus, act: function () { window.location.href = 'A-Automation.dc.html'; }, emptyT: 'No automations yet.', emptyB: 'Start from a welcome series.', warn: function () { return self.emAutos().some(function (a) { return !a.on; }); },
           cols: [{ t: 'Automation' }, { t: 'Starts when' }, { t: 'State' }, { t: 'Sent, 30 days', cls: 'r' }, { t: 'Opened', cls: 'r' }],
           items: function () { return self.emAutos().map(function (a) { return Object.assign({}, a, { hay: a.name + ' ' + a.trig, cells: [{ t: a.trig }, pill(a.on ? 'On' : 'Paused', a.on ? G : Fl, a.on ? '#fff' : 'var(--ad-on-flat)'), { t: String(a.sent), cls: 'r num' }, { t: a.sent ? a.open + '%' : 'None yet', cls: 'r num' }] }); }); },
           chips: [['all', 'All', function () { return true; }], ['on', 'On', function (x) { return x.on; }], ['off', 'Paused', function (x) { return !x.on; }]],
@@ -3766,24 +3852,24 @@ class Component extends DCLogic {
           exportCols: [{ t: 'Name', v: function (t) { return t.name; } }, { t: 'Group', v: function (t) { return t.kind; } }, { t: 'State', v: function (t) { return t.custom ? 'Customised' : 'Default'; } }],
           sheet: function (t) { return self.tplSheet(t); },
           actions: function (t, it, I2) { return [it('Open template', I2.open, function () { self.open(self.tplSheet(t)); }), it('Send a test', I2.send, function () { self.say('A test went to babatope@wendiloveee.com.'); })]; } },
-        { key: 'ct', label: 'Contacts', title: 'Contacts', noun: 'contacts', one: 'contact', ph: 'Name, email or source', file: 'wdc-contacts', actLabel: 'Import contacts', actD: I.upload, act: function () { self.importSheet(self.emImport()); }, emptyT: 'No contacts yet.', emptyB: 'Import a list or add the newsletter form to your site.', warn: function () { return self.emContacts().some(function (p) { return p.status === 'Bounced'; }); },
-          cols: [{ t: 'Person' }, { t: 'Source' }, { t: 'Status' }, { t: 'Added' }],
-          items: function () { return self.emContacts().map(function (p) { var tn = { Subscribed: [G, '#fff'], Unsubscribed: [Fl, 'var(--ad-on-flat)'], Bounced: ['var(--ad-tone-bad)', '#fff'] }[p.status]; return Object.assign({}, p, { hay: p.name + ' ' + p.sub + ' ' + p.src, cells: [{ t: p.src }, pill(p.status, tn[0], tn[1]), { t: p.added }] }); }); },
-          chips: [['all', 'All', function () { return true; }], ['sub', 'Subscribed', function (x) { return x.status === 'Subscribed'; }], ['uns', 'Unsubscribed', function (x) { return x.status === 'Unsubscribed'; }], ['bnc', 'Bounced', function (x) { return x.status === 'Bounced'; }]],
-          facets: function (all) { var u = []; all.forEach(function (x) { if (u.indexOf(x.src) < 0) u.push(x.src); }); return [{ k: 'src', t: 'Source', opts: u, get: function (x) { return x.src; } }]; },
-          exportCols: [{ t: 'Name', v: function (p) { return p.name; } }, { t: 'Email', v: function (p) { return p.sub; } }, { t: 'Source', v: function (p) { return p.src; } }, { t: 'Status', v: function (p) { return p.status; } }, { t: 'Added', v: function (p) { return p.added; } }],
+        { key: 'ct', label: 'Contacts', title: 'Contacts', noun: 'contacts', one: 'contact', ph: 'Name, email, tag or source', file: 'wdc-contacts', actLabel: 'Add contact', actD: I.plus, act: function () { self.contactAdd(); }, emptyT: 'No contacts yet.', emptyB: 'Import a list or add the newsletter form to your site.', warn: function () { return self.emContacts().some(function (p) { return p.status === 'Bounced'; }); },
+          cols: [{ t: 'Contact' }, { t: 'Type' }, { t: 'Status' }, { t: 'Tags' }, { t: 'Opens', cls: 'r' }, { t: 'Added' }],
+          items: function () { return self.emContacts().map(function (p) { var tn = { Subscribed: [G, '#fff'], Unsubscribed: [Fl, 'var(--ad-on-flat)'], Bounced: ['var(--ad-tone-bad)', '#fff'] }[p.status]; return Object.assign({}, p, { hay: p.name + ' ' + p.sub + ' ' + p.src + ' ' + (p.tags || []).join(' '), cells: [{ t: p.type }, pill(p.status, tn[0], tn[1]), { t: (p.tags || []).join(', ') || 'None' }, { t: String(p.opens), cls: 'r num' }, { t: p.added }] }); }); },
+          chips: [['all', 'All', function () { return true; }], ['sub', 'Can get campaigns', function (x) { return x.status === 'Subscribed'; }], ['uns', 'Asked to stop', function (x) { return x.status === 'Unsubscribed'; }], ['bnc', 'Bounced', function (x) { return x.status === 'Bounced'; }]],
+          facets: function (all) { var t = [], ty = []; all.forEach(function (x) { (x.tags || []).forEach(function (g) { if (t.indexOf(g) < 0) t.push(g); }); if (ty.indexOf(x.type) < 0) ty.push(x.type); }); return [{ k: 'type', t: 'Type', opts: ty, get: function (x) { return x.type; } }, { k: 'tag', t: 'Tag', opts: t, get: function (x) { return x.tags || []; } }]; },
+          exportCols: [{ t: 'Name', v: function (p) { return p.name; } }, { t: 'Email', v: function (p) { return p.sub; } }, { t: 'Type', v: function (p) { return p.type; } }, { t: 'Status', v: function (p) { return p.status; } }, { t: 'Tags', v: function (p) { return (p.tags || []).join('; '); } }, { t: 'Opens', v: function (p) { return p.opens; } }, { t: 'Added', v: function (p) { return p.added; } }],
           sheet: function (p) { return self.contactSheet(p); },
-          actions: function (p, it, I2) { return [it('Open contact', I2.open, function () { self.open(self.contactSheet(p)); }), it('Remove from lists…', I2.trash, function () { self.ask({ eyebrow: 'Remove', title: 'Remove ' + p.name + ' from every list?', body: 'They leave the email lists. Their client record, if any, is not touched.', ok: 'Remove', danger: true, icon: I2.trash, tone: 'var(--ad-tone-bad)', onOk: function () { self.hubGone([p.id], p.name + ' removed from the lists.'); } }); }, { danger: true })]; },
-          bulk: function () { return [{ label: 'Unsubscribe', icon: I.ban, fn: function (sel, done) { sel.forEach(function (p) { self.hubPatch(p.id, { status: 'Unsubscribed' }); }); self.say(sel.length + ' unsubscribed.'); done(); } }]; } }
+          actions: function (p, it, I2) { return [it('Open contact', I2.open, function () { self.open(self.contactSheet(p)); }), it('Add tag', I2.check, function () { self.contactTag(p); }), it('Suppress…', I2.ban, function () { self.hubPatch(p.id, { status: 'Unsubscribed' }); self.say('Updated. ' + p.name + ' is suppressed.'); }), self.menuSep(), it('Remove from every list…', I2.trash, function () { self.ask({ eyebrow: 'Remove', title: 'Remove ' + p.name + ' from every list?', body: 'They leave the email lists. Their client record, if any, is not touched.', ok: 'Remove', danger: true, icon: I2.trash, tone: 'var(--ad-tone-bad)', onOk: function () { self.hubGone([p.id], p.name + ' removed from the lists.'); } }); }, { danger: true })]; },
+          bulk: function () { return [{ label: 'Add tag', icon: I.check, fn: function (sel, done) { self.open(self.sh({ eyebrow: 'Tag', title: 'Tag ' + sel.length + ' people', icon: I.check, keepOpen: true, form: { tag: [], fresh: '' }, fields: [{ key: 'fresh', label: 'Or a new tag', ph: 'interested-in-web', wide: true }], chipSets: [{ key: 'tag', label: 'Pick an existing tag', multi: true, opts: self.emTags() }], primary: 'Add tag', secondary: 'Cancel', primaryDis: function (ctx) { return (ctx.form.tag || []).length || (ctx.form.fresh || '').trim() ? '' : 'Pick a tag or write a new one.'; }, onPrimary: function (ctx) { var add = (ctx.form.tag || []).concat((ctx.form.fresh || '').trim() ? [ctx.form.fresh.trim()] : []); sel.forEach(function (p) { self.hubPatch(p.id, { tags: (p.tags || []).concat(add.filter(function (g) { return (p.tags || []).indexOf(g) < 0; })) }); }); self.setState({ sheet: null, stack: [] }); self.say('Updated. ' + sel.length + ' people tagged.'); done(); } })); } }, { label: 'Send email', icon: I.mail, fn: function (sel, done) { var ok = sel.filter(function (p) { return p.status === 'Subscribed'; }); if (!ok.length) { self.say('None of these can get marketing email.'); return; } self.campaignEditor({ id: null, name: '', subject: '', inc: ['newsletter'], exc: [], status: 'draft', track: 'Per person' }); done(); } }, { label: 'Suppress', icon: I.ban, fn: function (sel, done) { sel.forEach(function (p) { self.hubPatch(p.id, { status: 'Unsubscribed' }); }); self.say('Updated. ' + sel.length + ' suppressed.'); done(); } }]; } }
       ],
-      stats: function () { var c = camps(); return [
-        { label: 'Open rate', value: '56%', note: 'Industry average 38%', noteCol: G, dot: G, ic: I.eye, fn: function () { self.setState({ tab: 0, chip: 'sent', hpg: 0, ra: self.state.ra + 1 }); } },
-        { label: 'Contacts', value: String(self.emContacts().filter(function (p) { return p.status === 'Subscribed'; }).length), note: '2 joined this week', noteCol: 'var(--ad-dim)', dot: 'var(--ad-series-1)', ic: I.users, fn: function () { self.setState({ tab: 3, chip: 'all', hpg: 0, ra: self.state.ra + 1 }); } },
-        { label: 'Scheduled', value: String(c.filter(function (x) { return x.status === 'scheduled'; }).length), note: 'Next: Wed 14 Oct', noteCol: 'var(--ad-dim)', dot: Bn, ic: I.cal, fn: function () { self.setState({ tab: 0, chip: 'scheduled', hpg: 0, ra: self.state.ra + 1 }); } },
-        { label: 'Bounces', value: String(self.emContacts().filter(function (p) { return p.status === 'Bounced'; }).length), note: 'Removed from sends', noteCol: 'var(--ad-accent-ink)', dot: 'var(--ad-tone-live)', ic: I.alert, fn: function () { self.setState({ tab: 3, chip: 'bnc', hpg: 0, ra: self.state.ra + 1 }); } }]; },
+      stats: function () { var c = camps(), ct = self.emContacts(); return [
+        { label: 'Can get campaigns', value: String(ct.filter(function (p) { return p.status === 'Subscribed'; }).length), note: ct.length + ' contacts in all', noteCol: 'var(--ad-dim)', dot: 'var(--ad-series-1)', ic: I.users, fn: function () { self.setState({ tab: 3, chip: 'sub', hpg: 0, ra: self.state.ra + 1 }); } },
+        { label: 'Open rate', value: '56%', note: 'Approximate. Industry average 38%', noteCol: G, dot: G, ic: I.eye, fn: function () { self.setState({ tab: 0, chip: 'sent', hpg: 0, ra: self.state.ra + 1 }); } },
+        { label: 'Asked to stop', value: String(ct.filter(function (p) { return p.status === 'Unsubscribed'; }).length), note: 'Never emailed again', noteCol: 'var(--ad-dim)', dot: 'var(--ad-tone-neutral)', ic: I.ban, fn: function () { self.setState({ tab: 3, chip: 'uns', hpg: 0, ra: self.state.ra + 1 }); } },
+        { label: 'Bounced', value: String(ct.filter(function (p) { return p.status === 'Bounced'; }).length), note: 'Removed from sends', noteCol: 'var(--ad-accent-ink)', dot: 'var(--ad-tone-live)', ic: I.alert, fn: function () { self.setState({ tab: 3, chip: 'bnc', hpg: 0, ra: self.state.ra + 1 }); } }]; },
       rail: function () { return [
         { title: 'Running now', sub: 'Automations', rows: self.emAutos().filter(function (a) { return a.on; }).slice(0, 3).map(function (a) { return { t: a.name, s: a.sent + ' sent, ' + a.open + '% opened', d: I.play, open: function () { self.open(self.autoSheet(a)); } }; }) },
-        { title: 'Best campaigns', sub: 'By opens', rows: camps().filter(function (x) { return x.status === 'sent'; }).sort(function (a, b) { return b.open - a.open; }).slice(0, 3).map(function (c) { return { t: c.name, s: c.open + '% opened · ' + c.aud, d: I.chart, open: function () { self.open(self.campaignSheet(c)); } }; }) }]; },
+        { title: 'Best campaigns', sub: 'By opens', rows: camps().filter(function (x) { return x.status === 'sent'; }).sort(function (a, b) { return b.open - a.open; }).slice(0, 3).map(function (c) { return { t: c.name, s: c.open + '% opened · ' + (c.inc || []).join(', '), d: I.chart, open: function () { self.open(self.campaignSheet(c)); } }; }) }]; },
       deck: function () { return [
         { id: 'ebounce', kind: 'Clean up', urgency: '1 bounce', utone: '#a16207', label: 'Contacts', dept: 'Studio', title: 'Segun Ojo’s address bounced', body: 'The last email to segun@korapp.ng did not arrive. Sending again hurts your sender name.', meta: [{ k: 'Source', v: 'Client' }, { k: 'Last sent', v: '2 Oct' }, { k: 'Effect', v: 'Removed from lists' }], why: 'Bounces above 2% push every email you send towards spam.', primaryLabel: 'Open the contact', primaryFn: function () { self.setState({ tab: 3, chip: 'bnc', hpg: 0, ra: self.state.ra + 1 }); }, secondaryLabel: 'Ask for a new address', sToast: 'A message to Segun is in drafts.', sheet: self.contactSheet(self.emContacts().filter(function (p) { return p.id === 'p6'; })[0]) },
         { id: 'edraft', kind: 'Draft', urgency: 'Goes out in 3 days', utone: '#a16207', label: 'Campaigns', dept: 'Studio', title: 'Finish the brand guide offer', body: 'A draft for 64 past clients. It has a subject but no body yet.', meta: [{ k: 'Audience', v: 'Past clients, 64' }, { k: 'Subject', v: 'A free review of your brand guide' }, { k: 'Words', v: '0' }], why: 'Past clients reopen at about 7% of the time. A short, specific offer is the thing that moves them.', primaryLabel: 'Open the editor', primaryFn: function () { self.campaignEditor(camps().filter(function (c) { return c.id === 'c2'; })[0]); }, secondaryLabel: 'Not now', sToast: 'Parked. It comes back tomorrow.', sheet: self.campaignSheet(camps().filter(function (c) { return c.id === 'c2'; })[0] || { name: '', subject: '', aud: '', n: 0, status: 'draft', date: '' }) },

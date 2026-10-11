@@ -1017,6 +1017,69 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .imgHost{position:relative;overflow:hidden}
 .imgHost.hasImg{background:#fff !important;color:var(--ad-ink);box-shadow:inset 0 0 0 1px var(--ad-line-2)}
 .logoImg{position:absolute;inset:15%;width:70%;height:70%;object-fit:contain}
+/* Sheet quick actions: a row of chips under the details */
+.quickRow{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+/* Email builder */
+.ebGrid{display:grid;grid-template-columns:260px minmax(0,1fr) 300px;gap:16px;align-items:start}
+@container app (max-width:1180px){.ebGrid{grid-template-columns:minmax(0,1fr) 280px}.ebSide{grid-column:1/-1;order:3}}
+@container app (max-width:760px){.ebGrid{grid-template-columns:minmax(0,1fr)}.ebSet{order:2}.ebStage{order:1}}
+.ebSide .tabs{overflow-x:auto}
+.ebBar .seg button{min-height:44px;white-space:nowrap}
+.ebSide,.ebSet{padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.ebStage{padding:12px;min-width:0;display:flex;flex-direction:column;gap:10px}
+.ebBar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ebHint{font-size:12px;color:var(--ad-dim);overflow-wrap:anywhere}
+.ebList{display:flex;flex-direction:column;gap:8px}
+.ebAdd{display:flex;align-items:center;gap:10px;min-height:48px;padding:6px 8px;border-radius:12px;border:1px solid var(--ad-line);background:var(--ad-panel);color:var(--ad-ink);cursor:pointer;width:100%}
+.ebAdd:hover{background:var(--ad-hover)}
+.ebAdd:focus-visible{outline:2px solid var(--ad-focus);outline-offset:2px}
+.ebCheck{display:flex;align-items:center;gap:10px}
+.ebTick{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;flex:none;color:#fff;background:var(--ad-tone-good)}
+.ebTick.no{background:var(--ad-tone-warn)}
+.ebFrame{background:var(--ad-panel-2);border-radius:14px;padding:16px;display:flex;justify-content:center;overflow:auto;max-height:70vh}
+.ebMail{width:100%;max-width:600px;background:#fff;color:#0e0e2c;border-radius:6px;padding:20px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.ebFrame.phone .ebMail{max-width:340px}
+.ebBlk{position:relative;border-radius:8px;padding:8px;outline:2px solid transparent;cursor:pointer;min-width:0}
+.ebBlk:hover{outline-color:#c9ccdc}
+.ebBlk.on{outline-color:#0e0e2c}
+.ebH{font:700 24px/1.2 'Space Grotesk',sans-serif;overflow-wrap:anywhere}
+.ebP{font-size:15px;line-height:1.5;overflow-wrap:anywhere;white-space:pre-wrap}
+.ebPic{display:grid;place-items:center;aspect-ratio:16/7;background:#e4e6f0;border-radius:8px;color:#5c5c7a;font-size:13px;text-align:center;padding:8px}
+.ebBtn{display:inline-block;padding:12px 22px;border-radius:999px;background:#000065;color:#fff;font-weight:600}
+.ebCols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ebFrame.phone .ebCols{grid-template-columns:1fr}
+.ebHr{border:0;border-top:1px solid #c9ccdc;margin:8px 0}
+.ebSmall{font-size:12px;color:#5c5c7a}
+.ebRule{display:inline-block;margin-top:4px;padding:2px 8px;border-radius:999px;background:#5c5c7a;color:#fff;font-size:11px}
+.ebFoot{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;border-top:1px solid #e4e6f0;margin-top:12px;padding-top:12px;font-size:12px;color:#5c5c7a}
+.ebUnsub{text-decoration:underline}
+.ebTools{position:absolute;top:-16px;right:8px;display:flex;gap:2px;background:#0e0e2c;border-radius:10px;padding:2px;z-index:2}
+.ebT{display:grid;place-items:center;width:32px;height:32px;border-radius:8px;border:0;background:transparent;color:#fff;cursor:pointer;position:relative}
+.ebT::after{content:"";position:absolute;inset:-6px}
+.ebT:hover{background:#33366a}.ebT.bad:hover{background:#c62828}
+/* Automation flow canvas */
+.afBar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--ad-line)}
+.afZoom{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+.afCanvas{background:var(--ad-panel-2);padding:24px 16px;overflow:auto;max-height:72vh;display:flex;justify-content:center}
+.afFlow{display:flex;flex-direction:column;align-items:center;width:min(100%,680px);min-width:0}
+.afNode{display:flex;align-items:center;gap:12px;width:min(100%,340px);min-height:64px;padding:10px 12px;border-radius:16px;border:1px solid var(--ad-line-2);background:var(--ad-panel);color:var(--ad-ink);cursor:pointer;min-width:0}
+.afNode:hover{background:var(--ad-hover)}
+.afNode.on{border-color:var(--ad-ink);box-shadow:0 0 0 4px var(--ad-ring,rgba(14,14,44,.12))}
+.afNode:focus-visible{outline:2px solid var(--ad-focus);outline-offset:2px}
+.afLink{display:block;width:2px;height:14px;background:var(--ad-line-2)}
+.afPlus{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;border:1px solid var(--ad-line-2);background:var(--ad-panel);color:var(--ad-ink);cursor:pointer;position:relative}
+.afPlus::after{content:"";position:absolute;inset:-6px}
+.afPlus:hover{background:var(--ad-ink);color:var(--ad-panel)}
+.afLanes{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;align-items:start}
+@container app (max-width:640px){.afLanes{grid-template-columns:1fr}}
+.afLane{display:flex;flex-direction:column;align-items:center;gap:0;min-width:0;border-radius:16px;border:1px dashed var(--ad-line-2);padding:10px 8px}
+.afLaneT{font-size:11px;font-weight:700;padding:2px 10px;border-radius:999px;color:#fff;margin-bottom:8px}
+.afLaneT.yes{background:var(--ad-tone-good)}.afLaneT.no{background:var(--ad-tone-neutral)}
+.afEnd{margin-top:10px;font-size:12px;color:var(--ad-dim)}
+.afPlus,.afLink,.afNode{flex:none}
+/* Support view bar: read-only view of another account */
+.svBar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 16px;background:var(--ad-tone-warn);color:#fff;font-size:14px}
+.svBar .svExit{min-height:44px}
 
 </style>
 </helmet>
@@ -1105,6 +1168,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
             
           </header>
 
+          <sc-if value="{{svOn}}" hint-placeholder-val="{{ false }}"><div class="svBar" role="status"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path></svg><span style="flex: 1; min-width: 0"><strong>Support view: {{svName}}.</strong> Read-only. Changes, payments and downloads are off. Your owner account stays signed in. Ends at {{svEnds}}.</span><a class="btn2 svExit" href="A-Users.dc.html">Exit support view</a></div></sc-if>
           <main id="main" class="mainPad">
             <sc-if value="{{hasCrumbs}}" hint-placeholder-val="{{ true }}"><nav class="crumbs rise" aria-label="Breadcrumb"><a href="{{crumbHref}}">{{crumbLabel}}</a><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg><span aria-current="page">{{pj.name}}</span></nav></sc-if>
             <sc-if value="{{hasSwitch}}" hint-placeholder-val="{{ false }}"><div class="seg projSwitch rise" role="group" aria-label="Your projects" style="--n: {{switchN}}; --i: {{switchI}}"><span class="pill" aria-hidden="true"></span><sc-for list="{{switches}}" as="sw" hint-placeholder-count="2"><button class="{{sw.cls}}" aria-pressed="{{sw.pressed}}" onClick="{{sw.pick}}">{{sw.t}}</button></sc-for></div></sc-if>
@@ -1437,6 +1501,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
             <div class="noticeB" role="status" style="--nt: {{sheet.notice.tone}}"><span class="noticeIc"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="{{sheet.notice.icon}}"></path></svg></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><strong>{{sheet.notice.title}}</strong><span>{{sheet.notice.body}}</span></span><sc-if value="{{sheet.notice.hasAct}}" hint-placeholder-val="{{ false }}"><button class="btn2" style="min-height: 40px" onClick="{{sheet.notice.act}}">{{sheet.notice.actLabel}}</button></sc-if></div>
           </sc-if>
           <sc-if value="{{sheet.hasRows}}" hint-placeholder-val="{{ true }}"><dl class="dl"><sc-for list="{{sheet.rows}}" as="r" hint-placeholder-count="4"><div style="min-width: 0"><dt>{{r.k}}</dt><dd class="num">{{r.v}}</dd></div></sc-for></dl></sc-if>
+          <sc-if value="{{sheet.hasQuick}}" hint-placeholder-val="{{ false }}"><div class="quickRow" role="group" aria-label="More for this item"><sc-for list="{{sheet.quick}}" as="q" hint-placeholder-count="3"><button type="button" class="chip" onClick="{{q.fn}}">{{q.t}}</button></sc-for></div></sc-if>
           <sc-if value="{{sheet.hasBody}}" hint-placeholder-val="{{ true }}"><p style="max-width: 62ch">{{sheet.body}}</p></sc-if>
           <sc-if value="{{sheet.hasPreview}}" hint-placeholder-val="{{ false }}">
             <div class="preview"><span style="font-size: 12px; color: var(--ad-dim)">To <strong style="color: var(--ad-ink)">{{sheet.preview.to}}</strong></span><strong>{{sheet.preview.subject}}</strong><span>{{sheet.preview.text}}</span></div>
@@ -1754,7 +1819,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 
           <sc-if value="{{sheet.hasFeed}}" hint-placeholder-val="{{ false }}">
             <div style="display: flex; flex-direction: column">
-              <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 10px">History</h3>
+              <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 10px">{{sheet.feedTitle}}</h3>
               <sc-for list="{{sheet.feed}}" as="f" hint-placeholder-count="3"><div class="feedRow"><span style="display: flex; flex-direction: column; align-items: center"><span class="d"></span><span style="flex: 1; width: 2px; background: var(--ad-line)"></span></span><span style="padding-bottom: 14px"><span style="font-weight: 600">{{f.t}}</span><br><span style="color: var(--ad-dim); font-size: 13px">{{f.when}}</span></span></div></sc-for>
             </div>
           </sc-if>
@@ -2240,12 +2305,12 @@ class Component extends DCLogic {
 
   /* ---------- the values every template shares ---------- */
   kit() {
-    var s = this.state, self = this, I = this.icons();
+    var s = this.state, self = this, I = this.icons(); var svq = (function () { try { return new URLSearchParams(window.location.search); } catch (e) { return new URLSearchParams(''); } })();
     var DEV = [['desktop', 'Desktop', 'M2 4h20v12H2zM8 20h8M12 16v4', '100%', 'auto', 'Full width'], ['tablet', 'Tablet', 'M6 2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM11 18h2', '834px', '1112px', '834 × 1112'], ['phone', 'Phone', 'M8 2h8a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM11 18h2', '390px', '844px', '390 × 844']];
     var devI = 0; DEV.forEach(function (d, i) { if (d[0] === s.dev) devI = i; });
     var cur = DEV[devI];
     var navOn = this.navSection ? this.navSection() : this.pageName();
-    var mk = function (n) { var on = n.label === navOn; return { label: n.label, d: n.d, href: n.href || '#', hasCount: n.count > 0, count: n.count, tone: n.tone || 'var(--ad-tone-brand)', aria: n.label + (n.count ? ', ' + n.count + ' new' : ''), cls: on ? 'on' : '', current: on ? 'page' : 'false', go: function (e) { if (on || !n.href || n.href === '#') { if (e && e.preventDefault) e.preventDefault(); self.setState({ drawer: false }); } } }; };
+    var mk = function (n) { var on = n.label === navOn; return {  label: n.label, d: n.d, href: n.href || '#', hasCount: n.count > 0, count: n.count, tone: n.tone || 'var(--ad-tone-brand)', aria: n.label + (n.count ? ', ' + n.count + ' new' : ''), cls: on ? 'on' : '', current: on ? 'page' : 'false', go: function (e) { if (on || !n.href || n.href === '#') { if (e && e.preventDefault) e.preventDefault(); self.setState({ drawer: false }); } } }; };
     var nav2 = this.roleNav().filter(function (n) { return n.second; }).map(mk);
     var nav = this.navData().map(function (n) { var on = n.label === navOn; return { label: n.label, d: n.d, href: n.href || '#', hasCount: n.count > 0, count: n.count, tone: n.tone || 'var(--ad-tone-brand)', aria: n.label + (n.count ? ', ' + n.count + ' new' : ''), cls: on ? 'on' : '', current: on ? 'page' : 'false', go: function (e) { if (on || !n.href || n.href === '#') { if (e && e.preventDefault) e.preventDefault(); self.setState({ drawer: false }); if (!on) self.later(n.label + ' opens in the full prototype.'); } } }; });
     var notesRaw = this.notesData();
@@ -2299,7 +2364,7 @@ class Component extends DCLogic {
     if (raw.primaryDis) { var pd = raw.primaryDis(ctx, s); if (pd) { dis = 'y'; reqText = pd; } }
     var galRaw = typeof raw.gallery === 'function' ? raw.gallery(s) : (raw.gallery || []), galEmpty = typeof raw.galleryEmpty === 'function' ? raw.galleryEmpty(s) : false;
     var sheet = Object.assign({}, raw, {
-      hasGallery: galRaw.length > 0, gallery: galRaw, galleryEmpty: galEmpty, back: s.stack.length > 0, hasChip: !!raw.chip, hasIcon: !!raw.icon, icon: raw.icon || '', iconTone: raw.iconTone || 'var(--ad-tone-brand)', hasRows: raw.rows.length > 0, hasBody: !!raw.body, hasPreview: !!raw.preview, preview: raw.preview || {},
+      feedTitle: raw.feedTitle || 'History', hasQuick: !!(raw.quick && raw.quick.length), quick: (raw.quick || []).map(function (q) { return { t: q.t, d: q.d || '', fn: function () { if (q.fn) q.fn(); } }; }), hasGallery: galRaw.length > 0, gallery: galRaw, galleryEmpty: galEmpty, back: s.stack.length > 0, hasChip: !!raw.chip, hasIcon: !!raw.icon, icon: raw.icon || '', iconTone: raw.iconTone || 'var(--ad-tone-brand)', hasRows: raw.rows.length > 0, hasBody: !!raw.body, hasPreview: !!raw.preview, preview: raw.preview || {},
       hasList: list.length > 0 || ss.has, list: list, ss: ss, listRole: raw.select ? (raw.multi ? 'group' : 'radiogroup') : 'list', hasChecks: checks.length > 0, checks: checks, checksTitle: raw.checksTitle || 'Checklist', checksDone: ckDone + ' of ' + checks.length, checksPct: checks.length ? Math.round(ckDone / checks.length * 100) : 0,
       hasFeed: raw.feed.length > 0, hasNote: !!raw.note, reason: !!raw.reason, reasonLabel: raw.reason ? raw.reason.label : '', reasonPh: raw.reason ? raw.reason.ph : '', ack: !!raw.ack, ackText: raw.ack || '',
       hasFields: fields.length > 0, fields: fields, fieldsCls: raw.chipsFirst ? 'fieldsLate' : '', listCls: raw.chipsFirst ? 'listLate' : '', chipsCls: raw.chipsFirst ? 'chipsMid' : '', hasChipSets: chipSets.length > 0, chipSets: chipSets, hasNotice: !!notice, notice: notice || {}, primaryLabel: plabel, primaryCls: raw.danger ? 'btnD' : (raw.green ? 'btnG' : 'btn'), primaryDis: !!dis, why: reqText, hasSecondary: !!raw.secondary, secondaryLabel: typeof raw.secondary === 'function' ? raw.secondary(ctx, s) : raw.secondary, chip: typeof raw.chip === 'function' ? raw.chip(ctx, s) : raw.chip, tone: typeof raw.tone === 'function' ? raw.tone(ctx, s) : raw.tone, hasFoot: !raw.noFoot, busy: !!raw.busy
@@ -2314,7 +2379,7 @@ class Component extends DCLogic {
     }
     var client = s.vis === 'client';
     var anyOverlay = !!(s.sheet || s.drawer || s.pal || (s.pop && s.pop.asSheet) || s.tour >= 0);
-    return {
+    return { svOn: !!svq.get('sv'), svName: svq.get('who') ? svq.get('who') + ' as ' + svq.get('sv') : 'read only', svEnds: '09:00',
       rootCls: 'wdc' + (s.dark ? ' dark' : '') + (s.dev === 'phone' ? ' isPhone' : '') + (anyOverlay ? ' locked' : ''),
       themeLabel: s.dark ? 'Switch to light mode' : 'Switch to dark mode', themeIcon: s.dark ? I.sun : I.moon, themeShort: s.dark ? 'Light' : 'Dark', themeLong: s.dark ? 'Light mode' : 'Dark mode',
       toggleTheme: function () { self.setState({ dark: !self.state.dark }); },
@@ -3264,7 +3329,7 @@ class Component extends DCLogic {
 
   /* ======================= The project page, shared by all three roles =======================
      The role file supplies projectModel(); this file turns it into the page. */
-  pageState() { return Object.assign({ ptab: 'overview', ta: 0, ttab: 'open', tpage: 0, tper: 5, ra: 0, calView: 'week', calIdx: 0, plat: 'all', ca: 0, fpage: 0, fper: 5, apage: 0, aper: 5, aa: 0, tstat: {}, extraTasks: [], extraPosts: [], postEdits: {}, postSt: {}, apDone: {}, sw: 0, wchk: {} }, this.modelState ? this.modelState() : {}); }
+  pageState() { return Object.assign({ ptab: 'overview', ta: 0, ttab: 'open', tpage: 0, tper: 5, ra: 0, calView: 'week', calIdx: 0, plat: 'all', ca: 0, fpage: 0, fper: 5, apage: 0, aper: 5, aa: 0, tstat: {}, extraTasks: [], extraPosts: [], postEdits: {}, postSt: {}, apDone: {}, sw: 0, wchk: {}, posted: [], pmem: null, picon: null }, this.modelState ? this.modelState() : {}); }
   pageName() { return this.projectModel().pj.name; }
   tourSteps() {
     var I = this.icons(), M = this.projectModel(), out = [{ target: 'stage', title: 'Where the project stands', icon: I.layers, body: 'Each stage in order. The line under it says what the current stage needs.' }, { target: 'tabs', title: 'Everything in one place', icon: I.folder, body: M.role === 'client' ? 'What we are doing, what needs your yes, your files and the history.' : 'Tasks, the content calendar, approvals, files' + (M.role === 'admin' ? ', money' : '') + ' and the history.' }];
@@ -3342,9 +3407,47 @@ class Component extends DCLogic {
     var self = this, I = this.icons(), move = function (label, st, text, icon) { return { label: label, icon: icon, fn: function (sel, done) { var prev = Object.assign({}, self.state.tstat), n = Object.assign({}, prev); sel.forEach(function (t) { n[t.id] = st; }); self.setState({ tstat: n, ra: self.state.ra + 1 }); done(); self.say(sel.length + (sel.length === 1 ? ' task' : ' tasks') + ' ' + text + '.', { undo: function () { self.setState({ tstat: prev, ra: self.state.ra + 1 }); } }); } }; };
     return [move('In progress', 'doing', 'moved to in progress', I.play), move('Send for review', 'review', 'sent for review', I.eye), move('Mark done', 'done', 'marked done', I.check)];
   }
+  projAct(what, where) { var me = this.me(); this.setState({ posted: [{ i: me.i, tone: me.tone, who: me.name.split(' ')[0], what: what, where: where || '', when: 'Just now' }].concat(this.state.posted || []), apage: 0, aa: this.state.aa + 1 }); }
+  projPostUpdate(pj) {
+    var self = this, I = this.icons(), me = this.me();
+    this.open(this.sh({ wide: true, eyebrow: 'Update', title: 'Post an update on ' + pj.name, icon: I.edit, keepOpen: true, body: 'The client sees it in their portal and by email. Say what moved and what is next. An empty “in the way” is a real answer and the commonest one.', form: { how: 'On track', moved: '', way: '', next: '', who: ['Tell the client'] },
+      fields: [{ key: 'moved', label: 'What moved', type: 'area', wide: true, ph: 'Three identity routes sent, each with the reasoning.' }, { key: 'way', label: 'What is in the way', type: 'area', wide: true, ph: 'Leave this empty if nothing is.' }, { key: 'next', label: 'What happens next', type: 'area', wide: true, ph: 'Tobi picks a route. We build it out the same week.' }],
+      chipSets: [{ key: 'how', label: 'How is it going', opts: ['On track', 'At risk', 'Late', 'Waiting on the client'] }, { key: 'who', label: 'Who sees it', multi: true, opts: ['Tell the client'], hint: 'Leave it off for a note only the team sees.' }], primary: 'Post update', secondary: 'Cancel',
+      primaryDis: function (ctx) { return (ctx.form.moved || '').trim().length < 8 ? 'Say what moved.' : (!(ctx.form.next || '').trim() ? 'Say what happens next.' : ''); },
+      onPrimary: function (ctx) { var f = ctx.form; self.projAct('posted an update: ' + f.how.toLowerCase(), f.moved.trim().slice(0, 80) + ((f.who || []).length ? ' · client told' : ' · team only')); self.setState({ sheet: null, stack: [], ptab: 'activity', ta: self.state.ta + 1 }); self.say((f.who || []).length ? 'Posted. The client sees it in their portal and by email.' : 'Saved as a team note.'); } }));
+  }
+  projHandover(pj) {
+    var self = this, I = this.icons(), team = this.teamData().map(function (m) { return m.name; });
+    this.open(this.sh({ wide: true, eyebrow: 'Hand work over', title: 'Hand ' + pj.name + ' to a department', icon: I.hand, keepOpen: true, body: 'The receiving lead has to accept it first. Nothing moves until they do.', form: { title: '', lead: team[1] || team[0], ctx: '', done: '', open: '', nextA: '', by: '2026-10-16' },
+      fields: [{ key: 'title', label: 'Handover title', wide: true, ph: 'Brand files ready for the website build' }, { key: 'ctx', label: 'Context', type: 'area', wide: true, hint: 'What has been done, and why it matters for the next step.' }, { key: 'done', label: 'Files and record links', type: 'area', wide: true, hint: 'Link to approved project files. Do not paste passwords or secrets.' }, { key: 'open', label: 'Decisions already agreed, and open questions or risks', type: 'area', wide: true }, { key: 'nextA', label: 'Next action', wide: true }, { key: 'by', type: 'date', label: 'Acceptance deadline' }],
+      chipSets: [{ key: 'lead', label: 'Receiving lead', opts: team }], primary: 'Request handover', secondary: 'Cancel',
+      primaryDis: function (ctx) { var f = ctx.form; return !(f.title || '').trim() ? 'Name the handover.' : ((f.ctx || '').trim().length < 20 ? 'Add context of at least 20 characters.' : (!(f.nextA || '').trim() ? 'Say the next action.' : '')); },
+      onPrimary: function (ctx) { var f = ctx.form; self.projAct('requested a handover to ' + f.lead, f.title.trim() + ' · accept by ' + self.fmtDate(f.by)); self.setState({ sheet: null, stack: [], ptab: 'activity', ta: self.state.ta + 1 }); self.say('Sent. ' + f.lead + ' is asked to accept it by ' + self.fmtDate(f.by) + '.'); } }));
+  }
+  projMembers(pj) {
+    var self = this, I = this.icons(), cur = this.state.pmem || [{ n: 'Ifeanyi N.', role: 'Staff access', who: 'Staff' }, { n: 'Chiamaka A.', role: 'Staff access', who: 'Staff' }, { n: 'Adaeze O.', role: 'Client review', who: 'Client' }, { n: 'Adaeze O.', role: 'Client billing', who: 'Client' }];
+    this.open(this.sh({ eyebrow: 'Project access', title: 'Who can open ' + pj.name, icon: I.key, body: 'Invite the person from Settings, Team, first. Use their exact sign-in address. Staff manage the project; a client can review shared work or see and decide billing.', listTitle: 'People with access', select: true, selectWhy: 'Choose a person.', noSearch: true, list: cur.map(function (m) { return { t: m.n, s: m.role, ini: m.n.charAt(0), av: m.who === 'Client' ? 'var(--ad-tone-live)' : 'var(--ad-tone-brand)', ref: m }; }), primary: 'Revoke access', secondary: 'Add or update access', primaryDis: function (ctx) { return ctx.pick < 0 ? 'Choose a person to revoke.' : ''; },
+      onPrimary: function (ctx) { var m = ctx.item.ref; self.ask({ eyebrow: 'Revoke', title: 'Remove ' + m.n + '’s ' + m.role.toLowerCase() + '?', body: 'They can no longer open this project in that role. Their work stays.', ok: 'Revoke access', danger: true, icon: I.ban, tone: 'var(--ad-tone-bad)', onOk: function () { self.setState({ pmem: cur.filter(function (x) { return x !== m; }) }); self.projAct('revoked ' + m.n + '’s ' + m.role.toLowerCase(), ''); self.say('Updated. ' + m.n + ' no longer has ' + m.role.toLowerCase() + '.'); } }, true); return 'stay'; },
+      onSecondary: function () { var team = self.teamData().map(function (m) { return m.name; }).concat(['Adaeze O.']); setTimeout(function () { self.open(self.sh({ eyebrow: 'Add or update access', title: 'Set this person’s project access', icon: I.key, keepOpen: true, form: { n: team[0], role: 'Staff access' }, chipSets: [{ key: 'n', label: 'Person', opts: team }, { key: 'role', label: 'Access', opts: ['Staff access', 'Client review', 'Client billing'], hint: 'Staff manage this project. A client can review shared work. Billing lets a client see and decide this project’s billing agreements.' }], primary: 'Update access', secondary: 'Cancel', onPrimary: function (ctx) { var f = ctx.form; self.setState({ pmem: cur.filter(function (x) { return !(x.n === f.n && x.role === f.role); }).concat([{ n: f.n, role: f.role, who: f.role === 'Staff access' ? 'Staff' : 'Client' }]) }); self.projAct('gave ' + f.n + ' ' + f.role.toLowerCase(), ''); self.say('Updated. ' + f.n + ' has ' + f.role.toLowerCase() + '.'); } }), true); }, 60); return 'stay'; } }));
+  }
+  projAnswerable(pj) {
+    var self = this, I = this.icons(), team = this.teamData().map(function (m) { return { t: m.name, s: m.role + (m.dept ? ' · ' + m.dept : ''), ini: m.i, av: m.tone, ref: m }; });
+    this.open(this.sh({ eyebrow: 'Answerable', title: 'Who is answerable for ' + pj.name, icon: I.target, body: 'Search the team and pick one or more. Someone not listed can be invited from Settings, Team. The people picked see the project under My work.', listTitle: 'Team', select: true, multi: true, searchPh: 'Search the team', selectWhy: 'Pick at least one person.', list: team, primary: 'Save', secondary: 'Cancel', primaryDis: function (ctx) { return (ctx.picks || []).length ? '' : 'Pick at least one person.'; },
+      onPrimary: function (ctx) { var names = ctx.items.map(function (x) { return x.t; }); self.projAct('set who is answerable: ' + names.join(', '), ''); self.say('Updated. ' + names.join(', ') + (names.length === 1 ? ' is' : ' are') + ' answerable.'); } }));
+  }
+  projIcon(pj) {
+    var self = this, I = this.icons(), ICONS = [['Folder', 'M3 7h6l2 2h10v10H3z'], ['Chart', 'M4 20V10M10 20V4M16 20v-8M22 20H2'], ['Phone', 'M5 4h4l2 5-2 1a11 11 0 0 0 5 5l1-2 5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z'], ['Star', 'M12 3l2.8 6 6.2.7-4.6 4.2 1.3 6.1L12 17l-5.7 3 1.3-6.1L3 9.7 9.2 9z'], ['Layers', 'M12 3 3 8l9 5 9-5zM3 13l9 5 9-5'], ['Money', 'M12 3v18M17 7H9.5a2.5 2.5 0 0 0 0 5h5a2.5 2.5 0 0 1 0 5H7']], COL = ['Navy', 'Green', 'Amber', 'Slate', 'Violet', 'Red'];
+    this.open(this.sh({ eyebrow: 'Project icon', title: 'Choose an icon for ' + pj.name, icon: I.layers, keepOpen: true, body: 'The client sees it beside the project name.', form: { ic: 'Folder', col: 'Navy' }, chipSets: [{ key: 'ic', label: 'Icon', opts: ICONS.map(function (x) { return x[0]; }), hint: 'Search icons, like money, phone or chart, in the live product.' }, { key: 'col', label: 'Icon colour', opts: COL }], primary: 'Save icon', secondary: 'Cancel', onPrimary: function (ctx) { self.setState({ picon: ctx.form.ic + ' · ' + ctx.form.col }); self.projAct('changed the project icon', ctx.form.ic + ', ' + ctx.form.col.toLowerCase()); self.say('Updated. The client sees the new icon.'); } }));
+  }
+  projBudget(pj) {
+    var self = this, I = this.icons();
+    this.open(this.sh({ wide: true, eyebrow: 'Budget and scope', title: 'What was agreed on ' + pj.name, icon: I.cash, keepOpen: true, body: 'This is what an argument gets settled against, so write it in words the client would recognise.', form: { amt: '1200000', scope: 'Logo, palette, type scale and a short guideline set.', due: '2026-10-17', route: 'Portal and email' },
+      fields: [{ key: 'amt', label: 'Agreed budget (₦)', mode: 'numeric', hint: 'Leave it empty when nothing is agreed. Empty is not zero.', check: function (v) { return v.trim() && !/^\d+$/.test(v.trim()) ? 'Numbers only.' : ''; } }, { key: 'due', type: 'date', label: 'Due date', hint: 'Leave it empty until a date is actually agreed.' }, { key: 'scope', label: 'What was bought', type: 'area', wide: true, ph: 'Logo, palette, type scale and a short guideline set.' }],
+      chipSets: [{ key: 'route', label: 'Where updates go', opts: ['Portal and email', 'Portal only', 'WhatsApp group', 'Email only'], hint: 'Change it once a route is agreed with the client.' }], primary: 'Save changes', secondary: 'Cancel', onPrimary: function (ctx) { self.projAct('changed the budget and scope', (ctx.form.amt ? '₦' + Number(ctx.form.amt).toLocaleString('en-NG') : 'No figure agreed') + ' · updates by ' + ctx.form.route.toLowerCase()); self.say('Updated. The history records who changed what.'); } }));
+  }
   popItems(pop) {
     var self = this, I = this.icons(), it = this.menuItem.bind(this), M = this.projectModel();
-    if (pop.kind === 'chores') return M.chores ? M.chores() : [];
+    if (pop.kind === 'chores') return M.chores ? M.chores().filter(Boolean) : [];
     if (pop.kind === 'task') {
       var t = this.taskList().filter(function (x) { return x.id === pop.id; })[0]; if (!t) return [];
       var cur = this.state.tstat[t.id] || t.st, set = function (st, label) { var prev = Object.assign({}, self.state.tstat), n = Object.assign({}, prev); n[t.id] = st; self.setState({ tstat: n, ra: self.state.ra + 1 }); self.say('Moved to ' + label + '.', { undo: function () { self.setState({ tstat: prev, ra: self.state.ra + 1 }); } }); };
@@ -3419,7 +3522,7 @@ class Component extends DCLogic {
     var frows = F.slice(fp * s.fper, fp * s.fper + s.fper).map(function (f, i) { var prev = function () { self.openFile(f); }; return Object.assign({}, f, { meta: f.when + ' · ' + f.size + ' · ' + f.by, aria: 'Preview ' + f.name, dlAria: 'Download ' + f.name, anim: self.anim(s.ra), delay: (i * 0.035) + 's', get: function (e) { if (e && e.stopPropagation) e.stopPropagation(); self.say('Downloading ' + f.name + ' (' + f.size + ')'); }, preview: function (e) { if (e && e.target && e.target.closest && e.target.closest('[data-menu]')) return; prev(); }, key: function (e) { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); prev(); } } }); });
     var FP = Object.assign(this.pager('pfiles', F.length, s.fper, fp, function (k) { self.setState({ fpage: k }); }, function (n) { self.setState({ fper: n, fpage: 0 }); }), { all: function () { self.setState({ fper: 20, fpage: 0 }); } });
     var mrows = ((M.money || {}).rows || []).map(function (r) { var open = function () { self.openFile({ name: r.no + '.pdf', project: pj.client, view: 'doc', ref: r.no, docTitle: r.for + ' · ' + r.amount, when: r.date, size: '190 KB', tone: 'var(--ad-tone-bad)', by: 'Funmi K.' }); }; return Object.assign({}, r, { aria: r.no + ', ' + r.amount + ', ' + r.status + '. Press Enter to preview.', open: open, key: function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } } }); });
-    var A = M.activity || [], ap = Math.min(s.apage, Math.max(0, Math.ceil(A.length / s.aper) - 1));
+    var A = (s.posted || []).concat(M.activity || []), ap = Math.min(s.apage, Math.max(0, Math.ceil(A.length / s.aper) - 1));
     var acts = A.slice(ap * s.aper, ap * s.aper + s.aper).map(function (a, i) { return Object.assign({ dotCls: ap === 0 && i === 0 ? 'now' : '', anim: self.anim(s.aa), delay: (i * 0.04) + 's' }, a); });
     var AP = Object.assign(this.pager('pacts', A.length, s.aper, ap, function (k) { self.setState({ apage: k, aa: self.state.aa + 1 }); }, function (n) { self.setState({ aper: n, apage: 0 }); }), { all: function () { self.setState({ aper: 20, apage: 0 }); } });
 
@@ -3559,6 +3662,8 @@ class Component extends DCLogic {
         return function () {
           var it = self.menuItem.bind(self);
           return [it('Edit project', I.edit, function () { self.open(S({ eyebrow: pj.client, title: 'Edit project', icon: I.edit, form: { name: pj.name, lead: pj.leadName }, fields: [{ key: 'name', label: 'Project name', wide: true }], chipSets: [{ key: 'lead', label: 'Lead', opts: self.teamData().map(function (m) { return m.name; }) }], primary: 'Save changes', secondary: 'Cancel', onPrimary: function () { self.say('Updated. The team and ' + who + ' see the changes.'); } })); }),
+            it('Post an update', I.edit, function () { self.projPostUpdate(pj); }), it('Hand over to a department', I.hand, function () { self.projHandover(pj); }),
+            self.projRole() === 'client' ? null : it('Project access', I.key, function () { self.projMembers(pj); }), self.projRole() === 'admin' ? it('Who is answerable', I.target, function () { self.projAnswerable(pj); }) : null, self.projRole() === 'admin' ? it('Budget and scope', I.cash, function () { self.projBudget(pj); }) : null, self.projRole() === 'client' ? null : it('Project icon', I.layers, function () { self.projIcon(pj); }),
             self.state.paused[self.projKeys()[self.state.sw]] ? it('Resume project', I.play, function () { self.resumeProject(self.projKeys()[self.state.sw], pj.name, pj.client); }) : it('Pause project…', I.clock, function () { self.pauseProject(self.projKeys()[self.state.sw], pj.name, pj.client, who); }),
             it('Mark done…', I.check, function () { self.ask({ eyebrow: 'Done', title: 'Mark ' + pj.name + ' done?', body: 'A project is usually marked done after the recorded handover meeting and the final invoice.', ok: 'Mark done', tone: 'var(--ad-tone-warn)', icon: I.check, okToast: 'Marked done. It moves to Done in Projects.' }); }),
             self.menuSep(),
