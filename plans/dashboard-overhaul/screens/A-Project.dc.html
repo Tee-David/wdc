@@ -1120,6 +1120,37 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .mgCell.sel .mgMore{color:var(--ad-nav-on-ink)}
 .agenda{padding:8px 20px 20px;display:flex;flex-direction:column;gap:6px}.agTitle{font-size:15px;font-weight:700}
 .agRow{display:flex;align-items:center;gap:10px;padding:8px;border-radius:12px;width:100%;min-height:52px;border:1px solid var(--ad-line)}
+/* bare pages: sign in, public documents, booking, forms, system states */
+.bare{min-height:100%;display:flex;flex-direction:column;background:var(--ad-bg)}
+.bareTop{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--ad-line);background:var(--ad-bg);position:sticky;top:0;z-index:20}
+.bareBrand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;min-height:44px}
+.bareMain{flex:1;display:flex;flex-direction:column;align-items:center;gap:18px;padding:28px 16px 56px;width:100%}
+.bareFoot{align-items:center;display:flex;gap:16px;flex-wrap:wrap;justify-content:center;padding:18px 16px;border-top:1px solid var(--ad-line);font-size:13px;color:var(--ad-dim)}.bareFoot a{min-height:44px;display:inline-flex;align-items:center}
+.pvStates{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;font-size:12px;color:var(--ad-dim);width:100%;max-width:760px}
+.bareCard{width:100%;max-width:440px;background:var(--ad-panel);border:1px solid var(--ad-line);border-radius:20px;padding:28px 24px;display:flex;flex-direction:column;gap:16px;box-shadow:var(--ad-sh-1)}
+.bareCard.wide{max-width:760px}.bareCard.mid{max-width:600px}
+.bareCard h1{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;line-height:1.15}
+.bareCard .sub{color:var(--ad-dim);font-size:15px;line-height:1.5}
+.bareRow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.bareBtn{width:100%;min-height:48px;justify-content:center}
+.tickBig{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;background:var(--ad-tone-good);color:#fff;align-self:center}
+.codeRow{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}.codeRow .cbox{height:56px;border-radius:12px;border:1px solid var(--ad-line-2);background:var(--ad-panel);display:grid;place-items:center;font:700 22px 'Space Grotesk',sans-serif}.codeRow .cbox.on{border-color:var(--ad-ink);box-shadow:0 0 0 4px var(--ad-ring)}
+.errNote{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:var(--ad-tone-bad);color:#fff;font-size:14px}
+.okNote{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:var(--ad-tone-good);color:#fff;font-size:14px}
+.divOr{display:flex;align-items:center;gap:12px;color:var(--ad-dim);font-size:13px}.divOr:before,.divOr:after{content:"";flex:1;height:1px;background:var(--ad-line)}
+.reqList{display:flex;flex-direction:column;gap:6px;font-size:14px}.reqList li{display:flex;gap:8px;align-items:center;list-style:none}
+.docSheet{width:100%;max-width:760px;background:var(--ad-panel);border:1px solid var(--ad-line);border-radius:20px;overflow:hidden}
+.docSheet .dsHead{padding:22px 24px;display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:flex-start;border-bottom:1px solid var(--ad-line)}
+.docSheet .dsBody{padding:8px 24px 20px}
+.payOpt{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--ad-line-2);border-radius:14px;min-height:56px;width:100%;text-align:left;background:var(--ad-panel)}
+.payOpt.on{border-color:var(--ad-ink);box-shadow:0 0 0 4px var(--ad-ring)}
+.payOpt img{width:84px;height:28px;object-fit:contain;background:#fff;border-radius:8px;padding:2px 6px}
+.slotGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.slot{min-height:44px;border-radius:12px;border:1px solid var(--ad-line-2);background:var(--ad-panel);font-weight:600}.slot.on{background:var(--ad-nav-on);color:var(--ad-nav-on-ink);border-color:var(--ad-nav-on)}.slot[disabled]{opacity:.5;text-decoration:line-through}
+.stepDots{display:flex;gap:6px;justify-content:center}.stepDots span{width:8px;height:8px;border-radius:50%;background:var(--ad-line-2)}.stepDots span.on{background:var(--ad-ink)}
+.bigNum{font:700 64px 'Space Grotesk',sans-serif;line-height:1;text-align:center;color:var(--ad-ink)}
+.docMetaG{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+.docMetaG dt{font-size:12px;color:var(--ad-dim);margin-bottom:2px}
 
 </style>
 </helmet>
@@ -2536,7 +2567,7 @@ class Component extends DCLogic {
   openFile(f, push) {
     var self = this, I = this.icons();
     this.open(this.sh({ kind: 'file', wide: true, eyebrow: 'File · ' + (f.project || 'Library'), title: f.name, chip: f.fresh ? 'New' : '', tone: 'var(--ad-tone-live)', icon: I.file, iconTone: f.tone || 'var(--ad-tone-brand)', file: f,
-      rows: [{ k: 'Added', v: f.when }, { k: 'Size', v: f.size }, { k: 'By', v: f.by || 'The studio' }],
+      rows: [{ k: 'Added', v: f.when }, { k: 'Size', v: f.size }, { k: 'By', v: f.by || 'The studio' }], feedTitle: 'Versions and responses', feed: (f.versions || []).map(function (v) { return { t: v.t, when: v.when }; }),
       primary: 'Download', secondary: 'Ask about this file',
       onPrimary: function () { self.say('Downloading ' + f.name + ' (' + f.size + ')'); },
       onSecondary: function () { self.ask({ eyebrow: 'Message', title: 'Ask about ' + f.name, body: 'It goes to the person who shared the file, with the file attached.', input: true, inputLabel: 'Your question', inputPh: 'For example: can we see the leaf a little thinner?', ok: 'Send question', back: true, okToast: 'Sent. Replies come to Messages and your email.', icon: I.msg }, true); return 'stay'; } }), push);
@@ -3484,6 +3515,16 @@ class Component extends DCLogic {
       primaryDis: function (ctx) { return (ctx.form.moved || '').trim().length < 8 ? 'Say what moved.' : (!(ctx.form.next || '').trim() ? 'Say what happens next.' : ''); },
       onPrimary: function (ctx) { var f = ctx.form; self.projAct('posted an update: ' + f.how.toLowerCase(), f.moved.trim().slice(0, 80) + ((f.who || []).length ? ' · client told' : ' · team only')); self.setState({ sheet: null, stack: [], ptab: 'activity', ta: self.state.ta + 1 }); self.say((f.who || []).length ? 'Posted. The client sees it in their portal and by email.' : 'Saved as a team note.'); } }));
   }
+  /* What proves the work was delivered: kept with the project so a handover, a dispute or a review can point at it. */
+  projEvidence(pj) {
+    var self = this, I = this.icons();
+    this.open(this.sh({ eyebrow: pj.name, title: 'Delivery evidence', icon: I.check, keepOpen: true, body: 'Keep proof of what was delivered, and when. It stays on the project, and the client sees the items marked shared.',
+      checksTitle: 'Before it is marked done', checks: [{ t: 'Recorded handover meeting attached' }, { t: 'Handover document sent' }, { t: 'Final files or live link delivered' }, { t: 'Client signed off in writing' }],
+      form: { link: '', note: '', files: [] }, fields: [{ key: 'link', label: 'Live link or store listing', ph: 'https://', wide: true, hint: 'Optional for design work.' }, { key: 'note', type: 'area', label: 'What was delivered', ph: 'Final files in the shared folder, site live on the client domain', wide: true }, { key: 'files', type: 'media', label: 'Screenshots, recordings, signed documents', max: 8, hint: 'Pictures, PDFs or the Meet recording.' }],
+      chipSets: [{ key: 'share', label: 'Who sees it', opts: ['Team only', 'Team and client'] }], primary: 'Save the evidence', secondary: 'Cancel',
+      primaryDis: function (ctx) { var f = ctx.form; return !((f.note || '').trim() || (f.link || '').trim() || (f.files || []).length) ? 'Add a note, a link or a file.' : ''; },
+      onPrimary: function (ctx) { var f = ctx.form; self.projAct('saved delivery evidence', ((f.note || '').trim() || (f.link || '').trim() || (f.files || []).length + ' files') + ' · ' + (f.share || 'Team only')); self.say('Saved on the project. ' + ((f.share || '') === 'Team and client' ? 'The client can see it in their portal.' : 'Only the team can see it.')); } }));
+  }
   projHandover(pj) {
     var self = this, I = this.icons(), team = this.teamData().map(function (m) { return m.name; });
     this.open(this.sh({ wide: true, eyebrow: 'Hand work over', title: 'Hand ' + pj.name + ' to a department', icon: I.hand, keepOpen: true, body: 'The receiving lead has to accept it first. Nothing moves until they do.', form: { title: '', lead: team[1] || team[0], ctx: '', done: '', open: '', nextA: '', by: '2026-10-16' },
@@ -3636,6 +3677,7 @@ class Component extends DCLogic {
         var it = self.menuItem.bind(self);
         return [it('Edit project', I.edit, function () { self.open(S({ eyebrow: 'Mira Skincare', title: 'Edit project', icon: I.edit, form: { name: 'Social media management', plats: ['Instagram', 'Facebook', 'TikTok'], lead: 'Chiamaka A.' }, fields: [{ key: 'name', label: 'Project name', wide: true }], chipSets: [{ key: 'plats', label: 'Platforms', multi: true, opts: ['Instagram', 'Facebook', 'TikTok', 'LinkedIn', 'YouTube'] }, { key: 'lead', label: 'Lead', opts: self.teamData().map(function (m) { return m.name; }) }], primary: 'Save changes', secondary: 'Cancel', onPrimary: function () { self.say('Updated. The team and Adaeze see the changes.'); } })); }),
           it('Pause project…', I.clock, function () { self.ask({ eyebrow: 'Pause', title: 'Pause Social media management?', body: 'Scheduled posts stop and tasks leave My Day. Adaeze sees “Paused” in her portal with your reason.', input: true, inputLabel: 'Reason Adaeze sees', inputPh: 'For example: paused until the deposit is paid', ok: 'Pause project', tone: 'var(--ad-tone-warn)', icon: I.clock, okToast: 'Project paused. Adaeze has been told.' }); }),
+          it('Delivery evidence', I.check, function () { self.projEvidence({ name: 'Social media management', client: 'Mira Skincare' }); }, { hint: 'Proof of what was delivered' }),
           it('Mark done…', I.check, function () { self.ask({ eyebrow: 'Done', title: 'Mark this project done?', body: 'Setup is still open, 6 tasks are not finished and the deposit is unpaid. Usually a project is marked done after the handover meeting.', ok: 'Mark done anyway', tone: 'var(--ad-tone-warn)', icon: I.check, okToast: 'Marked done. It moves to Done in Projects.' }); }),
           self.menuSep(),
           it('Move to Trash…', I.trash, function () { self.ask({ eyebrow: 'Trash', title: 'Move this project to Trash?', body: 'Tasks, files and the content calendar go with it. Invoices stay in Money. Restore it from Settings, Trash, for 30 days.', ok: 'Move to Trash', danger: true, tone: 'var(--ad-tone-bad)', icon: I.trash, onOk: function () { self.say('Project moved to Trash.'); setTimeout(function () { window.location.href = 'A-Projects.dc.html'; }, 1500); } }); }, { danger: true })];
@@ -3764,7 +3806,7 @@ class Component extends DCLogic {
     var self = this, I = this.icons(), S = this.sh.bind(this);
     return {
       remind: function (id, msg, who) { return function () { self.say(msg, { delay: 8, pending: function (n) { return 'Sending to ' + who + ' in ' + n + 's'; }, cancel: function () { var d = Object.assign({}, self.state.apDone); delete d[id]; self.setState({ apDone: d }); } }); var d = Object.assign({}, self.state.apDone); d[id] = true; self.setState({ apDone: d }); }; },
-      files: function (list, project, bg, fg, mark) { return list.map(function (f, i) { var ext = f[0].split('.').pop().toUpperCase(); return { name: f[0], when: f[1], size: f[2], view: f[3], by: f[4], ext: ext, project: project, docTitle: f[0].replace(/\.\w+$/, ''), ref: project.slice(0, 4).toUpperCase() + '-' + (i + 1), pageCount: 4, bg: bg, fg: fg, mark: mark, tone: ext === 'PDF' ? '#c62828' : '#b84a00', swatches: f[5] }; }); },
+      files: function (list, project, bg, fg, mark) { return list.map(function (f, i) { var ext = f[0].split('.').pop().toUpperCase(); return { name: f[0], when: f[1], size: f[2], view: f[3], by: f[4], ext: ext, project: project, docTitle: f[0].replace(/\.\w+$/, ''), ref: project.slice(0, 4).toUpperCase() + '-' + (i + 1), pageCount: 4, bg: bg, fg: fg, mark: mark, tone: ext === 'PDF' ? '#c62828' : '#b84a00', swatches: f[5], versions: /logo|route|concept|poster|menu|flyer|guide/i.test(f[0]) ? [{ t: 'Version 2 approved by the client', when: 'Today' }, { t: 'Version 2 sent, with the thinner leaf', when: 'Sat 3 Oct' }, { t: 'Version 1: changes requested, “thinner leaf, warmer green”', when: 'Wed 30 Sep' }, { t: 'Version 1 sent', when: 'Mon 28 Sep' }] : undefined }; }); },
       act: function (list) { return list.map(function (a) { return { i: a[0], tone: a[1], who: a[2], what: a[3], where: a[4], when: a[5] }; }); },
       chores: function (pj, who) {
         return function () {
@@ -3773,6 +3815,7 @@ class Component extends DCLogic {
             it('Post an update', I.edit, function () { self.projPostUpdate(pj); }), it('Hand over to a department', I.hand, function () { self.projHandover(pj); }),
             self.projRole() === 'client' ? null : it('Project access', I.key, function () { self.projMembers(pj); }), self.projRole() === 'admin' ? it('Who is answerable', I.target, function () { self.projAnswerable(pj); }) : null, self.projRole() === 'admin' ? it('Budget and scope', I.cash, function () { self.projBudget(pj); }) : null, self.projRole() === 'client' ? null : it('Project icon', I.layers, function () { self.projIcon(pj); }),
             self.state.paused[self.projKeys()[self.state.sw]] ? it('Resume project', I.play, function () { self.resumeProject(self.projKeys()[self.state.sw], pj.name, pj.client); }) : it('Pause project…', I.clock, function () { self.pauseProject(self.projKeys()[self.state.sw], pj.name, pj.client, who); }),
+            self.projRole() === 'client' ? null : it('Delivery evidence', I.check, function () { self.projEvidence(pj); }, { hint: 'Proof of what was delivered' }),
             it('Mark done…', I.check, function () { self.ask({ eyebrow: 'Done', title: 'Mark ' + pj.name + ' done?', body: 'A project is usually marked done after the recorded handover meeting and the final invoice.', ok: 'Mark done', tone: 'var(--ad-tone-warn)', icon: I.check, okToast: 'Marked done. It moves to Done in Projects.' }); }),
             self.menuSep(),
             it('Jump to another project', I.folder, function () { self.jumpProject(); }),

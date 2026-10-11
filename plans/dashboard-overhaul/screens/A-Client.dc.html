@@ -1120,6 +1120,37 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .mgCell.sel .mgMore{color:var(--ad-nav-on-ink)}
 .agenda{padding:8px 20px 20px;display:flex;flex-direction:column;gap:6px}.agTitle{font-size:15px;font-weight:700}
 .agRow{display:flex;align-items:center;gap:10px;padding:8px;border-radius:12px;width:100%;min-height:52px;border:1px solid var(--ad-line)}
+/* bare pages: sign in, public documents, booking, forms, system states */
+.bare{min-height:100%;display:flex;flex-direction:column;background:var(--ad-bg)}
+.bareTop{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--ad-line);background:var(--ad-bg);position:sticky;top:0;z-index:20}
+.bareBrand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;min-height:44px}
+.bareMain{flex:1;display:flex;flex-direction:column;align-items:center;gap:18px;padding:28px 16px 56px;width:100%}
+.bareFoot{align-items:center;display:flex;gap:16px;flex-wrap:wrap;justify-content:center;padding:18px 16px;border-top:1px solid var(--ad-line);font-size:13px;color:var(--ad-dim)}.bareFoot a{min-height:44px;display:inline-flex;align-items:center}
+.pvStates{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;font-size:12px;color:var(--ad-dim);width:100%;max-width:760px}
+.bareCard{width:100%;max-width:440px;background:var(--ad-panel);border:1px solid var(--ad-line);border-radius:20px;padding:28px 24px;display:flex;flex-direction:column;gap:16px;box-shadow:var(--ad-sh-1)}
+.bareCard.wide{max-width:760px}.bareCard.mid{max-width:600px}
+.bareCard h1{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;line-height:1.15}
+.bareCard .sub{color:var(--ad-dim);font-size:15px;line-height:1.5}
+.bareRow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.bareBtn{width:100%;min-height:48px;justify-content:center}
+.tickBig{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;background:var(--ad-tone-good);color:#fff;align-self:center}
+.codeRow{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}.codeRow .cbox{height:56px;border-radius:12px;border:1px solid var(--ad-line-2);background:var(--ad-panel);display:grid;place-items:center;font:700 22px 'Space Grotesk',sans-serif}.codeRow .cbox.on{border-color:var(--ad-ink);box-shadow:0 0 0 4px var(--ad-ring)}
+.errNote{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:var(--ad-tone-bad);color:#fff;font-size:14px}
+.okNote{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:var(--ad-tone-good);color:#fff;font-size:14px}
+.divOr{display:flex;align-items:center;gap:12px;color:var(--ad-dim);font-size:13px}.divOr:before,.divOr:after{content:"";flex:1;height:1px;background:var(--ad-line)}
+.reqList{display:flex;flex-direction:column;gap:6px;font-size:14px}.reqList li{display:flex;gap:8px;align-items:center;list-style:none}
+.docSheet{width:100%;max-width:760px;background:var(--ad-panel);border:1px solid var(--ad-line);border-radius:20px;overflow:hidden}
+.docSheet .dsHead{padding:22px 24px;display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:flex-start;border-bottom:1px solid var(--ad-line)}
+.docSheet .dsBody{padding:8px 24px 20px}
+.payOpt{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--ad-line-2);border-radius:14px;min-height:56px;width:100%;text-align:left;background:var(--ad-panel)}
+.payOpt.on{border-color:var(--ad-ink);box-shadow:0 0 0 4px var(--ad-ring)}
+.payOpt img{width:84px;height:28px;object-fit:contain;background:#fff;border-radius:8px;padding:2px 6px}
+.slotGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.slot{min-height:44px;border-radius:12px;border:1px solid var(--ad-line-2);background:var(--ad-panel);font-weight:600}.slot.on{background:var(--ad-nav-on);color:var(--ad-nav-on-ink);border-color:var(--ad-nav-on)}.slot[disabled]{opacity:.5;text-decoration:line-through}
+.stepDots{display:flex;gap:6px;justify-content:center}.stepDots span{width:8px;height:8px;border-radius:50%;background:var(--ad-line-2)}.stepDots span.on{background:var(--ad-ink)}
+.bigNum{font:700 64px 'Space Grotesk',sans-serif;line-height:1;text-align:center;color:var(--ad-ink)}
+.docMetaG{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+.docMetaG dt{font-size:12px;color:var(--ad-dim);margin-bottom:2px}
 
 </style>
 </helmet>
@@ -1287,6 +1318,11 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
             </sc-if>
 
             <sc-if value="{{isMoney}}" hint-placeholder-val="{{ false }}">
+              <section class="card cq tabIn" aria-label="Their balance with us" style="overflow: hidden; animation-name: {{tabAnim}}; margin-bottom: 14px">
+                <div style="padding: 16px 20px 6px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap"><h2 style="font-size: 17px; font-weight: 700; flex: 1">Their balance with us</h2><button class="btn2" style="min-height: 44px" onClick="{{useCredit}}" disabled="{{creditDis}}">Put it against an invoice</button></div>
+                <p style="padding: 0 20px 8px; font-size: 14px"><strong class="num" style="font-size: 20px">{{creditHeld}}</strong> <span style="color: var(--ad-dim)">{{creditNote}}</span></p>
+                <ul style="list-style: none; margin: 0; padding: 0 20px 16px; display: grid; gap: 6px"><sc-for list="{{credits}}" as="c" hint-placeholder-count="2"><li style="display: flex; gap: 10px; align-items: center; font-size: 14px; min-height: 36px"><span class="tag" style="background: {{c.tone}}; color: {{c.ink}}">{{c.state}}</span><span style="flex: 1; min-width: 0">{{c.t}}<br><span style="color: var(--ad-dim); font-size: 12px">{{c.s}}</span></span><strong class="num">{{c.amt}}</strong></li></sc-for></ul>
+              </section>
               <section class="card cq tabIn" aria-label="Invoices, quotes and receipts" style="overflow: hidden; animation-name: {{tabAnim}}">
                 <div style="display: flex; align-items: center; gap: 10px; padding: 16px 20px 12px; flex-wrap: wrap"><h2 style="font-size: 17px; font-weight: 700; flex: 1">Money with Mira Skincare</h2><a class="btn2" href="A-Money.dc.html" style="min-height: 40px">Open Money</a></div>
                 <div role="tablist" aria-label="Kind" class="tabs"><sc-for list="{{mtabs}}" as="tb" hint-placeholder-count="3"><button role="tab" class="tab {{tb.cls}}" aria-selected="{{tb.sel}}" onClick="{{tb.pick}}">{{tb.label}}<span class="tag num" style="background: var(--ad-tone-flat); color: var(--ad-on-flat); height: 20px; padding: 0 7px">{{tb.n}}</span></button></sc-for></div>
@@ -2485,7 +2521,7 @@ class Component extends DCLogic {
   openFile(f, push) {
     var self = this, I = this.icons();
     this.open(this.sh({ kind: 'file', wide: true, eyebrow: 'File · ' + (f.project || 'Library'), title: f.name, chip: f.fresh ? 'New' : '', tone: 'var(--ad-tone-live)', icon: I.file, iconTone: f.tone || 'var(--ad-tone-brand)', file: f,
-      rows: [{ k: 'Added', v: f.when }, { k: 'Size', v: f.size }, { k: 'By', v: f.by || 'The studio' }],
+      rows: [{ k: 'Added', v: f.when }, { k: 'Size', v: f.size }, { k: 'By', v: f.by || 'The studio' }], feedTitle: 'Versions and responses', feed: (f.versions || []).map(function (v) { return { t: v.t, when: v.when }; }),
       primary: 'Download', secondary: 'Ask about this file',
       onPrimary: function () { self.say('Downloading ' + f.name + ' (' + f.size + ')'); },
       onSecondary: function () { self.ask({ eyebrow: 'Message', title: 'Ask about ' + f.name, body: 'It goes to the person who shared the file, with the file attached.', input: true, inputLabel: 'Your question', inputPh: 'For example: can we see the leaf a little thinner?', ok: 'Send question', back: true, okToast: 'Sent. Replies come to Messages and your email.', icon: I.msg }, true); return 'stay'; } }), push);
@@ -3345,7 +3381,7 @@ class Component extends DCLogic {
   }
 
   /* ======================= Owner · Client page: Mira Skincare ======================= */
-  pageState() { return { ptab: 'overview', ta: 0, mtab: 'inv', mpage: 0, mper: 5, ftab: 'all', fpage: 0, fper: 5, fq: '', fa: 0, apage: 0, aper: 5, afil: 'all', aa: 0, slot: 0, people: null, reminded: false, ra: 0 }; }
+  pageState() { return { creditUsed: {}, ptab: 'overview', ta: 0, mtab: 'inv', mpage: 0, mper: 5, ftab: 'all', fpage: 0, fper: 5, fq: '', fa: 0, apage: 0, aper: 5, afil: 'all', aa: 0, slot: 0, people: null, reminded: false, ra: 0 }; }
   pageName() { return 'Mira Skincare'; }
   navSection() { return 'Clients'; }
   tourSteps() {
@@ -3436,6 +3472,13 @@ class Component extends DCLogic {
       onPrimary: function () { self.say('Updated. New invoices use these details.'); } }));
   }
 
+  creditsData() { var used = this.state.creditUsed || {}; return [{ id: 'cr1', amt: 50000, t: 'Paid twice on INV-26-2BV6NM', s: 'Paystack and a bank transfer, 28 Sep. Held at their request.', src: 'Overpayment' }, { id: 'cr2', amt: 30000, t: 'Refund held rather than returned', s: 'Cancelled flyer edition, 2 Oct.', src: 'Held refund' }].map(function (c) { return Object.assign({}, c, { applied: used[c.id] || '' }); }); }
+  useCredit() {
+    var self = this, I = this.icons(), cr = this.creditsData().filter(function (c) { return !c.applied; }), open = [{ no: 'INV-26-9QX4LM', owed: 450000 }, { no: 'INV-26-7HB2QA', owed: 280000 }, { no: 'INV-26-5RW3KD', owed: 90000 }];
+    if (!cr.length) { this.say('Nothing is held for this client.'); return; }
+    this.open(this.sh({ eyebrow: 'Their balance', title: 'Put a credit against an invoice', icon: I.wallet, body: 'The credit becomes an ordinary payment on the invoice, with a receipt number like any other. There is no other way out, so every balance can be reconciled.', listTitle: 'Open invoices', select: true, searchPh: 'Search invoices', list: open.map(function (r) { return { t: r.no, s: '₦' + r.owed.toLocaleString('en-NG') + ' owing' }; }), selectWhy: 'Choose the invoice.', primary: function (ctx) { return ctx.pick >= 0 ? 'Apply ₦' + Math.min(cr[0].amt, open[ctx.pick].owed).toLocaleString('en-NG') + ' to ' + open[ctx.pick].no : 'Apply the credit'; }, secondary: 'Cancel',
+      onPrimary: function (ctx) { var inv = open[ctx.pick], c = cr[0], u = Object.assign({}, self.state.creditUsed); u[c.id] = inv.no; self.setState({ creditUsed: u, ra: self.state.ra + 1 }); self.say('₦' + Math.min(c.amt, inv.owed).toLocaleString('en-NG') + ' applied to ' + inv.no + '. Receipt RCT-2026-0' + (50 + Object.keys(u).length) + ' sent.'); } }));
+  }
   renderVals() {
     var s = this.state, self = this, p = s.p, I = this.icons(), S = this.sh.bind(this), L = this.socialLogos();
     var tabs = [['overview', 'Overview'], ['money', 'Money', 5], ['files', 'Files', 10], ['people', 'People', this.peopleData().length], ['activity', 'Activity']];
@@ -3450,6 +3493,7 @@ class Component extends DCLogic {
     var actOpen = function (a) { return function () { self.open(S({ eyebrow: a.kind, title: a.who + ' ' + a.what, icon: a.kind === 'Money' ? I.cash : (a.kind === 'Message' ? I.msg : I.layers), iconTone: a.ktone, rows: [{ k: 'Where', v: a.where }, { k: 'When', v: a.when }], primary: 'Close' })); }; };
     var recent = A.slice(0, 4).map(function (a, i) { return Object.assign({}, a, { dotCls: i === 0 ? 'now' : '', open: actOpen(a) }); });
 
+    var CR = this.creditsData(), held = CR.filter(function (c) { return !c.applied; }).reduce(function (a, c) { return a + c.amt; }, 0);
     var D = this.docs(), dl = D[s.mtab], mp = Math.min(s.mpage, Math.max(0, Math.ceil(dl.length / s.mper) - 1));
     var mrows = dl.slice(mp * s.mper, mp * s.mper + s.mper).map(function (d) { var open = function () { self.open(self.docSheet(d)); }; return Object.assign({}, d, { anim: self.anim(s.ra), aria: d.no + ', ' + d.amount + ', ' + d.status + '. Press Enter to open.', menuAria: 'Actions for ' + d.no, open: function (e) { if (e && e.target && e.target.closest && e.target.closest('[data-menu]')) return; open(); }, key: function (e) { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); open(); } }, menuX: self.popOn('doc', d.no), menu: function (e) { if (e && e.stopPropagation) e.stopPropagation(); self.openPop(e, 'doc', d.no, 230, 200, 'Actions for ' + d.no); } }); });
     var mtabs = [['inv', 'Invoices'], ['est', 'Quotes'], ['rct', 'Receipts']].map(function (t) { var on = s.mtab === t[0]; return { label: t[1], n: D[t[0]].length, cls: on ? 'on' : '', sel: on ? 'true' : 'false', pick: function () { if (!on) self.setState({ mtab: t[0], mpage: 0, ra: self.state.ra + 1 }); } }; });
@@ -3485,7 +3529,7 @@ class Component extends DCLogic {
       agenda: function () { self.open(S({ eyebrow: 'Logo review · ' + sl[1], title: 'Agenda', icon: I.cal, checksTitle: 'What we cover', checks: [{ t: 'Walk through both routes', s: 'Ifeanyi, 10 min' }, { t: 'Adaeze picks a route or lists changes', s: '10 min' }, { t: 'Agree the final files and brand guide date', s: '5 min' }, { t: 'Confirm the balance invoice timing', s: 'Babatope, 5 min' }], note: 'The Google Meet link and this agenda go to Adaeze 1 hour before.', primary: 'Close' })); },
       moveMeeting: function () { self.open(S({ eyebrow: 'Logo review', title: 'Move the meeting', icon: I.cal, body: 'Adaeze gets the new time by email and in her portal. It stays review 1 of 2.', listTitle: 'Times that suit Ifeanyi and you', select: true, pick: s.slot, list: slots.map(function (x, i) { return { t: x[1], s: i === s.slot ? 'Current time' : '30 min · Google Meet' }; }), primary: function (ctx) { return ctx.pick === self.state.slot ? 'Keep this time' : 'Move to ' + slots[ctx.pick][1]; }, onPrimary: function (ctx) { if (ctx.pick === self.state.slot) return; var prev = self.state.slot; self.setState({ slot: ctx.pick }); self.say('Moved to ' + slots[ctx.pick][1] + '. Adaeze has been told.', { undo: function () { self.setState({ slot: prev }); } }); } })); },
       peopleShort: PP.slice(0, 2).map(function (pp) { return Object.assign({}, pp, { portalShort: pp.short, open: function () { self.open(self.personSheet(pp)); } }); }),
-      mtabs: mtabs, mrows: mrows, MP: MP, mDateHead: s.mtab === 'inv' ? 'Due or paid' : 'Date',
+      creditHeld: '₦' + held.toLocaleString('en-NG'), creditNote: held ? 'is held for this client. It comes off their next invoice.' : 'Nothing is held. Everything below has been applied.', creditDis: !held, useCredit: function () { self.useCredit(); }, credits: CR.map(function (c) { return { t: c.t, s: c.applied ? 'Applied to ' + c.applied : c.s, amt: '₦' + c.amt.toLocaleString('en-NG'), state: c.applied ? 'Applied' : 'Held', tone: c.applied ? 'var(--ad-tone-flat)' : 'var(--ad-tone-live)', ink: c.applied ? 'var(--ad-on-flat)' : '#fff' }; }), mtabs: mtabs, mrows: mrows, MP: MP, mDateHead: s.mtab === 'inv' ? 'Due or paid' : 'Date',
       ftabs: ftabs, frows: frows, FP: FP, fEmpty: !fl.length, fq: s.fq, hasFq: !!s.fq, onFq: function (e) { self.setState({ fq: e.target.value, fpage: 0, fa: self.state.fa + 1 }); }, clearFq: function () { self.setState({ fq: '', fa: self.state.fa + 1 }); },
       upload: function () { self.open(S({ eyebrow: 'Upload to Mira Skincare', title: 'Add files', icon: I.upload, body: 'Up to 50 MB a file. Choose who sees them before they land.', chipSets: [{ key: 'proj', label: 'Project', opts: ['Brand identity', 'Social media', 'Billing'] }], form: { proj: 'Brand identity', who: 'Team only' }, compose: false, list: [], fields: [], checks: [], note: '', primary: 'Choose files', secondary: 'Cancel', onPrimary: function (ctx) { self.say('The file picker opens here. Files go to ' + ctx.form.proj + '.'); } })); },
       people: people, addPerson: function () { self.open(S({ eyebrow: 'Mira Skincare', title: 'Add a person', icon: I.users, fields: [{ key: 'name', label: 'Full name' }, { key: 'role', label: 'Role', ph: 'For example: Operations' }, { key: 'email', label: 'Email', type: 'email', mode: 'email', wide: true, check: function (v) { v = v.trim(); if (!v) return ''; if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) return 'Check the email address.'; return ''; } }], chipSets: [{ key: 'gets', label: 'They get', multi: true, opts: ['Approvals', 'Invoices and receipts', 'Meeting invites', 'Portal access'] }], primary: 'Add person', secondary: 'Cancel', primaryDis: function (ctx) { var f = ctx.form; return (f.name || '').trim() && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test((f.email || '').trim()) ? '' : 'Add a name and a valid email.'; }, onPrimary: function (ctx) { var f = ctx.form, gets = f.gets || [], portal = gets.indexOf('Portal access') >= 0; self.setPeople(self.peopleData().concat([{ id: 'p' + Date.now(), name: f.name.trim(), i: f.name.trim().split(/\s+/).map(function (w) { return w.charAt(0); }).join('').slice(0, 2).toUpperCase(), tone: '#23239b', email: f.email.trim(), role: (f.role || 'Team member').trim(), gets: gets.filter(function (g) { return g !== 'Portal access'; }).join(', ') || 'Nothing yet', portal: portal ? 'Invited today' : 'No portal access', ptone: portal ? 'var(--ad-tone-warn)' : 'var(--ad-tone-neutral)', short: portal ? 'Invited' : 'Email only' }])); self.say(portal ? 'Added. ' + f.email.trim() + ' gets a portal invite.' : 'Added. They get email only.'); } })); },

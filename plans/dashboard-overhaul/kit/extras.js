@@ -6,7 +6,7 @@
   openFile(f, push) {
     var self = this, I = this.icons();
     this.open(this.sh({ kind: 'file', wide: true, eyebrow: 'File · ' + (f.project || 'Library'), title: f.name, chip: f.fresh ? 'New' : '', tone: 'var(--ad-tone-live)', icon: I.file, iconTone: f.tone || 'var(--ad-tone-brand)', file: f,
-      rows: [{ k: 'Added', v: f.when }, { k: 'Size', v: f.size }, { k: 'By', v: f.by || 'The studio' }],
+      rows: [{ k: 'Added', v: f.when }, { k: 'Size', v: f.size }, { k: 'By', v: f.by || 'The studio' }], feedTitle: 'Versions and responses', feed: (f.versions || []).map(function (v) { return { t: v.t, when: v.when }; }),
       primary: 'Download', secondary: 'Ask about this file',
       onPrimary: function () { self.say('Downloading ' + f.name + ' (' + f.size + ')'); },
       onSecondary: function () { self.ask({ eyebrow: 'Message', title: 'Ask about ' + f.name, body: 'It goes to the person who shared the file, with the file attached.', input: true, inputLabel: 'Your question', inputPh: 'For example: can we see the leaf a little thinner?', ok: 'Send question', back: true, okToast: 'Sent. Replies come to Messages and your email.', icon: I.msg }, true); return 'stay'; } }), push);

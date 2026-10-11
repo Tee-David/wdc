@@ -75,6 +75,11 @@
             </sc-if>
 
             <sc-if value="{{isMoney}}" hint-placeholder-val="{{ false }}">
+              <section class="card cq tabIn" aria-label="Their balance with us" style="overflow: hidden; animation-name: {{tabAnim}}; margin-bottom: 14px">
+                <div style="padding: 16px 20px 6px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap"><h2 style="font-size: 17px; font-weight: 700; flex: 1">Their balance with us</h2><button class="btn2" style="min-height: 44px" onClick="{{useCredit}}" disabled="{{creditDis}}">Put it against an invoice</button></div>
+                <p style="padding: 0 20px 8px; font-size: 14px"><strong class="num" style="font-size: 20px">{{creditHeld}}</strong> <span style="color: var(--ad-dim)">{{creditNote}}</span></p>
+                <ul style="list-style: none; margin: 0; padding: 0 20px 16px; display: grid; gap: 6px"><sc-for list="{{credits}}" as="c" hint-placeholder-count="2"><li style="display: flex; gap: 10px; align-items: center; font-size: 14px; min-height: 36px"><span class="tag" style="background: {{c.tone}}; color: {{c.ink}}">{{c.state}}</span><span style="flex: 1; min-width: 0">{{c.t}}<br><span style="color: var(--ad-dim); font-size: 12px">{{c.s}}</span></span><strong class="num">{{c.amt}}</strong></li></sc-for></ul>
+              </section>
               <section class="card cq tabIn" aria-label="Invoices, quotes and receipts" style="overflow: hidden; animation-name: {{tabAnim}}">
                 <div style="display: flex; align-items: center; gap: 10px; padding: 16px 20px 12px; flex-wrap: wrap"><h2 style="font-size: 17px; font-weight: 700; flex: 1">Money with Mira Skincare</h2><a class="btn2" href="A-Money.dc.html" style="min-height: 40px">Open Money</a></div>
                 <div role="tablist" aria-label="Kind" class="tabs"><sc-for list="{{mtabs}}" as="tb" hint-placeholder-count="3"><button role="tab" class="tab {{tb.cls}}" aria-selected="{{tb.sel}}" onClick="{{tb.pick}}">{{tb.label}}<span class="tag num" style="background: var(--ad-tone-flat); color: var(--ad-on-flat); height: 20px; padding: 0 7px">{{tb.n}}</span></button></sc-for></div>

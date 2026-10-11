@@ -1,0 +1,23 @@
+<div class="bareCard rise" aria-live="polite">
+              <sc-if value="{{isForm}}" hint-placeholder-val="{{ true }}">
+                <div><h1>{{heading}}</h1><p class="sub">{{lede}}</p></div>
+                <sc-if value="{{isInvite}}" hint-placeholder-val="{{ true }}"><div class="field"><span>Email</span><label class="input"><input value="adaeze@miraskincare.ng" disabled="true" aria-label="Email"></label><span class="hint">This is the address your studio contact invited.</span></div></sc-if>
+                <div class="field"><span>New password</span><div class="input" style="display: flex; align-items: center"><input id="np" type="{{pwType}}" autocomplete="new-password" value="{{pwd}}" onChange="{{onPwd}}" style="flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: inherit; color: inherit"><button class="ibtn ghostB" aria-label="{{showLabel}}" aria-pressed="{{showP}}" onClick="{{toggleShow}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path></svg></button></div></div>
+                <ul class="reqList" aria-label="Password rules"><sc-for list="{{reqs}}" as="r" hint-placeholder-count="3"><li><span class="ebTick {{r.cls}}"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="{{r.d}}"></path></svg></span><span>{{r.t}}</span></li></sc-for></ul>
+                <div class="field"><span>Type it again</span><label class="input"><input id="np2" type="{{pwType}}" autocomplete="new-password" value="{{pwd2}}" onChange="{{onPwd2}}"></label></div>
+                <sc-if value="{{hasErr}}" hint-placeholder-val="{{ false }}"><div class="errNote" role="alert"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" style="flex: none"><path d="M12 8v5M12 17h.01"></path></svg><span>{{err}}</span></div></sc-if>
+                <button class="btn bareBtn" onClick="{{submit}}">{{cta}}</button>
+                <p class="sub" style="font-size: 13px">A password that has appeared in a known data breach is refused. If we cannot check, we refuse it too, and ask you to try again.</p>
+              </sc-if>
+              <sc-if value="{{isUsed}}" hint-placeholder-val="{{ false }}">
+                <span class="tickBig" style="background: var(--ad-tone-warn)"><svg class="ic" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M12 8v5M12 17h.01"></path></svg></span>
+                <div style="text-align: center"><h1>This link has been used</h1><p class="sub" style="margin-top: 8px">Links work once, and for 7 days. Ask for a fresh one and we email it straight away.</p></div>
+                <button class="btn bareBtn" onClick="{{newLink}}">Email me a new link</button>
+                <button class="btn2 bareBtn" onClick="{{toSignIn}}">Go to sign in</button>
+              </sc-if>
+              <sc-if value="{{isDone}}" hint-placeholder-val="{{ false }}">
+                <span class="tickBig"><svg class="ic" viewBox="0 0 24 24" width="32" height="32" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>
+                <div style="text-align: center"><h1>{{doneHead}}</h1><p class="sub" style="margin-top: 8px">{{doneNote}}</p></div>
+                <button class="btn bareBtn" onClick="{{toSignIn}}">{{doneCta}}</button>
+              </sc-if>
+            </div>
