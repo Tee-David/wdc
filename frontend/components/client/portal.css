@@ -125,8 +125,9 @@
 @media (min-width: 760px) { .pBill__kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .ad .pBill__owed { background: var(--ad-navy); border-color: var(--ad-navy); color: #fff; }
 .ad .pBill__owed dt, .ad .pBill__owed dd { color: #fff; }
-.ad .pBill__owed small { color: #d6d6f5; }
+.ad .pBill__owed > small { color: #d6d6f5; }
 .dark .pBill__owed { background: #14145a; border-color: #2c2c80; }
+.pBill__owed { grid-column: 1 / -1; }
 .pBill__owed form { margin-top: 1rem; }
 /* The public pair on a dark ground: white fill, black label. */
 .pBill__pay {
