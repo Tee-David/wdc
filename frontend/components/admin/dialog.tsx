@@ -27,11 +27,17 @@ export function Dialog({
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const id = useId();
+  const leaving = useRef<number | null>(null);
 
+  /* Opening is the platform's. Closing waits for the 200ms exit so the sheet
+     leaves the way it came, and is skipped under reduced motion. */
   useEffect(() => {
     const d = ref.current;
     if (!d) return;
     if (open && !d.open) {
+      if (leaving.current) { window.clearTimeout(leaving.current); leaving.current = null; }
+      d.classList.remove("is-leaving");
+      d.style.removeProperty("--sheet-drag");
       d.showModal();
       /* Opening a native dialog otherwise leaves focus on the first button --
          usually the close cross -- which paints a keyboard ring after a
@@ -39,8 +45,34 @@ export function Dialog({
          reaches its first real control. */
       d.focus({ preventScroll: true });
     }
-    if (!open && d.open) d.close();
+    if (!open && d.open) {
+      const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (calm) { d.close(); return; }
+      d.classList.add("is-leaving");
+      leaving.current = window.setTimeout(() => { leaving.current = null; d.classList.remove("is-leaving"); d.close(); }, 200);
+    }
   }, [open]);
+
+  /* Pull the handle down to close, on a phone. A short drag springs back. */
+  const drag = useRef<{ y: number; at: number } | null>(null);
+  const onGrabDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    drag.current = { y: e.clientY, at: Date.now() };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  const onGrabMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!drag.current) return;
+    const dy = Math.max(0, e.clientY - drag.current.y);
+    ref.current?.style.setProperty("--sheet-drag", `${dy}px`);
+  };
+  const onGrabUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    const start = drag.current;
+    drag.current = null;
+    if (!start) return;
+    const dy = Math.max(0, e.clientY - start.y);
+    const fast = dy / Math.max(1, Date.now() - start.at) > 0.6;
+    if (dy > 120 || (fast && dy > 40)) onClose();
+    else ref.current?.style.removeProperty("--sheet-drag");
+  };
 
   return (
     <dialog
@@ -49,6 +81,11 @@ export function Dialog({
       tabIndex={-1}
       aria-labelledby={id}
       onClose={onClose}
+      onCancel={(e) => {
+        /* Escape: leave through the same animated path as every other close. */
+        e.preventDefault();
+        onClose();
+      }}
       onClick={(e) => {
         /* The backdrop is the dialog's own pseudo-element, so its clicks land
            on the dialog. Comparing against the box is how the two are told
@@ -62,6 +99,8 @@ export function Dialog({
       }}
     >
       <div className="addlg__in">
+        {/* Only drawn on a phone, where the sheet rises from the bottom. */}
+        <div className="addlg__grab" onPointerDown={onGrabDown} onPointerMove={onGrabMove} onPointerUp={onGrabUp} onPointerCancel={onGrabUp} aria-hidden="true"><span /></div>
         <div className="addlg__h">
           <h2 id={id}>{title}</h2>
           <button type="button" className="addlg__x" onClick={onClose} aria-label="Close">

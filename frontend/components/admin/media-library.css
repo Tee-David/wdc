@@ -69,7 +69,7 @@
 /* Drop anywhere on the library. */
 .adMedia__dropArea { position: relative; }
 .adMedia__dropArea.is-over > .ad__panel { border-color: var(--ad-fill); box-shadow: 0 0 0 2px var(--ad-fill); }
-.adMedia__dropHint { position: absolute; inset: 0; z-index: 3; display: grid; place-content: center; justify-items: center; gap: .5rem; border-radius: var(--ad-r); background: var(--ad-nav-on); color: var(--ad-ink); font-weight: 700; font-size: 1.05rem; pointer-events: none; }
+.adMedia__dropHint { position: absolute; inset: 0; z-index: 3; display: grid; place-content: center; justify-items: center; gap: .5rem; border-radius: var(--ad-r); background: var(--ad-hover); color: var(--ad-ink); font-weight: 700; font-size: 1.05rem; pointer-events: none; }
 .adMedia__dropHint svg { width: 2rem; height: 2rem; }
 
 /* The details. */
@@ -98,7 +98,7 @@
 .adTray__title svg { width: 18px; height: 18px; transition: transform .18s ease; }
 .adTray__title[aria-expanded="false"] svg { transform: rotate(180deg); }
 .adTray__x, .adTray__btn { display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: 9px; background: none; color: var(--ad-dim); cursor: pointer; }
-.adTray__x:hover, .adTray__btn:hover { background: var(--ad-nav-on); color: var(--ad-ink); }
+.adTray__x:hover, .adTray__btn:hover { background: var(--ad-hover); color: var(--ad-ink); }
 .adTray__x svg, .adTray__btn svg { width: 17px; height: 17px; }
 @media (pointer: coarse) { .adTray__x, .adTray__btn { width: 44px; height: 44px; } }
 .adTray__list { margin: 0; padding: .35rem; list-style: none; max-height: min(320px, 45dvh); overflow: auto; overscroll-behavior: contain; display: grid; gap: .15rem; }
@@ -156,7 +156,7 @@
 .adFold__find input { width: 100%; min-width: 0; min-height: 36px; padding: .35rem .6rem .35rem 2rem; border: 1px solid var(--ad-line); border-radius: 10px; background: var(--ad-panel); color: var(--ad-ink); font: inherit; font-size: .85rem; }
 .adFold__find input:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 1px; }
 .adFold__tool { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid var(--ad-line); border-radius: 10px; background: var(--ad-panel); color: var(--ad-ink); cursor: pointer; }
-.adFold__tool:hover { background: var(--ad-nav-on); }
+.adFold__tool:hover { background: var(--ad-hover); }
 .adFold__tool svg { width: 17px; height: 17px; }
 .adFold__sortTxt { font-size: .72rem; font-weight: 700; }
 @media (pointer: coarse) { .adFold__tool, .adFold__find input { min-height: 44px; width: auto; } .adFold__tool { width: 44px; height: 44px; } }
@@ -165,7 +165,7 @@
 .adFold__item.is-pinEnd { padding-bottom: .35rem; margin-bottom: .35rem; border-bottom: 1px solid var(--ad-line); }
 .adFold__row { position: relative; display: flex; align-items: center; min-height: 36px; padding-left: calc(var(--d, 0) * .85rem); border-radius: 9px; }
 .adFold__row:hover { background: var(--ad-panel-2); }
-.adFold__row.is-on { background: var(--ad-nav-on); }
+.adFold__row.is-on { background: var(--ad-hover); }
 .adFold__row.is-on .adFold__link { font-weight: 700; }
 .adFold__row.is-drop { background: var(--ad-fill); color: var(--ad-on-fill); }
 .adFold__row.is-drop .adFold__link, .adFold__row.is-drop .adFold__n, .adFold__row.is-drop .adFold__icon { color: var(--ad-on-fill); }
@@ -199,7 +199,7 @@
 
 .adFold__menu { position: fixed; z-index: 80; min-width: 13.5rem; padding: .35rem; border: 1px solid var(--ad-line); border-radius: 14px; background: var(--ad-panel); box-shadow: var(--ad-sh-3); display: grid; animation: ad-rm-in .12s ease-out backwards; }
 .adFold__menu > button { display: flex; align-items: center; gap: .6rem; width: 100%; min-height: 40px; padding: .4rem .6rem; border: 0; border-radius: 9px; background: none; color: var(--ad-ink); font: inherit; font-size: .88rem; text-align: left; cursor: pointer; }
-.adFold__menu > button:hover, .adFold__menu > button:focus-visible { background: var(--ad-nav-on); outline: none; }
+.adFold__menu > button:hover, .adFold__menu > button:focus-visible { background: var(--ad-hover); outline: none; }
 .adFold__menu > button svg { width: 16px; height: 16px; color: var(--ad-dim); }
 .adFold__menu kbd { margin-left: auto; padding: .05rem .35rem; border: 1px solid var(--ad-line); border-radius: 5px; color: var(--ad-dim); font: 600 .68rem/1.4 inherit; }
 .adFold__menu .is-danger, .adFold__menu .is-danger svg { color: var(--ad-bad-ink); }
@@ -222,7 +222,7 @@
 .adMove__find input { min-height: 44px; }
 .adMove__list { list-style: none; margin: 0; padding: 0; max-height: min(24rem, 55dvh); overflow: auto; overscroll-behavior: contain; display: grid; gap: 1px; }
 .adMove__list button { display: flex; align-items: center; gap: .55rem; width: 100%; min-height: 44px; padding: .35rem .6rem .35rem calc(.6rem + (var(--d, 0) - 1) * 1rem); border: 0; border-radius: 9px; background: none; color: var(--ad-ink); font: inherit; text-align: left; cursor: pointer; }
-.adMove__list button:hover:not(:disabled) { background: var(--ad-nav-on); }
+.adMove__list button:hover:not(:disabled) { background: var(--ad-hover); }
 .adMove__list button:disabled { color: var(--ad-dim); cursor: not-allowed; }
 .adMove__list button > span { flex: 1; min-width: 0; display: grid; }
 .adMove__list button small { color: var(--ad-dim); font-size: .75rem; }
@@ -261,7 +261,7 @@
 .adMedia__grid > li[draggable="true"] { cursor: grab; }
 .adMedia__rowPick { display: flex; align-items: center; gap: .7rem; }
 .adMedia__rowName small { display: block; color: var(--ad-dim); font-size: .75rem; font-weight: 400; }
-.adMedia__table tr.is-picked td { background: var(--ad-nav-on); }
+.adMedia__table tr.is-picked td { background: var(--ad-hover); }
 .adMedia__bulk { position: sticky; bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); z-index: 5; margin: 0 1.25rem 1rem; }
 @media (max-width: 560px) { .adMedia__bulk { margin-inline: .9rem; } .adMedia__bulk .adBulk__btn span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); } }
 /* Beside the tree the files column is about 440px: two cards a row there. */

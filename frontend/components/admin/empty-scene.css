@@ -9,7 +9,7 @@
   content-visibility: auto; contain-intrinsic-size: 160px 112px;
 }
 .es svg { display: block; }
-.es__halo { position: absolute; left: 50%; top: 50%; width: 104px; height: 104px; margin: -52px 0 0 -52px; border-radius: 50%; background: var(--ad-nav-on); }
+.es__halo { position: absolute; left: 50%; top: 50%; width: 104px; height: 104px; margin: -52px 0 0 -52px; border-radius: 50%; background: var(--ad-hover); }
 
 /* first-use: a card with the section's icon drops into a tray */
 .es__tray { position: absolute; left: 38px; right: 38px; bottom: 16px; height: 26px; border: 3px solid var(--ad-dim); border-top: 0; border-radius: 0 0 14px 14px; }
