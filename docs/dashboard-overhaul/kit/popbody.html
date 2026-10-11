@@ -1,0 +1,21 @@
+<sc-if value="{{pop.search}}" hint-placeholder-val="{{ false }}">
+            <label class="sfield" style="margin: 4px 4px 6px; flex: none">
+              <svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="color: var(--dim)"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"></path></svg>
+              <span class="sr">{{pop.searchPh}}</span>
+              <input id="popIn" value="{{dq}}" onChange="{{onDq}}" placeholder="{{pop.searchPh}}">
+            </label>
+          </sc-if>
+          <sc-if value="{{pop.hasNote}}" hint-placeholder-val="{{ false }}"><span style="display: block; padding: 8px 12px 4px; font-size: 12px; color: var(--dim)">{{pop.note}}</span></sc-if>
+          <sc-for list="{{popItems}}" as="m" hint-placeholder-count="4">
+            <sc-if value="{{m.sep}}" hint-placeholder-val="{{ false }}"><span class="msep" aria-hidden="true"></span></sc-if>
+            <sc-if value="{{m.isItem}}" hint-placeholder-val="{{ true }}">
+              <button class="mi rowIn {{m.cls}}" role="{{m.role}}" aria-checked="{{m.checked}}" onClick="{{m.pick}}" style="color: {{m.col}}; animation-name: {{m.anim}}; animation-delay: {{m.delay}}">
+                <sc-if value="{{m.hasAv}}" hint-placeholder-val="{{ false }}"><span class="av0" style="width: 30px; height: 30px; font-size: 11px; background: {{m.av}}">{{m.ini}}</span></sc-if>
+                <sc-if value="{{m.hasIcon}}" hint-placeholder-val="{{ true }}"><svg class="ic" viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="{{m.d}}"></path></svg></sc-if>
+                <span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><span>{{m.label}}</span><sc-if value="{{m.hasSub}}" hint-placeholder-val="{{ false }}"><span style="font-size: 12px; color: var(--dim)">{{m.sub}}</span></sc-if></span>
+                <sc-if value="{{m.hasBadge}}" hint-placeholder-val="{{ false }}"><span class="tag" style="background: {{m.badgeTone}}; color: #fff">{{m.badge}}</span></sc-if>
+                <span class="num" style="font-size: 12px; color: var(--dim)">{{m.hint}}</span>
+              </button>
+            </sc-if>
+          </sc-for>
+          <sc-if value="{{popEmpty}}" hint-placeholder-val="{{ false }}"><p style="padding: 10px 12px; color: var(--dim)">{{popEmptyText}}</p></sc-if>

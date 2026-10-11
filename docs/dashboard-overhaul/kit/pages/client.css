@@ -1,0 +1,10 @@
+/* The Jotform assistant launcher sits bottom right, clear of the safe area; toasts lift above it on phones. */
+.helpFab{position:fixed;right:max(20px,env(safe-area-inset-right));bottom:max(20px,env(safe-area-inset-bottom));z-index:50;width:56px;height:56px;border-radius:50%;background:var(--fill);color:var(--onfill);display:flex;align-items:center;justify-content:center;box-shadow:var(--sh3);transition:transform .22s var(--spring),background .18s}
+.helpFab:hover{background:var(--fillh);transform:translateY(-2px) scale(1.04)}
+.helpFab:active{transform:scale(.94)}
+.isPhone .helpFab ~ .toastP{bottom:88px}
+@media (max-width:600px){.helpFab ~ .toastP{bottom:88px}}
+.isPhone .mainPad{padding-bottom:96px}
+.jfMsg{max-width:85%;padding:10px 12px;border-radius:14px;font-size:14px}
+.jfBot{background:var(--panel2);border:1px solid var(--line);align-self:flex-start;border-bottom-left-radius:4px}
+.jfMe{background:var(--fill);color:var(--onfill);align-self:flex-end;border-bottom-right-radius:4px}

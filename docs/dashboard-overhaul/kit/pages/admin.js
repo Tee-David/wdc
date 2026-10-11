@@ -1,0 +1,274 @@
+  /* ======================= Owner · Today ======================= */
+  pageState() { return { laterPage: 0, lper: 5, la: 0, mtab: 'over', mpage: 0, per: 5, ra: 0, mq: '', range: 6, hover: -1, spin: 0, updated: 'Updated 2 min ago', voided: {}, refunded: {}, recorded: {}, added: [], fuMeta: {} }; }
+  icons() { return this.baseIcons(); }
+  brand() { return { name: 'WDC Studio', sub: 'Owner' }; }
+  me() { return { name: 'Babatope A.', i: 'BA', role: 'Owner', tone: '#000065' }; }
+  pageName() { return 'Today'; }
+  searchHint() { return 'Search clients, projects, invoices'; }
+  palHint() { return 'Client, project, invoice number or page'; }
+  palEmptyHint() { return 'Try a client name or an invoice number like 4KQ8ZD.'; }
+  installCopy() { return ['Get WDC on your phone', 'Payments, approvals and replies as push alerts.']; }
+  teamDay() { return 'My Day'; }
+  navData() { var I = this.icons(); return [{ label: 'Today', d: I.home }, { label: 'Clients', d: I.users, count: 5 }, { label: 'Projects', d: I.folder }, { label: 'Money', d: I.wallet, count: 3, tone: 'var(--bad)' }, { label: 'Messages', d: I.msg, count: 6 }, { label: 'Support', d: I.life }, { label: 'Settings', d: I.gear }]; }
+  recordKinds() { return ['Page', 'Client', 'Project', 'Invoice']; }
+  snoozeOptions() { return [['In 1 hour', '12:30'], ['This afternoon', '15:00'], ['Tomorrow', '09:00'], ['Monday', '09:00']]; }
+  teamData() {
+    return [
+      { name: 'Funmi K.', i: 'FK', dept: 'Finance', load: '3 open', tone: '#15803d' },
+      { name: 'Daniel E.', i: 'DE', dept: 'Web & Apps', load: '7 open', tone: '#5c5c7a' },
+      { name: 'Ifeanyi N.', i: 'IN', dept: 'Branding', load: '5 open', tone: '#000065' },
+      { name: 'Chiamaka A.', i: 'CA', dept: 'Social & Ads', load: '6 open', tone: '#b84a00' },
+      { name: 'Bisi O.', i: 'BO', dept: 'SEO', load: '4 open', tone: '#15803d' },
+      { name: 'Tolu A.', i: 'TA', dept: 'Social & Ads', load: '2 open', tone: '#23239b' }
+    ];
+  }
+  clearId(id, how, label, msg, opt) { var it = this.deck().filter(function (d) { return d.id === id; })[0]; if (it && !this.state.gone[id] && !this.state.snoozed[id]) this.clear(it, how, label, msg, opt); else if (msg) this.say(msg); }
+  addLater(row) { this.setState({ added: [row].concat(this.state.added) }); }
+
+  /* ---------- sheets with real follow through ---------- */
+  bookSheet(client, push, onBooked) {
+    var self = this, I = this.icons(), slots = [['Tue 14 Oct, 11:00', 'Daniel is free · 60 min'], ['Wed 15 Oct, 15:00', 'Daniel is free · 60 min'], ['Thu 16 Oct, 14:00', 'Daniel and you are free · 60 min']];
+    this.open(this.sh({ eyebrow: 'Handover meeting · ' + client, title: 'Pick a time to offer', icon: I.cal, iconTone: 'var(--brand)', body: 'We send ' + client + ' a booking link with these times. The Google Meet is recorded and the handover document goes out after it.', listTitle: 'Times that suit the team', select: true, pick: 2, list: slots.map(function (x) { return { t: x[0], s: x[1] }; }),
+      primary: function (ctx) { return ctx.pick >= 0 ? 'Offer ' + slots[ctx.pick][0] : 'Offer this time'; }, selectWhy: 'Choose a time to offer.', secondary: 'Let them choose any time', sToast: 'Booking link sent with all open times.',
+      onPrimary: function (ctx) { var sl = slots[ctx.pick]; if (onBooked) onBooked(sl[0]); } }), push);
+  }
+  sheets() {
+    var S = this.sh.bind(this), self = this, I = this.icons();
+    var payouts = [['Tolu, motion design', 'Mira reel · 20 seconds', 120000], ['Kemi, copywriting', "Ade's Kitchen captions", 60000]];
+    var matches = [['INV-26-7HB2QA', 'Bloom Pharmacy', '₦300,000 · SEO October retainer · due 31 Oct', 'Exact amount', 'var(--good)'], ['INV-26-8LM3QS', 'Bloom Pharmacy', '₦280,000 · Content add-on · due 31 Oct', 'Same client', 'var(--neutral)'], ['INV-26-2BV6NM', 'Tunde Okafor Law', '₦90,000 · 5 days late', 'Different amount', 'var(--neutral)']];
+    return {
+      kora: S({ eyebrow: 'Invoice', title: 'INV-26-4KQ8ZD · Kora Logistics', chip: '12 days late', tone: 'var(--bad)', icon: I.file, iconTone: 'var(--bad)', rows: [{ k: 'Amount', v: '₦850,000' }, { k: 'Issued', v: '14 Sep 2026' }, { k: 'Due', v: '28 Sep 2026' }, { k: 'Billing contact', v: 'Adebayo K.' }, { k: 'For', v: 'Driver app, milestone 2' }, { k: 'Reminders', v: '2 sent, none opened' }], body: 'Build on the driver app is paused until this is paid. The client agreed to milestone billing in the signed quote.', feed: [{ t: 'Second reminder sent', when: '5 Oct · email' }, { t: 'First reminder sent', when: '29 Sep · email' }, { t: 'Invoice issued', when: '14 Sep · by you' }], primary: 'Preview the invoice', secondary: 'Copy payment link', sToast: 'Payment link copied. It opens Paystack or Flutterwave.',
+        onPrimary: function () { self.openFile({ name: 'INV-26-4KQ8ZD.pdf', project: 'Kora Logistics', view: 'doc', ref: 'INV-26-4KQ8ZD', docTitle: 'Invoice · ₦850,000', when: '14 Sep', size: '190 KB', tone: 'var(--bad)' }); } }),
+      call: S({ eyebrow: 'Call · Kora Logistics', title: 'Call Adebayo, then log how it went', icon: I.phone, iconTone: 'var(--good)', rows: [{ k: 'Phone', v: '+234 803 555 0142' }, { k: 'Best time', v: 'Weekdays 10:00 to 12:00' }, { k: 'Owes', v: '₦850,000, 12 days late' }, { k: 'Last call', v: '1 Sep · paid the next day' }], body: 'Call from your phone. When you hang up, pick what happened and the next step sets itself.', listTitle: 'How did it go?', select: true, selectWhy: 'Pick how the call went to save it.',
+        list: [{ t: 'They promised to pay', s: 'We look for ₦850,000 on Tuesday and tell you either way' }, { t: 'No answer', s: 'The call comes back to your Today at 15:00' }, { t: 'They dispute the invoice', s: 'Reminders pause and a note goes on their record' }],
+        primary: function (ctx) { return ['Save: promised to pay', 'Save: try again at 15:00', 'Save and pause reminders'][ctx.pick] || 'Save the call'; }, secondary: 'Call +234 803 555 0142',
+        onSecondary: function () { self.say('Calling Adebayo from your phone…'); return 'stay'; },
+        onPrimary: function (ctx) { if (ctx.pick === 0) self.clearId('kora', 'done', '', 'Call logged. We check for ₦850,000 on Tuesday and tell you either way.'); else if (ctx.pick === 1) self.clearId('kora', 'snooze', 'This afternoon, 15:00', 'No answer logged. The call is back at 15:00, in Later.'); else self.clearId('kora', 'done', '', 'Logged as disputed. Reminders are paused and a note is on Kora’s record.'); } }),
+      match: S({ eyebrow: 'Bank transfer', title: '₦300,000 from BLOOM OCT', chip: 'Unmatched', tone: 'var(--warn)', icon: I.cash, iconTone: 'var(--warn)', rows: [{ k: 'Received', v: '9 Oct 2026, 16:42' }, { k: 'Into', v: 'GTBank NGN · ****4821' }, { k: 'Reference', v: 'BLOOM OCT' }, { k: 'Payer name', v: 'BLOOM PHARMACY LTD' }], listTitle: 'Pick the invoice it pays', select: true, pick: 0,
+        list: matches.map(function (m) { return { t: m[0] + ' · ' + m[1], s: m[2], tag: m[3], tone: m[4] }; }),
+        primary: function (ctx) { return ctx.pick >= 0 ? 'Match to ' + matches[ctx.pick][0] : 'Match it'; },
+        primaryDis: function (ctx) { return ctx.pick === 2 ? 'The amounts differ by ₦210,000. Record it as credit instead, or pick another invoice.' : ''; },
+        secondary: 'Record as credit', sToast: 'Saved as ₦300,000 credit on Bloom Pharmacy. It pays their next invoice.',
+        onPrimary: function (ctx) { self.clearId('match', 'done', '', 'Matched to ' + matches[ctx.pick][0] + '. Bloom gets a receipt by email.'); } }),
+      mira: S({ eyebrow: 'Approval', title: 'Logo round 2 · Mira Skincare', chip: 'Waiting 9 days', tone: 'var(--warn)', icon: I.eye, iconTone: 'var(--warn)', rows: [{ k: 'Sent', v: '1 Oct 2026' }, { k: 'Opened', v: 'Not yet' }, { k: 'Round', v: '2 of 2 included' }, { k: 'Lead', v: 'Ifeanyi N.' }], body: 'Two routes are waiting. The review link lets Adaeze approve from her phone without signing in. It expires in 7 days.', feed: [{ t: 'Round 2 uploaded', when: '1 Oct · Ifeanyi' }, { t: 'Round 1 changes requested', when: '25 Sep · Adaeze' }], primary: 'Preview round 2', secondary: 'Copy review link', sToast: 'Review link copied',
+        onPrimary: function () { self.openFile({ name: 'Logo round 2.pdf', project: 'Mira Skincare', view: 'palette', when: '1 Oct', size: '4.2 MB', tone: 'var(--bad)', by: 'Ifeanyi N.', swatches: [{ c: '#1f4d3a', n: 'Leaf' }, { c: '#f1ece4', n: 'Linen' }, { c: '#2b2620', n: 'Bark' }, { c: '#c9a27a', n: 'Clay' }] }); } }),
+      oak: S({ eyebrow: 'Handover', title: 'Website · Oak and Ivy Interiors', chip: 'Launched Thursday', tone: 'var(--good)', icon: I.task, iconTone: 'var(--good)', rows: [{ k: 'Launch checks', v: '7 of 7' }, { k: 'Review meetings', v: '2 of 2 used' }, { k: 'Domain', v: 'In client name' }, { k: 'Hosting', v: 'Our account, weekly backups' }], checksTitle: 'Handover checklist',
+        checks: [
+          { t: 'Launch checks', s: '7 of 7 closed by Daniel', on: true },
+          { t: 'Recorded Google Meet handover', s: 'Not booked yet', act: { label: 'Book', fn: function () { self.bookSheet('Oak and Ivy', true, function (sl) { self.clearId('oak', 'done', '', 'Offered ' + sl + '. Oak and Ivy confirm by email.', { final: true }); self.addLater({ time: 'Thu 16', t: 'Oak and Ivy handover', s: 'Recorded on Google Meet · ' + sl, kind: 'Meeting', tone: 'var(--brand)' }); }); } } },
+          { t: 'Handover document', s: 'Draft ready · 9 pages', act: { label: 'Preview', fn: function () { self.openFile({ name: 'Oak and Ivy handover.pdf', project: 'Oak and Ivy Interiors', view: 'doc', ref: 'HO-26-OAK', docTitle: 'Website handover', pageCount: 9, when: 'Today', size: '1.2 MB', tone: 'var(--bad)', by: 'Daniel E.' }, true); } } },
+          { t: 'Final invoice, 20%', s: '₦520,000 · goes after the handover meeting', confirm: { title: 'Send the final invoice now?', body: 'The handover meeting has not happened yet. Usually the final 20% goes after it, as the engagement policy says.', ok: 'Send it anyway', icon: I.file, tone: 'var(--warn)' } }
+        ], primary: 'Close' }),
+      payouts: S({ eyebrow: 'Payouts', title: 'October freelancer payouts', chip: '₦180,000', tone: 'var(--brand)', icon: I.cash, checksTitle: 'Tick the ones to approve', keepOpen: true,
+        checks: payouts.map(function (p) { return { t: p[0], s: p[1] + ' · ' + self.ngn(p[2]) + ' · client approved', on: true }; }),
+        primary: function (ctx, s) { var n = 0, t = 0; payouts.forEach(function (p, i) { var on = s.ck[i] != null ? s.ck[i] : true; if (on) { n++; t += p[2]; } }); return n ? 'Approve ' + n + (n === 1 ? ' payout · ' : ' payouts · ') + self.ngn(t) : 'Approve payouts'; },
+        primaryDis: function (ctx, s) { var any = payouts.some(function (p, i) { return s.ck[i] != null ? s.ck[i] : true; }); return any ? '' : 'Tick at least one payout.'; },
+        secondary: 'Close',
+        onPrimary: function () { var s = self.state, pick = payouts.filter(function (p, i) { return s.ck[i] != null ? s.ck[i] : true; }), t = pick.reduce(function (a, p) { return a + p[2]; }, 0); self.ask({ eyebrow: 'Approve payouts', title: 'Approve ' + self.ngn(t) + '?', body: 'Finance pays ' + pick.map(function (p) { return p[0].split(',')[0] + ' ' + self.ngn(p[2]); }).join(' and ') + ' from GTBank NGN on Monday. You can cancel until Monday 09:00.', ok: 'Approve ' + self.ngn(t), green: true, icon: I.check, tone: 'var(--good)', onOk: function () { self.clearId('payouts', 'done', '', pick.length === payouts.length ? 'Both payouts approved. Finance pays them Monday.' : 'Approved ' + pick[0][0].split(',')[0] + '. The other waits on your Today.'); } }, true); } }),
+      renew: S({ eyebrow: 'Renewal', title: 'okaforlaw.ng domain', chip: '14 days', tone: 'var(--warn)', icon: I.link, iconTone: 'var(--warn)', rows: [{ k: 'Renews', v: '24 Oct 2026' }, { k: 'Registrant', v: 'Tunde Okafor Law' }, { k: 'Price', v: '₦25,000' }, { k: 'Reminders', v: '60 and 30 days sent' }], body: 'Domains are registered in the client name. We remind them at 60, 30, 14, 7, 2 and 0 days. A lapsed domain takes their email down with it.', primary: 'Close' }),
+      feed: S({ eyebrow: 'Team', title: 'Weekly updates', chip: '3 new', tone: 'var(--brand)', icon: I.users, listTitle: 'Posted Friday', list: [{ t: 'Chiamaka · Social & Ads', s: "18 of 24 posts approved for Ade's Kitchen. Lumen ads waiting on budget.", tag: 'On track', tone: 'var(--good)', ini: 'CA', av: '#b84a00' }, { t: 'Ifeanyi · Branding', s: 'Mira round 2 sent. Okafor flyers in revision.', tag: 'Waiting', tone: 'var(--warn)', ini: 'IN', av: '#000065' }, { t: 'Bisi · SEO', s: 'Bloom report out. 6 keywords now in the top 10.', tag: 'On track', tone: 'var(--good)', ini: 'BO', av: '#15803d' }], primary: 'Mark all as read', secondary: 'Reply to all',
+        onPrimary: function () { self.clearId('feed', 'done', '', 'Updates marked as read.'); },
+        onSecondary: function () { self.open(S({ eyebrow: 'Reply', title: 'Reply to Chiamaka, Ifeanyi and Bisi', icon: I.msg, compose: true, composeLabel: 'Your reply', composePh: 'Thanks all. Ifeanyi, I will nudge Mira today.', required: true, primary: 'Send reply', onPrimary: function () { self.clearId('feed', 'done', '', 'Reply sent to the team thread in Messages.', { final: true }); } }), true); return 'stay'; } })
+    };
+  }
+  lead() { return { name: 'Zara Events', whens: [['Today 16:00', 'today'], ['Tomorrow 09:00', 'tomorrow'], ['Tue 14 Oct', 'Tuesday'], ['Fri 17 Oct', 'Friday']], whos: [{ t: 'Me', i: 'BA', tone: '#000065' }, { t: 'Daniel', i: 'DE', tone: '#5c5c7a' }, { t: 'Funmi', i: 'FK', tone: '#15803d' }] }; }
+  quote() { return { client: 'Zara Events', contact: 'Zara', to: 'Zara Bello · hello@zaraevents.ng', title: 'Event website', budget: [1500000, 2500000], lines: [{ t: 'Event website, design and build', s: 'Up to 6 pages, mobile first', price: 1200000, on: true }, { t: 'Ticketing page', s: 'Paystack or Flutterwave checkout', price: 350000, on: true }, { t: 'Extra page', s: 'Speakers, sponsors, gallery', price: 80000, unit: 'each', qty: 3, on: true, max: 10 }, { t: 'Hosting, first year', s: 'Our account, weekly backups', price: 120000, on: false }, { t: 'Business email, 3 inboxes', s: 'Free with a website we build', price: 0, on: true, max: 3 }, { t: 'Rush delivery before 30 Nov', s: 'Adds a second developer', price: 250000, on: false }] }; }
+  deck() {
+    var X = this.sheets(), self = this, I = this.icons();
+    return [
+      { id: 'kora', kind: 'Money', urgency: '12 days late', utone: '#c62828', label: 'INV-26-4KQ8ZD', title: 'Kora Logistics owes ₦850,000', body: 'Two reminders sent, none opened. The driver app build is paused until this is paid.', meta: [{ k: 'Contact', v: 'Adebayo K.' }, { k: 'Last paid', v: '1 day after a call' }], why: 'They paid the last two invoices within a day of a phone call.', primaryLabel: 'Call Adebayo', primaryFn: function () { self.open(Object.assign({}, X.call, { deckId: 'kora' })); }, secondaryLabel: 'Send final reminder', confirm: { eyebrow: 'Final reminder', title: 'Send the final reminder?', body: 'This is the firmest message we send. It goes to Adebayo now and is copied to the client record.', to: 'Adebayo K. · billing@koralogistics.ng', subject: 'Final reminder: INV-26-4KQ8ZD is 12 days overdue', preview: 'Hello Adebayo,\nINV-26-4KQ8ZD for ₦850,000 was due on 28 September. Work on the driver app is paused until it is paid.\nPay online with Paystack or Flutterwave: wdc.ng/i/4KQ8ZD', ok: 'Send final reminder', okToast: 'Final reminder sent to Adebayo.', tone: 'var(--warn)', icon: I.mail }, dept: 'Finance', sheet: X.kora },
+      { id: 'match', kind: 'Money', urgency: 'Since yesterday', utone: '#a16207', label: 'GTBank NGN', title: 'Match a ₦300,000 bank transfer', body: 'Reference BLOOM OCT landed in GTBank yesterday at 16:42.', meta: [{ k: 'Best match', v: 'INV-26-7HB2QA' }, { k: 'Client', v: 'Bloom Pharmacy' }, { k: 'Confidence', v: 'Exact amount' }], why: 'Matching sends Bloom a receipt and clears it from Outstanding.', primaryLabel: 'Match to 7HB2QA', pToast: 'Matched. Bloom gets a receipt by email.', secondaryLabel: 'Other matches', sheetSecondary: true, dept: 'Finance', sheet: X.match },
+      { id: 'mira', kind: 'Client waiting', urgency: '9 days', utone: '#a16207', label: 'Brand identity', title: 'Mira has not opened logo round 2', body: 'Two routes sent on 1 October. The project cannot move to final files without a choice.', meta: [{ k: 'Contact', v: 'Adaeze O.' }, { k: 'Round', v: '2 of 2' }, { k: 'Lead', v: 'Ifeanyi' }], why: 'A one-tap review link usually gets a reply the same day.', primaryLabel: 'Nudge Adaeze', delayed: { pending: function (n) { return 'Sending the nudge to Adaeze in ' + n + 's'; }, done: 'Nudge sent with a one-tap review link.' }, secondaryLabel: 'Copy review link', sToast: 'Review link copied', keep: true, dept: 'Branding', sheet: X.mira },
+      { id: 'oak', kind: 'Handover', urgency: 'Launched Thursday', utone: '#15803d', label: 'Website', title: 'Book the Oak and Ivy handover', body: 'Every launch check is closed. The recorded handover meeting comes next, then the final invoice.', meta: [{ k: 'Final invoice', v: '₦520,000' }, { k: 'Checks', v: '7 of 7' }, { k: 'Lead', v: 'Daniel' }], why: 'The final 20% only goes out after the handover is recorded.', primaryLabel: 'Book handover', primaryFn: function () { self.bookSheet('Oak and Ivy', false, function (sl) { self.clearId('oak', 'done', '', 'Offered ' + sl + '. Oak and Ivy confirm by email.', { final: true }); self.addLater({ time: 'Thu 16', t: 'Oak and Ivy handover', s: 'Recorded on Google Meet · offered ' + sl, kind: 'Meeting', tone: 'var(--brand)' }); }); }, secondaryLabel: 'Checklist', sheetSecondary: true, dept: 'Web & Apps', sheet: X.oak },
+      { id: 'zara', kind: 'Lead', urgency: 'No next step', utone: '#5c5c7a', label: 'Contact form', title: 'Zara Events needs a quote', body: 'Event website, wanted by 30 November. Discovery call at 11:00 today.', meta: [{ k: 'Budget', v: '₦1.5m to ₦2.5m' }, { k: 'Owner', v: 'Nobody yet' }], why: 'Same-day quotes won more than half of your last 20 leads.', primaryLabel: 'Draft quote', primaryFn: function () { self.openQuote(self.quote(), function (T) { self.clearId('zara', 'done', '', 'Quote QT-26-5ZR1 for ' + self.ngn(T.total) + ' sent. We tell you when Zara opens it.', { final: true }); }); }, secondaryLabel: 'Set follow up',
+        secondaryFn: function () { self.openFollow(self.lead(), function (w, h, who, note) { var m = Object.assign({}, self.state.fuMeta); m.zara = h + ' · ' + who.t + (note ? ' · ' + note : ''); self.setState({ fuMeta: m }); self.clearId('zara', 'snooze', w[0], 'Follow up set: ' + h + ' Zara ' + w[1] + '. It is on ' + (who.t === 'Me' ? 'your' : who.t + '’s') + ' Today then.'); }); }, dept: 'Web & Apps', sheet: this.sh({ eyebrow: 'Lead', title: 'Zara Events · Event website', chip: 'New', tone: 'var(--neutral)', icon: I.users, rows: [{ k: 'Came from', v: 'Contact form' }, { k: 'Budget', v: '₦1.5m to ₦2.5m' }, { k: 'Wants it by', v: '30 Nov 2026' }, { k: 'Owner', v: 'Nobody yet' }], body: '“We run three events a year and need one site for tickets, speakers and sponsors.” Zara, 9 Oct.', primary: 'Draft quote', onPrimary: function () { setTimeout(function () { self.openQuote(self.quote(), function (T) { self.clearId('zara', 'done', '', 'Quote sent for ' + self.ngn(T.total) + '.', { final: true }); }); }, 30); } }) },
+      { id: 'payouts', kind: 'Money', urgency: 'Due Monday', utone: '#5c5c7a', label: 'Freelancers', title: 'Approve October payouts', body: 'Two freelancers finished their work and the clients approved it.', meta: [{ k: 'Total', v: '₦180,000' }, { k: 'People', v: 'Tolu, Kemi' }, { k: 'Paid from', v: 'GTBank NGN' }], why: 'Approving today keeps your 5 day payment promise.', primaryLabel: 'Approve both', primaryConfirm: { eyebrow: 'Approve payouts', title: 'Approve ₦180,000 in payouts?', body: 'Finance pays Tolu ₦120,000 and Kemi ₦60,000 from GTBank NGN on Monday. You can cancel until Monday 09:00.', ok: 'Approve ₦180,000', okToast: 'Payouts approved. Finance pays them Monday.', green: true, tone: 'var(--good)', icon: I.cash }, secondaryLabel: 'Review each', sheetSecondary: true, dept: 'Finance', sheet: X.payouts },
+      { id: 'renew', kind: 'Renewal', urgency: '14 days', utone: '#a16207', label: 'okaforlaw.ng', title: 'Renew okaforlaw.ng', body: 'The domain renews on 24 October. The client pays, we renew.', meta: [{ k: 'Price', v: '₦25,000' }, { k: 'Client', v: 'Tunde Okafor Law' }, { k: 'Reminders', v: '2 sent' }], why: 'A lapsed domain takes their email down with it.', primaryLabel: 'Send renewal invoice', delayed: { pending: function (n) { return 'Sending the renewal invoice in ' + n + 's'; }, done: 'Renewal invoice sent to Tunde Okafor Law.' }, secondaryLabel: 'Details', sheetSecondary: true, dept: 'Finance', sheet: X.renew },
+      { id: 'feed', kind: 'Team', urgency: '3 new', utone: '#5c5c7a', label: 'Weekly updates', title: 'Read three staff updates', body: 'Chiamaka, Ifeanyi and Bisi posted their Friday updates.', meta: [{ k: 'On track', v: '2' }, { k: 'Waiting', v: '1' }, { k: 'Blocked', v: '0' }], why: 'Ifeanyi is waiting on Mira. Clearing card 3 unblocks him.', primaryLabel: 'Read updates', primarySheet: X.feed, secondaryLabel: 'Reply to all', secondaryFn: function () { X.feed.onSecondary(); }, dept: 'Team', sheet: X.feed }
+    ];
+  }
+  laterBase() {
+    var X = this.sheets(), S = this.sh.bind(this), self = this, I = this.icons();
+    var m = function (t, s) { return S({ eyebrow: 'Meeting', title: t, icon: I.cal, rows: [{ k: 'When', v: s }, { k: 'Where', v: 'Google Meet' }], body: 'The meeting link and agenda go to everyone 1 hour before.', primary: 'Remind me 10 min before', pToast: 'We will remind you 10 minutes before.', secondary: 'Move it', sToast: 'Everyone gets the new time by email.' }); };
+    return [
+      { time: '11:00', t: 'Discovery call', s: 'Zara Events · Google Meet', kind: 'Meeting', tone: 'var(--brand)', sheet: m('Discovery call, Zara Events', 'Today, 11:00 to 11:45') },
+      { time: '13:00', t: 'Review Lumen ad creatives', s: 'Lumen Fitness · 3 creatives from Chiamaka', kind: 'Review', tone: 'var(--neutral)', sheet: S({ eyebrow: 'Review', title: 'Lumen ad creatives', icon: I.eye, body: 'Three Instagram ad creatives are ready for your look before they go to the client.', primary: 'Close' }) },
+      { time: '15:30', t: 'Logo review', s: 'Mira Skincare · round 2', kind: 'Meeting', tone: 'var(--brand)', sheet: m('Logo review, Mira Skincare', 'Today, 15:30 to 16:00') },
+      { time: '16:00', t: 'Reconcile Paystack payouts', s: '6 payments settled this week', kind: 'Money', tone: 'var(--live)', sheet: S({ eyebrow: 'Money', title: 'Paystack settlement', icon: I.cash, rows: [{ k: 'Settled', v: '₦1,430,000' }, { k: 'Fees', v: '₦21,450' }, { k: 'Payments', v: '6, all matched' }], primary: 'Reconcile now', pToast: 'All 6 matched. Fees recorded as an expense.' }) },
+      { time: '17:00', t: 'Read weekly updates', s: '3 staff posted', kind: 'Team', tone: 'var(--neutral)', sheet: X.feed },
+      { time: 'Tomorrow', t: 'Send November retainers', s: '4 retainers · ₦1,450,000', kind: 'Money', tone: 'var(--live)', sheet: S({ eyebrow: 'Recurring', title: 'November retainers', icon: I.cash, list: [{ t: "Ade's Kitchen", s: '₦350,000 · Social' }, { t: 'Bloom Pharmacy', s: '₦300,000 · SEO' }, { t: 'Halo Clinics', s: '₦500,000 · Care plan' }, { t: 'Lumen Fitness', s: '₦300,000 · Social' }], listTitle: 'Drafts ready', primary: 'Schedule for 1 Nov', pToast: 'Scheduled. They go out 1 Nov at 08:00.' }) },
+      { time: 'Tomorrow', t: 'Halo milestone 2 demo', s: 'Halo Clinics · booking assistant', kind: 'Meeting', tone: 'var(--brand)', sheet: m('Milestone 2 demo, Halo Clinics', 'Tomorrow, 10:00') },
+      { time: 'Mon 13', t: 'Plan November content', s: "With Chiamaka · Ade's Kitchen", kind: 'Team', tone: 'var(--neutral)', sheet: S({ eyebrow: 'Team', title: 'November content plan', icon: I.cal, body: '24 posts across Instagram, Facebook and TikTok. Chiamaka shares the draft calendar on Monday.', primary: 'Close' }) },
+      { time: 'Tue 14', t: 'Mira deposit due', s: 'INV-26-9QX4LM · ₦450,000', kind: 'Money', tone: 'var(--live)', sheet: S({ eyebrow: 'Invoice', title: 'INV-26-9QX4LM · Mira Skincare', icon: I.file, rows: [{ k: 'Amount', v: '₦450,000' }, { k: 'Due', v: '14 Oct' }], primary: 'Schedule a reminder', pToast: 'Reminder scheduled for the due date.' }) },
+      { time: 'Wed 15', t: 'Bloom SEO report review', s: 'With Bisi', kind: 'Review', tone: 'var(--neutral)', sheet: S({ eyebrow: 'Review', title: 'Bloom SEO report', icon: I.chart, primary: 'Close' }) },
+      { time: 'Fri 17', t: 'Mira final files due', s: 'Brand identity · Ifeanyi', kind: 'Review', tone: 'var(--neutral)', sheet: S({ eyebrow: 'Deadline', title: 'Mira final files', icon: I.clock, primary: 'Close' }) }
+    ];
+  }
+  money() {
+    var S = this.sh.bind(this), I = this.icons(), self = this;
+    var inv = function (no, client, amt, date, status, tone, method) { return { no: no, client: client, amount: amt, date: date, status: status, tone: tone, method: method }; };
+    return {
+      due: [inv('INV-26-9QX4LM', 'Mira Skincare', '₦450,000', '14 Oct', 'Due in 4 days', 'var(--warn)', 'Paystack or Flutterwave'), inv('INV-26-4QJ7HU', 'Oak and Ivy Interiors', '₦520,000', '16 Oct', 'After handover', 'var(--neutral)', 'Transfer'), inv('INV-26-6PC9VB', 'Lumen Fitness', '₦150,000', '18 Oct', 'Due in 8 days', 'var(--neutral)', 'Paystack'), inv('INV-26-3HN8TP', 'Halo Clinics', '₦1,200,000', '20 Oct', 'Milestone 2', 'var(--neutral)', 'Flutterwave'), inv('INV-26-1ZD4YE', 'Zara Events', '$1,800', '30 Oct', 'Deposit', 'var(--neutral)', 'USD account'), inv('INV-26-5RW2KD', "Ade's Kitchen", '₦350,000', '31 Oct', 'Retainer', 'var(--brand)', 'Transfer'), inv('INV-26-8LM3QS', 'Bloom Pharmacy', '₦280,000', '31 Oct', 'Retainer', 'var(--brand)', 'Paystack')],
+      over: [inv('INV-26-4KQ8ZD', 'Kora Logistics', '₦850,000', '28 Sep', '12 days late', 'var(--bad)', 'Transfer'), inv('INV-26-2BV6NM', 'Tunde Okafor Law', '₦90,000', '5 Oct', '5 days late', 'var(--bad)', 'Paystack'), inv('INV-26-7XC1RT', 'Lumen Fitness', '₦75,000', '7 Oct', '3 days late', 'var(--bad)', 'Paystack')],
+      paid: [inv('INV-26-4WE9KS', 'Zara Events', '₦200,000', '9 Oct', 'Paid', 'var(--good)', 'Paystack'), inv('INV-26-1QP7ZM', 'Lumen Fitness', '₦150,000', '7 Oct', 'Paid', 'var(--good)', 'Paystack'), inv('INV-26-6NB3XR', 'Tunde Okafor Law', '₦90,000', '6 Oct', 'Paid', 'var(--good)', 'Cash'), inv('INV-26-8HG1VE', 'Halo Clinics', '₦1,200,000', '5 Oct', 'Paid', 'var(--good)', 'Flutterwave'), inv('INV-26-5TY4WC', 'Oak and Ivy Interiors', '₦1,040,000', '3 Oct', 'Paid', 'var(--good)', 'Transfer'), inv('INV-26-3MS8QA', 'Bloom Pharmacy', '₦280,000', '2 Oct', 'Paid', 'var(--good)', 'Paystack'), inv('INV-26-9KD2PL', "Ade's Kitchen", '₦350,000', '1 Oct', 'Paid', 'var(--good)', 'Transfer'), inv('INV-26-2FT7RB', 'Mira Skincare', '₦600,000', '30 Sep', 'Paid', 'var(--good)', 'Paystack')]
+    };
+  }
+  invSheet(r) {
+    var self = this, I = this.icons(), paid = r.status === 'Paid' || r.status === 'Refunded';
+    return this.sh({ eyebrow: paid ? 'Receipt' : 'Invoice', title: r.no + ' · ' + r.client, chip: r.status, tone: r.tone, icon: I.file, iconTone: r.tone, rows: [{ k: 'Amount', v: r.amount }, { k: paid ? 'Paid on' : 'Due', v: r.date }, { k: 'Method', v: r.method }, { k: 'Currency', v: r.amount.charAt(0) === '$' ? 'USD' : 'NGN' }], feed: paid ? [{ t: 'Receipt emailed to ' + r.client, when: r.date }, { t: 'Paid by ' + r.method, when: r.date }, { t: 'Invoice issued', when: 'by you' }] : [{ t: 'Viewed by the client', when: '2 days ago' }, { t: 'Invoice issued', when: 'by you' }],
+      primary: paid ? 'Preview the receipt' : 'Preview the invoice', secondary: paid ? 'Resend receipt' : 'Copy payment link', sToast: paid ? 'Receipt sent to ' + r.client + '.' : 'Payment link copied.',
+      onPrimary: function () { self.openFile({ name: r.no + '.pdf', project: r.client, view: 'doc', ref: r.no, docTitle: (paid ? 'Receipt · ' : 'Invoice · ') + r.amount, when: r.date, size: '190 KB', tone: 'var(--bad)' }); } });
+  }
+  rowActions(row, tab) {
+    var self = this, I = this.icons(), it = this.menuItem.bind(this), sep = this.menuSep();
+    if (tab === 'paid') return [
+      it('View receipt', I.eye, function () { self.open(self.invSheet(row)); }),
+      it('Download receipt', I.down, function () { self.say('Receipt PDF downloaded'); }),
+      it('Resend receipt', I.mail, function () { self.say('Receipt sent to ' + row.client, { delay: 8, pending: function (n) { return 'Resending to ' + row.client + ' in ' + n + 's'; } }); }),
+      sep,
+      it('Refund…', I.undo, function () { self.ask({ eyebrow: 'Refund', title: 'Refund ' + row.amount + ' to ' + row.client + '?', body: 'The money goes back through ' + row.method + '. The invoice reopens and a credit note is created. Refunds ask for your password again.', needAck: true, ackText: 'Refunds cannot be reversed once the provider sends them.', input: true, inputLabel: 'Reason, for the credit note', inputPh: 'For example: project cancelled before work started', ok: 'Refund ' + row.amount, okToast: 'Refund started. ' + row.client + ' gets an email.', danger: true, tone: 'var(--bad)', icon: I.undo, onOk: function () { var r = Object.assign({}, self.state.refunded); r[row.no] = true; self.setState({ refunded: r, ra: self.state.ra + 1 }); } }); }, { danger: true })
+    ];
+    var acts = [
+      it('Send a reminder', I.mail, function () { self.say('Reminder sent to ' + row.client, { delay: 8, pending: function (n) { return 'Sending a reminder to ' + row.client + ' in ' + n + 's'; } }); }),
+      it('Record a payment', I.cash, function () { self.recordSheet(row); }),
+      it('Copy payment link', I.link, function () { self.say('Payment link copied. It opens Paystack or Flutterwave.'); }),
+      it('Preview PDF', I.eye, function () { self.open(self.invSheet(row)); })
+    ];
+    if (tab === 'over') acts.unshift(it('Send final notice', I.alert, function () { self.ask({ eyebrow: 'Final notice', title: 'Send a final notice to ' + row.client + '?', body: 'This is the firmest message we send. It says work pauses until payment.', to: row.client + ' · billing contact', subject: 'Final notice: ' + row.no + ' is overdue', preview: row.no + ' for ' + row.amount + ' was due on ' + row.date + '.\nPlease pay today to keep work moving.', ok: 'Send final notice', okToast: 'Final notice sent to ' + row.client + '.', tone: 'var(--warn)', icon: I.alert }); }));
+    acts.push(sep);
+    acts.push(it('Void invoice…', I.ban, function () { self.ask({ eyebrow: 'Void', title: 'Void ' + row.no + '?', body: row.client + ' can no longer pay it. The number stays in your records so the sequence is unbroken. You would need a new invoice to bill again.', needAck: true, ackText: 'A voided invoice cannot be brought back.', ok: 'Void invoice', okToast: row.no + ' voided. It stays in your records.', danger: true, tone: 'var(--bad)', icon: I.ban, onOk: function () { var v = Object.assign({}, self.state.voided); v[row.no] = true; self.setState({ voided: v, ra: self.state.ra + 1 }); } }); }, { danger: true }));
+    return acts;
+  }
+  recordSheet(row) {
+    var self = this, I = this.icons(), ways = ['Bank transfer', 'Cash', 'POS', 'Paystack link', 'Flutterwave link'];
+    this.open(this.sh({ eyebrow: 'Record a payment', title: row.no + ' · ' + row.client, icon: I.cash, iconTone: 'var(--good)', rows: [{ k: 'Amount due', v: row.amount }, { k: 'Due', v: row.date }], body: 'Recording sends ' + row.client + ' a receipt and moves the invoice to Paid. For part payments, use the full Money page.', listTitle: 'How was it paid?', select: true, list: ways.map(function (w) { return { t: w }; }), selectWhy: 'Choose how it was paid.',
+      primary: function (ctx) { return ctx.pick >= 0 ? 'Record ' + row.amount + ' by ' + ways[ctx.pick].toLowerCase() : 'Record the payment'; },
+      onPrimary: function (ctx) { var r = Object.assign({}, self.state.recorded), prev = self.state.recorded; r[row.no] = ways[ctx.pick]; self.setState({ recorded: r, ra: self.state.ra + 1 }); self.say('Recorded. ' + row.client + ' gets a receipt.', { undo: function () { self.setState({ recorded: prev, ra: self.state.ra + 1 }); } }); } }));
+  }
+  notesData() {
+    var X = this.sheets(), self = this;
+    return [
+      { id: 'n1', i: 'BP', tone: 'var(--good)', t: 'Bloom Pharmacy paid ₦280,000 by Paystack', when: '12 min ago', sheet: this.invSheet({ no: 'INV-26-3MS8QA', client: 'Bloom Pharmacy', amount: '₦280,000', date: '2 Oct', status: 'Paid', tone: 'var(--good)', method: 'Paystack' }) },
+      { id: 'n2', i: 'CA', tone: 'var(--live)', t: "Chiamaka sent 5 posts to Ade's Kitchen for approval", when: '20 min ago', sheet: X.feed },
+      { id: 'n3', i: 'AO', tone: 'var(--neutral)', t: 'Adaeze asked about the green in route B', when: '1 h ago', sheet: X.mira },
+      { id: 'n4', i: 'ZE', tone: 'var(--brand)', t: 'New lead: Zara Events wants an event website', when: 'Yesterday', sheet: this.deck()[4].sheet },
+      { id: 'n5', i: '!', tone: 'var(--bad)', t: 'Reminder to Kora was not opened', when: 'Yesterday', sheet: X.kora },
+      { id: 'n6', i: 'DE', tone: 'var(--neutral)', t: 'Daniel closed the last Oak and Ivy launch check', when: 'Thursday', sheet: X.oak }
+    ];
+  }
+  records() {
+    var X = this.sheets(), S = this.sh.bind(this), I = this.icons();
+    var client = function (n, s, ini) { return { kind: 'Client', label: n, sub: s, ini: ini, tone: 'var(--brand)', sheet: S({ eyebrow: 'Client', title: n, icon: I.users, rows: [{ k: 'Projects', v: s }, { k: 'Client since', v: '2026' }], primary: 'Close' }) }; };
+    return [
+      { kind: 'Page', label: 'Money', sub: 'Invoices, quotes, payments, reconcile', ini: '₦', tone: 'var(--neutral)' },
+      { kind: 'Page', label: 'Projects', sub: 'List, board, calendar, workload', ini: 'P', tone: 'var(--neutral)' },
+      { kind: 'Page', label: 'Support', sub: 'Tickets, knowledge base, questions', ini: 'S', tone: 'var(--neutral)' },
+      { kind: 'Page', label: 'Settings, Currencies and banks', sub: 'NGN, USD and 5 more · 4 accounts', ini: 'S', tone: 'var(--neutral)' },
+      client('Mira Skincare', 'Brand identity, Social media', 'MS'), client('Kora Logistics', 'Driver app', 'KL'), client('Bloom Pharmacy', 'SEO retainer', 'BP'), client("Ade's Kitchen", 'Social retainer', 'AK'), client('Oak and Ivy Interiors', 'Website', 'OI'), client('Halo Clinics', 'Booking assistant', 'HC'),
+      { kind: 'Project', label: 'Brand identity', sub: 'Mira Skincare · Review', ini: 'B', tone: 'var(--live)', sheet: X.mira },
+      { kind: 'Project', label: 'Website', sub: 'Oak and Ivy Interiors · Handover', ini: 'W', tone: 'var(--live)', sheet: X.oak },
+      { kind: 'Invoice', label: 'INV-26-4KQ8ZD', sub: 'Kora Logistics · ₦850,000 · 12 days late', ini: 'IN', tone: 'var(--bad)', sheet: X.kora },
+      { kind: 'Invoice', label: 'INV-26-7HB2QA', sub: 'Bloom Pharmacy · ₦300,000 · due 31 Oct', ini: 'IN', tone: 'var(--good)', sheet: X.match }
+    ];
+  }
+  walk() { return { nav: 'Today is what needs you. Clients holds every record, Projects runs work by service, Money covers invoices, payments and payouts, Messages has every conversation, Support has tickets and the knowledge base, and Settings has the team and permissions.', bell: 'Payments, approvals and replies land here. Install the app to get them as push alerts. The important ones are emailed too.' }; }
+  tourSteps() {
+    var I = this.icons();
+    return [
+      { target: 'deck', title: 'One thing at a time', icon: I.layers, body: 'The top card is what needs you most. Do it, snooze it to a time, or hand it to someone on the team. The next card rises.', hint: 'Focus the card and press D to mark it done.' },
+      { target: 'later', title: 'Everything else has a time', icon: I.clock, body: 'Snoozed cards, follow ups and booked work wait here in order. Five per page, and View all opens the whole list.' },
+      { target: 'rail', title: 'The studio at a glance', icon: I.chart, body: 'Tap any figure to see what makes it up. Hover or tap a bar for that month.' },
+      { target: 'search|searchS', title: 'Jump anywhere', icon: I.search, body: 'Press Ctrl K to find any client, project or invoice by name or number.' }
+    ];
+  }
+  popItems(pop) {
+    var self = this, I = this.icons();
+    if (pop.kind === 'row') { var M = this.moneyNow(), row = null; ['due', 'over', 'paid'].forEach(function (k) { M[k].forEach(function (r) { if (r.no === pop.id) row = r; }); }); return row ? this.rowActions(row, this.state.mtab) : []; }
+    if (pop.kind === 'new') return [['New invoice', I.file, 'I'], ['New quote', I.quote, 'Q'], ['New project', I.folder, 'P'], ['New client', I.users, 'C'], ['New task', I.task, 'T']].map(function (m) {
+      return self.menuItem(m[0], m[1], function () { if (m[0] === 'New quote') self.openQuote({ client: 'New client', contact: 'there', to: 'Pick a client first', title: 'Untitled quote', lines: self.quote().lines.map(function (l) { return Object.assign({}, l, { on: false }); }) }); else self.later(m[0] + ' opens as a side sheet in the full prototype.'); }, { hint: m[2] });
+    });
+    return [];
+  }
+  moneyNow() {
+    var s = this.state, M = this.money();
+    var rec = []; ['due', 'over'].forEach(function (k) { M[k] = M[k].filter(function (r) { if (s.recorded[r.no]) { rec.push(Object.assign({}, r, { status: 'Paid', tone: 'var(--good)', date: 'Today', method: s.recorded[r.no] })); return false; } return true; }); });
+    M.paid = rec.concat(M.paid);
+    ['due', 'over', 'paid'].forEach(function (k) { M[k] = M[k].filter(function (r) { return !s.voided[r.no]; }).map(function (r) { return s.refunded[r.no] ? Object.assign({}, r, { status: 'Refunded', tone: 'var(--neutral)' }) : r; }); });
+    return M;
+  }
+
+  renderVals() {
+    var s = this.state, self = this, p = s.p, I = this.icons(), S = this.sh.bind(this), X = this.sheets();
+    var all = this.deck(), dv = this.deckView(all), queue = all.filter(function (d) { return !s.gone[d.id] && !s.snoozed[d.id]; });
+
+    var later = s.added.map(function (r) { return Object.assign({ sheet: S({ eyebrow: r.kind, title: r.t, icon: I.cal, body: r.s, primary: 'Close' }) }, r); }).concat(this.laterBase());
+    all.forEach(function (d) { if (s.snoozed[d.id]) later.unshift({ time: s.snoozed[d.id].split(',')[0].replace('This afternoon', '15:00').replace('In 1 hour', '12:30'), t: d.title, s: s.fuMeta[d.id] ? 'Follow up · ' + s.fuMeta[d.id] : 'Snoozed · ' + d.kind, kind: s.fuMeta[d.id] ? 'Follow up' : 'Snoozed', tone: 'var(--live)', sheet: d.sheet, snz: true }); });
+    var LS = s.lper, lp = Math.min(s.laterPage, Math.max(0, Math.ceil(later.length / LS) - 1));
+    var laterRows = later.slice(lp * LS, lp * LS + LS).map(function (l, i) { return Object.assign({}, l, { anim: self.anim(s.la), delay: (i * 0.035) + 's', timeCol: l.snz ? 'var(--aink)' : 'var(--ink)', open: function () { self.open(l.sheet); } }); });
+    var LP = Object.assign(this.pager('later', later.length, LS, lp, function (k) { self.setState({ laterPage: k, la: self.state.la + 1 }); }, function (n) { self.setState({ lper: n, laterPage: 0, la: self.state.la + 1 }); }), { all: function () { self.open(S({ eyebrow: 'Later', title: 'Everything coming up', chip: later.length + ' items', tone: 'var(--brand)', icon: I.clock, listTitle: 'In order', list: later.map(function (l) { return { t: l.time + ' · ' + l.t, s: l.s, tag: l.kind, tone: l.tone, open: l.sheet }; }), primary: 'Close' })); } });
+
+    var M = this.moneyNow(), tabs = [['over', 'Overdue'], ['due', 'Due soon'], ['paid', 'Paid this month']];
+    var mq = s.mq.trim().toLowerCase();
+    var list = M[s.mtab].filter(function (r) { return !mq || (r.no + ' ' + r.client).toLowerCase().indexOf(mq) >= 0; });
+    var per = s.per, mp = Math.min(s.mpage, Math.max(0, Math.ceil(list.length / per) - 1));
+    var mrows = list.slice(mp * per, mp * per + per).map(function (r, i) {
+      var open = function () { self.open(self.invSheet(r)); };
+      return Object.assign({}, r, { anim: self.anim(s.ra), delay: (i * 0.035) + 's', aria: r.no + ', ' + r.client + ', ' + r.amount + ', ' + r.status + '. Press Enter to open.', menuAria: 'Actions for ' + r.no, open: function (e) { if (e && e.target && e.target.closest && e.target.closest('[data-menu]')) return; open(); }, key: function (e) { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); open(); } }, menu: function (e) { if (e && e.stopPropagation) e.stopPropagation(); self.openPop(e, 'row', r.no, 250, s.mtab === 'paid' ? 220 : 300, 'Actions for ' + r.no); } });
+    });
+    var mtabs = tabs.map(function (tb) { var on = s.mtab === tb[0]; return { label: tb[1], n: M[tb[0]].length, cls: on ? 'on' : '', sel: on ? 'true' : 'false', chip: tb[0] === 'over' && M.over.length ? 'var(--bad)' : 'var(--flat)', chipInk: tb[0] === 'over' && M.over.length ? '#fff' : 'var(--onflat)', pick: function () { if (!on) self.setState({ mtab: tb[0], mpage: 0, ra: self.state.ra + 1 }); } }; });
+    var MP = Object.assign(this.pager('money', list.length, per, mp, function (k) { self.setState({ mpage: k, ra: self.state.ra + 1 }); }, function (n) { self.setState({ per: n, mpage: 0, ra: self.state.ra + 1 }); }), { all: function () { self.later('Money opens with every invoice in the full prototype.'); } });
+    var noneInTab = !list.length && !mq;
+
+    var all12 = [['Nov', 2100, 1900], ['Dec', 2600, 2400], ['Jan', 2400, 2000], ['Feb', 3000, 2600], ['Mar', 3400, 2800], ['Apr', 3100, 3000], ['May', 3200, 2900], ['Jun', 3800, 3100], ['Jul', 2900, 3300], ['Aug', 4400, 3700], ['Sep', 4600, 4120], ['Oct', 5100, 4860]];
+    var data = s.range === 6 ? all12.slice(6) : all12, MAX = 5400;
+    var bars = data.map(function (r, i) { return { m: r[0], lcls: s.range === 12 && i % 2 ? 'mOdd' : '', cls: s.hover === i ? 'hot' : '', hi: Math.round(r[1] / MAX * 100), hc: Math.round(r[2] / MAX * 100), delay: (i * 0.05) + 's', bg: s.hover === i ? 'var(--panel2)' : 'transparent', aria: r[0] + ': invoiced ' + self.ngn(r[1] * 1000) + ', collected ' + self.ngn(r[2] * 1000), enter: function () { if (self.state.hover !== i) self.setState({ hover: i }); } }; });
+    var hv = s.hover >= 0 && data[s.hover] ? s.hover : -1;
+    var tip = hv >= 0 ? { m: data[hv][0] + ' 2026', a: self.short(data[hv][1] * 1000), c: self.short(data[hv][2] * 1000), left: ((hv + 0.5) / data.length * 100).toFixed(2), b: Math.round(Math.max(data[hv][1], data[hv][2]) / MAX * 100), tx: hv === 0 ? '-12%' : (hv === data.length - 1 ? '-88%' : '-50%') } : {};
+    var sumC = data.reduce(function (a, r) { return a + r[2]; }, 0) * 1000;
+
+    var statDefs = [
+      { label: 'Collected, October', raw: 4860000, money: true, note: '+18% on September', noteCol: 'var(--good)', dot: 'var(--good)', sheet: S({ eyebrow: 'Money', title: 'Collected in October', chip: '₦4,860,000', tone: 'var(--good)', icon: I.chart, iconTone: 'var(--good)', listTitle: 'By service', list: [{ t: 'Web', s: '₦2,240,000 · 3 payments' }, { t: 'Software & AI', s: '₦1,200,000 · 1 payment' }, { t: 'Branding & Design', s: '₦690,000 · 2 payments' }, { t: 'Social & Ads', s: '₦450,000 · 2 payments' }, { t: 'SEO', s: '₦280,000 · 1 payment' }], primary: 'Close' }) },
+      { label: 'Outstanding', raw: 2315000, money: true, note: '3 overdue', noteCol: 'var(--badInk)', dot: 'var(--bad)', sheet: S({ eyebrow: 'Money', title: 'Outstanding', chip: '₦2,315,000', tone: 'var(--warn)', icon: I.wallet, iconTone: 'var(--warn)', listTitle: 'Oldest first', list: [{ t: 'Kora Logistics', s: '₦850,000 · 12 days late', tag: 'Late', tone: 'var(--bad)' }, { t: 'Tunde Okafor Law', s: '₦90,000 · 5 days late', tag: 'Late', tone: 'var(--bad)' }, { t: 'Lumen Fitness', s: '₦75,000 · 3 days late', tag: 'Late', tone: 'var(--bad)' }, { t: 'Mira Skincare', s: '₦450,000 · due 14 Oct', tag: 'Due', tone: 'var(--warn)' }, { t: 'Oak and Ivy Interiors', s: '₦520,000 · after handover', tag: 'Due', tone: 'var(--neutral)' }], primary: 'Close' }) },
+      { label: 'Live projects', raw: 14, note: '2 waiting on clients', noteCol: 'var(--aink)', dot: 'var(--s1)', sheet: S({ eyebrow: 'Projects', title: 'Live projects', chip: '14', tone: 'var(--brand)', icon: I.folder, listTitle: 'By service', list: [{ t: 'Branding & Design', s: '4 live' }, { t: 'Social & Ads', s: '3 live' }, { t: 'Web', s: '3 live' }, { t: 'SEO', s: '2 live' }, { t: 'Apps', s: '1 live, blocked on payment' }, { t: 'Software & AI', s: '1 live' }], primary: 'Close' }) },
+      { label: 'Recurring a month', raw: 1450000, money: true, note: '4 retainers', noteCol: 'var(--dim)', dot: 'var(--s2)', sheet: S({ eyebrow: 'Recurring', title: 'Retainers', chip: '₦1,450,000 a month', tone: 'var(--brand)', icon: I.cash, listTitle: 'Next bill 1 Nov', list: [{ t: "Ade's Kitchen", s: '₦350,000 · Social' }, { t: 'Bloom Pharmacy', s: '₦300,000 · SEO' }, { t: 'Halo Clinics', s: '₦500,000 · Care plan' }, { t: 'Lumen Fitness', s: '₦300,000 · Social' }], primary: 'Close' }) }
+    ];
+    var stats = statDefs.map(function (k, i) { var v = k.money ? self.short(k.raw * p) : String(Math.round(k.raw * p)); return Object.assign({}, k, { value: v, delay: 'd' + (i + 1), aria: k.label + ': ' + (k.money ? self.ngn(k.raw) : k.raw) + '. ' + k.note, open: function () { self.open(k.sheet); } }); });
+    var T = this.teamData();
+    var pulse = [
+      { i: 'CA', who: 'Chiamaka', what: 'sent 5 posts for approval', where: "Ade's Kitchen", when: '20 min', tone: '#b84a00' },
+      { i: 'IN', who: 'Ifeanyi', what: 'is waiting on Mira', where: 'Brand identity', when: '9 days', tone: '#000065' },
+      { i: 'BO', who: 'Bisi', what: 'published the September report', where: 'Bloom Pharmacy', when: '3 h', tone: '#15803d' }
+    ].map(function (x) { return Object.assign({}, x, { open: function () { self.open(X.feed); } }); });
+    var personSheet = function (m) { return S({ eyebrow: m.dept, title: m.name, icon: I.users, iconTone: m.tone, rows: [{ k: 'Open tasks', v: m.load }, { k: 'Today', v: 'Working, last seen 4 min ago' }], primary: 'Message ' + m.name.split(' ')[0], onPrimary: function () { self.say('Opening a conversation with ' + m.name.split(' ')[0] + ' in Messages.'); } }); };
+    var renewals = [
+      { when: '14 days', what: 'okaforlaw.ng domain', client: 'Tunde Okafor Law', amount: '₦25k', tone: 'var(--warn)', sheet: X.renew },
+      { when: '30 days', what: 'Hosting, yearly', client: 'Bloom Pharmacy', amount: '₦120k', tone: 'var(--neutral)', sheet: S({ eyebrow: 'Renewal', title: 'Bloom hosting', icon: I.link, rows: [{ k: 'Renews', v: '9 Nov 2026' }, { k: 'Price', v: '₦120,000' }], primary: 'Send renewal invoice', pToast: 'Renewal invoice sent.' }) },
+      { when: '60 days', what: 'Play developer account', client: 'Kora Logistics', amount: '$25', tone: 'var(--neutral)', sheet: S({ eyebrow: 'Renewal', title: 'Google Play account', icon: I.link, rows: [{ k: 'Owner', v: 'WDC, movable on request' }, { k: 'Renews', v: '9 Dec 2026' }], primary: 'Remind me in November', pToast: 'Reminder set for 1 November.' }) }
+    ].map(function (r) { return Object.assign({}, r, { open: function () { self.open(r.sheet); } }); });
+
+    return Object.assign(this.kit(), this.extraVals(), dv, {
+      deckTitle: 'Up next', deckKeys: 'Focus the card: D done, S snooze', snoozeLabel: 'Snooze', snoozeShort: 'Snooze', canPass: true,
+      emptyTitle: 'You are clear, Babatope.', emptyBody: 'Nothing needs you right now. Next on the calendar:', emptyNext: 'Discovery call with Zara Events at 11:00.', emptyPrimaryLabel: 'Plan tomorrow', emptySecondaryLabel: 'Bring everything back',
+      emptyPrimary: function () { self.open(S({ eyebrow: 'Tomorrow', title: 'Sunday 11 October', icon: I.cal, listTitle: 'Already booked', list: [{ t: '09:00 · Send November retainers', s: '4 drafts ready · ₦1,450,000', tag: 'Money', tone: 'var(--live)' }, { t: '10:00 · Halo milestone 2 demo', s: 'Google Meet · Daniel', tag: 'Meeting', tone: 'var(--brand)' }], body: 'Anything you snooze to tomorrow lands here at 09:00.', primary: 'Close' })); },
+      headline: queue.length ? 'Good morning, Babatope. ' + queue.length + (queue.length === 1 ? ' thing needs you.' : ' things need you.') : 'Good morning, Babatope. You are clear.',
+      clearedCount: all.length - queue.length + 3, updatedLabel: s.updated, spin: s.spin,
+      refresh: function () { self.setState({ spin: self.state.spin + 360, updated: 'Updating…' }); self.boot(600); setTimeout(function () { self.setState({ updated: 'Updated just now' }); }, 700); },
+      laterTotal: later.length, laterRows: laterRows, LP: LP,
+      openCalendar: function () { self.later('The calendar opens in Projects in the full prototype.'); },
+      mq: s.mq, hasMq: !!s.mq, onMq: function (e) { self.setState({ mq: e.target.value, mpage: 0, ra: self.state.ra + 1 }); }, clearMq: function () { self.setState({ mq: '', ra: self.state.ra + 1 }); },
+      mtabs: mtabs, mrows: mrows, mEmpty: !list.length, mEmptyTitle: noneInTab ? (s.mtab === 'over' ? 'Nothing is overdue.' : 'Nothing here yet.') : 'No invoice matches "' + s.mq + '".', mEmptyBody: noneInTab ? 'Every client is paid up for this view.' : 'Search by invoice number or client name, or look in another tab.', dateHead: s.mtab === 'paid' ? 'Paid on' : 'Due', MP: MP,
+      stats: stats,
+      openAllStats: function () { self.open(S({ eyebrow: 'Studio pulse', title: 'All figures, October', icon: I.chart, listTitle: 'This month', list: [{ t: 'Collected', s: '₦4,860,000 · +18% on September', tag: 'Money', tone: 'var(--good)' }, { t: 'Outstanding', s: '₦2,315,000 · 3 overdue', tag: 'Money', tone: 'var(--bad)' }, { t: 'Recurring a month', s: '₦1,450,000 · 4 retainers', tag: 'Money', tone: 'var(--brand)' }, { t: 'Expenses', s: '₦640,000 · 11 items', tag: 'Money', tone: 'var(--neutral)' }, { t: 'Average days to pay', s: '6 days · down from 9', tag: 'Money', tone: 'var(--good)' }, { t: 'Live projects', s: '14 · 2 waiting on clients', tag: 'Work', tone: 'var(--brand)' }, { t: 'Approvals waiting', s: '4 · oldest 9 days', tag: 'Work', tone: 'var(--warn)' }, { t: 'Leads open', s: '5 · 2 with no next step', tag: 'Sales', tone: 'var(--live)' }], primary: 'Close' })); },
+      bars: bars, hasTip: hv >= 0, tip: tip, ticks: [{ b: 0, l: '0' }, { b: Math.round(2000 / MAX * 100), l: '2m' }, { b: Math.round(4000 / MAX * 100), l: '4m' }], plotCls: hv >= 0 ? 'dim' : '',
+      periodTotal: self.short(sumC * p), periodLabel: 'collected in the last ' + s.range + ' months',
+      clearHover: function () { self.setState({ hover: -1 }); },
+      rangeI: s.range === 12 ? 1 : 0, c6: s.range === 6 ? 'on' : '', c12: s.range === 12 ? 'on' : '', p6: s.range === 6 ? 'true' : 'false', p12: s.range === 12 ? 'true' : 'false',
+      set6: function () { self.setState({ range: 6, hover: -1 }); }, set12: function () { self.setState({ range: 12, hover: -1 }); },
+      openReport: function () { self.open(statDefs[0].sheet); }, openFeed: function () { self.open(X.feed); },
+      teamStack: T.slice(0, 3).map(function (m) { return Object.assign({}, m, { open: function () { self.open(personSheet(m)); } }); }), teamMore: T.length - 3, teamMoreAria: 'Show ' + (T.length - 3) + ' more people',
+      openTeam: function () { self.open(S({ eyebrow: 'Team', title: 'On today', chip: T.length + ' people', tone: 'var(--brand)', icon: I.users, listTitle: 'Everyone', list: T.map(function (m) { return { t: m.name, s: m.dept + ' · ' + m.load, ini: m.i, av: m.tone, open: personSheet(m) }; }), primary: 'Close' })); },
+      pulse: pulse, renewals: renewals,
+      openRenewals: function () { self.open(S({ eyebrow: 'Renewals', title: 'Next 90 days', chip: '6 renewals', tone: 'var(--brand)', icon: I.link, listTitle: 'Soonest first', list: [{ t: 'okaforlaw.ng domain', s: '24 Oct · ₦25,000', tag: '14 days', tone: 'var(--warn)', open: X.renew }, { t: 'Bloom hosting', s: '9 Nov · ₦120,000', tag: '30 days', tone: 'var(--neutral)' }, { t: 'Mira business email, 3 inboxes', s: '20 Nov · free with website', tag: '41 days', tone: 'var(--neutral)' }, { t: 'Kora Play account', s: '9 Dec · $25', tag: '60 days', tone: 'var(--neutral)' }, { t: 'Halo care plan', s: '1 Jan · ₦500,000 a month', tag: '83 days', tone: 'var(--neutral)' }, { t: 'Oak and Ivy domain', s: '5 Jan · ₦25,000', tag: '87 days', tone: 'var(--neutral)' }], primary: 'Close' })); },
+      openNew: function (e) { self.openPop(e, 'new', 'new', 240, 270, 'Create'); }
+    });
+  }
