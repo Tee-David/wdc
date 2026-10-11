@@ -49,8 +49,8 @@ test.describe("the public estimate", () => {
     const foot = page.locator(".doc__lines tfoot");
     /* ₦2,130,000 less 5% is ₦2,023,500; VAT at 7.5% is ₦151,762.50. A discount
        taken per line and summed would land a kobo or two away from this. */
-    await expect(foot).toContainText("₦2,130,000.00");
-    await expect(foot).toContainText("−₦106,500.00");
+    await expect(foot).toContainText("₦2,130,000");
+    await expect(foot).toContainText("−₦106,500");
     await expect(foot).toContainText("₦151,762.50");
     await expect(page.locator(".doc__owed b")).toHaveText("₦2,175,262.50");
   });

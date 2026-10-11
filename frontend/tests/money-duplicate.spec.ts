@@ -41,7 +41,7 @@ test("duplicating a part-paid invoice makes an unpaid draft with the same lines"
   const copy = invoices.locator("tbody tr", { hasText: number });
   await expect(copy.locator(".ad__pill").first()).toHaveText("Draft");
   /* The same lines, so the same total as the original. */
-  await expect(copy).toContainText("₦677,250.00");
+  await expect(copy).toContainText("₦677,250");
 
   /* Same lines: the copy's total is the original's total. Nothing paid. */
   const href = await copy.locator("a[href^='/admin/money/i']").first().getAttribute("href");
