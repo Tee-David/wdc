@@ -10,9 +10,9 @@ export default function GlobalError({ reset }: { error: Error & { digest?: strin
     <html lang="en">
       <body style={{ margin: 0, minHeight: "100vh", display: "grid", placeItems: "center", background: "#030318", color: "#f1f2ff", fontFamily: "system-ui, sans-serif", padding: "24px" }}>
         <main style={{ maxWidth: 520, textAlign: "center" }}>
-          <h1 style={{ fontSize: 28, margin: "0 0 12px" }}>This page did not load.</h1>
+          <h1 style={{ fontSize: 28, margin: "0 0 12px" }}>Something went wrong on our side</h1>
           <p style={{ margin: "0 0 24px", lineHeight: 1.6, color: "#c9cae8" }}>
-            Something failed on our side. Nothing you did caused it.
+            It is not you, and nothing you typed elsewhere is lost. Try again, and if it repeats, write to us.
           </p>
           <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
             <button type="button" onClick={() => reset()} style={{ minHeight: 44, padding: "0 20px", borderRadius: 10, border: "1px solid #fff", background: "#fff", color: "#0a0a0a", fontWeight: 700, cursor: "pointer" }}>Try again</button>

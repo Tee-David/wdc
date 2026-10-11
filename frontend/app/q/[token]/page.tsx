@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getClient, getEstimateByToken, getInvoice, getProject } from "@/lib/admin/store";
 import { estimateState, estimateTotals, lineTotal } from "@/lib/admin/types";
-import { DocumentShell, Headline, estimateUrl, invoiceUrl } from "@/components/money/document";
+import { DocumentShell, DocNote, DocTotals, docDay, estimateUrl, invoiceUrl, type DocTag } from "@/components/money/document";
 import { CONTACT_EMAIL } from "@/lib/site";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 
@@ -48,15 +48,21 @@ export default async function PublicEstimate({
   const t = estimateTotals(est);
   const state = estimateState(est);
 
-  const day = (iso: string) =>
-    new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  const day = docDay;
+  const mail = (subject: string) => `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}`;
+  const tag: DocTag =
+    state === "Accepted" ? { text: "Accepted", tone: "good" }
+      : state === "Declined" ? { text: "Declined", tone: "flat" }
+        : state === "Expired" ? { text: "Expired", tone: "bad" }
+          : { text: "Open", tone: "brand" };
 
   return (
     <DocumentShell
-      kind="Estimate"
+      kind="Quote"
       number={est.number}
       url={estimateUrl(est.token)}
-      qrLabel={`Reopen estimate ${est.number}`}
+      qrLabel={`Reopen quote ${est.number}`}
+      tag={tag}
       /* THE CORNER SAYS WHAT HAPPENED TO IT. A live quote gets no stamp at
          all: "sent, waiting" is the default state of every estimate and
          marking it would make the mark mean nothing. */
@@ -67,57 +73,36 @@ export default async function PublicEstimate({
               : undefined
       }
     >
-
-      <ReceiptControls token={est.token} kind="Estimate" />      {state === "Expired" ? (
-        <p className="doc__void" role="status">
-          <b>This estimate has expired.</b> The price above stood until{" "}
-          {day(est.expires)} and is no longer held. We would be glad to quote
-          again; nothing here has changed, so it is a short conversation.
-        </p>
-      ) : null}
       {state === "Expired" ? (
-        <div className="doc__actions">
-          <a className="doc__btn doc__btn--ghost" href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(`A new quote for ${est.number}`)}`}>Ask for a new quote</a>
-          <small>Or write to {CONTACT_EMAIL} and mention {est.number}.</small>
-        </div>
+        <DocNote tone="bad">
+          <b>This quote has expired.</b> The price stood until {day(est.expires)} and is no longer held. Write to us and we will refresh it, usually the same day.
+        </DocNote>
+      ) : null}
+
+      {state === "Accepted" ? (
+        <DocNote>Accepted{est.answered ? ` by ${est.answered.by}` : ""}{est.answered ? ` on ${day(est.answered.at)}` : ""}. {invoice ? "The invoice is linked below." : "The invoice follows, and the team starts when it is paid."}</DocNote>
       ) : null}
 
       {state === "Declined" && est.answered ? (
-        <p className="doc__void" role="status">
-          <b>This estimate was declined on {day(est.answered.at)}.</b>{" "}
+        <DocNote tone="warn">
+          <b>This quote was declined on {day(est.answered.at)}.</b>{" "}
           {est.answered.note ? `${est.answered.note} ` : ""}
-          It is kept here so both sides have the record of what was quoted.
-        </p>
+          It is kept here so both sides have the record of what was quoted. If that changes, write to us and we will reopen it.
+        </DocNote>
       ) : null}
 
-      <Headline
-        currency={currencyOf(est)}
-        label={state === "Accepted" ? "Agreed" : "Estimate"}
-        amount={t.total}
-        clear={state === "Accepted"}
-        pill={
-          state === "Accepted"
-            ? { text: est.answered ? `Accepted by ${est.answered.by}` : "Accepted", tone: "good" }
-            : state === "Declined"
-              ? { text: "Declined", tone: "bad" }
-              : state === "Expired"
-                ? { text: `Expired ${day(est.expires)}`, tone: "bad" }
-                : { text: `Holds until ${day(est.expires)}`, tone: "due" }
-        }
-      />
-
-      <dl className="doc__meta">
+      <dl className="doc__meta docMetaG">
         <div>
-          <dt>For</dt>
-          <dd>{client?.company ?? "–"}</dd>
+          <dt>Billed to</dt>
+          <dd><strong>{client?.company ?? "–"}</strong></dd>
         </div>
         <div>
           <dt>Issued</dt>
           <dd>{day(est.issued)}</dd>
         </div>
         <div>
-          <dt>{state === "Expired" ? "Expired" : "Holds until"}</dt>
-          <dd>{day(est.expires)}</dd>
+          <dt>{state === "Expired" ? "Expired" : "Valid until"}</dt>
+          <dd><strong className={state === "Expired" ? "doc__late" : undefined}>{day(est.expires)}</strong></dd>
         </div>
         {project ? (
           <div>
@@ -128,7 +113,7 @@ export default async function PublicEstimate({
       </dl>
 
       {est.paymentAccount?<PaymentAccount account={est.paymentAccount} reference={est.number}/>:null}
-      <div className="doc__scroll">
+      <div className="doc__scroll" tabIndex={0} aria-label="Lines, scrolls sideways">
         <table className="doc__lines">
           <thead>
             <tr className="doc__run">
@@ -137,48 +122,36 @@ export default async function PublicEstimate({
               </th>
             </tr>
             <tr>
-              <th>What for</th>
-              <th className="n">Qty</th>
-              <th className="n">Unit</th>
-              <th className="n">Total</th>
+              <th scope="col">Description</th>
+              <th scope="col" className="n">Qty</th>
+              <th scope="col" className="n">Unit</th>
+              <th scope="col" className="n">Amount</th>
             </tr>
           </thead>
           <tbody>
             {est.lines.map((l, n) => (
               <tr key={n}>
-                <td>{l.description}</td>
+                <td><strong>{l.description}</strong></td>
                 <td className="n">{l.qty}</td>
                 <td className="n">{naira(l.unit)}</td>
                 <td className="n">{naira(lineTotal(l))}</td>
               </tr>
             ))}
           </tbody>
-          {/* EVERY FIGURE RECOMPUTED FROM THE LINES, and the discount applied
-              to the sum rather than per line -- a per-line discount summed
-              drifts from the total beside it by a kobo or two, on the same
-              page. */}
-          <tfoot>
-            <tr>
-              <td colSpan={3} className="n">Subtotal</td>
-              <td className="n">{naira(t.subtotal)}</td>
-            </tr>
-            {t.discount > 0 ? (
-              <tr>
-                <td colSpan={3} className="n">Discount at {est.discount}%</td>
-                <td className="n">−{naira(t.discount)}</td>
-              </tr>
-            ) : null}
-            <tr>
-              <td colSpan={3} className="n">VAT at {est.vatRate}%</td>
-              <td className="n">{naira(t.vat)}</td>
-            </tr>
-            <tr>
-              <td colSpan={3} className="n">Total</td>
-              <td className="n">{naira(t.total)}</td>
-            </tr>
-          </tfoot>
         </table>
       </div>
+      {/* EVERY FIGURE RECOMPUTED FROM THE LINES, and the discount applied
+          to the sum rather than per line -- a per-line discount summed
+          drifts from the total beside it by a kobo or two, on the same
+          page. */}
+      <DocTotals
+        rows={[
+          { k: "Subtotal", v: naira(t.subtotal) },
+          ...(t.discount > 0 ? [{ k: `Discount ${est.discount}%`, v: `−${naira(t.discount)}` }] : []),
+          { k: `VAT ${est.vatRate}%`, v: naira(t.vat) },
+          { k: "Total", v: naira(t.total), strong: true },
+        ]}
+      />
 
       {/* WHAT IS INCLUDED AND ON WHAT TERMS, on the document rather than in
           the covering email. The email is the thing nobody can find in
@@ -201,7 +174,7 @@ export default async function PublicEstimate({
         <section className="doc__pay">
           <h2>Invoiced</h2>
           <p>
-            This estimate was accepted and billed as{" "}
+            This quote was accepted and billed as{" "}
             <a href={invoiceUrl(invoice.token)}><b>{invoice.number}</b></a>, which
             is where the amount owed and the ways to pay it live. This page stays
             as the record of what was agreed.
@@ -209,23 +182,31 @@ export default async function PublicEstimate({
         </section>
       ) : state === "Sent" ? (
         <section className="doc__pay">
-          <h2>To accept it</h2>
-          {/* NO ACCEPT BUTTON, AND THE REASON IS SAID RATHER THAN HIDDEN. A
-              click on a public page addressed by a token is not a signature,
-              and treating it as one would let anybody the link was forwarded
-              to commit the client to a price. A reply is both a real answer
-              and a record of who gave it. */}
-          <p>
-            Reply to the email this came with, or write to{" "}
-            <a href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(est.number)}`}>{CONTACT_EMAIL}</a>,
-            and we will raise the invoice and get started.
-          </p>
-          <p>
-            Quote <b>{est.number}</b> so it reaches the right piece of work.
-            Nothing is owed until an invoice follows.
-          </p>
+          <h2>Your answer</h2>
+          {/* THE ANSWER IS AN EMAIL, AND THE REASON IS SAID RATHER THAN HIDDEN.
+              A click on a public page addressed by a token is not a
+              signature, and treating it as one would let anybody the link was
+              forwarded to commit the client to a price. A reply is both a real
+              answer and a record of who gave it, so each button opens a
+              message to the studio with this quote's number on it. */}
+          <p>Reply to accept or decline. We raise the invoice and get started once we hear from you, and nothing is owed until an invoice follows.</p>
+          <div className="bareRow doc__answer">
+            <a className="bareBtn" href={mail(`Accepting quote ${est.number}`)}>Accept this quote</a>
+            <a className="bareBtn is-2" href={mail(`Declining quote ${est.number}`)}>Decline</a>
+          </div>
+          <a className="bareBtn is-2" href={mail(`A question about quote ${est.number}`)}>Ask a question first</a>
+          <p className="doc__hint">Each button opens an email to {CONTACT_EMAIL} with <b>{est.number}</b> on it, so your answer reaches the right piece of work.</p>
+        </section>
+      ) : state === "Expired" ? (
+        <section className="doc__pay">
+          <h2>Still interested?</h2>
+          <a className="bareBtn" href={mail(`A new quote for ${est.number}`)}>Ask for a new quote</a>
+          <p className="doc__hint">Or write to {CONTACT_EMAIL} and mention {est.number}.</p>
         </section>
       ) : null}
+
+      <ReceiptControls token={est.token} kind="Estimate" number={est.number} />
+      <p className="doc__hint">Quote {est.number}. Questions are welcome before you decide.</p>
     </DocumentShell>
   );
 }

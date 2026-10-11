@@ -10,6 +10,8 @@ import { wholeKobo, verifyTransaction } from "@/lib/paystack";
 import { chargeBanked, claimCharge, releaseCharge } from "@/lib/paystack-claim";
 import { sendOnlinePaymentEmails } from "@/lib/money-mail";
 import ReceiptPrinter, { type ReceiptLine } from "@/components/money/receipt-printer";
+import { BarePage } from "@/components/layout/bare-page";
+import { DocNote } from "@/components/money/document";
 import "@/components/money/document.css";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 
@@ -216,18 +218,22 @@ export default async function PaymentDone({
     : { kind: "unknown", message: "This page needs a payment reference to look your payment up, and there is not one on it. If you were paying an invoice, open the invoice again: it shows whether the payment arrived, and has the button to pay if it did not." };
 
   return (
-    <main className="doc doc--return">
-      <article className="doc__sheet">
-        <header className="doc__top">
+    <BarePage>
+    <div className="doc doc--return">
+      <article className="doc__sheet docSheet">
+        <header className="doc__top dsHead">
           <div className="doc__who">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/brand/icon-navy.svg" alt="" width={40} height={40} />
             <span><b>We Dig Creativity</b><small>Payment</small></span>
           </div>
+          {outcome.kind === "paid" ? <div className="doc__id"><span className="bareTag is-good">Paid</span></div> : null}
         </header>
 
+        <div className="doc__body dsBody">
         {outcome.kind === "paid" ? (
           <>
+            <h1 className="sr-only">Payment received, receipt {outcome.receiptNo}</h1>
             {/* THE SLIP REPLACES THE PANEL RATHER THAN SITTING ABOVE IT. Two
                 statements of the same amount, one animated and one not, would
                 make the page look like it could not decide which was the
@@ -248,33 +254,31 @@ export default async function PaymentDone({
               currency={outcome.currency} refunded={outcome.refunded} reversed={outcome.reversed}
             />
             {outcome.overpaid ? (
-              <p className="doc__said">
+              <DocNote tone="warn">
                 This invoice was already paid, so the extra is held as credit and comes off your next invoice.
                 If you would rather have it back, write to info@wedigcreativity.com.ng and we will refund it.
-              </p>
+              </DocNote>
             ) : null}
-            <p className="doc__actions">
+            <div className="doc__actions">
               <Link className="doc__btn" href={`${outcome.receiptUrl}?view=full`}>View full receipt</Link>
               {signedInClient ? <Link className="doc__btn doc__btn--ghost" href="/portal/billing">Back to billing</Link> : null}
-            </p>
+            </div>
           </>
         ) : (
           <>
-            <div className="doc__owed">
-              <span className="doc__k">{outcome.kind === "test" ? "Test checkout" : outcome.kind === "failed" ? "Not paid" : outcome.kind === "unknown" ? "No reference" : "Checking"}</span>
-              <h1 style={{ fontSize: "1.5rem", margin: 0, lineHeight: 1.2 }}>
-                {outcome.kind === "test" ? "No real payment was recorded" : outcome.kind === "failed" ? "The payment did not go through" : outcome.kind === "unknown" ? "We cannot tell which payment this is" : "We are confirming your payment"}
-              </h1>
-            </div>
-            <p>{outcome.message}</p>
-            <p className="doc__actions">
+            <h1 className="doc__no doc__state">
+              {outcome.kind === "test" ? "No real payment was recorded" : outcome.kind === "failed" ? "The payment did not go through" : outcome.kind === "unknown" ? "We cannot tell which payment this is" : "We are confirming your payment"}
+            </h1>
+            <DocNote tone={outcome.kind === "failed" ? "bad" : "warn"}>{outcome.message}</DocNote>
+            <div className="doc__actions">
               {outcome.invoiceToken
                 ? <Link className="doc__btn" href={`/i/${outcome.invoiceToken}`}>{outcome.kind === "failed" ? "Try again" : "Back to the invoice"}</Link>
                 : null}
               {signedInClient ? <Link className={`doc__btn${outcome.invoiceToken ? " doc__btn--ghost" : ""}`} href="/portal/billing">Back to billing</Link> : null}
-            </p>
+            </div>
           </>
         )}
+        </div>
 
         <footer className="doc__foot">
           <small>
@@ -284,6 +288,7 @@ export default async function PaymentDone({
           </small>
         </footer>
       </article>
-    </main>
+    </div>
+    </BarePage>
   );
 }

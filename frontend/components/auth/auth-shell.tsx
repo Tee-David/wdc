@@ -6,6 +6,8 @@ import { AuthFrame } from "@/components/auth/auth-frame";
 import { GreetingSlot } from "@/components/auth/greeting/greeting-slot";
 import { OrbStage } from "@/components/auth/stage/orb-stage";
 import { copy } from "@/lib/auth/copy";
+import "@/components/admin/admin.css";
+import "@/components/layout/bare.css";
 import "@/app/login/login.css";
 
 /**
