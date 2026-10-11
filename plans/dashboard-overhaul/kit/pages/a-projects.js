@@ -79,7 +79,7 @@
   popItems(pop) {
     var self = this, I = this.icons(), it = this.menuItem.bind(this);
     if (pop.kind === 'row') { var pj = this.allProjects().filter(function (x) { return x.id === pop.id; })[0]; return pj ? this.rowMenu(pj) : []; }
-    if (pop.kind === 'chores') return [it('Export projects', I.down, function () { self.exportProjects([], self.allProjects()); }, { hint: 'CSV or Excel' }), it('Stage templates', I.layers, function () { window.location.href = 'A-Settings.dc.html'; }, { hint: 'Settings' }), this.menuSep(), it('Open Trash', I.trash, function () { window.location.href = 'A-Settings.dc.html'; }, { hint: 'Settings' })];
+    if (pop.kind === 'chores') return [it('Meetings', I.cal, function () { window.location.href = 'A-Meetings.dc.html'; }, { hint: 'Reviews and handovers' }), it('Export projects', I.down, function () { self.exportProjects([], self.allProjects()); }, { hint: 'CSV or Excel' }), it('Stage templates', I.layers, function () { window.location.href = 'A-Settings.dc.html'; }, { hint: 'Settings' }), this.menuSep(), it('Open Trash', I.trash, function () { window.location.href = 'A-Settings.dc.html'; }, { hint: 'Settings' })];
     return [];
   }
 

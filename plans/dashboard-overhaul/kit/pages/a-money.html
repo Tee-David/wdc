@@ -73,6 +73,10 @@
                       <p class="repSpan num">{{RV.spanLabel}}</p>
                       <sc-if value="{{RV.empty}}" hint-placeholder-val="{{ false }}"><div class="emptyRow"><strong>No invoices match these parameters.</strong><span style="color: var(--ad-dim)">Loosen a filter or choose a longer period.</span><button class="btn2" onClick="{{RV.clearParams}}">Reset the report</button></div></sc-if>
                       <div class="repKpis"><sc-for list="{{RV.kpis}}" as="k" hint-placeholder-count="6"><div class="repK" role="group" aria-label="{{k.aria}}"><span class="statHd"><span class="statIc" style="background: {{k.tile}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="{{k.ic}}"></path></svg></span><span class="statLbl">{{k.label}}</span></span><span class="num repV">{{k.value}}</span><span class="repN" style="color: {{k.col}}">{{k.note}}</span></div></sc-for></div>
+                      <section class="repBlk" aria-label="Month by month">
+                        <h3 class="repH">Month by month</h3>
+                        <div class="tblWrap" tabindex="0" aria-label="Month by month, scrolls sideways"><table class="tbl"><thead><tr><th scope="col">Month</th><th scope="col" class="r">Invoiced</th><th scope="col" class="r">Collected</th><th scope="col" class="r">Spent</th><th scope="col" class="r">Net</th><th scope="col" class="r">Collection rate</th></tr></thead><tbody><sc-for list="{{RV.months}}" as="mo" hint-placeholder-count="4"><tr><td><strong>{{mo.m}}</strong></td><td class="r num">{{mo.inv}}</td><td class="r num">{{mo.col}}</td><td class="r num">{{mo.sp}}</td><td class="r num">{{mo.net}}</td><td class="r num">{{mo.rate}}</td></tr></sc-for></tbody></table></div>
+                      </section>
                       <section class="repBlk" aria-label="Trend">
                         <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap"><h3 class="repH">Invoiced and collected</h3><span style="font-size: 13px; color: var(--ad-dim)">{{RV.groupLabel}}</span></div>
                         <div class="chartBox" onMouseLeave="{{RV.clearHover}}">

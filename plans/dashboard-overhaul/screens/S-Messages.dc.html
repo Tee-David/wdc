@@ -966,6 +966,11 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .svX{position:relative;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;color:var(--ad-dim)}
 .svX::after{content:'';position:absolute;inset:-6px}
 @container card (max-width:520px){.repLbl{flex-basis:100%;padding-top:0}.repWrap{padding:4px 14px 16px}}
+/* Message actions: 40px on touch screens, with the 6px hit halo making 52 */
+@media (hover:none),(pointer:coarse){.msgAct{gap:8px}.msgAct .actB{width:40px;height:40px}}
+/* Avatar stacks: 34px tiles get a 44px hit area */
+.avStack>button{position:relative}
+.avStack>button::after{content:"";position:absolute;inset:-5px}
 
 </style>
 </helmet>
@@ -1635,7 +1640,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
       <div class="scrim" style="background: transparent" onClick="{{toggleBell}}"></div>
       <section class="popP" role="dialog" aria-label="Notifications">
         <span class="grabZone"><span class="grab"></span></span>
-        <div style="display: flex; align-items: center; gap: 10px; padding: 14px 16px 8px"><h2 style="font-size: 17px; font-weight: 700; flex: 1">Notifications</h2><button class="lnk" onClick="{{markAll}}">Mark all read</button></div>
+        <div style="display: flex; align-items: center; gap: 10px; padding: 14px 16px 8px"><h2 style="font-size: 17px; font-weight: 700; flex: 1">Notifications</h2><button class="lnk" onClick="{{markAll}}">Mark all read</button><sc-if value="{{hasAllNotes}}" hint-placeholder-val="{{ false }}"><a class="lnk" href="{{allNotesHref}}">See all</a></sc-if></div>
         <div style="padding: 0 16px 8px"><div class="seg" role="group" aria-label="Show" style="--n: 2; --i: {{bellI}}"><span class="pill" aria-hidden="true"></span><button class="{{bAll}}" aria-pressed="{{bAllP}}" onClick="{{tabAll}}">All</button><button class="{{bUn}}" aria-pressed="{{bUnP}}" onClick="{{tabUnread}}">Unread <span class="num">{{unread}}</span></button></div></div>
         <div style="overflow-y: auto; overscroll-behavior: contain; padding: 0 8px 8px">
           <sc-for list="{{notes}}" as="n" hint-placeholder-count="5">
@@ -2205,6 +2210,7 @@ class Component extends DCLogic {
       notes: shown, notesEmpty: !shown.length, unread: unread, hasUnread: unread > 0, bellLabel: 'Notifications, ' + unread + ' unread', bellI: s.bellTab === 'unread' ? 1 : 0,
       bAll: s.bellTab === 'all' ? 'on' : '', bUn: s.bellTab === 'unread' ? 'on' : '', bAllP: s.bellTab === 'all' ? 'true' : 'false', bUnP: s.bellTab === 'unread' ? 'true' : 'false',
       tabAll: function () { self.setState({ bellTab: 'all' }); }, tabUnread: function () { self.setState({ bellTab: 'unread' }); },
+      allNotesHref: 'A-Notifications.dc.html', hasAllNotes: this.role() === 'admin',
       markAll: function () { var r = {}; notesRaw.forEach(function (n) { r[n.id] = true; }); var prev = self.state.read; self.setState({ read: r }); self.say('All marked as read', { undo: function () { self.setState({ read: prev }); } }); },
       pushText: s.push ? 'Push notifications are on for this device.' : this.installCopy()[0] + '.', pushBtn: s.push ? 'Turn off' : 'Install app',
       togglePush: function () { var on = !self.state.push; self.setState({ push: on }); self.say(on ? 'WDC installed. Push notifications are on.' : 'Push notifications are off. Email still reaches you.'); },
@@ -3344,7 +3350,7 @@ class Component extends DCLogic {
       it('Search all messages', I.search, function () { self.setState({ pal: true, q: '' }); }, { hint: 'Ctrl K' }),
       this.menuSep(),
       it('Message notifications', I.bell, function () { window.location.href = M.settingsHref; }, { hint: 'Settings' })
-    ];
+    ].concat(M.role === 'admin' ? [this.menuSep(), it('Email marketing', I.mail, function () { window.location.href = 'A-Email.dc.html'; }, { hint: 'Campaigns and contacts' })] : []);
     return [];
   }
   renderVals() {
