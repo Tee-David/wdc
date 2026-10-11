@@ -10,10 +10,7 @@
       { id: 'T-1038', subject: 'Need Meta Business access for Lumen', kind: 'Request', from: 'Chiamaka A.', org: 'Social & Ads (staff)', about: 'Instagram ads', status: 'open', updated: '3 days ago', feed: [f('Chiamaka asked: “I cannot start the November ads without Meta Business Manager access. Can Daniel be asked?”', '3 days ago, 09:30')] },
       { id: 'T-1037', subject: 'Invoice sent to the wrong email', kind: 'Problem', from: 'Adebayo K.', org: 'Kora Logistics', about: 'Billing', status: 'done', updated: 'Last week', feed: [f('Adebayo said invoices go to an inbox nobody reads.', 'Last week'), f('You added a second billing contact and resent the invoice.', 'Last week'), f('Marked resolved.', 'Last week')] }
     ];
-    var arts = this.kbClient().concat([
-      { id: 'd1', t: 'Match a bank transfer to an invoice', s: 'Draft for clients who pay by transfer in USD.', cat: 'Billing and payments', mins: '2 min read', d: I.cash, kw: 'bank transfer match reconcile usd dollars', draft: true, steps: [st('Pay into the USD account', 'The details are on the invoice.'), st('Use the invoice number as the reference', 'It lets us match it the same day.'), st('We email the receipt', 'Usually within one working day.')] },
-      { id: 'd2', t: 'Switch an invoice to US dollars', s: 'Draft. Answers the most searched question that has no article yet.', cat: 'Billing and payments', mins: '1 min read', d: I.cash, kw: 'dollars usd currency invoice', draft: true, steps: [st('Ask us in Support', 'Dollar invoices are set up by Admin.'), st('Pay into the Sterling USD account', 'Paystack and Flutterwave are for naira.')] }
-    ]);
+    var arts = this.kbAdmin();
     var tk = function (id) { return self.tkAll().filter(function (t) { return t.id === id; })[0]; };
     var hand = function (top, who, msg) { return function () { self.clear(top, 'delegated', '', msg, { final: true }); }; };
     var deck = function (me) {
@@ -59,12 +56,4 @@
       onPrimary: function (ctx) { var team = ctx.vis === 'team'; self.tkSet(t.id, team ? {} : { status: 'wait' }, (team ? 'Team note: ' : 'You replied: ') + ctx.draft); self.say(team ? 'Saved as a team note on ' + t.id + '.' : 'Reply sent to ' + t.from.split(' ')[0] + '. The ticket now waits on them.'); },
       onSecondary: function () { self.resolveAsk(t); return 'stay'; } });
   }
-  newArticle(title) {
-    var self = this, I = this.icons(), cats = ['Getting started', 'Billing and payments', 'Approvals and files', 'Your account'];
-    this.open(this.sh({ eyebrow: 'New article', title: 'Write a help article', icon: I.file, body: 'It saves as a draft. Nothing is visible to clients until you publish it.',
-      fields: [{ key: 'title', label: 'Title', ph: 'How to change my domain', wide: true }, { key: 'sum', label: 'One line summary', ph: 'What the reader will be able to do', wide: true }],
-      chipSets: [{ key: 'cat', label: 'Category', opts: cats }], primary: 'Save draft', secondary: 'Cancel',
-      primaryDis: function (ctx) { var f = ctx.form; if (!(f.title || '').trim()) return 'Add a title.'; if (!(f.sum || '').trim()) return 'Add a one line summary.'; if (!f.cat) return 'Choose a category.'; return ''; },
-      onPrimary: function (ctx) { var f = ctx.form, a = { id: 'n' + Date.now(), t: f.title.trim(), s: f.sum.trim(), cat: f.cat, mins: '1 min read', d: I.file, kw: f.title.toLowerCase(), draft: true, steps: [{ t: 'Add the steps', s: 'The editor opens here.' }] }; self.setState({ newA: [a].concat(self.state.newA), stab: 'kb', schip: 'all', spage: 0, ra: self.state.ra + 1 }); self.say('Saved. “' + a.t + '” is a draft in the Knowledge base.'); } }));
-    if (title) setTimeout(function () { self.setState({ form: { title: title } }); }, 40);
-  }
+  newArticle(title) { this.openArticleEditor(null, title); }

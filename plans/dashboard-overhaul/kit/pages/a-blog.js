@@ -28,34 +28,47 @@
   stTone(st) { return ({ published: 'var(--ad-tone-good)', scheduled: 'var(--ad-tone-brand)', draft: 'var(--ad-tone-flat)' })[st]; }
   stLabel(st) { return ({ published: 'Published', scheduled: 'Scheduled', draft: 'Draft' })[st]; }
   patchPost(id, patch) { var m = Object.assign({}, this.state.pst); m[id] = Object.assign({}, m[id] || {}, patch); this.setState({ pst: m, ra: this.state.ra + 1 }); }
-  /* The editor: a wide sheet with a search check. It saves a draft, publishes or schedules. */
+  /* The editor: a wide sheet with a real writing surface (toolbar, preview, pictures), a cover, tags, an editable address and the search check. */
+  isoFromLabel(t) { var m = /(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)/.exec(t || ''); if (!m) return ''; var mo = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(m[2]) + 1; return '2026-' + ('0' + mo).slice(-2) + '-' + ('0' + m[1]).slice(-2); }
   openEditor(p) {
-    var self = this, I = this.icons(), slots = this.slots(), me = this.me();
-    var cats = ['Branding', 'Social', 'SEO', 'Web'];
-    this.open(this.sh({ kind: '', wide: true, eyebrow: p ? 'Edit post' : 'New post', title: p ? p.t : 'Write a post', icon: I.edit, keepOpen: true, body: 'Write the way you would explain it to a client. Short sentences, one idea per paragraph.',
-      fields: [{ key: 'title', label: 'Title', ph: 'Why your business needs three logo versions', wide: true }, { key: 'excerpt', label: 'Description for search and sharing', ph: 'One or two sentences that make someone click', type: 'area', wide: true }, { key: 'body', label: 'The post', ph: 'Start with the problem the reader has today.', type: 'area', wide: true }],
-      chipSets: function (st) { var f = st.form || {}; var out = [{ key: 'cat', label: 'Category', opts: cats }, { key: 'when', label: 'What now?', opts: ['Save as draft', 'Publish now', 'Schedule'] }]; if (f.when === 'Schedule') out.push({ key: 'slot', label: 'Publish on', opts: slots.map(function (x) { return x[0]; }), hint: 'One post a week keeps the blog ranking.' }); return out; },
-      notice: function (ctx) { var f = ctx.form, t = (f.title || '').trim().length, d = (f.excerpt || '').trim().length, w = ((f.body || '').trim().split(/\s+/).filter(Boolean)).length;
-        var msg = !t ? 'Add a title. Aim for 50 to 60 characters so search shows it whole.' : (t < 40 ? 'Title is ' + t + ' characters. Aim for 50 to 60 so it reads fully in search.' : (t > 65 ? 'Title is ' + t + ' characters. Search cuts it near 60.' : (d < 120 ? 'Description is ' + d + ' characters. Aim for 120 to 155.' : (d > 160 ? 'Description is ' + d + ' characters. Search cuts it near 155.' : (w < 300 ? 'The post is ' + w + ' words. Posts that rank usually run 600 or more.' : 'Title and description fit search, and the post has ' + w + ' words.')))));
-        var good = t >= 40 && t <= 65 && d >= 120 && d <= 160 && w >= 300;
-        return { tone: good ? 'var(--ad-tone-good)' : 'var(--ad-tone-warn)', icon: good ? I.check : I.alert, title: 'Search check', body: msg }; },
-      primary: function (ctx) { var f = ctx.form; return f.when === 'Publish now' ? 'Publish now' : (f.when === 'Schedule' ? (f.slot ? 'Schedule for ' + f.slot : 'Schedule') : 'Save draft'); }, secondary: 'Cancel',
-      primaryDis: function (ctx) { var f = ctx.form, live = f.when === 'Publish now' || f.when === 'Schedule'; if (!(f.title || '').trim()) return 'Add a title.'; if (!f.cat) return 'Choose a category.'; if (!f.when) return 'Choose what happens next.'; if (live && (f.excerpt || '').trim().length < 40) return 'Add a description of at least 40 characters before it goes out.'; if (live && ((f.body || '').trim().split(/\s+/).filter(Boolean)).length < 20) return 'Write at least 20 words before it goes out.'; if (f.when === 'Schedule' && !f.slot) return 'Choose when it publishes.'; return ''; },
+    var self = this, I = this.icons(), me = this.me(), cats = ['Branding', 'Social', 'SEO', 'Web'], tagsAll = ['Logos', 'Brand guides', 'Instagram', 'Content plans', 'Paystack', 'Flutterwave', 'Handover', 'Local search', 'Tips'];
+    var others = this.postsAll().filter(function (x) { return !p || x.id !== p.id; });
+    var team = this.teamData().map(function (m) { return m.name; });
+    var start = p ? { title: p.t, slug: p.slug || '', excerpt: p.excerpt || '', body: p.body || '', cat: p.cat, tags: p.tags || [], author: p.author, cover: p.cover || [], when: p.status === 'published' ? 'Publish now' : (p.status === 'scheduled' ? 'Schedule' : 'Save as draft'), sched: p.status === 'scheduled' ? (self.isoFromLabel(p.date) || '2026-10-14') : '2026-10-14', schedT: p.status === 'scheduled' && /,\s*(\d\d:\d\d)/.test(p.date) ? /,\s*(\d\d:\d\d)/.exec(p.date)[1] : '09:00' } : { title: '', slug: '', excerpt: '', body: '', cat: '', tags: [], author: me.name, cover: [], when: 'Save as draft', sched: '2026-10-14', schedT: '09:00' };
+    var auto = function (f) { return self.slugify(f.title || ''); }, addr = function (f) { return (f.slug || '').trim() || auto(f); };
+    var clash = function (f) { var a = addr(f); return a && others.some(function (x) { return (x.slug || self.slugify(x.t)) === a; }); };
+    var dayHas = function (f) { return f.when === 'Schedule' && f.sched && others.some(function (x) { return x.status === 'scheduled' && self.isoFromLabel(x.date) === f.sched; }); };
+    this.open(this.sh({ wide: true, xl: true, eyebrow: p ? 'Edit post' : 'New post', title: p ? p.t : 'Write a post', icon: I.edit, keepOpen: true, focus: 'f-title',
+      body: 'Write the way you would explain it to a client. Short sentences, one idea per paragraph. Your words stay on this sheet, and closing asks first.',
+      guard: function (ctx) { var f = ctx.form; return ['title', 'excerpt', 'body'].some(function (k) { return (f[k] || '') !== (start[k] || ''); }); }, guardBody: 'The post is not saved yet. If you close now, what you wrote here is lost.',
+      form: start,
+      fields: function (st) {
+        var f = st.form, out = [{ key: 'title', label: 'Title', ph: 'Why your business needs three logo versions', wide: true }, { key: 'cover', type: 'media', label: 'Cover picture', max: 1, hint: 'Shown at the top of the post and when it is shared. Wide pictures, at least 1200 pixels, work best.' }, { key: 'excerpt', label: 'Description for search and sharing', ph: 'One or two sentences that make someone click', type: 'area', wide: true }, { key: 'body', type: 'editor', label: 'The post', ph: 'Start with the problem the reader has today.', hint: 'Bold with Ctrl B, italic with Ctrl I. Use Preview to read it as a reader will.' }, { key: 'slug', label: 'Web address', ph: auto(f) || 'why-three-logos', wide: true, hint: 'blog/' + (addr(f) || 'your-title') + (clash(f) ? '. Another post already uses this address.' : '. Leave empty to build it from the title.'), check: function (v) { return clash(f) ? 'Another post already uses this address.' : (/[^a-z0-9-]/.test(v.trim()) ? 'Use lower case letters, numbers and dashes only.' : ''); } }];
+        if (f.when === 'Schedule') out.push({ key: 'sched', type: 'datetime', label: 'Publish on', timeLabel: 'Time', required: true, hint: dayHas(f) ? 'Another post is already scheduled that day. One a week keeps the blog ranking.' : 'Wednesdays at 09:00 work best for this blog.' });
+        return out;
+      },
+      chipSets: [{ key: 'cat', label: 'Category', opts: cats }, { key: 'tags', label: 'Tags', multi: true, opts: tagsAll, hint: 'Readers filter the blog by tag.' }, { key: 'author', label: 'Written by', opts: team }, { key: 'when', label: 'What now?', opts: ['Save as draft', 'Publish now', 'Schedule'] }],
+      notice: function (ctx) {
+        var f = ctx.form, t = (f.title || '').trim().length, d = (f.excerpt || '').trim().length, w = ((f.body || '').trim().split(/\s+/).filter(Boolean)).length, hd = /(^|\n)#{2,3}\s/.test(f.body || ''), cv = (f.cover || []).length;
+        var msg = !t ? 'Add a title. Aim for 50 to 60 characters so search shows it whole.' : (t < 40 ? 'Title is ' + t + ' characters. Aim for 50 to 60 so it reads fully in search.' : (t > 65 ? 'Title is ' + t + ' characters. Search cuts it near 60.' : (d < 120 ? 'Description is ' + d + ' characters. Aim for 120 to 155.' : (d > 160 ? 'Description is ' + d + ' characters. Search cuts it near 155.' : (w < 300 ? 'The post is ' + w + ' words. Posts that rank are usually 600 or more.' : (!hd ? 'Add a heading or two so people can skim.' : (!cv ? 'Add a cover picture so shares look right.' : 'Title, description, length, headings and cover all look good.')))))));
+        var good = t >= 40 && t <= 65 && d >= 120 && d <= 160 && w >= 300 && hd && cv;
+        return { tone: good ? 'var(--ad-tone-good)' : 'var(--ad-tone-warn)', icon: good ? I.check : I.alert, title: 'Search check', body: msg };
+      },
+      primary: function (ctx) { var f = ctx.form; return f.when === 'Publish now' ? 'Publish now' : (f.when === 'Schedule' ? (f.sched ? 'Schedule for ' + self.fmtDate(f.sched) : 'Schedule') : 'Save draft'); }, secondary: 'Cancel',
+      primaryDis: function (ctx) { var f = ctx.form, live = f.when === 'Publish now' || f.when === 'Schedule'; if (!(f.title || '').trim()) return 'Add a title.'; if (!f.cat) return 'Choose a category.'; if (clash(f)) return 'Change the web address. Another post uses it.'; if (/[^a-z0-9-]/.test((f.slug || '').trim())) return 'Fix the web address.'; if (live && (f.excerpt || '').trim().length < 40) return 'Add a description of at least 40 characters before it goes out.'; if (live && ((f.body || '').trim().split(/\s+/).filter(Boolean).length) < 50) return 'Write at least 50 words before it goes out.'; if (f.when === 'Schedule' && !f.sched) return 'Choose the day it publishes.'; if (f.when === 'Schedule' && f.sched <= self.today()) return 'Pick a day after today.'; return ''; },
       onPrimary: function (ctx) {
         var f = ctx.form, id = p ? p.id : 'n' + Date.now(), words = (f.body || '').trim().split(/\s+/).filter(Boolean).length;
         var finish = function (status, date, toast) {
-          var data = { id: id, t: f.title.trim(), cat: f.cat, excerpt: (f.excerpt || '').trim(), body: f.body || '', words: Math.max(words, p ? p.words || 0 : 0), status: status, date: date, pct: status === 'draft' ? Math.min(95, Math.round(words / 12)) : undefined, views: p ? p.views : 0, author: p ? p.author : me.name, i: p ? p.i : me.i, tone: p ? p.tone : me.tone };
+          var data = { id: id, t: f.title.trim(), slug: addr(f), cat: f.cat, tags: f.tags || [], excerpt: (f.excerpt || '').trim(), body: f.body || '', cover: f.cover || [], words: Math.max(words, p ? p.words || 0 : 0), status: status, date: date, pct: status === 'draft' ? Math.min(95, Math.round(words / 12)) : undefined, views: p ? p.views : 0, author: f.author || (p ? p.author : me.name), i: p ? p.i : me.i, tone: p ? p.tone : me.tone };
           self.setState({ sheet: null, stack: [] });
           if (p) self.patchPost(id, data); else self.setState({ newP: [data].concat(self.state.newP), chip: 'all', bpage: 0, bq: '', ra: self.state.ra + 1 });
           if (p && p.id === 'p2' && status !== 'draft') self.clearId('bdraft', 'done', '', '', { final: true });
           self.say(toast);
         };
-        if (f.when === 'Publish now') self.ask({ eyebrow: 'Publish', title: 'Publish “' + f.title.trim() + '” now?', body: 'It goes live on the blog straight away and is added to the sitemap. You can unpublish it any time.', ok: 'Publish now', green: true, icon: I.send, tone: 'var(--ad-tone-good)', onOk: function () { finish('published', 'Today', 'Published. It is live at /blog/' + self.slugify(f.title) + '.'); } }, true);
-        else if (f.when === 'Schedule') finish('scheduled', f.slot, 'Saved. It publishes ' + f.slot + '.');
+        if (f.when === 'Publish now') self.ask({ eyebrow: 'Publish', title: 'Publish “' + f.title.trim() + '” now?', body: 'It goes live on the blog straight away at /blog/' + addr(f) + ' and is added to the sitemap. You can unpublish it any time.', ok: 'Publish now', green: true, icon: I.send, tone: 'var(--ad-tone-good)', onOk: function () { finish('published', 'Today', 'Published. It is live at /blog/' + addr(f) + '.'); } });
+        else if (f.when === 'Schedule') finish('scheduled', self.fmtDate(f.sched) + ', ' + f.schedT, 'Saved. It publishes ' + self.fmtDate(f.sched) + ' at ' + f.schedT + '.');
         else finish('draft', 'Edited just now', 'Saved. “' + f.title.trim() + '” is a draft.');
       } }));
-    var pre = p ? { title: p.t, excerpt: p.excerpt || '', body: p.body || '', cat: p.cat, when: p.status === 'published' ? 'Publish now' : 'Save as draft' } : {};
-    setTimeout(function () { self.setState({ form: pre }); }, 40);
   }
   blogFacets(all) {
     var uniq = function (f) { var o = []; all.forEach(function (x) { var v = f(x); if (v && o.indexOf(v) < 0) o.push(v); }); return o; };
@@ -76,9 +89,9 @@
   postSheet(p) {
     var self = this, I = this.icons(), pub = p.status === 'published';
     return this.sh({ eyebrow: p.cat + ' · ' + this.stLabel(p.status), title: p.t, chip: this.stLabel(p.status), tone: this.stTone(p.status), icon: I.edit, iconTone: this.stTone(p.status),
-      rows: [{ k: 'Author', v: p.author }, { k: pub ? 'Published' : (p.status === 'scheduled' ? 'Goes live' : 'Last edit'), v: p.date }, { k: 'Words', v: String(p.words) + (p.pct ? ' · about ' + p.pct + '% written' : '') }, { k: 'Reads, 30 days', v: pub ? p.views.toLocaleString('en-NG') : 'Not live yet' }, { k: 'Address', v: '/blog/' + this.slugify(p.t) }],
+      rows: [{ k: 'Author', v: p.author }, { k: pub ? 'Published' : (p.status === 'scheduled' ? 'Goes live' : 'Last edit'), v: p.date }, { k: 'Words', v: String(p.words) + (p.pct ? ' · about ' + p.pct + '% written' : '') }, { k: 'Reads, 30 days', v: pub ? p.views.toLocaleString('en-NG') : 'Not live yet' }, { k: 'Address', v: '/blog/' + (p.slug || this.slugify(p.t)) }].concat(p.tags && p.tags.length ? [{ k: 'Tags', v: p.tags.join(', ') }] : []),
       body: p.excerpt, primary: 'Edit post', secondary: pub ? 'View on the site' : 'Preview',
-      onPrimary: function () { self.closeSheet(); setTimeout(function () { self.openEditor(p); }, 80); },
+      onPrimary: function () { self.closeSheet(true); setTimeout(function () { self.openEditor(p); }, 80); },
       onSecondary: function () { if (pub) self.say('The post opens on the site in a new tab.'); else self.openFile({ name: p.t + '.preview', project: 'Blog', view: 'doc', ref: 'PREVIEW', docTitle: p.t, when: p.date, size: p.words + ' words', tone: 'var(--ad-tone-neutral)', pageCount: 3 }, true); return 'stay'; } });
   }
   postActions(p) {

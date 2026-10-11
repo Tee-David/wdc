@@ -162,7 +162,8 @@
     var doneWeek = 11 + Object.keys(s.gone).length;
 
     var ST = { todo: ['To do', 'var(--ad-tone-neutral)'], doing: ['In progress', 'var(--ad-tone-live)'], review: ['In review', 'var(--ad-tone-brand)'], blocked: ['Blocked', 'var(--ad-tone-bad)'], done: ['Done', 'var(--ad-tone-good)'] };
-    var T = this.tasks().map(function (t) { return Object.assign({}, t, { st: s.status[t.id] || t.st }); }).filter(function (t) { return t.st !== 'gone' && t.st !== 'done'; });
+    var PTASK = { 'ade-oct': "Ade's Kitchen · October", 'lumen-ads': 'Lumen Fitness · Instagram ads', 'mira-so': 'Mira Skincare · Social' }, pausedN = 0;
+    var T = this.tasks().map(function (t) { return Object.assign({}, t, { st: s.status[t.id] || t.st }); }).filter(function (t) { return t.st !== 'gone' && t.st !== 'done'; }).filter(function (t) { var hit = Object.keys(PTASK).filter(function (k) { return s.paused[k] && t.p === PTASK[k]; }).length; if (hit) pausedN++; return !hit; });
     var tq = s.tq.trim().toLowerCase(), match = function (t) { return !tq || (t.t + ' ' + t.p).toLowerCase().indexOf(tq) >= 0; };
     var TF = this.taskFacets(T), list0 = T.filter(function (t) { return t.st === s.ttab && match(t); }), list = this.applyFlt('tasks', list0, TF);
     var tp = Math.min(s.tpage, Math.max(0, Math.ceil(list.length / s.tper) - 1)), pageList = list.slice(tp * s.tper, tp * s.tper + s.tper);
