@@ -22,6 +22,7 @@ import CommsLog from "@/components/admin/comms-log";
 import InvoiceReminders from "@/components/admin/invoice-reminders";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
+import "@/components/admin/dashboard.css";
 
 /* NO generateStaticParams: invoices are raised at runtime, and a prerendered
    list would 404 on the one just created. */
@@ -68,7 +69,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
       <div className="ad__head">
         <div>
           <p className="ad__dim"><Link href="/admin/money">Money</Link></p>
-          <h1>{inv.number}</h1>
+          <h1 style={{ display: "flex", alignItems: "center", gap: ".6rem", flexWrap: "wrap" }}>{inv.number} <InvoicePill status={status} /></h1>
           <p>
             {client ? <Link href={`/admin/clients/${client.id}`}>{client.company}</Link> : "Unknown client"}
             {project ? <> · <Link href={`/admin/projects/${project.id}`}>{project.title}</Link></> : null}
@@ -77,7 +78,6 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
         </div>
         <div className="ad__row" data-tour="inv-actions">
           <PageTourButton />
-          <InvoicePill status={status} />
           {/* A DRAFT AND AN ISSUED INVOICE OFFER DIFFERENT THINGS, because
               they are different objects: a draft is still being written and
               can be issued or deleted; an issued one is a document somebody
@@ -140,20 +140,9 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
         </p>
       ) : null}
 
-      <dl className="ad__tiles">
-        {/* Short on the tile so a phone keeps each figure on one line; the
-            exact amount is the line under it. */}
-        <Tile label="Total" value={nairaShort(t.total)} note={exact()} />
-        <Tile label="Paid" value={nairaShort(inv.paid)} note={exact()} tone={inv.paid ? "good" : undefined} />
-        <Tile label="Owed" value={nairaShort(t.due)} note={exact()} tone={t.due ? "bad" : "good"} />
-        {/* Day and month on the tile, the year under it: "31 Aug 2026" wrapped
-            to two lines on a phone. */}
-        <Tile label="Due" value={when(inv.due).replace(/\s\d{4}$/, "")}
-              note={[when(inv.due).match(/\d{4}$/)?.[0], status === "Overdue" ? "past its terms" : ""].filter(Boolean).join(", ") || undefined}
-              tone={status === "Overdue" ? "bad" : undefined} />
-      </dl>
 
-      <div className="ad__stack">
+      <div className="adFlow__grid">
+        <div className="adFlow__main">
         <Panel title="Lines">
           <div className="ad__scroll">
             <table className="ad__t">
@@ -246,6 +235,37 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
           )}
         </Panel>
 
+        {/* Said where it is true rather than at the top of the screen: an
+            overpaid invoice is a thing somebody has to decide about, and it is
+            invisible from the totals alone. */}
+        {inv.paid > t.total ? (
+          <div className="ad__msg is-bad" role="status">
+            <span>
+              This invoice has taken {naira(inv.paid - t.total)} more than it is
+              for. Nothing was rejected, because the money did arrive. Reverse
+              the payment that is wrong, refund it from the payment&apos;s menu,
+              or credit the difference here.
+            </span>
+            <CreditExcess currency={currencyOf(inv)} invoiceId={inv.id} over={inv.paid - t.total} reason={noEmail} />
+          </div>
+        ) : null}
+
+        {inv.status !== "Draft" ? <InvoiceReconciliation row={recon} /> : null}
+        </div>
+
+        <aside className="adFlow__rail" aria-label="About this invoice">
+        <dl className="adFlow__tiles">
+        {/* Short on the tile so a phone keeps each figure on one line; the
+            exact amount is the line under it. */}
+        <Tile label="Total" value={nairaShort(t.total)} note={exact()} />
+        <Tile label="Paid" value={nairaShort(inv.paid)} note={exact()} tone={inv.paid ? "good" : undefined} />
+        <Tile label="Owed" value={nairaShort(t.due)} note={exact()} tone={t.due ? "bad" : "good"} />
+        {/* Day and month on the tile, the year under it: "31 Aug 2026" wrapped
+            to two lines on a phone. */}
+        <Tile label="Due" value={when(inv.due).replace(/\s\d{4}$/, "")}
+              note={[when(inv.due).match(/\d{4}$/)?.[0], status === "Overdue" ? "past its terms" : ""].filter(Boolean).join(", ") || undefined}
+              tone={status === "Overdue" ? "bad" : undefined} />
+      </dl>
         {/* THE CLIENT'S COPY, and the code that gets them back to it.
 
             An invoice is printed, attached to an email, or photographed and
@@ -281,23 +301,6 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
           </Panel>
         ) : null}
 
-        {/* Said where it is true rather than at the top of the screen: an
-            overpaid invoice is a thing somebody has to decide about, and it is
-            invisible from the totals alone. */}
-        {inv.paid > t.total ? (
-          <div className="ad__msg is-bad" role="status">
-            <span>
-              This invoice has taken {naira(inv.paid - t.total)} more than it is
-              for. Nothing was rejected, because the money did arrive. Reverse
-              the payment that is wrong, refund it from the payment&apos;s menu,
-              or credit the difference here.
-            </span>
-            <CreditExcess currency={currencyOf(inv)} invoiceId={inv.id} over={inv.paid - t.total} reason={noEmail} />
-          </div>
-        ) : null}
-
-        {inv.status !== "Draft" ? <InvoiceReconciliation row={recon} /> : null}
-
         {inv.status !== "Draft" ? <InvoiceReminders invoice={inv} /> : null}
 
         {inv.status !== "Draft" ? (
@@ -306,6 +309,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
             title={`What we have sent about ${inv.number}`}
           />
         ) : null}
+        </aside>
       </div>
     </>
   );
