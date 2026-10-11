@@ -25,7 +25,7 @@
   display: flex; align-items: center; gap: .5rem; flex: 1 1 15rem; max-width: 22rem; min-width: 0; margin-left: auto;
   min-height: 2.75rem; padding: 0 .75rem; border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel); color: var(--ad-dim);
 }
-.ctSearch:focus-within { border-color: var(--ad-navy); box-shadow: 0 0 0 4px var(--ad-nav-on); }
+.ctSearch:focus-within { border-color: var(--ad-navy); box-shadow: 0 0 0 4px var(--ad-ring); }
 .dark .ctSearch:focus-within { border-color: var(--ad-accent); }
 .ctSearch svg { width: 1.05rem; height: 1.05rem; flex: none; }
 .ctSearch input { flex: 1; min-width: 0; min-height: 2.5rem; border: 0; outline: 0; background: transparent; color: var(--ad-ink); font: 500 .94rem var(--font-outfit), system-ui, sans-serif; }
@@ -43,7 +43,7 @@
 }
 .ctScroll > .ad__t thead th:first-child { background: var(--ad-panel-2); z-index: 2; }
 .ctScroll > .ad__t tbody tr:hover > td:first-child { background: var(--ad-panel-2); }
-.ctScroll > .ad__t tbody tr.is-picked > td:first-child { background: var(--ad-nav-on); }
+.ctScroll > .ad__t tbody tr.is-picked > td:first-child { background: var(--ad-hover); }
 .ctScroll[data-scrolled] > .ad__t :is(th, td):first-child { box-shadow: 8px 0 12px -10px rgb(0 0 30 / .35); }
 .dark .ctScroll[data-scrolled] > .ad__t :is(th, td):first-child { box-shadow: 8px 0 12px -8px rgb(0 0 0 / .8); }
 .ctScroll > .ad__t td { padding-block: .35rem; }
@@ -151,7 +151,7 @@ button.ctChip:hover:not([aria-pressed="true"]) { background: var(--ad-dim); colo
 button.ctChip[aria-pressed="true"] { background: var(--ad-fill); color: var(--ad-on-fill); }
 .ctTagIn { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-top: .6rem; }
 .ctTagIn input { flex: 1 1 10rem; min-width: 0; min-height: 2.75rem; padding: .5rem .75rem; border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel); color: var(--ad-ink); font: 500 .94rem var(--font-outfit), system-ui, sans-serif; }
-.ctTagIn input:focus-visible { outline: none; border-color: var(--ad-navy); box-shadow: 0 0 0 4px var(--ad-nav-on); }
+.ctTagIn input:focus-visible { outline: none; border-color: var(--ad-navy); box-shadow: 0 0 0 4px var(--ad-ring); }
 .dark .ctTagIn input:focus-visible { border-color: var(--ad-accent); }
 .ctItem { display: flex; gap: .75rem; align-items: flex-start; padding: .7rem .75rem; border: 1px solid var(--ad-line); border-radius: 12px; margin-bottom: .5rem; font-size: .9rem; min-width: 0; }
 .ctItem:last-child { margin-bottom: 0; }

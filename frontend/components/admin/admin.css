@@ -33,20 +33,38 @@
      the owner's #b84a00 in dark. Orange as text keeps --ad-accent-ink. */
   --ad-accent-fill: #ff6500;
   /* Orange as TEXT on a light panel (AGENTS.md): 4.6:1 where #ff6500 is 2.9. */
-  --ad-accent-ink: #c95000;
+  --ad-accent-ink: #b84a00;
   --ad-navy: #000065;
   --ad-good: #1d9a63;
   --ad-warn: #b8860b;
   --ad-bad: #d63333;
   --ad-r: 18px;
   /* A second surface for table heads, footers and quiet cards. */
-  --ad-panel-2: #f7f8fb;
+  --ad-panel-2: #f2f3f9;
   /* Two depths, in the shared admin design: resting cards, then anything that
      floats (menus, dialogs, sheets). */
-  --ad-sh-1: 0 1px 2px rgb(14 14 44 / .04), 0 2px 8px rgb(14 14 44 / .04);
-  --ad-sh-3: 0 8px 16px rgb(14 14 44 / .08), 0 32px 64px rgb(14 14 44 / .16);
+  --ad-sh-1: 0 1px 2px rgb(14 14 44 / .05), 0 4px 12px rgb(14 14 44 / .04);
+  --ad-sh-2: 0 6px 14px rgb(14 14 44 / .08), 0 18px 40px rgb(14 14 44 / .10);
+  --ad-sh-3: 0 10px 20px rgb(14 14 44 / .10), 0 36px 72px rgb(14 14 44 / .20);
   /* The current page in the sidebar: a solid pale navy, not a tint. */
-  --ad-nav-on: #eceefa;
+  --ad-nav-on: #000065;
+  --ad-nav-on-ink: #ffffff;
+  --ad-line-2: #c9ccdc;
+  /* Hover fill for rows, nav links and list items; the selected list item. */
+  --ad-hover: #eceefa;
+  /* Unread dots and small orange marks. Never carries words. */
+  --ad-dot: #ff6500;
+  /* Keyboard focus: ink, never orange. Inputs show focus on the container with --ad-ink and this halo. */
+  --ad-focus: #0e0e2c;
+  --ad-ring: rgb(0 0 101 / .12);
+  --ad-hero: #000065; --ad-hero-line: #000065; --ad-hero-dim: #d6d8f5;
+  --ad-series-1: #000065; --ad-series-2: #ff6500;
+  /* The deck's primary, and what it turns to on hover. */
+  --ad-act: #b84a00; --ad-act-hover: #15803d;
+  --ad-stage: #e4e6ef; --ad-on-tone: #ffffff;
+  /* Arrivals ease out, things that land use the spring, exits leave quickly. */
+  --ad-ease: cubic-bezier(.16, 1, .3, 1); --ad-ease-out: cubic-bezier(.4, 0, 1, 1);
+  --ad-spring: linear(0, .32 8%, .78 18%, 1.04 30%, 1.07 38%, 1.01 52%, .995 66%, 1);
   /* Red as TEXT (Sign out), which the bad fill is too dark to be on a dark
      panel: 5.6:1 on white here, and the dark value is 8.3:1 on #0e0e2e. */
   --ad-bad-ink: #c62828;
@@ -70,7 +88,7 @@
   --ad-tone-good: #15803d;     --ad-on-good: #fff;      /* 5.0:1 */
   --ad-tone-warn: #a16207;     --ad-on-warn: #fff;      /* 5.0:1 */
   --ad-tone-bad: #c62828;      --ad-on-bad: #fff;       /* 5.6:1 */
-  --ad-tone-live: #c95000;     --ad-on-live: #fff;      /* 4.6:1 */
+  --ad-tone-live: #b84a00;     --ad-on-live: #fff;      /* 5.23:1 */
   --ad-tone-flat: #e4e6f0;     --ad-on-flat: #0e0e2c;   /* 15.9:1 */
   --ad-tone-brand: var(--ad-navy); --ad-on-brand: #fff; /* 17.7:1 */
 
@@ -96,9 +114,20 @@
   --ad-dim: #9b9dc4;
   --ad-line: #1e2046;
   --ad-panel-2: #121238;
-  --ad-sh-1: 0 1px 2px rgb(0 0 0 / .3);
-  --ad-sh-3: 0 8px 16px rgb(0 0 0 / .4), 0 32px 64px rgb(0 0 0 / .5);
-  --ad-nav-on: #1b1b4a;
+  --ad-sh-1: 0 1px 2px rgb(0 0 0 / .35);
+  --ad-sh-3: 0 10px 20px rgb(0 0 0 / .45), 0 36px 72px rgb(0 0 0 / .55);
+  --ad-nav-on: #ffffff;
+  --ad-nav-on-ink: #000065;
+  --ad-line-2: #33366a;
+  --ad-hover: #1b1b4a;
+  --ad-dot: #b84a00;
+  --ad-focus: #eef0fb;
+  --ad-ring: rgb(115 119 255 / .26);
+  --ad-hero: #121238; --ad-hero-line: #2e3070;
+  --ad-series-1: #7377ff; --ad-series-2: #b84a00;
+  --ad-accent-ink: #ff6500;
+  --ad-stage: #02020c;
+  --ad-sh-2: 0 6px 14px rgb(0 0 0 / .4), 0 18px 40px rgb(0 0 0 / .4);
   --ad-bad-ink: #ff8a8a;
   /* THE DARK-MODE ORANGE (the owner's pick, 2026-09-26): #b84a00 carries a
      WHITE label at 5.23:1 and its edge holds against the dark panels, where
@@ -123,7 +152,7 @@
    colour of whatever it sat in, navy on navy. */
 :where(.ad) a { color: inherit; text-decoration: none; }
 .ad :is(a, button, [tabindex]):focus-visible {
-  outline: 2px solid var(--ad-accent); outline-offset: 2px; border-radius: 4px;
+  outline: 2px solid var(--ad-focus); outline-offset: 2px; border-radius: 4px;
 }
 
 /* ------------------------------------------------------------------ shell */
@@ -191,13 +220,9 @@
   transition: background .14s ease, color .14s ease;
 }
 .ad__nav .ad__link svg { width: 1.15rem; height: 1.15rem; flex: none; }
-.ad__nav .ad__link:hover { background: var(--ad-bg); color: var(--ad-ink); }
-.ad__nav .ad__link.is-on { background: var(--ad-nav-on); color: var(--ad-navy); font-weight: 600; }
-.dark .ad__nav .ad__link.is-on { color: #fff; }
-.ad__nav .ad__link.is-on::before {
-  content: ""; position: absolute; left: -1rem; top: .65rem; bottom: .65rem;
-  width: 4px; border-radius: 0 4px 4px 0; background: var(--ad-accent-fill);
-}
+.ad__nav .ad__link:hover { background: var(--ad-hover); color: var(--ad-ink); }
+.ad__nav .ad__link.is-on { background: var(--ad-nav-on); color: var(--ad-nav-on-ink); font-weight: 600; }
+.ad__nav .ad__link.is-on:hover { background: var(--ad-nav-on); color: var(--ad-nav-on-ink); }
 .ad__count {
   margin-left: auto; min-width: 1.4rem; height: 1.35rem; padding: 0 .4rem;
   display: grid; place-items: center; border-radius: 999px;
@@ -210,7 +235,7 @@
   border-radius: 10px; color: var(--ad-dim); font-size: .85rem; font-weight: 500; white-space: nowrap;
 }
 .ad__sub .ad__subLink:hover { background: var(--ad-bg); color: var(--ad-ink); }
-.ad__sub .ad__subLink.is-on { background: var(--ad-nav-on); color: var(--ad-ink); font-weight: 600; }
+.ad__sub .ad__subLink.is-on { background: var(--ad-hover); color: var(--ad-ink); font-weight: 700; }
 .ad__wrap.is-collapsed .ad__side:not(.is-hoverExpanded) :is(.ad__link, .ad__brand > a) { justify-content: center; }
 .ad__wrap.is-collapsed .ad__side:not(.is-hoverExpanded) .ad__count { position: absolute; right: -.15rem; top: -.1rem; margin: 0; }
 
@@ -794,9 +819,9 @@ body:has(.adDrawer[open]) .st { display: none; }
 .ad__f :is(input, select, textarea):focus-visible {
   outline: none;
   border-color: var(--ad-navy);
-  box-shadow: 0 0 0 4px var(--ad-nav-on);
+  box-shadow: 0 0 0 4px var(--ad-ring);
 }
-.dark .ad__f :is(input, select, textarea):focus-visible { border-color: var(--ad-accent); }
+.dark .ad__f :is(input, select, textarea):focus-visible { border-color: var(--ad-ink); }
 .ad__f.is-bad :is(input, select, textarea) { border-color: var(--ad-bad); }
 .ad__f.is-bad :is(input, select, textarea):focus-visible {
   border-color: var(--ad-bad);
@@ -861,25 +886,43 @@ body:has(.adDrawer[open]) .st { display: none; }
 /* ------------------------------------------------------------------ modal */
 
 .addlg {
-  /* A RIGHT SIDE SHEET, not a centred box (owner's call): the list stays in
-     view behind it, it fills the screen on a phone, and it slides in from the
-     edge. Still the native <dialog>, so focus, Escape and inertness are the
-     platform's. `margin: 0 0 0 auto` pins it right: the CSS reset zeroes the
-     UA's `margin: auto`, so the position is stated, not inherited. */
+  /* A RIGHT SIDE SHEET on a wide screen and a BOTTOM SHEET on a phone, never a
+     centred box (owner's call): the list stays in view behind it. Still the
+     native <dialog>, so focus, Escape and inertness are the platform's.
+     `margin: 0 0 0 auto` pins it right: the CSS reset zeroes the UA's
+     `margin: auto`, so the position is stated, not inherited. It arrives on
+     the spring (460ms) and leaves in 200ms. */
   position: fixed; inset: 0 0 0 auto; margin: 0 0 0 auto;
   width: min(480px, 100vw); max-width: 100vw; height: 100dvh; max-height: 100dvh;
-  padding: 0; border: 0; border-left: 1px solid var(--ad-line); border-radius: 0;
+  padding: 0; border: 0; border-left: 1px solid var(--ad-line); border-radius: 20px 0 0 20px;
   background: var(--ad-panel); color: var(--ad-ink);
   font-family: var(--font-outfit), system-ui, sans-serif; font-size: 14px;
-  box-shadow: -16px 0 48px rgb(0 0 0 / .2);
+  box-shadow: var(--ad-sh-3);
   overflow: hidden;
-  transition: transform .28s cubic-bezier(.2, .8, .2, 1), opacity .2s;
+  transform: translateX(100%); opacity: .6;
+  transition: transform .46s var(--ad-spring), opacity .2s, display .46s allow-discrete;
 }
 .addlg[open] { transform: none; opacity: 1; }
 @starting-style { .addlg[open] { transform: translateX(100%); opacity: .6; } }
-.addlg--wide { width: min(760px, 100vw); }
+.addlg.is-leaving { transform: translateX(100%); opacity: 0; transition: transform .2s var(--ad-ease-out), opacity .2s; }
+.addlg--wide { width: min(720px, 100vw); }
 .addlg::backdrop { background: rgb(6 6 28 / .55); transition: opacity .2s; }
-@media (prefers-reduced-motion: reduce) { .addlg, .addlg::backdrop { transition: none; } }
+.addlg.is-leaving::backdrop { opacity: 0; }
+@media (prefers-reduced-motion: reduce) { .addlg, .addlg::backdrop, .addlg.is-leaving { transition: none; } }
+.addlg__grab { display: none; }
+@media (max-width: 639px) {
+  .addlg, .addlg--wide {
+    inset: auto 0 0 0; margin: auto 0 0 0; width: 100vw; max-width: 100vw; height: auto; max-height: min(92dvh, calc(100dvh - 24px));
+    border: 0; border-top: 1px solid var(--ad-line); border-radius: 26px 26px 0 0;
+    transform: translateY(var(--sheet-drag, 100%)); transition: transform .42s var(--ad-spring), opacity .2s;
+  }
+  .addlg[open] { transform: translateY(var(--sheet-drag, 0px)); }
+  @starting-style { .addlg[open] { transform: translateY(100%); } }
+  .addlg.is-leaving { transform: translateY(100%); }
+  .addlg__grab { display: flex; justify-content: center; align-items: center; height: 28px; flex: none; touch-action: none; cursor: grab; }
+  .addlg__grab span { width: 44px; height: 5px; border-radius: 999px; background: var(--ad-line-2); }
+  .addlg__h { padding-top: .25rem; }
+}
 .addlg__in { display: flex; flex-direction: column; height: 100%; max-height: inherit; }
 .addlg__h {
   display: flex; align-items: center; justify-content: space-between; gap: .6rem;
@@ -894,7 +937,9 @@ body:has(.adDrawer[open]) .st { display: none; }
   border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel); color: var(--ad-ink);
   cursor: pointer;
 }
-.addlg__x:hover { background: var(--ad-bg); color: var(--ad-ink); }
+.addlg__x { transition: background .14s, color .14s, border-color .14s; }
+.addlg__x:hover { background: var(--ad-tone-bad); color: var(--ad-on-bad); border-color: transparent; }
+.addlg__x:active { transform: scale(.96); }
 .addlg__x svg { width: 1.1rem; height: 1.1rem; }
 .addlg__b { flex: 1; min-height: 0; padding: 1.25rem 1.5rem calc(1.5rem + env(safe-area-inset-bottom, 0px)); overflow-y: auto; }
 
@@ -1358,11 +1403,11 @@ body:has(.adDrawer[open]) .st { display: none; }
 .ad__panel:has(details[open]) { overflow: visible; }
 
 .ad__pager {
-  padding: .75rem 1.25rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-start; gap: .75rem 1rem;
+  padding: .75rem 1.25rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .75rem 1.25rem;
   border-top: 1px solid var(--ad-line); color: var(--ad-dim); font-size: .86rem;
 }
 .ad__pgRange { min-width: 0; white-space: nowrap; }
-.ad__pgNav { display: flex; align-items: center; gap: .5rem; margin-left: auto; min-width: 0; }
+.ad__pgNav { display: flex; align-items: center; gap: .5rem; min-width: 0; }
 .ad__pgPage { min-width: 6.5rem; text-align: center; white-space: nowrap; color: var(--ad-ink); font-weight: 600; }
 .ad__pgBtn {
   min-height: 2.75rem; padding: 0 .9rem 0 .7rem; display: inline-flex; align-items: center; justify-content: center; gap: .3rem;
@@ -1401,7 +1446,7 @@ a.ad__pgBtn:active { transform: translateY(1px); }
   border-radius: 10px; color: var(--ad-ink); font-weight: 500; white-space: nowrap;
 }
 .ad__perMenu a:hover, .ad__rangePresets a:hover { background: var(--ad-panel-2); }
-.ad__perMenu a[aria-current], .ad__rangePresets a[aria-current] { background: var(--ad-nav-on); font-weight: 650; }
+.ad__perMenu a[aria-current], .ad__rangePresets a[aria-current] { background: var(--ad-hover); font-weight: 650; }
 
 .ad__rangeMenu {
   left: 0; top: calc(100% + .4rem); width: min(32rem, calc(100vw - 2rem));
@@ -1887,7 +1932,7 @@ html.is-dragging, html.is-dragging * { cursor: grabbing !important; }
 
 /* Row tick boxes for the bulk bar (components/admin/bulk.tsx). */
 .adRowPick, .adRowPickAll { width: 1.15rem; height: 1.15rem; margin: 0 .6rem 0 0; flex: none; vertical-align: middle; accent-color: var(--ad-fill); cursor: pointer; }
-.ad__t tr.is-picked > td { background: var(--ad-nav-on); }
+.ad__t tr.is-picked > td { background: var(--ad-hover); }
 .adBulk__btn.is-danger { color: var(--ad-bad-ink); }
 td:has(> .adRowPick) , .ad__pickCell { white-space: nowrap; }
 .ad__pickRow { display: flex; align-items: center; min-width: 0; }
@@ -2089,3 +2134,17 @@ td:has(> .adRowPick) , .ad__pickCell { white-space: nowrap; }
   .adSupport__exit { width: 100%; }
 }
 @media (prefers-reduced-motion: no-preference) { .adSupport__exit { transition: background .14s ease, color .14s ease; } }
+
+/* A sheet's buttons stay put while its body scrolls. */
+.addlg__b .ad__formActions {
+  position: sticky; bottom: calc(-1.5rem - env(safe-area-inset-bottom, 0px));
+  margin: 1rem -1.5rem calc(-1.5rem - env(safe-area-inset-bottom, 0px)); padding: .9rem 1.5rem calc(.9rem + env(safe-area-inset-bottom, 0px));
+  background: var(--ad-panel); border-top: 1px solid var(--ad-line); z-index: 2;
+}
+
+/* The toast's remaining time, drawn as a bar that drains. It holds still while the toast is held. */
+.adToast { position: relative; overflow: hidden; }
+.adToast__bar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: rgb(255 255 255 / .55); transform-origin: left; animation: adToastDrain linear forwards; }
+.adToast:hover .adToast__bar, .adToast:focus-within .adToast__bar { animation-play-state: paused; }
+@keyframes adToastDrain { to { transform: scaleX(0); } }
+@media (prefers-reduced-motion: reduce) { .adToast__bar { animation: none; transform: scaleX(.5); } }

@@ -25,7 +25,7 @@
 .dz {
   --ad-line:var(--rule); --ad-bg:var(--paper-2); --ad-ink:var(--ink);
   --ad-accent:var(--accent); --ad-accent-ink:var(--accent-ink);
-  --ad-dim:var(--muted); --ad-nav-on:var(--paper-2); --ad-tone-flat:var(--paper-2);
+  --ad-dim:var(--muted); --ad-hover:var(--paper-2); --ad-ring:var(--paper-2); --ad-tone-flat:var(--paper-2);
 }
 
 .dz__list { margin: .7rem 0 0; padding: 0; list-style: none; display: grid; gap: .45rem; }

@@ -9,10 +9,10 @@ import {
   Bell,
   ChevronDown,
   ClipboardList,
-  CalendarDays,
   FolderKanban,
   Globe,
   LayoutDashboard,
+  LifeBuoy,
   LogOut,
   Mail,
   Moon,
@@ -24,7 +24,6 @@ import {
   UserRound,
   Users,
   X,
-  UserCog,
 } from "lucide-react";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { authClient } from "@/lib/auth-client";
@@ -55,26 +54,26 @@ type NavItem = {
   tour: string;
   sub?: NavSub[];
   also?: string[];
+  /* Paths that match `href` by prefix but live under another item. */
+  exclude?: string[];
 };
 
 /* Sub-pages appear under their section only while you are in it, and only
    pages that exist: a link to a screen that has not been built is a lie
    with a hover state. */
 const NAV: NavItem[] = [
-  { href: "/admin", label: "Dashboard", Icon: LayoutDashboard, group: "main", tour: "nav-dashboard" },
+  { href: "/admin", label: "Today", Icon: LayoutDashboard, group: "main", tour: "nav-dashboard" },
+  /* Support sits in its own group below, so Clients must not light up on its pages. */
+  { href: "/admin/clients", label: "Clients", Icon: Users, group: "main", tour: "nav-clients", exclude: ["/admin/clients/support"] },
   {
-    href: "/admin/clients", label: "Clients", Icon: Users, group: "main", tour: "nav-clients",
+    href: "/admin/projects", label: "Projects", Icon: FolderKanban, group: "main", tour: "nav-projects",
     sub: [
-      { href: "/admin/clients", label: "All clients" },
-      /* Leads and forms, and meetings, are conversations with clients and people who may become one. */
-      { href: "/admin/forms", label: "Leads and forms" },
+      { href: "/admin/projects", label: "All projects" },
+      /* Reviews and handovers are meetings about a project. */
       { href: "/admin/meetings", label: "Meetings" },
-      /* Support sits with the people asking, not as an eighth page. */
-      { href: "/admin/clients/support", label: "Support" },
     ],
-    also: ["/admin/forms", "/admin/meetings"],
+    also: ["/admin/meetings"],
   },
-  { href: "/admin/projects", label: "Projects", Icon: FolderKanban, group: "main", tour: "nav-projects" },
   {
     href: "/admin/money", label: "Money", Icon: Banknote, group: "main", tour: "nav-money",
     sub: [
@@ -82,16 +81,23 @@ const NAV: NavItem[] = [
       { href: "/admin/money/reconciliation", label: "Reconciliation" },
     ],
   },
-  { href: "/admin/email", label: "Email", Icon: Mail, group: "main", tour: "nav-email" },
-  /* A seventh primary page, asked for by name: posts are written weekly,
-     which is not an "infrequent control" to bury under Settings. */
-  { href: "/admin/blog", label: "Blog", Icon: Newspaper, group: "main", tour: "nav-blog" },
-  /* People are managed daily enough (invitations, access, recovery) that they are a page, not a setting. */
-  { href: "/admin/users", label: "Users", Icon: UserCog, group: "main", tour: "nav-users" },
+  /* Campaigns, the calendar of sends, automations, templates and contacts. */
+  { href: "/admin/email", label: "Marketing", Icon: Mail, group: "main", tour: "nav-email" },
+  /* Enquiries, the forms that collect them, subscribers and pre-filled links. */
+  { href: "/admin/forms", label: "Forms", Icon: ClipboardList, group: "main", tour: "nav-forms" },
+  /* Posts are written weekly, which is not an "infrequent control" to bury under Settings. */
+  {
+    href: "/admin/blog", label: "Blog", Icon: Newspaper, group: "main", tour: "nav-blog",
+    sub: [
+      { href: "/admin/blog", label: "Posts" },
+      { href: "/admin/blog/work", label: "Case studies" },
+    ],
+  },
   /* No sub-links here: Settings carries its own section menu on the page
-     (lib/settings/sections.ts), and a second copy of twelve links in the
-     sidebar would be the same list twice. */
-  { href: "/admin/settings", label: "Settings", Icon: Settings, group: "general", tour: "nav-settings" },
+     (lib/settings/sections.ts). The team and its permissions are a section of
+     it, so the Users pages belong to Settings and keep it lit. */
+  { href: "/admin/settings", label: "Settings", Icon: Settings, group: "main", tour: "nav-settings", also: ["/admin/users"] },
+  { href: "/admin/clients/support", label: "Support", Icon: LifeBuoy, group: "general", tour: "nav-support" },
 ];
 
 /* The pages this role may open. A courtesy, not the permission: every write
@@ -124,7 +130,8 @@ function subscribeToClientMount(onChange: () => void) {
   return () => undefined;
 }
 
-function isActive(href: string, path: string, also: string[] = []) {
+function isActive(href: string, path: string, also: string[] = [], exclude: string[] = []) {
+  if (exclude.some((h) => path === h || path.startsWith(h + "/"))) return false;
   return href === "/admin" ? path === href : [href, ...also].some((h) => path === h || path.startsWith(h + "/"));
 }
 
@@ -176,7 +183,7 @@ function Sidebar({
 
   const renderItem = (item: NavItem) => {
     const { href, label, Icon, tour, sub } = item;
-    const active = isActive(href, path, item.also);
+    const active = isActive(href, path, item.also, item.exclude);
     const count = counts?.[label] ?? 0;
     const current = activeSub(item, path);
     return (
@@ -236,9 +243,8 @@ function Sidebar({
       {/* The menu scrolls; the foot below it never moves. */}
       <div className="ad__sideScroll" data-lenis-prevent>
         <nav className="ad__nav" aria-label="Admin sections">
-          {!collapsed ? <p className="ad__navLabel">Workspace</p> : null}
           <div className="ad__navGroup">{main.map(renderItem)}</div>
-          {!collapsed ? <p className="ad__navLabel">General</p> : <span className="ad__navRule" />}
+          <span className="ad__navRule" />
           <div className="ad__navGroup">{general.map(renderItem)}</div>
         </nav>
       </div>
@@ -538,7 +544,7 @@ function ShellFrame({ children, counts, user, support }: { children: ReactNode; 
   const [hoverExpanded, setHoverExpanded] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const drawer = useNavDrawer();
-  const active = NAV.find((item) => isActive(item.href, path, item.also));
+  const active = NAV.find((item) => isActive(item.href, path, item.also, item.exclude));
   const parent = parentOf(path);
   const visuallyCollapsed = pinnedCollapsed && !hoverExpanded;
   const closeCommand = useCallback(() => setCommandOpen(false), []);

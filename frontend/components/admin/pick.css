@@ -45,7 +45,7 @@
 .adPick__btn:disabled { cursor: not-allowed; background: var(--ad-panel-2); color: var(--ad-dim); }
 .adPick__list:focus { outline: none; }
 .adPick__opt.is-active { box-shadow: inset 0 0 0 1px var(--ad-line); }
-.ad__f .adPick__btn:focus-visible { outline: none; border-color: var(--ad-navy); box-shadow: 0 0 0 4px var(--ad-nav-on); }
+.ad__f .adPick__btn:focus-visible { outline: none; border-color: var(--ad-navy); box-shadow: 0 0 0 4px var(--ad-ring); }
 .dark .ad__f .adPick__btn:focus-visible { border-color: var(--ad-accent); }
 .ad__f.is-bad .adPick__btn { border-color: var(--ad-bad); }
 /* In a filter row the picker is the row's height and type, not a form field's. */
@@ -142,12 +142,12 @@
 [data-pick-skin="public"], .adPick--public {
   --ad-ink: var(--foreground); --ad-dim: var(--muted);
   --ad-panel: var(--background); --ad-panel-2: var(--surface);
-  --ad-line: #d4d6e6; --ad-navy: #000065; --ad-nav-on: #eceefa;
+  --ad-line: #d4d6e6; --ad-navy: #000065; --ad-hover: #eceefa;
   --ad-accent: var(--accent); --ad-accent-ink: var(--accent-ink);
   --ad-fill: var(--btn-fill); --ad-on-fill: var(--btn-ink);
   --ad-bad: #c62828; --ad-tone-bad: #c62828;
   font-family: var(--font-body);
 }
-.dark [data-pick-skin="public"], .dark .adPick--public { --ad-line: #2c2e62; --ad-nav-on: #1b1b4a; --ad-bad: #ef9a9a; }
+.dark [data-pick-skin="public"], .dark .adPick--public { --ad-line: #2c2e62; --ad-hover: #1b1b4a; --ad-bad: #ef9a9a; }
 [data-pick-skin="public"] .adPick__btn { padding: 11px 14px; font-size: .95rem; border-color: var(--rule, var(--ad-line)); background: var(--paper, var(--ad-panel)); color: var(--ink, var(--ad-ink)); }
 [data-pick-skin="public"] .adPick__btn:hover { border-color: var(--muted); }
