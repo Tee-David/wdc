@@ -110,7 +110,7 @@ export function DialogButton({
         {label}
       </button>
       <Dialog open={open} onClose={() => setOpen(false)} title={title} wide={wide}>
-        {children(() => setOpen(false))}
+        {open ? children(() => setOpen(false)) : null}
       </Dialog>
     </>
   );

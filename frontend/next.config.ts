@@ -239,13 +239,13 @@ const nextConfig: NextConfig = {
         has: [{ type: "host", value: "(?<preview>.*\\.vercel\\.app)" }],
         headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
       },
-      {
+      ...(process.env.NODE_ENV === "production" ? [{
         /* Content-addressed by the build, so a change is a new URL and a year
-           is safe. Without this Next sends its own shorter default and every
-           repeat visit revalidates files that cannot have changed. */
+           is safe. Development chunk names can stay the same after edits,
+           so leave development caching to Next. */
         source: "/_next/static/:path*",
         headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
-      },
+      }] : []),
       {
         source: "/fonts/:path*",
         headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
