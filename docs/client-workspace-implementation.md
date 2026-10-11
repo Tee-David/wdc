@@ -16,7 +16,9 @@ The owner approved implementation on 10 October 2026. This ledger separates sour
 - [x] Verify phone, tablet and desktop layout and targeted USD/stage-cancel interactions in both themes (60 page cases and twelve targeted cases; read-only development capture).
 - [x] Push verified source milestones to main and the working branch (6711897); final release acceptance remains below.
 - [x] Apply migrations using the established owner migration engine and verify production schema (administrative invocation; Settings UI not separately tested).
-- [ ] Verify the exact deployed commit, canonical pages and persisted workflow behaviour.
+- [x] Verify the exact deployed source commit and canonical pages (0006606 production READY).
+- [x] Verify persisted workspace privacy, version decisions and gates using rolled-back database checks.
+- [ ] Complete provider acceptance: real payment submission and Flutterwave dashboard webhook registration remain unverified.
 
 Real provider publishing is not configured by the service records. Publication and release states require evidence; source records must not claim an external provider accepted work without that evidence. No client messages are sent for visual verification.
 
