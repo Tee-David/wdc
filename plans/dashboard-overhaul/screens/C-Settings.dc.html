@@ -971,6 +971,52 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 /* Avatar stacks: 34px tiles get a 44px hit area */
 .avStack>button{position:relative}
 .avStack>button::after{content:"";position:absolute;inset:-5px}
+/* Bank picker row, suggested banks and lookup status (add a bank account) */
+.bankRow{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:6px 14px 6px 8px;border-radius:12px;border:1px solid var(--ad-line-2);background:var(--ad-panel);color:var(--ad-ink);text-align:left;font:inherit;cursor:pointer}
+.bankRow:hover{background:var(--ad-hover)}
+.bankRow:focus-visible{outline:2px solid var(--ad-focus);outline-offset:2px}
+.bankRow .bnkName{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bankRow .bnkName.ph{font-weight:400;color:var(--ad-dim)}
+.bnkLogo{display:inline-grid;place-items:center;flex:none;width:36px;height:36px;border-radius:50%;color:#fff;font:700 12px/1 'Space Grotesk',sans-serif;letter-spacing:.02em}
+.bnkLogo.sm{width:24px;height:24px;font-size:9px}
+.bnkSug{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.bnkSug .chip{display:inline-flex;align-items:center;gap:8px;padding-left:6px}
+.bnkStat{display:flex;align-items:center;gap:10px;margin-top:10px;padding:12px 14px;border-radius:12px;font-weight:600;font-size:14px;background:var(--ad-panel-2);color:var(--ad-ink);min-width:0}
+.bnkStat span{min-width:0;overflow-wrap:anywhere}
+.bnkStat.ok{background:var(--ad-tone-good);color:#fff}
+.bnkStat.bad,.bnkStat.none{background:var(--ad-panel-2);color:var(--ad-ink)}
+.bnkStat.bad{background:var(--ad-tone-bad);color:#fff}
+.bnkStat .ic{flex:none}
+.bnkSpin{flex:none;width:18px;height:18px;border-radius:50%;border:2px solid var(--ad-line-2);border-top-color:var(--ad-ink);animation:spin .8s linear infinite}
+@media (prefers-reduced-motion:reduce){.bnkSpin{animation:none;border-top-color:var(--ad-ink)}}
+/* Phones: the pinned first column leaves room to see the next one. Titles wrap to two lines. */
+@container app (max-width:640px){
+  .tbl th:first-child,.tbl td:first-child{min-width:124px;max-width:min(176px,46cqw)}
+  .tbl.hasCk th:first-child,.tbl.hasCk td:first-child{min-width:44px;width:44px;max-width:44px;padding-left:10px;padding-right:0}
+  .tbl.hasCk th:nth-child(2),.tbl.hasCk td:nth-child(2){left:44px;min-width:124px;max-width:min(176px,46cqw)}
+  .tbl td:first-child strong,.tbl.hasCk td:nth-child(2) strong{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:normal;overflow-wrap:anywhere;font-size:14px;line-height:1.25}
+  .tbl td:first-child strong+span,.tbl.hasCk td:nth-child(2) strong+span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tbl td,.tbl th{padding-left:12px;padding-right:12px}
+}
+/* Search result and link card previews (blog editor) */
+.serp{display:flex;flex-direction:column;gap:2px;padding:14px 16px;border-radius:14px;border:1px solid var(--ad-line);background:var(--ad-panel);min-width:0}
+.serpUrl{font-size:12px;color:var(--ad-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.serpTitle{font:600 18px/1.3 'Space Grotesk',sans-serif;color:var(--ad-ink);overflow-wrap:anywhere}
+.serpDesc{font-size:13px;color:var(--ad-dim);overflow-wrap:anywhere}
+.lcard{display:flex;flex-direction:column;margin-top:10px;border-radius:14px;border:1px solid var(--ad-line);background:var(--ad-panel);overflow:hidden;min-width:0}
+.lcImg{display:block;width:100%;aspect-ratio:1200/630;object-fit:cover;background:var(--ad-panel-2)}
+.lcImg.ph{display:grid;place-items:center;color:var(--ad-dim);font-size:13px}
+.lcBody{display:flex;flex-direction:column;gap:2px;padding:12px 14px;min-width:0}
+.lcHost{font-size:11px;letter-spacing:.06em;color:var(--ad-dim)}
+.lcBody strong{font-size:15px;overflow-wrap:anywhere}
+.lcBody span:last-child{font-size:13px;color:var(--ad-dim);overflow-wrap:anywhere}
+.vidFig{margin:0;display:flex;flex-direction:column;gap:6px}
+.vidBox{display:grid;place-items:center;aspect-ratio:16/9;border-radius:12px;background:var(--ad-tone-neutral);color:#fff}
+.lcard{max-width:440px}
+/* Bank logos: the site's favicon over a white disc. If it does not load, the initials show. */
+.imgHost{position:relative;overflow:hidden}
+.imgHost.hasImg{background:#fff !important;color:var(--ad-ink);box-shadow:inset 0 0 0 1px var(--ad-line-2)}
+.logoImg{position:absolute;inset:15%;width:70%;height:70%;object-fit:contain}
 
 </style>
 </helmet>
@@ -1478,7 +1524,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
                 <div class="item {{li.cls}}" role="{{li.role}}" aria-checked="{{li.checked}}" tabindex="{{li.tab}}" onClick="{{li.pick}}" style="cursor: {{li.cursor}}">
                   <sc-if value="{{li.radio}}" hint-placeholder-val="{{ false }}"><span class="radio"></span></sc-if><sc-if value="{{li.square}}" hint-placeholder-val="{{ false }}"><span class="sqbox"><svg class="ic" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span></sc-if>
                   <sc-if value="{{li.hasLogo}}" hint-placeholder-val="{{ false }}"><span class="platform" style="background: {{li.lc}}"><svg class="logo" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="{{li.ld}}"></path></svg></span></sc-if>
-                  <sc-if value="{{li.hasAv}}" hint-placeholder-val="{{ false }}"><span class="av0" style="width: 32px; height: 32px; font-size: 11px; background: {{li.av}}">{{li.ini}}</span></sc-if>
+                  <sc-if value="{{li.hasAv}}" hint-placeholder-val="{{ false }}"><span class="av0 imgHost{{li.imgCls}}" style="width: 32px; height: 32px; font-size: 11px; background: {{li.av}}">{{li.ini}}<sc-if value="{{li.hasImg}}" hint-placeholder-val="{{ false }}"><img class="logoImg" src="{{li.img}}" alt=""></sc-if></span></sc-if>
                   <span class="t"><strong>{{li.t}}</strong><span>{{li.s}}</span></span>
                   <sc-if value="{{li.hasTag}}" hint-placeholder-val="{{ true }}"><span class="tag" style="background: {{li.tone}}; color: #fff">{{li.tag}}</span></sc-if>
                   <sc-if value="{{li.hasAct}}" hint-placeholder-val="{{ false }}"><button class="{{li.actCls}}" style="min-height: 38px; padding: 0 12px" onClick="{{li.act}}">{{li.actLabel}}</button></sc-if>
@@ -1552,10 +1598,23 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
                         <sc-if value="{{bk.isQuote}}" hint-placeholder-val="{{ false }}"><blockquote><sc-for list="{{bk.runs}}" as="rn" hint-placeholder-count="2"><sc-if value="{{rn.plain}}" hint-placeholder-val="{{ true }}">{{rn.t}}</sc-if><sc-if value="{{rn.bold}}" hint-placeholder-val="{{ false }}"><strong>{{rn.t}}</strong></sc-if><sc-if value="{{rn.em}}" hint-placeholder-val="{{ false }}"><em>{{rn.t}}</em></sc-if><sc-if value="{{rn.link}}" hint-placeholder-val="{{ false }}"><a class="mdA" href="{{rn.href}}">{{rn.t}}</a></sc-if></sc-for></blockquote></sc-if>
                         <sc-if value="{{bk.isUl}}" hint-placeholder-val="{{ false }}"><ul><sc-for list="{{bk.items}}" as="li" hint-placeholder-count="2"><li><sc-for list="{{li.runs}}" as="rn" hint-placeholder-count="2"><sc-if value="{{rn.plain}}" hint-placeholder-val="{{ true }}">{{rn.t}}</sc-if><sc-if value="{{rn.bold}}" hint-placeholder-val="{{ false }}"><strong>{{rn.t}}</strong></sc-if><sc-if value="{{rn.em}}" hint-placeholder-val="{{ false }}"><em>{{rn.t}}</em></sc-if><sc-if value="{{rn.link}}" hint-placeholder-val="{{ false }}"><a class="mdA" href="{{rn.href}}">{{rn.t}}</a></sc-if></sc-for></li></sc-for></ul></sc-if>
                         <sc-if value="{{bk.isOl}}" hint-placeholder-val="{{ false }}"><ol><sc-for list="{{bk.items}}" as="li2" hint-placeholder-count="2"><li><sc-for list="{{li2.runs}}" as="rn" hint-placeholder-count="2"><sc-if value="{{rn.plain}}" hint-placeholder-val="{{ true }}">{{rn.t}}</sc-if><sc-if value="{{rn.bold}}" hint-placeholder-val="{{ false }}"><strong>{{rn.t}}</strong></sc-if><sc-if value="{{rn.em}}" hint-placeholder-val="{{ false }}"><em>{{rn.t}}</em></sc-if><sc-if value="{{rn.link}}" hint-placeholder-val="{{ false }}"><a class="mdA" href="{{rn.href}}">{{rn.t}}</a></sc-if></sc-for></li></sc-for></ol></sc-if>
-                        <sc-if value="{{bk.isImg}}" hint-placeholder-val="{{ false }}"><figure><img src="{{bk.src}}" alt="{{bk.alt}}"><figcaption>{{bk.alt}}</figcaption></figure></sc-if>
+                        <sc-if value="{{bk.isVideo}}" hint-placeholder-val="{{ false }}"><figure class="vidFig"><span class="vidBox"><svg class="ic" viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg></span><figcaption>{{bk.src}}</figcaption></figure></sc-if><sc-if value="{{bk.isImg}}" hint-placeholder-val="{{ false }}"><figure><img src="{{bk.src}}" alt="{{bk.alt}}"><figcaption>{{bk.alt}}</figcaption></figure></sc-if>
                       </sc-for></article></sc-if>
                   </div>
                   <sc-if value="{{fd.hasHint}}" hint-placeholder-val="{{ false }}"><span class="hint">{{fd.hint}}</span></sc-if>
+                </div>
+              </sc-if>
+              <sc-if value="{{fd.isPreview}}" hint-placeholder-val="{{ false }}">
+                <div class="field wideF"><span>{{fd.label}}</span>
+                  <div class="serp" role="group" aria-label="Search result preview"><span class="serpUrl">{{fd.serpUrl}}</span><span class="serpTitle">{{fd.serpTitle}}</span><span class="serpDesc">{{fd.serpDesc}}</span></div>
+                  <div class="lcard" role="group" aria-label="Link preview"><sc-if value="{{fd.hasImg}}" hint-placeholder-val="{{ false }}"><img class="lcImg" src="{{fd.img}}" alt=""></sc-if><sc-if value="{{fd.noImg}}" hint-placeholder-val="{{ true }}"><span class="lcImg ph">No picture yet</span></sc-if><span class="lcBody"><span class="lcHost">{{fd.cardHost}}</span><strong>{{fd.cardTitle}}</strong><span>{{fd.cardDesc}}</span></span></div>
+                </div>
+              </sc-if>
+              <sc-if value="{{fd.isBank}}" hint-placeholder-val="{{ false }}">
+                <div class="field wideF"><span>{{fd.label}}</span>
+                  <button type="button" class="bankRow" onClick="{{fd.onOpen}}" aria-haspopup="dialog"><sc-if value="{{fd.hasLogo}}" hint-placeholder-val="{{ false }}"><span class="bnkLogo imgHost{{fd.imgCls}}" style="background: {{fd.tone}}">{{fd.ini}}<sc-if value="{{fd.hasImg}}" hint-placeholder-val="{{ false }}"><img class="logoImg" src="{{fd.img}}" alt=""></sc-if></span></sc-if><sc-if value="{{fd.noLogo}}" hint-placeholder-val="{{ true }}"><span class="bnkLogo" style="background: var(--ad-tone-neutral)"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M3 21h18M5 21V10M19 21V10M9 21V10M15 21V10M2 10l10-6 10 6"></path></svg></span></sc-if><span class="bnkName {{fd.nameCls}}">{{fd.name}}</span><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg></button>
+                  <sc-if value="{{fd.hasSuggest}}" hint-placeholder-val="{{ false }}"><div class="bnkSug" role="group" aria-label="Banks that fit this number"><sc-for list="{{fd.suggest}}" as="sg" hint-placeholder-count="2"><button type="button" class="chip {{sg.cls}}" aria-pressed="{{sg.pressed}}" onClick="{{sg.pick}}"><span class="bnkLogo sm imgHost{{sg.imgCls}}" style="background: {{sg.tone}}">{{sg.ini}}<sc-if value="{{sg.hasImg}}" hint-placeholder-val="{{ false }}"><img class="logoImg" src="{{sg.img}}" alt=""></sc-if></span>{{sg.t}}</button></sc-for></div></sc-if>
+                  <sc-if value="{{fd.hasStatus}}" hint-placeholder-val="{{ false }}"><div class="{{fd.statCls}}" role="status" aria-live="polite"><sc-if value="{{fd.isLoad}}" hint-placeholder-val="{{ false }}"><span class="bnkSpin" aria-hidden="true"></span></sc-if><sc-if value="{{fd.isOk}}" hint-placeholder-val="{{ false }}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></sc-if><sc-if value="{{fd.isNone}}" hint-placeholder-val="{{ false }}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"></path></svg></sc-if><sc-if value="{{fd.isBad}}" hint-placeholder-val="{{ false }}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path></svg></sc-if><span>{{fd.statText}}</span></div></sc-if>
                 </div>
               </sc-if>
               <sc-if value="{{fd.isFile}}" hint-placeholder-val="{{ false }}">
@@ -1840,7 +1899,7 @@ class Component extends DCLogic {
       ack: cf.needAck ? (cf.ackText || 'This cannot be undone.') : '', reason: cf.input ? { label: cf.inputLabel || 'Reason', ph: cf.inputPh || '', required: true } : null,
       primary: cf.ok || 'Confirm', back: !!cf.back, danger: !!cf.danger, green: !!cf.green, secondary: cf.cancel || 'Cancel', note: cf.note || '',
       onPrimary: function (ctx) { if (cf.onOk) cf.onOk(ctx.reason); if (cf.okToast) self.say(cf.okToast); },
-      onSecondary: function () { if (self.state.stack.length) self.sheetBack(); else self.closeSheet(); return 'stay'; }
+      onSecondary: function () { if (cf.onCancel) { cf.onCancel(); return 'stay'; } if (self.state.stack.length) self.sheetBack(); else self.closeSheet(); return 'stay'; }
     }), push !== false && !!this.state.sheet);
   }
   sheetCtx() {
@@ -2199,7 +2258,7 @@ class Component extends DCLogic {
       notes: shown, notesEmpty: !shown.length, unread: unread, hasUnread: unread > 0, bellLabel: 'Notifications, ' + unread + ' unread', bellI: s.bellTab === 'unread' ? 1 : 0,
       bAll: s.bellTab === 'all' ? 'on' : '', bUn: s.bellTab === 'unread' ? 'on' : '', bAllP: s.bellTab === 'all' ? 'true' : 'false', bUnP: s.bellTab === 'unread' ? 'true' : 'false',
       tabAll: function () { self.setState({ bellTab: 'all' }); }, tabUnread: function () { self.setState({ bellTab: 'unread' }); },
-      allNotesHref: 'A-Notifications.dc.html', hasAllNotes: this.role() === 'admin',
+      allNotesHref: { admin: 'A-Notifications.dc.html', staff: 'S-Notifications.dc.html', client: 'C-Notifications.dc.html' }[this.role()] || '#', hasAllNotes: true,
       markAll: function () { var r = {}; notesRaw.forEach(function (n) { r[n.id] = true; }); var prev = self.state.read; self.setState({ read: r }); self.say('All marked as read', { undo: function () { self.setState({ read: prev }); } }); },
       pushText: s.push ? 'Push notifications are on for this device.' : this.installCopy()[0] + '.', pushBtn: s.push ? 'Turn off' : 'Install app',
       togglePush: function () { var on = !self.state.push; self.setState({ push: on }); self.say(on ? 'WDC installed. Push notifications are on.' : 'Push notifications are off. Email still reaches you.'); },
@@ -2446,7 +2505,7 @@ class Component extends DCLogic {
     var list = vis.map(function (k) {
       var l = full[k], on = listSel && isOn(k), act = l.act || null;
       return { t: l.t, s: l.s || '', tag: l.tag || '', tone: l.tone || 'var(--ad-tone-neutral)', hasTag: !!l.tag, radio: listSel && !multi, square: listSel && multi, cls: on ? 'on' : '', role: listSel ? (multi ? 'checkbox' : 'radio') : 'listitem', checked: on ? 'true' : 'false', tab: listSel || l.open ? '0' : '-1', cursor: listSel || l.open ? 'pointer' : 'default',
-        hasLogo: !!l.logo, ld: l.logo ? l.logo.d : '', lc: l.logo ? l.logo.c : '', hasAv: !!l.ini, av: l.av || 'var(--ad-tone-brand)', ini: l.ini || '',
+        hasLogo: !!l.logo, ld: l.logo ? l.logo.d : '', lc: l.logo ? l.logo.c : '', hasAv: !!l.ini, av: l.av || 'var(--ad-tone-brand)', ini: l.ini || '', hasImg: !!l.img, img: l.img || '', imgCls: l.img ? ' hasImg' : '',
         hasAct: !!act, actLabel: act ? act.label : '', actCls: act && act.primary ? 'btn' : 'btn2',
         act: function (e) { if (e && e.stopPropagation) e.stopPropagation(); if (act) act.fn(); },
         pick: function () { if (listSel) toggle(k); else if (l.open) self.open(l.open, true); } };
@@ -2539,6 +2598,8 @@ class Component extends DCLogic {
         if (ui && ui.key === fd.key && ui.kind === 'time') out.push(self.timePanel(fd.key, F[fd.key] || '', function (v) { setF(fd.key, v); self.setState({ ui: null }); }));
         return;
       }
+      if (t === 'preview' && self.previewField) { out.push(self.previewField(fd, F)); return; }
+      if (t === 'bank' && self.bankField) { out.push(self.bankField(fd, F, setF)); return; }
       if (t === 'editor') { out.push(self.editorField(fd, F, setF)); return; }
       if (t === 'file') {
         var cur = F[fd.key] || null;
@@ -2552,7 +2613,7 @@ class Component extends DCLogic {
       var err = fd.check ? fd.check(F[fd.key] || '', F) : '';
       out.push({ isPlain: true, isTrig: false, key: fd.key, id: 'f-' + fd.key, label: fd.label, ph: fd.ph || '', value: F[fd.key] != null ? F[fd.key] : '', mode: fd.mode || 'text', type: fd.type || 'text', hint: err || fd.hint || '', hasHint: !!(err || fd.hint), hintCls: err ? 'hint err' : 'hint', cls: fd.wide ? 'wideF' : '', isArea: t === 'area', isInput: t !== 'area', on: function (e) { setF(fd.key, e.target.value); } });
     });
-    return out.map(function (o) { return Object.assign({ isTrig: false, isPlain: false, isPanelDate: false, isPanelTime: false, isMedia: false, isFile: false, isEditor: false, hasHint: !!o.hint, hintCls: 'hint', cls: '' }, o); });
+    return out.map(function (o) { return Object.assign({ isTrig: false, isPlain: false, isPanelDate: false, isPanelTime: false, isMedia: false, isFile: false, isEditor: false, isBank: false, isPreview: false, isNone: false, isBad: false, isLoad: false, isOk: false, hasHint: !!o.hint, hintCls: 'hint', cls: '' }, o); });
   }
   /* The calendar, as the site draws it: days, then months, then years, with Today and Clear. */
   calPanel(key, value, min, clearable, pick, max) {
@@ -2643,6 +2704,7 @@ class Component extends DCLogic {
       if (!t) { flush(); return; }
       if ((m = /^(#{1,3})\s+(.+)$/.exec(t))) { flush(); blocks.push(m[1].length === 3 ? { isH3: true, runs: self.mdRuns(m[2]) } : { isH2: true, runs: self.mdRuns(m[2]) }); return; }
       if ((m = /^>\s?(.*)$/.exec(t))) { flush(); blocks.push({ isQuote: true, runs: self.mdRuns(m[1]) }); return; }
+      if ((m = /^@\[video\]\((\S+)\)$/.exec(t))) { flush(); blocks.push({ isVideo: true, src: m[1] }); return; }
       if ((m = /^!\[([^\]]*)\]\((\S+)\)$/.exec(t))) { flush(); blocks.push({ isImg: true, alt: m[1], src: m[2] }); return; }
       if ((m = /^[-*]\s+(.+)$/.exec(t))) { if (!list || !list.isUl) { flush(); list = { isUl: true, items: [] }; } list.items.push({ runs: self.mdRuns(m[1]) }); return; }
       if ((m = /^\d+\.\s+(.+)$/.exec(t))) { if (!list || !list.isOl) { flush(); list = { isOl: true, items: [] }; } list.items.push({ runs: self.mdRuns(m[1]) }); return; }
@@ -2650,7 +2712,7 @@ class Component extends DCLogic {
       para.push(t);
     });
     flush();
-    return blocks.map(function (b) { return Object.assign({ isH2: false, isH3: false, isP: false, isQuote: false, isUl: false, isOl: false, isImg: false, runs: [], items: [], src: '', alt: '' }, b); });
+    return blocks.map(function (b) { return Object.assign({ isH2: false, isH3: false, isP: false, isQuote: false, isUl: false, isOl: false, isImg: false, isVideo: false, runs: [], items: [], src: '', alt: '' }, b); });
   }
   edApply(key, kind) {
     var ta = document.getElementById('f-' + key); if (!ta) return;
@@ -2665,12 +2727,13 @@ class Component extends DCLogic {
     else if (kind === 'ol') { var n = 0; lines(function (l) { n++; return n + '. ' + l.replace(/^\d+\.\s+/, ''); }); }
     else if (kind === 'quote') lines(function (l) { return '> ' + l.replace(/^>\s?/, ''); });
     else if (kind === 'link') { wrap('[', '](https://)', 'link text'); ne = ns + (sel || 'link text').length; }
+    else if (kind === 'video') { var vp = (a > 0 && !/\n$/.test(v.slice(0, a)) ? '\n\n' : ''); out = v.slice(0, a) + vp + '@[video](https://www.youtube.com/watch?v=)\n\n' + v.slice(b); ns = a + vp.length + 9; ne = ns + 34; }
     var f = Object.assign({}, this.state.form); f[key] = out; this.setState({ form: f });
     setTimeout(function () { var t2 = document.getElementById('f-' + key); if (t2) { t2.focus(); try { t2.setSelectionRange(ns, ne); } catch (e) { /* fine */ } } }, 30);
   }
   editorField(fd, F, setF) {
     var self = this, val = F[fd.key] || '', mode = this.state.edMode || 'write', words = (val.trim().match(/\S+/g) || []).length, I = this.icons();
-    var T = [['Heading', 'h2', 'M6 4v16M18 4v16M6 12h12'], ['Subheading', 'h3', 'M4 6v12M14 6v12M4 12h10M18 10c2 0 3 1 3 2.5S19.5 15 18 15M18 15c2 0 3 1 3 2.5S19.5 20 18 20'], ['Bold', 'bold', 'M6 4h8a4 4 0 0 1 0 8H6zM6 12h9a4 4 0 0 1 0 8H6z'], ['Italic', 'italic', 'M19 4h-9M14 20H5M15 4 9 20'], ['Bulleted list', 'ul', 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01'], ['Numbered list', 'ol', 'M10 6h11M10 12h11M10 18h11M4 6h1v4M4 10h2M6 18H4c0-1 2-2 2-3s-1-1.5-2-1'], ['Quote', 'quote', 'M3 21c3 0 7-1 7-8V5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h4M15 21c3 0 7-1 7-8V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h4'], ['Link', 'link', 'M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71']];
+    var T = [['Heading', 'h2', 'M6 4v16M18 4v16M6 12h12'], ['Subheading', 'h3', 'M4 6v12M14 6v12M4 12h10M18 10c2 0 3 1 3 2.5S19.5 15 18 15M18 15c2 0 3 1 3 2.5S19.5 20 18 20'], ['Bold', 'bold', 'M6 4h8a4 4 0 0 1 0 8H6zM6 12h9a4 4 0 0 1 0 8H6z'], ['Italic', 'italic', 'M19 4h-9M14 20H5M15 4 9 20'], ['Bulleted list', 'ul', 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01'], ['Numbered list', 'ol', 'M10 6h11M10 12h11M10 18h11M4 6h1v4M4 10h2M6 18H4c0-1 2-2 2-3s-1-1.5-2-1'], ['Video', 'video', 'M4 8h16v12H4zM4 8l3-4h4l-3 4M11 8l3-4h4l-3 4'], ['Quote', 'quote', 'M3 21c3 0 7-1 7-8V5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h4M15 21c3 0 7-1 7-8V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h4'], ['Link', 'link', 'M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71']];
     var cover = (F[fd.coverKey || 'cover'] || [])[0];
     return { isEditor: true, isTrig: false, isPlain: false, key: fd.key, id: 'f-' + fd.key, label: fd.label, cls: 'wideF', ph: fd.ph || '', value: val, hint: fd.hint || '', hasHint: !!fd.hint, stats: words + (words === 1 ? ' word' : ' words') + ' · ' + Math.max(1, Math.round(words / 200)) + ' min read',
       isWrite: mode === 'write', isPrev: mode === 'preview', modeI: mode === 'write' ? 0 : 1, wCls: mode === 'write' ? 'on' : '', pCls: mode === 'preview' ? 'on' : '', wPress: mode === 'write' ? 'true' : 'false', pPress: mode === 'preview' ? 'true' : 'false',
