@@ -36,3 +36,7 @@ Draft invoices use current Settings account details when saved; issued documents
 - [x] Full owner, staff and client walkthroughs reach Finish with displayed cards inside the viewport (35 owner, 28 staff, 12 client phone steps; unavailable optional read-only targets omitted).
 - [x] Rendered Users page and export dialog load after the SSR fix; staff support recovery/authorization native checks pass.
 - [ ] Real-account production staff support-view acceptance remains unverified.
+
+- [x] Database-backed staff support creation, effective identity, role/deactivation/expiry/revocation guards, Exit and audit verified with rolled-back fixtures; zero fixture rows remain.
+- [x] TEST/LIVE signed no-op production webhook probes accepted without financial writes.
+- [ ] Flutterwave dashboard wiring is retained by the owner, per their 11 October instruction; further provider sandbox submission stopped.
