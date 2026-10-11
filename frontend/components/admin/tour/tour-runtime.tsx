@@ -26,7 +26,7 @@ import TourBlur from "./tour-blur";
  * handling section 5.2 asks for, built in rather than reimplemented here.
  */
 
-const MAX_WAIT_MS = 3_000;
+const MAX_WAIT_MS = 12_000;
 const POLL_MS = 60;
 
 /** Waits for a target that mounts after the previous stop: a row's menu, for
@@ -153,12 +153,19 @@ export default function TourRuntime({ tour, role, isReplay, onFinish, onSkip }: 
     [],
   );
 
+  useEffect(() => {
+    document.documentElement.dataset.tourActive = "true";
+    return () => { delete document.documentElement.dataset.tourActive; };
+  }, []);
+
   const { controls, Tour: TourElement, on } = useJoyride({
     steps,
     continuous: true,
     scrollToFirstStep: !reducedMotion,
     tooltipComponent: TourTooltip,
-    floatingOptions: { hideArrow: true },
+    /* A large panel can reach both viewport edges. Flip alone cannot find
+       an empty side there; shift both axes so the tour controls stay visible. */
+    floatingOptions: { hideArrow: true, strategy: "fixed", shiftOptions: { crossAxis: true, padding: 12, rootBoundary: "viewport" } },
     /* The card's own footer already shows "N of size" -- see
        `tooltip.tsx` -- so `showProgress` stays off here. Joyride only
        switches a button's accessible name to its `nextWithProgress`
@@ -173,7 +180,7 @@ export default function TourRuntime({ tour, role, isReplay, onFinish, onSkip }: 
       skipBeacon: true,
       showProgress: false,
       overlayColor: "rgba(14, 14, 44, 0.55)",
-      beforeTimeout: 6_000,
+      beforeTimeout: 15_000,
       zIndex: 95,
       spotlightPadding: 6,
       /* Default already, stated for the reader: a click on the real

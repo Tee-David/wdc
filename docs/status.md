@@ -245,4 +245,18 @@ Secret sync initially hit malformed legacy env lines and an unsafe CLI error con
 
 The replacement Turbopack browser sweep passed 60 rendered cases: ten owner/staff/client pages at 320, 768 and 1440px in both themes, HTTP 200, one heading, no page overflow and no JavaScript page errors. Owner, staff and client tours passed start, close and replay checks; every walkthrough step has not been exercised. These use read-only development capture access, not production client mutations. The earlier failed webpack sweep is superseded by this evidence.
 
-Draft invoice saves now read current manual-payment account details from Settings; issued invoices retain their saved account snapshot. Removed accounts remain available only on issued documents. USD invoice instructions now mention Flutterwave alongside manual transfer. The focused payment-account boundary check covers current details, issued snapshots, removed accounts and disabled currencies without database writes. Targeted USD controls, stage cancellation and completed-entry Print browser checks remain open.
+Draft invoice saves now read current manual-payment account details from Settings; issued invoices retain their saved account snapshot. Removed accounts remain available only on issued documents. USD invoice instructions now mention Flutterwave alongside manual transfer. The focused payment-account boundary check covers current details, issued snapshots, removed accounts and disabled currencies without database writes.
+
+### Final interaction and print checks — 10 October 2026
+
+b702ad80c76f3b7f326102d13c8b5fe37f6b4aa5 is production READY (dpl_B3whix9TRE6YpP64LZSveWrmuaTb), aliased to wedigcreativity.com.ng. Canonical Meetings and both payment SVGs return 200. Original main equals GitHub with settlement work restored and another named stash backup retained.
+
+Twelve targeted browser cases passed: USD fields and controlled routing/account-type values, and project-stage confirmation cancellation, at 320/768/1440 in both themes. The controls meet 44px touch targets; no page overflow. Cancellation leaves the stage unchanged and sends no POST. Settings edits were discarded without saving. A fresh browser resolved stale development chunks; earlier failed runs are not passes.
+
+The actual onboarding Print route passed a synthetic six-page A4 PDF check: answer beginning/end retained, watermark image on every page, inline print disposition, attachment download and unauthorized 404. This uses the real renderer without database writes or client data. Full role-tour walkthrough verification is being recorded separately; real payment submission and Flutterwave dashboard webhook registration remain unverified.
+
+### Staff support and tour corrections — 11 October 2026
+
+The error log identifies an SSR `document is not defined` crash on Users: closed export-dialog content read selected browser rows during rendering. Dialog launchers now render their contents only when open. Staff support recovery can request a fresh sign-in without the existing owner session redirecting away; magic-link polling waits for a new session ID. Native regressions cover deferred dialog rendering, recovery, staff support authorization, cookie expiry and revocation. No real accounts were impersonated by these checks.
+
+Tours keep fixed tooltip positioning within the viewport, allow longer route loading, use 44px controls, and hide the overlapping back-to-top control while active. A manually started walkthrough cancels the delayed welcome offer. Production immutable asset caching remains unchanged; development assets no longer retain edited chunks indefinitely. Final browser and release verification is pending for this checkpoint.

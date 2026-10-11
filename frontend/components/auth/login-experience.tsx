@@ -36,6 +36,8 @@ type Props = {
   sender: string;
   /** Set when a sign-in that left the page (link, Google) came back successful. */
   completed?: { destination: string; name: string | null } | null;
+  /** Existing session must not satisfy a requested fresh sign-in. */
+  previousSessionId?: string;
 };
 
 /** Headings, so step changes can be announced and focus has somewhere to land. */
@@ -66,12 +68,12 @@ function Heading({ step }: { step: Step }) {
   );
 }
 
-export default function LoginExperience({ demo, googleEnabled, requested, refused, initialStep, sender, completed = null }: Props) {
+export default function LoginExperience({ demo, googleEnabled, requested, refused, initialStep, sender, completed = null, previousSessionId }: Props) {
   const stage = useStage();
   const router = useRouter();
   const hydrated = useHydrated();
   const [adapter] = useState<AuthAdapter & { cancelPasskey?: () => void; openLink?: () => void }>(() =>
-    demo ? demoAdapter() : realAdapter({ requested, google: googleEnabled }),
+    demo ? demoAdapter() : realAdapter({ requested, google: googleEnabled, previousSessionId }),
   );
   const [state, dispatch] = useReducer(reducer, initialStep, (step) => initialState(step));
   /* Read through the store, not copied into state by an effect: the server

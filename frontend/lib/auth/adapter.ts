@@ -44,7 +44,7 @@ const failFor = (error: BetterAuthError, otherwise: FailReason): Fail => {
  * `requested` (a ?redirect= the middleware carried here) rides along and is
  * checked there by `safeDestination()`.
  */
-export function realAdapter({ requested, google }: { requested: string; google: boolean }): AuthAdapter {
+export function realAdapter({ requested, google, previousSessionId }: { requested: string; google: boolean; previousSessionId?: string }): AuthAdapter {
   const carry = requested ? `redirect=${encodeURIComponent(requested)}` : "";
   const redirectTo = `/signed-in${carry ? `?${carry}` : ""}`;
   /* A sign-in that leaves the page (the emailed link, Google) comes back to
@@ -52,6 +52,7 @@ export function realAdapter({ requested, google }: { requested: string; google: 
      /signed-in. Without it the person would jump straight from Google to a
      dashboard, and the tab that asked for the link would never hear about it. */
   const done = `/login?done=1${carry ? `&${carry}` : ""}`;
+  const errorCallbackURL = previousSessionId ? `/login?reauthenticate=1${carry ? `&${carry}` : ""}` : "/login";
 
   return {
     passkeys: false,
@@ -74,7 +75,7 @@ export function realAdapter({ requested, google }: { requested: string; google: 
 
     async sendMagicLink(email) {
       try {
-        const result = await authClient.signIn.magicLink({ email: authEmail(email), callbackURL: done, errorCallbackURL: "/login" });
+        const result = await authClient.signIn.magicLink({ email: authEmail(email), callbackURL: done, errorCallbackURL });
         if (result.error) return failFor(result.error, "network");
         /* The server keeps no request id; the tab listens for the session
            itself. This one only tells two sends apart. */
@@ -105,7 +106,9 @@ export function realAdapter({ requested, google }: { requested: string; google: 
            device cannot be seen from here at all, which is what the code in
            the same email is for. */
         const result = await authClient.getSession();
-        if (result.data?.user) return { ok: true, redirectTo, name: result.data.user.name ?? null };
+        /* A support/access-change reauthentication starts with a valid older
+           cookie. It is not evidence that the new emailed link was opened. */
+        if (result.data?.user && (!previousSessionId || (result.data.session?.id && result.data.session.id !== previousSessionId))) return { ok: true, redirectTo, name: result.data.user.name ?? null };
         return { ok: false, reason: "pending" };
       } catch {
         return { ok: false, reason: "pending" };
@@ -118,7 +121,7 @@ export function realAdapter({ requested, google }: { requested: string; google: 
 
     async signInWithGoogle() {
       try {
-        const result = await authClient.signIn.social({ provider: "google", callbackURL: done, errorCallbackURL: "/login" });
+        const result = await authClient.signIn.social({ provider: "google", callbackURL: done, errorCallbackURL });
         if (result?.error) return failFor(result.error, "network");
       } catch {
         return { ok: false, reason: "network" };
