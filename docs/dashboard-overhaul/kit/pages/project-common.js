@@ -1,6 +1,6 @@
   /* ======================= The project page, shared by all three roles =======================
      The role file supplies projectModel(); this file turns it into the page. */
-  pageState() { return Object.assign({ ptab: 'overview', ta: 0, ttab: 'open', tpage: 0, tper: 5, ra: 0, calView: 'week', calIdx: 0, plat: 'all', ca: 0, fpage: 0, fper: 5, apage: 0, aper: 5, aa: 0, tstat: {}, extraTasks: [], extraPosts: [], postSt: {}, apDone: {}, sw: 0 }, this.modelState ? this.modelState() : {}); }
+  pageState() { return Object.assign({ ptab: 'overview', ta: 0, ttab: 'open', tpage: 0, tper: 5, ra: 0, calView: 'week', calIdx: 0, plat: 'all', ca: 0, fpage: 0, fper: 5, apage: 0, aper: 5, aa: 0, tstat: {}, extraTasks: [], extraPosts: [], postSt: {}, apDone: {}, sw: 0, wchk: {} }, this.modelState ? this.modelState() : {}); }
   pageName() { return this.projectModel().pj.name; }
   tourSteps() {
     var I = this.icons(), M = this.projectModel(), out = [{ target: 'stage', title: 'Where the project stands', icon: I.layers, body: 'Each stage in order. The line under it says what the current stage needs.' }, { target: 'tabs', title: 'Everything in one place', icon: I.folder, body: M.role === 'client' ? 'What we are doing, what needs your yes, your files and the history.' : 'Tasks, the content calendar, approvals, files' + (M.role === 'admin' ? ', money' : '') + ' and the history.' }];
@@ -47,11 +47,26 @@
     }
     return [];
   }
+  /* The service tab: stats, lists, tables and checklists chosen by the project's service. */
+  workBlocks(M) {
+    var self = this, s = this.state, I = this.icons(), F = 'var(--ad-tone-flat)', ink = function (t) { return t === F ? 'var(--ad-on-flat)' : '#fff'; };
+    return (M.work ? M.work(this) : []).map(function (b, bi) {
+      if (b.type === 'stats') return { isStats: true, isBlock: false, items: b.items.map(function (k) { return { t: k.t, v: k.v, note: k.note || '', noteCol: k.tone || 'var(--ad-dim)', dot: k.dot || 'var(--ad-series-1)' }; }) };
+      var out = { isStats: false, isBlock: true, title: b.title, hasSub: !!b.sub, sub: b.sub || '', hasAct: !!b.act, actLabel: b.act ? b.act.label : '', act: b.act ? b.act.fn : null, isList: b.type === 'list', isTable: b.type === 'table', isChecks: b.type === 'checks' };
+      if (b.type === 'list') out.items = b.items.map(function (x) { var t = x.tone || F; return { t: x.t, s: x.s, d: x.d || I.file, iconTone: x.iconTone || 'var(--ad-tone-brand)', hasTag: !!x.tag, tag: x.tag, tone: t, ink: ink(t), aria: x.t + '. ' + x.s, open: x.open || function () { self.say(x.t + ' opens here.'); } }; });
+      if (b.type === 'table') { out.cols = b.cols.map(function (h) { return { t: h.t || h, cls: h.cls || '' }; }); out.rows = b.rows.map(function (r) { var open = r.open || function () { }; return { aria: r.aria || '', open: function () { open(); }, key: function (e) { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); open(); } }, cells: r.cells.map(function (c) { var t = c.tone || F; return { isTag: c.kind === 'tag', isTwo: c.kind === 'two', isOne: !c.kind || c.kind === 'text', t: c.t, s: c.s || '', tone: t, ink: ink(t), col: c.col || 'var(--ad-ink)', cls: c.cls || '', tcls: c.tcls || '' }; }) }; }); }
+      if (b.type === 'checks') {
+        var n = 0; out.items = b.items.map(function (x) { var key = 'k' + bi + '.' + x.k, on = key in s.wchk ? s.wchk[key] : !!x.on; if (on) n++; return { t: x.t, s: on ? (x.doneS || x.s) : x.s, checked: on ? 'true' : 'false', cls: on ? 'on' : '', toggle: function () { var w = Object.assign({}, self.state.wchk); w[key] = !on; self.setState({ wchk: w }); self.say(on ? 'Marked as not done: ' + x.t + '.' : 'Done: ' + x.t + '.', { undo: function () { var u = Object.assign({}, self.state.wchk); u[key] = on; self.setState({ wchk: u }); } }); } }; });
+        out.done = n + ' of ' + b.items.length; out.pct = b.items.length ? Math.round(n / b.items.length * 100) : 0;
+      }
+      return out;
+    });
+  }
   taskList() { var s = this.state; return s.extraTasks.concat(this.projectModel().tasks || []); }
 
   renderVals() {
     var s = this.state, self = this, p = s.p, I = this.icons(), S = this.sh.bind(this), L = this.socialLogos(), M = this.projectModel(), pj = M.pj;
-    var keys = M.tabs, names = { overview: 'Overview', tasks: 'Tasks', cal: 'Content calendar', approvals: M.role === 'client' ? 'Needs your yes' : 'Approvals', files: 'Files', money: 'Money', activity: 'Activity' };
+    var keys = M.tabs, names = { overview: 'Overview', tasks: 'Tasks', cal: 'Content calendar', approvals: M.role === 'client' ? 'Needs your yes' : 'Approvals', files: 'Files', money: 'Money', activity: 'Activity', work: M.workLabel || 'Service' };
     var openTasks = this.taskList().filter(function (t) { return (s.tstat[t.id] || t.st) !== 'done'; }).length;
     var apWaiting = (M.approvals || []).filter(function (a) { return !s.apDone[a.id]; }).length;
     var counts = { tasks: openTasks, approvals: apWaiting, files: (M.files || []).length };
@@ -103,7 +118,7 @@
       hasHeadAct: !!M.headAct, headActLabel: M.headAct ? M.headAct.label : '', headActIcon: M.headAct ? M.headAct.icon : '', headAct: function () { if (M.headAct) M.headAct.fn(); }, hasChores: !!M.chores, openChores: function (e) { self.openPop(e, 'chores', 'chores', 240, 230, 'More for this project'); },
       track: track, stepAria: pj.name + ': stage ' + (pj.cur + 1) + ' of ' + pj.stages.length + ', ' + pj.stages[pj.cur], stageNote: pj.stageNote,
       ptabs: ptabs, tabAnim: s.ta % 2 ? 'kidIn' : 'kidIn2',
-      isOverview: s.ptab === 'overview', isTasks: s.ptab === 'tasks', isCal: s.ptab === 'cal', isApprovals: s.ptab === 'approvals', isFiles: s.ptab === 'files', isMoney: s.ptab === 'money', isActivity: s.ptab === 'activity',
+      isOverview: s.ptab === 'overview', isTasks: s.ptab === 'tasks', isCal: s.ptab === 'cal', isApprovals: s.ptab === 'approvals', isFiles: s.ptab === 'files', isMoney: s.ptab === 'money', isActivity: s.ptab === 'activity', isWork: s.ptab === 'work', moneyHref: M.moneyHref || 'A-Money.dc.html', moneyHrefLabel: M.moneyHrefLabel || 'Open Money', wblocks: this.workBlocks(M),
       hasBlockers: blockers.length > 0, noBlockers: !blockers.length, blockers: blockers, blockN: blockers.length, blockTitle: M.role === 'client' ? 'What we need from you' : 'What is in the way', clearNote: M.clearNote || 'Everything the team needs is in place.',
       nextItems: nextItems, nextN: nextItems.length,
       progress: (M.progress || []).map(function (g) { return Object.assign({}, g, { pct: Math.round(g.pct * p) }); }), team: team, teamTitle: M.teamTitle || 'Team', facts: M.facts || [],

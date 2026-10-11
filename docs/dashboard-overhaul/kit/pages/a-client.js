@@ -22,7 +22,7 @@
   docs() {
     var paid = this.state.paidDep;
     return {
-      inv: [{ no: 'INV-26-9QX4LM', for: 'Social media, deposit 50%', amount: '₦450,000', date: 'Tue 14 Oct', status: 'Due in 4 days', tone: 'var(--ad-tone-warn)', kind: 'inv', open: true }, { no: 'INV-26-2FT7RB', for: 'Brand identity, deposit 50%', amount: '₦600,000', date: '30 Sep', status: 'Paid', tone: 'var(--ad-tone-good)', kind: 'inv' }],
+      inv: [{ no: 'INV-26-9QX4LM', for: 'Social media, deposit 50%', amount: '₦450,000', date: 'Wed 14 Oct', status: 'Due in 4 days', tone: 'var(--ad-tone-warn)', kind: 'inv', open: true }, { no: 'INV-26-2FT7RB', for: 'Brand identity, deposit 50%', amount: '₦600,000', date: '30 Sep', status: 'Paid', tone: 'var(--ad-tone-good)', kind: 'inv' }],
       est: [{ no: 'EST-2026-011', for: 'Social media management, 3 months', amount: '₦900,000', date: '3 Oct', status: 'Accepted', tone: 'var(--ad-tone-good)', kind: 'est' }, { no: 'EST-2026-009', for: 'Brand identity', amount: '₦1,200,000', date: '18 Sep', status: 'Accepted', tone: 'var(--ad-tone-good)', kind: 'est' }],
       rct: [{ no: 'RCT-2026-028', for: 'Brand identity deposit, Paystack card', amount: '₦600,000', date: '30 Sep', status: 'Sent', tone: 'var(--ad-tone-good)', kind: 'rct' }]
     };
@@ -31,7 +31,7 @@
   docSheet(d) {
     var self = this, I = this.icons(), K = { inv: 'Invoice', est: 'Quote', rct: 'Receipt' }[d.kind];
     return this.sh({ eyebrow: K, title: d.no, chip: d.status, tone: d.tone, icon: I.file, iconTone: d.tone, rows: [{ k: 'For', v: d.for }, { k: 'Amount', v: d.amount }, { k: d.kind === 'inv' && d.open ? 'Due' : 'Date', v: d.date }, { k: 'Client', v: 'Mira Skincare' }],
-      feed: d.open ? [{ t: 'Viewed by Adaeze', when: 'Thu 9 Oct' }, { t: 'Sent with the payment link', when: 'Tue 7 Oct · Funmi' }] : [{ t: d.status, when: d.date }],
+      feed: d.open ? [{ t: 'Viewed by Adaeze', when: 'Fri 9 Oct' }, { t: 'Sent with the payment link', when: 'Wed 7 Oct · Funmi' }] : [{ t: d.status, when: d.date }],
       primary: 'Preview ' + K.toLowerCase(), secondary: d.open ? 'Send a reminder' : '',
       onPrimary: function () { setTimeout(function () { self.openFile(self.docFile(d)); }, 30); },
       onSecondary: function () { self.closeSheet(); self.sendReminder(); return 'stay'; } });
@@ -39,7 +39,7 @@
   sendReminder() { var self = this; this.say('Reminder sent to Adaeze with the Paystack and Flutterwave link.', { delay: 8, pending: function (n) { return 'Sending the reminder to Adaeze in ' + n + 's'; }, cancel: function () { self.setState({ reminded: false }); } }); this.setState({ reminded: true }); }
   filesData() {
     return [
-      ['Logo round 2.pdf', 'brand', 'Today', '4.2 MB', 'palette', 1, 'Ifeanyi N.'], ['Colour and type sheet.png', 'brand', 'Tue 7 Oct', '1.1 MB', 'palette', 1, 'Ifeanyi N.'],
+      ['Logo round 2.pdf', 'brand', 'Today', '4.2 MB', 'palette', 1, 'Ifeanyi N.'], ['Colour and type sheet.png', 'brand', 'Wed 7 Oct', '1.1 MB', 'palette', 1, 'Ifeanyi N.'],
       ['Instagram access guide.pdf', 'social', '7 Oct', '420 KB', 'doc', 1, 'Chiamaka A.'], ['Content pillars.pdf', 'social', '3 Oct', '1.6 MB', 'doc', 1, 'Chiamaka A.'],
       ['Moodboard.jpg', 'brand', '26 Sep', '3.8 MB', 'art', 1, 'Ifeanyi N.'], ['Competitor scan.pdf', 'brand', '25 Sep', '2.2 MB', 'doc', 0, 'Ifeanyi N.'],
       ['Discovery call notes.pdf', 'brand', '24 Sep', '320 KB', 'doc', 0, 'Babatope A.'], ['Logo round 1.pdf', 'brand', '22 Sep', '3.9 MB', 'art', 1, 'Ifeanyi N.'],
@@ -49,8 +49,8 @@
   activity() {
     return [
       ['AO', '#1f4d3a', 'Adaeze', 'asked about the green in route B', 'Message', 'Today, 10:12', 'Message'], ['IN', '#000065', 'Ifeanyi', 'sent logo round 2', 'Brand identity', 'Today, 09:40', 'Work'],
-      ['FK', '#15803d', 'Funmi', 'sent the social media deposit invoice', 'INV-26-9QX4LM · ₦450,000', 'Tue 7 Oct', 'Money'], ['CA', '#b84a00', 'Chiamaka', 'asked for Instagram access', 'Social media', 'Tue 7 Oct', 'Work'],
-      ['AO', '#1f4d3a', 'Adaeze', 'accepted quote EST-2026-011', 'Social media management · ₦900,000', 'Fri 3 Oct', 'Money'], ['AO', '#1f4d3a', 'Adaeze', 'paid ₦600,000 by Paystack', 'Receipt RCT-2026-028', '30 Sep', 'Money'],
+      ['FK', '#15803d', 'Funmi', 'sent the social media deposit invoice', 'INV-26-9QX4LM · ₦450,000', 'Wed 7 Oct', 'Money'], ['CA', '#b84a00', 'Chiamaka', 'asked for Instagram access', 'Social media', 'Wed 7 Oct', 'Work'],
+      ['AO', '#1f4d3a', 'Adaeze', 'accepted quote EST-2026-011', 'Social media management · ₦900,000', 'Sat 3 Oct', 'Money'], ['AO', '#1f4d3a', 'Adaeze', 'paid ₦600,000 by Paystack', 'Receipt RCT-2026-028', '30 Sep', 'Money'],
       ['AO', '#1f4d3a', 'Adaeze', 'asked for changes on round 1', 'Brand identity', '25 Sep', 'Work'], ['IN', '#000065', 'Ifeanyi', 'sent logo round 1', 'Brand identity', '22 Sep', 'Work'],
       ['BA', '#000065', 'Babatope', 'held the discovery call', 'Google Meet · 45 min', '24 Sep', 'Message'], ['BA', '#000065', 'Babatope', 'added Mira Skincare as a client', 'From the contact form', '18 Sep', 'Work']
     ].map(function (a) { return { i: a[0], tone: a[1], who: a[2], what: a[3], where: a[4], when: a[5], kind: a[6], ktone: a[6] === 'Money' ? 'var(--ad-tone-good)' : (a[6] === 'Message' ? 'var(--ad-tone-brand)' : 'var(--ad-tone-neutral)') }; });
@@ -97,8 +97,8 @@
     var trk = function (labels, cur) { return labels.map(function (l, i) { return { l: l, n: i + 1, cls: i < cur ? 'done' : (i === cur ? 'cur' : 'todo'), isDone: i < cur, notDone: i >= cur, delay: (0.3 + i * 0.08) + 's' }; }); };
     var IN = { i: 'IN', c: '#000065' }, CA = { i: 'CA', c: '#b84a00' }, FK = { i: 'FK', c: '#15803d' };
     var projects = [
-      { name: 'Brand identity', status: 'With the client', tone: 'var(--ad-tone-warn)', meta: 'Branding & Design · ₦1,200,000 · due Fri 17 Oct', track: trk(['Discovery', 'Concepts', 'Review', 'Final files', 'Handover'], 2), team: [IN], next: 'Waiting 9 days for Adaeze to choose a route', open: function () { self.open(S({ eyebrow: 'Project · Mira Skincare', title: 'Brand identity', chip: 'With the client', tone: 'var(--ad-tone-warn)', icon: I.folder, rows: [{ k: 'Stage', v: 'Review, round 2 of 2' }, { k: 'Lead', v: 'Ifeanyi N.' }, { k: 'Value', v: '₦1,200,000, 50% paid' }, { k: 'Due', v: 'Fri 17 Oct' }], feed: [{ t: 'Round 2 sent', when: 'Today · Ifeanyi' }, { t: 'Changes requested on round 1', when: '25 Sep · Adaeze' }], body: 'The final files and the brand guide follow her choice. The balance invoice goes with them.', primary: 'Nudge Adaeze', secondary: 'Preview round 2', onPrimary: function () { self.say('Nudge sent with a one-tap review link.', { delay: 8, pending: function (n) { return 'Sending the nudge in ' + n + 's'; } }); }, onSecondary: function () { self.openFile(self.filesData()[0], true); return 'stay'; } })); } },
-      { name: 'Social media management', status: 'Setup', tone: 'var(--ad-tone-live)', meta: 'Social & Ads · ₦300,000 a month · starts 1 Nov', track: trk(['Setup', 'Plan', 'Approve', 'Publish', 'Report'], 0), team: [CA, IN], next: 'Blocked on the deposit and Instagram access', open: function () { window.location.href = 'A-Project.dc.html'; } }
+      { name: 'Brand identity', status: 'With the client', tone: 'var(--ad-tone-warn)', meta: 'Branding & Design · ₦1,200,000 · due Sat 17 Oct', track: trk(['Discovery', 'Concepts', 'Review', 'Final files', 'Handover'], 2), team: [IN], next: 'Waiting 9 days for Adaeze to choose a route', open: function () { window.location.href = 'A-Project.dc.html?p=mira-br'; } },
+      { name: 'Social media management', status: 'Setup', tone: 'var(--ad-tone-live)', meta: 'Social & Ads · ₦300,000 a month · starts 1 Nov', track: trk(['Setup', 'Plan', 'Approve', 'Publish', 'Report'], 0), team: [CA, IN], next: 'Blocked on the deposit and Instagram access', open: function () { window.location.href = 'A-Project.dc.html?p=mira-so'; } }
     ].map(function (pj) { var c = pj.track.filter(function (x) { return x.cls === 'cur'; })[0]; return Object.assign({}, pj, { stepAria: pj.name + ': stage ' + c.n + ' of ' + pj.track.length + ', ' + c.l }); });
     var A = this.activity();
     var actOpen = function (a) { return function () { self.open(S({ eyebrow: a.kind, title: a.who + ' ' + a.what, icon: a.kind === 'Money' ? I.cash : (a.kind === 'Message' ? I.msg : I.layers), iconTone: a.ktone, rows: [{ k: 'Where', v: a.where }, { k: 'When', v: a.when }], primary: 'Close' })); }; };
@@ -124,7 +124,7 @@
     var acts = al.slice(ap * s.aper, ap * s.aper + s.aper).map(function (a, i) { return Object.assign({}, a, { dotCls: ap === 0 && i === 0 ? 'now' : '', anim: self.anim(s.aa), delay: (i * 0.04) + 's', open: actOpen(a) }); });
     var AP = Object.assign(this.pager('acts', al.length, s.aper, ap, function (k) { self.setState({ apage: k, aa: self.state.aa + 1 }); }, function (n) { self.setState({ aper: n, apage: 0 }); }), { all: function () { self.setState({ aper: 20, apage: 0, aa: self.state.aa + 1 }); } });
 
-    var slots = [['14', 'Tue 14 Oct, 15:30', 'In 4 days'], ['15', 'Wed 15 Oct, 11:00', 'In 5 days'], ['16', 'Thu 16 Oct, 14:00', 'In 6 days']], sl = slots[s.slot];
+    var slots = [['14', 'Wed 14 Oct, 15:30', 'In 4 days'], ['15', 'Thu 15 Oct, 11:00', 'In 5 days'], ['16', 'Fri 16 Oct, 14:00', 'In 6 days']], sl = slots[s.slot];
     var invoiced = 1050000, paid = 600000, pct = Math.round(paid / invoiced * 100);
     return Object.assign(this.kit(), this.extraVals(), {
       headLine: 'Adaeze O. · adaeze@miraskincare.ng · client since Sep 2026 · signed in Tuesday',
