@@ -1017,6 +1017,69 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .imgHost{position:relative;overflow:hidden}
 .imgHost.hasImg{background:#fff !important;color:var(--ad-ink);box-shadow:inset 0 0 0 1px var(--ad-line-2)}
 .logoImg{position:absolute;inset:15%;width:70%;height:70%;object-fit:contain}
+/* Sheet quick actions: a row of chips under the details */
+.quickRow{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+/* Email builder */
+.ebGrid{display:grid;grid-template-columns:260px minmax(0,1fr) 300px;gap:16px;align-items:start}
+@container app (max-width:1180px){.ebGrid{grid-template-columns:minmax(0,1fr) 280px}.ebSide{grid-column:1/-1;order:3}}
+@container app (max-width:760px){.ebGrid{grid-template-columns:minmax(0,1fr)}.ebSet{order:2}.ebStage{order:1}}
+.ebSide .tabs{overflow-x:auto}
+.ebBar .seg button{min-height:44px;white-space:nowrap}
+.ebSide,.ebSet{padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.ebStage{padding:12px;min-width:0;display:flex;flex-direction:column;gap:10px}
+.ebBar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ebHint{font-size:12px;color:var(--ad-dim);overflow-wrap:anywhere}
+.ebList{display:flex;flex-direction:column;gap:8px}
+.ebAdd{display:flex;align-items:center;gap:10px;min-height:48px;padding:6px 8px;border-radius:12px;border:1px solid var(--ad-line);background:var(--ad-panel);color:var(--ad-ink);cursor:pointer;width:100%}
+.ebAdd:hover{background:var(--ad-hover)}
+.ebAdd:focus-visible{outline:2px solid var(--ad-focus);outline-offset:2px}
+.ebCheck{display:flex;align-items:center;gap:10px}
+.ebTick{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;flex:none;color:#fff;background:var(--ad-tone-good)}
+.ebTick.no{background:var(--ad-tone-warn)}
+.ebFrame{background:var(--ad-panel-2);border-radius:14px;padding:16px;display:flex;justify-content:center;overflow:auto;max-height:70vh}
+.ebMail{width:100%;max-width:600px;background:#fff;color:#0e0e2c;border-radius:6px;padding:20px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.ebFrame.phone .ebMail{max-width:340px}
+.ebBlk{position:relative;border-radius:8px;padding:8px;outline:2px solid transparent;cursor:pointer;min-width:0}
+.ebBlk:hover{outline-color:#c9ccdc}
+.ebBlk.on{outline-color:#0e0e2c}
+.ebH{font:700 24px/1.2 'Space Grotesk',sans-serif;overflow-wrap:anywhere}
+.ebP{font-size:15px;line-height:1.5;overflow-wrap:anywhere;white-space:pre-wrap}
+.ebPic{display:grid;place-items:center;aspect-ratio:16/7;background:#e4e6f0;border-radius:8px;color:#5c5c7a;font-size:13px;text-align:center;padding:8px}
+.ebBtn{display:inline-block;padding:12px 22px;border-radius:999px;background:#000065;color:#fff;font-weight:600}
+.ebCols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ebFrame.phone .ebCols{grid-template-columns:1fr}
+.ebHr{border:0;border-top:1px solid #c9ccdc;margin:8px 0}
+.ebSmall{font-size:12px;color:#5c5c7a}
+.ebRule{display:inline-block;margin-top:4px;padding:2px 8px;border-radius:999px;background:#5c5c7a;color:#fff;font-size:11px}
+.ebFoot{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;border-top:1px solid #e4e6f0;margin-top:12px;padding-top:12px;font-size:12px;color:#5c5c7a}
+.ebUnsub{text-decoration:underline}
+.ebTools{position:absolute;top:-16px;right:8px;display:flex;gap:2px;background:#0e0e2c;border-radius:10px;padding:2px;z-index:2}
+.ebT{display:grid;place-items:center;width:32px;height:32px;border-radius:8px;border:0;background:transparent;color:#fff;cursor:pointer;position:relative}
+.ebT::after{content:"";position:absolute;inset:-6px}
+.ebT:hover{background:#33366a}.ebT.bad:hover{background:#c62828}
+/* Automation flow canvas */
+.afBar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--ad-line)}
+.afZoom{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+.afCanvas{background:var(--ad-panel-2);padding:24px 16px;overflow:auto;max-height:72vh;display:flex;justify-content:center}
+.afFlow{display:flex;flex-direction:column;align-items:center;width:min(100%,680px);min-width:0}
+.afNode{display:flex;align-items:center;gap:12px;width:min(100%,340px);min-height:64px;padding:10px 12px;border-radius:16px;border:1px solid var(--ad-line-2);background:var(--ad-panel);color:var(--ad-ink);cursor:pointer;min-width:0}
+.afNode:hover{background:var(--ad-hover)}
+.afNode.on{border-color:var(--ad-ink);box-shadow:0 0 0 4px var(--ad-ring,rgba(14,14,44,.12))}
+.afNode:focus-visible{outline:2px solid var(--ad-focus);outline-offset:2px}
+.afLink{display:block;width:2px;height:14px;background:var(--ad-line-2)}
+.afPlus{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;border:1px solid var(--ad-line-2);background:var(--ad-panel);color:var(--ad-ink);cursor:pointer;position:relative}
+.afPlus::after{content:"";position:absolute;inset:-6px}
+.afPlus:hover{background:var(--ad-ink);color:var(--ad-panel)}
+.afLanes{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;align-items:start}
+@container app (max-width:640px){.afLanes{grid-template-columns:1fr}}
+.afLane{display:flex;flex-direction:column;align-items:center;gap:0;min-width:0;border-radius:16px;border:1px dashed var(--ad-line-2);padding:10px 8px}
+.afLaneT{font-size:11px;font-weight:700;padding:2px 10px;border-radius:999px;color:#fff;margin-bottom:8px}
+.afLaneT.yes{background:var(--ad-tone-good)}.afLaneT.no{background:var(--ad-tone-neutral)}
+.afEnd{margin-top:10px;font-size:12px;color:var(--ad-dim)}
+.afPlus,.afLink,.afNode{flex:none}
+/* Support view bar: read-only view of another account */
+.svBar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 16px;background:var(--ad-tone-warn);color:#fff;font-size:14px}
+.svBar .svExit{min-height:44px}
 
 </style>
 </helmet>
@@ -1105,15 +1168,16 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
             
           </header>
 
+          <sc-if value="{{svOn}}" hint-placeholder-val="{{ false }}"><div class="svBar" role="status"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path></svg><span style="flex: 1; min-width: 0"><strong>Support view: {{svName}}.</strong> Read-only. Changes, payments and downloads are off. Your owner account stays signed in. Ends at {{svEnds}}.</span><a class="btn2 svExit" href="A-Users.dc.html">Exit support view</a></div></sc-if>
           <main id="main" class="mainPad">
             <div class="pageHead rise">
               <div>
                 <h1 class="h1">{{pageTitle}}</h1>
-                <p class="lede">{{ledeA}} <strong style="color: var(--ad-ink)">{{ledeB}}</strong></p>
+                <p class="lede">{{lede}}</p>
               </div>
               <div class="headActs">
-                <button class="btn" onClick="{{newPost}}" data-tour="new"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>{{newLabel}}</button>
-                <button class="ibtn" data-menu="chores" aria-label="More for {{pageTitle}}" aria-haspopup="menu" aria-expanded="{{choresX}}" onClick="{{openChores}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg></button>
+                <sc-if value="{{hasHeadAct}}" hint-placeholder-val="{{ false }}"><button class="btn" onClick="{{headAct}}">{{headActLabel}}</button></sc-if>
+                <button class="ibtn" data-menu="chores" aria-label="More for settings" aria-haspopup="menu" aria-expanded="{{choresX}}" onClick="{{openChores}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg></button>
               </div>
             </div>
             <sc-if value="{{loading}}" hint-placeholder-val="{{ false }}">
@@ -1136,185 +1200,105 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
             </sc-if>
 
             <sc-if value="{{ready}}" hint-placeholder-val="{{ true }}">
-            <div class="layout">
-              <div class="col">
-                <section aria-label="{{deckTitle}}" data-tour="deck">
-                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap">
-                    <h2 style="font-size: 17px; font-weight: 700">{{deckTitle}}</h2>
-                    <span class="strip" role="img" aria-label="{{stripLabel}}"><sc-for list="{{strip}}" as="sg" hint-placeholder-count="6"><span class="{{sg.cls}}"></span></sc-for></span>
-                    <span class="num" style="color: var(--ad-dim); font-size: 13px">{{stripText}}</span>
-                    <span class="hideS" style="margin-left: auto; color: var(--ad-dim); font-size: 12px">{{deckKeys}}</span>
-                  </div>
-                  <sc-if value="{{hasTop}}" hint-placeholder-val="{{ true }}">
-                    <div class="deck {{top.deckCls}}">
-                      <sc-if value="{{hasG1}}" hint-placeholder-val="{{ true }}"><span class="ghost" aria-hidden="true"></span></sc-if>
-                      <sc-if value="{{hasG2}}" hint-placeholder-val="{{ true }}"><span class="ghost g2" aria-hidden="true"></span></sc-if>
-                      <article class="topCard onDark {{top.kidCls}}" tabindex="0" onKeyDown="{{deckKey}}" aria-label="{{top.aria}}" style="animation-name: {{top.anim}}; animation-duration: {{top.dur}}; animation-timing-function: {{top.ease}}; animation-fill-mode: {{top.fill}}">
-                        <div class="tags">
-                          <span class="tag" style="background: #fff; color: #000065">{{top.kind}}</span>
-                          <span class="tag" style="background: {{top.utone}}; color: #fff">{{top.urgency}}</span>
-                          <span class="projLbl num" style="margin-left: auto; font-size: 13px; color: var(--ad-hero-dim)">{{top.label}}</span>
-                        </div>
-                        <div style="display: flex; flex-direction: column; gap: 8px">
-                          <h3 class="cardH">{{top.title}}</h3>
-                          <p style="color: var(--ad-hero-dim); font-size: 15px">{{top.body}}</p>
-                        </div>
-                        <sc-if value="{{top.hasSteps}}" hint-placeholder-val="{{ false }}">
-                          <div style="display: flex; flex-direction: column; gap: 8px">
-                            <span style="display: flex; justify-content: space-between; font-size: 13px; color: var(--ad-hero-dim)"><span>Steps</span><span class="num">{{top.stepText}}</span></span>
-                            <span style="height: 8px; border-radius: 99px; background: rgb(255 255 255/.14); overflow: hidden"><span style="display: block; height: 100%; width: {{top.stepPct}}%; background: #ff6500; border-radius: 99px; transition: width .45s var(--ease)"></span></span>
-                            <div style="display: flex; flex-wrap: wrap; gap: 6px">
-                              <sc-for list="{{top.stepList}}" as="st" hint-placeholder-count="4">
-                                <button class="stepChip {{st.cls}}" role="checkbox" aria-checked="{{st.pressed}}" onClick="{{st.toggle}}"><span class="stepBox"><sc-if value="{{st.on}}" hint-placeholder-val="{{ false }}"><svg class="ic" viewBox="0 0 24 24" width="10" height="10" aria-hidden="true" style="stroke-width: 3.4"><path pathLength="1" d="M20 6 9 17l-5-5"></path></svg></sc-if></span>{{st.t}}</button>
-                              </sc-for>
-                            </div>
-                          </div>
-                        </sc-if>
-                        <sc-if value="{{top.isLogo}}" hint-placeholder-val="{{ false }}">
-                          <div style="display: flex; flex-direction: column; gap: 8px">
-                            <div class="routes" id="routes" role="radiogroup" aria-label="Choose a route" onScroll="{{routeScroll}}">
-                              <sc-for list="{{routes}}" as="r" hint-placeholder-count="2">
-                                <button class="route {{r.cls}}" role="radio" aria-checked="{{r.checked}}" onClick="{{r.pick}}">
-                                  <span class="routePrev" style="background: {{r.bg}}"><span class="disp" style="font-size: clamp(20px, 5cqi, 30px); font-weight: 700; color: {{r.fg}}; letter-spacing: -.04em">{{r.mark}}</span><sc-if value="{{r.isSel}}" hint-placeholder-val="{{ false }}"><span class="tag pickTag"><svg class="ic" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true" style="stroke-width: 3"><path d="M20 6 9 17l-5-5"></path></svg>Your pick</span></sc-if></span>
-                                  <strong style="font-size: 14px; padding: 0 4px">{{r.name}}</strong>
-                                  <span class="rNote" style="font-size: 12px; color: var(--ad-hero-dim); padding: 0 4px 4px">{{r.note}}</span>
-                                </button>
-                              </sc-for>
-                            </div>
-                            <span class="railDots" aria-hidden="true"><sc-for list="{{routeDots}}" as="rd" hint-placeholder-count="2"><span class="{{rd}}"></span></sc-for></span>
-                            <button class="lnk" style="color: #fff; align-self: flex-start; min-height: 44px" onClick="{{openRouteFile}}">See both routes full size<svg class="ic arr" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"></path></svg></button>
-                          </div>
-                        </sc-if>
-                        <sc-if value="{{top.hasMeta}}" hint-placeholder-val="{{ true }}">
-                          <dl class="meta"><sc-for list="{{top.meta}}" as="m" hint-placeholder-count="3"><div style="display: flex; flex-direction: column; min-width: 0"><dt>{{m.k}}</dt><dd class="num">{{m.v}}</dd></div></sc-for></dl>
-                        </sc-if>
-                        <sc-if value="{{top.hasWhy}}" hint-placeholder-val="{{ true }}">
-                          <p class="why"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="margin-top: 2px; color: #ffb27a"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"></path></svg><span>{{top.why}}</span></p>
-                        </sc-if>
-                        <div class="deckActs">
-                          <button class="hb grow" onClick="{{top.primary}}">{{top.primaryLabel}}<svg class="ic arr" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"></path></svg></button>
-                          <button class="hb2 grow" onClick="{{top.secondary}}">{{top.secondaryLabel}}</button>
-                          <span class="sp"></span>
-                          <div class="deckTools">
-                            <button class="hb2 tipU" data-menu="snooze" data-tip="{{snoozeLabel}}" onClick="{{openSnooze}}" aria-haspopup="menu" aria-label="{{snoozeLabel}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 6v6l4 2"></path></svg><span class="tLbl">{{snoozeShort}}</span></button>
-                            <sc-if value="{{canPass}}" hint-placeholder-val="{{ true }}"><button class="hb2 tipU" data-menu="delegate" data-tip="Hand over" onClick="{{openDelegate}}" aria-haspopup="dialog" aria-label="Hand over"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M19 8v6M22 11h-6"></path></svg><span class="tLbl">Hand over</span></button></sc-if>
-                            <button class="hb2 tipU ib" data-tip="Open details" onClick="{{top.details}}" aria-label="Open details" style="padding: 0 14px"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg></button>
-                          </div>
-                        </div>
-                        <sc-if value="{{top.stamp}}" hint-placeholder-val="{{ false }}"><span class="stamp" style="--st: {{top.stampTone}}; --cx: {{top.cx}}; --cy: {{top.cy}}" aria-hidden="true"><span class="stampRing"></span><span class="stampIn"><svg class="stampIc" viewBox="0 0 52 52" width="64" height="64"><circle class="stC" cx="26" cy="26" r="23" pathLength="1"></circle><path class="stP" d="{{top.stampD}}" pathLength="1"></path></svg><span class="stampL">{{top.stampLabel}}</span></span></span></sc-if>
-                      </article>
-                    </div>
-                  </sc-if>
-                  <sc-if value="{{deckEmpty}}" hint-placeholder-val="{{ false }}">
-                    <div class="card empty" role="status">
-                      <span class="emptyIc"><svg class="ic" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true" style="stroke-width: 2.6"><path pathLength="1" d="M20 6 9 17l-5-5"></path></svg></span>
-                      <h3>{{emptyTitle}}</h3>
-                      <p style="color: var(--ad-dim)">{{emptyBody}} <strong style="color: var(--ad-ink)">{{emptyNext}}</strong></p>
-                      <div class="emptyActs"><button class="btn" onClick="{{emptyPrimary}}">{{emptyPrimaryLabel}}</button><button class="btn2" onClick="{{restoreDeck}}">{{emptySecondaryLabel}}</button></div>
-                    </div>
-                  </sc-if>
-                </section>
+            <div class="setGrid rise d2">
+              <nav class="setNav" aria-label="Settings sections" data-tour="nav">
+                <sc-for list="{{sections}}" as="sc" hint-placeholder-count="6">
+                  <a href="#" class="{{sc.cls}}" aria-current="{{sc.current}}" onClick="{{sc.pick}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="{{sc.d}}"></path></svg><span style="flex: 1">{{sc.label}}</span><sc-if value="{{sc.hasDot}}" hint-placeholder-val="{{ false }}"><span class="dotU" role="img" aria-label="{{sc.dotAria}}"></span></sc-if><sc-if value="{{sc.hasN}}" hint-placeholder-val="{{ false }}"><span class="tag num" style="background: {{sc.nTone}}; color: #fff; height: 20px; padding: 0 7px">{{sc.n}}</span></sc-if></a>
+                </sc-for>
+              </nav>
+              <div style="display: flex; flex-direction: column; gap: 16px; min-width: 0" data-tour="cards">
+                <sc-for list="{{cards}}" as="cd" hint-placeholder-count="2">
+                  <section class="setCard rise" style="animation-delay: {{cd.delay}}" aria-label="{{cd.title}}">
+                    <header><div style="display: flex; align-items: center; gap: 10px"><h2 style="flex: 1">{{cd.title}}</h2><sc-if value="{{cd.hasAct}}" hint-placeholder-val="{{ false }}"><button class="btn2" style="min-height: 44px" onClick="{{cd.act}}">{{cd.actLabel}}</button></sc-if></div><sc-if value="{{cd.hasSub}}" hint-placeholder-val="{{ false }}"><p>{{cd.sub}}</p></sc-if></header>
 
+                    <sc-for list="{{cd.rows}}" as="r" hint-placeholder-count="3">
+                      <div class="setRow">
+                        <div class="lab"><strong>{{r.label}}</strong><span>{{r.hint}}</span></div>
+                        <div style="min-width: 0; display: flex; flex-direction: column; gap: 8px">
+                          <sc-if value="{{r.isText}}" hint-placeholder-val="{{ false }}"><label class="input {{r.cls}}"><span class="sr">{{r.label}}</span><input value="{{r.value}}" placeholder="{{r.ph}}" disabled="{{r.locked}}" onChange="{{r.on}}"></label></sc-if>
+                          <sc-if value="{{r.isArea}}" hint-placeholder-val="{{ false }}"><label class="input {{r.cls}}" style="padding: 8px 14px"><span class="sr">{{r.label}}</span><textarea rows="3" style="flex: 1; border: 0; outline: 0; background: transparent; font: inherit; color: var(--ad-ink); resize: vertical" placeholder="{{r.ph}}" disabled="{{r.locked}}" onChange="{{r.on}}" value="{{r.value}}"></textarea></label></sc-if>
+                          <sc-if value="{{r.isSwitch}}" hint-placeholder-val="{{ false }}"><span style="display: flex; align-items: center; gap: 12px"><button class="switch" role="switch" aria-checked="{{r.checked}}" aria-label="{{r.label}}" disabled="{{r.locked}}" onClick="{{r.toggle}}"></button><span style="font-size: 13px; color: var(--ad-dim)">{{r.state}}</span></span></sc-if>
+                          <sc-if value="{{r.isSeg}}" hint-placeholder-val="{{ false }}"><div class="seg" role="group" aria-label="{{r.label}}" style="--n: 2; --i: {{r.segI}}; max-width: 320px"><span class="pill" aria-hidden="true"></span><sc-for list="{{r.opts}}" as="o" hint-placeholder-count="2"><button class="{{o.cls}}" aria-pressed="{{o.pressed}}" disabled="{{r.locked}}" onClick="{{o.pick}}" style="min-height: 44px">{{o.t}}</button></sc-for></div></sc-if>
+                          <sc-if value="{{r.isSelect}}" hint-placeholder-val="{{ false }}"><button class="selBtn" data-menu="sel" aria-haspopup="menu" aria-expanded="{{r.menuX}}" aria-label="{{r.label}}: {{r.value}}" disabled="{{r.locked}}" onClick="{{r.open}}"><span style="flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{r.value}}</span><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button></sc-if>
+                          <sc-if value="{{r.isStatic}}" hint-placeholder-val="{{ false }}"><span style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap"><span class="num" style="font-weight: 500; flex: 1 1 140px; min-width: 0; overflow-wrap: anywhere">{{r.value}}</span><sc-if value="{{r.hasTag}}" hint-placeholder-val="{{ false }}"><span class="tag" style="background: {{r.tagTone}}; color: {{r.tagInk}}">{{r.tag}}</span></sc-if><sc-if value="{{r.hasAct}}" hint-placeholder-val="{{ false }}"><button class="btn2" style="min-height: 44px" disabled="{{r.locked}}" onClick="{{r.act}}">{{r.actLabel}}</button></sc-if></span></sc-if>
+                          <sc-if value="{{r.hasErr}}" hint-placeholder-val="{{ false }}"><span class="hint err" style="margin: 0">{{r.err}}</span></sc-if>
+                          <sc-if value="{{r.hasLock}}" hint-placeholder-val="{{ false }}"><div class="lockNote"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="flex: none; margin-top: 2px"><path d="M19 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2zM7 11V7a5 5 0 0 1 10 0v4"></path></svg><span><strong>{{r.lockWhy}}</strong>{{r.lockFix}}</span></div></sc-if>
+                        </div>
+                      </div>
+                    </sc-for>
 
-                <section class="card cq rise d2" aria-label="{{tabTitle}}" data-tour="table" style="overflow: hidden">
-                  <div style="display: flex; align-items: center; gap: 10px; padding: 16px 20px 12px; flex-wrap: wrap">
-                    <h2 class="sr">{{tabTitle}}</h2><span style="flex: 1"></span>
-                    <label class="sfield">
-                      <svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="color: var(--ad-dim)"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"></path></svg>
-                      <span class="sr">Search</span>
-                      <input id="pgq" value="{{q}}" onChange="{{onQ}}" placeholder="{{qPh}}">
-                      <sc-if value="{{hasQ}}" hint-placeholder-val="{{ false }}"><button class="clr" aria-label="Clear search" onClick="{{clearQ}}"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></sc-if>
-                    </label>
-                    <button class="btn2" style="min-height: 44px" onClick="{{tabAct}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="{{tabActD}}"></path></svg>{{tabActLabel}}</button>
-                  </div>
-                  <div role="tablist" aria-label="{{tabsAria}}" class="tabs"><sc-for list="{{tabs}}" as="tb" hint-placeholder-count="4"><button role="tab" class="tab {{tb.cls}}" aria-selected="{{tb.sel}}" onClick="{{tb.pick}}">{{tb.label}}<span class="tag num" style="background: {{tb.chip}}; color: {{tb.ink}}; height: 20px; padding: 0 7px">{{tb.n}}</span></button></sc-for></div>
-                  <div class="chips svcChips" role="group" aria-label="Filter" style="padding: 12px 20px"><sc-for list="{{chips}}" as="c" hint-placeholder-count="5"><button class="chip {{c.cls}}" aria-pressed="{{c.pressed}}" onClick="{{c.pick}}">{{c.t}}<span class="num" style="opacity: .75">{{c.n}}</span></button></sc-for></div>
-                  <div class="tbTools" role="group" aria-label="Rows tools">
-                    <sc-if value="{{TBL.bulk}}" hint-placeholder-val="{{ false }}">
+                    <sc-if value="{{cd.isList}}" hint-placeholder-val="{{ false }}">
+                      <sc-if value="{{cd.hasFind}}" hint-placeholder-val="{{ false }}"><div style="padding: 4px 20px 10px"><label class="sfield" style="width: 100%"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="color: var(--ad-dim)"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"></path></svg><span class="sr">{{cd.findPh}}</span><input id="{{cd.findId}}" value="{{cd.findQ}}" onChange="{{cd.onFind}}" placeholder="{{cd.findPh}}"><sc-if value="{{cd.hasFindQ}}" hint-placeholder-val="{{ false }}"><button class="clr" aria-label="Clear search" onClick="{{cd.clearFind}}"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></sc-if></label></div></sc-if>
+                      <sc-if value="{{cd.hasTools}}" hint-placeholder-val="{{ false }}"><div class="tbTools" role="group" aria-label="Items tools">
+                    <sc-if value="{{cd.TL.bulk}}" hint-placeholder-val="{{ false }}">
                       <div class="bulkBar" role="region" aria-label="Bulk actions" aria-live="polite">
-                        <span class="bkCount num">{{TBL.count}}</span>
-                        <span class="bkActs"><sc-for list="{{TBL.acts}}" as="ba" hint-placeholder-count="2"><button class="btn2 bkBtn {{ba.cls}}" onClick="{{ba.fn}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="{{ba.d}}"></path></svg>{{ba.label}}</button></sc-for><button class="btn2 bkBtn" onClick="{{TBL.exportSel}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>Export</button></span>
-                        <sc-if value="{{TBL.allMore}}" hint-placeholder-val="{{ false }}"><button class="lnk" onClick="{{TBL.selectAll}}">{{TBL.allLabel}}</button></sc-if>
-                        <button class="lnk" onClick="{{TBL.clear}}">Clear</button>
+                        <span class="bkCount num">{{cd.TL.count}}</span>
+                        <span class="bkActs"><sc-for list="{{cd.TL.acts}}" as="ba" hint-placeholder-count="2"><button class="btn2 bkBtn {{ba.cls}}" onClick="{{ba.fn}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="{{ba.d}}"></path></svg>{{ba.label}}</button></sc-for><button class="btn2 bkBtn" onClick="{{cd.TL.exportSel}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>Export</button></span>
+                        <sc-if value="{{cd.TL.allMore}}" hint-placeholder-val="{{ false }}"><button class="lnk" onClick="{{cd.TL.selectAll}}">{{cd.TL.allLabel}}</button></sc-if>
+                        <button class="lnk" onClick="{{cd.TL.clear}}">Clear</button>
                       </div>
                     </sc-if>
-                    <sc-if value="{{TBL.idle}}" hint-placeholder-val="{{ true }}">
+                    <sc-if value="{{cd.TL.idle}}" hint-placeholder-val="{{ true }}">
                       <div class="tbRow">
-                        <sc-if value="{{TBL.hasFilters}}" hint-placeholder-val="{{ true }}"><button class="btn2 tbBtn" onClick="{{TBL.openFilters}}" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M22 3H2l8 9.46V19l4 2v-8.54z"></path></svg>Filters<sc-if value="{{TBL.hasFn}}" hint-placeholder-val="{{ false }}"><span class="tag num" style="background: var(--ad-fill); color: var(--ad-on-fill); height: 20px; padding: 0 7px">{{TBL.fn}}</span></sc-if></button></sc-if>
-                        <sc-for list="{{TBL.chips}}" as="fc" hint-placeholder-count="0"><button class="fChip" aria-label="{{fc.aria}}" onClick="{{fc.remove}}">{{fc.t}}<svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></sc-for>
-                        <sc-if value="{{TBL.hasChips}}" hint-placeholder-val="{{ false }}"><button class="lnk" onClick="{{TBL.clearFilters}}">Clear all</button></sc-if>
+                        <sc-if value="{{cd.TL.hasFilters}}" hint-placeholder-val="{{ true }}"><button class="btn2 tbBtn" onClick="{{cd.TL.openFilters}}" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M22 3H2l8 9.46V19l4 2v-8.54z"></path></svg>Filters<sc-if value="{{cd.TL.hasFn}}" hint-placeholder-val="{{ false }}"><span class="tag num" style="background: var(--ad-fill); color: var(--ad-on-fill); height: 20px; padding: 0 7px">{{cd.TL.fn}}</span></sc-if></button></sc-if>
+                        <sc-for list="{{cd.TL.chips}}" as="fc" hint-placeholder-count="0"><button class="fChip" aria-label="{{fc.aria}}" onClick="{{fc.remove}}">{{fc.t}}<svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></sc-for>
+                        <sc-if value="{{cd.TL.hasChips}}" hint-placeholder-val="{{ false }}"><button class="lnk" onClick="{{cd.TL.clearFilters}}">Clear all</button></sc-if>
                         <span class="tbGrow"></span>
-                        <sc-if value="{{TBL.canImport}}" hint-placeholder-val="{{ false }}"><button class="btn2 tbBtn" onClick="{{TBL.importFn}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"></path></svg>Import</button></sc-if>
-                        <sc-if value="{{TBL.canExport}}" hint-placeholder-val="{{ true }}"><button class="btn2 tbBtn" onClick="{{TBL.exportFn}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>Export</button></sc-if>
+                        <sc-if value="{{cd.TL.canImport}}" hint-placeholder-val="{{ false }}"><button class="btn2 tbBtn" onClick="{{cd.TL.importFn}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"></path></svg>Import</button></sc-if>
+                        <sc-if value="{{cd.TL.canExport}}" hint-placeholder-val="{{ true }}"><button class="btn2 tbBtn" onClick="{{cd.TL.exportFn}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>Export</button></sc-if>
                       </div>
                     </sc-if>
-                  </div>
-                  <div class="tblWrap" tabindex="0" aria-label="Table, scrolls sideways">
-                    <table class="tbl hasCk">
-                      <thead><tr><th scope="col" class="ckc"><button class="ckb {{TBL.headCls}}" role="checkbox" aria-checked="{{TBL.headState}}" aria-label="{{TBL.headAria}}" onClick="{{TBL.togAll}}"><span class="ckbox"><svg class="ic" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg><span class="dash"></span></span></button></th><sc-for list="{{cols}}" as="h" hint-placeholder-count="5"><th scope="col" class="{{h.cls}}">{{h.t}}</th></sc-for><th scope="col"><span class="sr">Actions</span></th></tr></thead>
-                      <tbody>
-                        <sc-for list="{{rows}}" as="r" hint-placeholder-count="5">
-                          <tr class="rowIn {{r.selRow}}" tabindex="0" aria-label="{{r.aria}}" onClick="{{r.open}}" onKeyDown="{{r.key}}" style="animation-name: {{r.anim}}; animation-delay: {{r.delay}}"><td class="ckc"><button class="ckb {{r.selCls}}" role="checkbox" aria-checked="{{r.sel}}" aria-label="{{r.selAria}}" onClick="{{r.togSel}}"><span class="ckbox"><svg class="ic" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg><span class="dash"></span></span></button></td>
-                            <sc-for list="{{r.cells}}" as="c" hint-placeholder-count="5">
-                              <td class="{{c.cls}}">
-                                <sc-if value="{{c.isTag}}" hint-placeholder-val="{{ false }}"><span class="tag" style="background: {{c.tone}}; color: {{c.ink}}">{{c.t}}</span></sc-if>
-                                <sc-if value="{{c.isTwo}}" hint-placeholder-val="{{ false }}"><span style="display: flex; flex-direction: column; min-height: 40px; justify-content: center"><strong class="{{c.tcls}}" style="font-weight: 600">{{c.t}}</strong><span style="color: var(--ad-dim); font-size: 12px">{{c.s}}</span></span></sc-if>
-                                <sc-if value="{{c.isOne}}" hint-placeholder-val="{{ false }}"><span class="{{c.tcls}}" style="color: {{c.col}}; font-weight: {{c.fw}}">{{c.t}}</span></sc-if>
-                              </td>
-                            </sc-for>
-                            <td style="text-align: right"><button class="ibtn ghostB" data-menu="row" aria-expanded="{{r.menuX}}" aria-label="{{r.menuAria}}" aria-haspopup="menu" onClick="{{r.menu}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg></button></td>
-                          </tr>
+                  </div></sc-if>
+                      <ul style="list-style: none; margin: 0; padding: 0 12px 12px">
+                        <sc-for list="{{cd.items}}" as="it" hint-placeholder-count="3">
+                          <li class="listRow rowIn {{it.selRow}}" style="animation-name: {{it.anim}}; animation-delay: {{it.delay}}"><sc-if value="{{cd.hasSel}}" hint-placeholder-val="{{ false }}"><button class="ckb {{it.selCls}}" role="checkbox" aria-checked="{{it.sel}}" aria-label="{{it.selAria}}" onClick="{{it.togSel}}"><span class="ckbox"><svg class="ic" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg><span class="dash"></span></span></button></sc-if>
+                            <span class="{{it.tileCls}}" style="background: {{it.tone}}"><sc-if value="{{it.hasIni}}" hint-placeholder-val="{{ false }}"><span style="font-size: 11px; font-weight: 700">{{it.ini}}</span></sc-if><sc-if value="{{it.hasIcon}}" hint-placeholder-val="{{ false }}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="{{it.d}}"></path></svg></sc-if></span>
+                            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><strong style="font-weight: 600; overflow: hidden; text-overflow: ellipsis">{{it.t}}</strong><span style="font-size: 13px; color: var(--ad-dim)">{{it.s}}</span></span>
+                            <sc-if value="{{it.hasTag}}" hint-placeholder-val="{{ false }}"><span class="tag" style="background: {{it.tagTone}}; color: {{it.tagInk}}">{{it.tag}}</span></sc-if>
+                            <sc-if value="{{it.hasBtn}}" hint-placeholder-val="{{ false }}"><button class="{{it.btnCls}}" style="min-height: 44px" disabled="{{it.btnDis}}" onClick="{{it.btn}}">{{it.btnLabel}}</button></sc-if>
+                            <sc-if value="{{it.hasMenu}}" hint-placeholder-val="{{ false }}"><button class="ibtn ghostB" data-menu="item" aria-expanded="{{it.menuX}}" aria-label="{{it.menuAria}}" aria-haspopup="menu" onClick="{{it.menu}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg></button></sc-if>
+                          </li>
                         </sc-for>
-                      </tbody>
-                    </table>
-                    <sc-if value="{{empty}}" hint-placeholder-val="{{ false }}">
-                      <div class="emptyRow rowIn" style="animation-name: rinA"><strong>{{emptyTitleT}}</strong><span style="color: var(--ad-dim)">{{emptyBodyT}}</span><sc-if value="{{hasFilter}}" hint-placeholder-val="{{ false }}"><button class="btn2" onClick="{{clearFilters}}">Clear filters</button></sc-if><sc-if value="{{noFilterEmpty}}" hint-placeholder-val="{{ false }}"><button class="btn" onClick="{{tabAct}}">{{tabActLabel}}</button></sc-if></div>
-                    </sc-if>
-                  </div>
-                  <div class="pgFoot">
-                    <span class="pgInfo num">{{BP.range}}</span>
+                      </ul>
+                      <sc-if value="{{cd.listEmpty}}" hint-placeholder-val="{{ false }}"><div class="emptyRow"><strong>{{cd.emptyTitle}}</strong><span style="color: var(--ad-dim)">{{cd.emptyBody}}</span><sc-if value="{{cd.hasClearList}}" hint-placeholder-val="{{ false }}"><button class="btn2" onClick="{{cd.clearList}}">Clear search and filters</button></sc-if></div></sc-if>
+                      <sc-if value="{{cd.hasPg}}" hint-placeholder-val="{{ false }}"><div class="pgFoot">
+                    <span class="pgInfo num">{{cd.pg.range}}</span>
                     <nav class="pager" aria-label="Items pages">
-                      <button class="pgb" onClick="{{BP.prev}}" disabled="{{BP.prevDis}}" aria-label="Previous page"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></button>
-                      <sc-for list="{{BP.pages}}" as="pg" hint-placeholder-count="3"><sc-if value="{{pg.gap}}" hint-placeholder-val="{{ false }}"><span class="pgGap" aria-hidden="true">…</span></sc-if><sc-if value="{{pg.isNum}}" hint-placeholder-val="{{ true }}"><button class="pgb pgNum {{pg.cls}}" aria-current="{{pg.cur}}" aria-label="{{pg.aria}}" onClick="{{pg.go}}">{{pg.n}}</button></sc-if></sc-for>
-                      <span class="pgCompact num">{{BP.compact}}</span>
-                      <button class="pgb" onClick="{{BP.next}}" disabled="{{BP.nextDis}}" aria-label="Next page"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></button>
+                      <button class="pgb" onClick="{{cd.pg.prev}}" disabled="{{cd.pg.prevDis}}" aria-label="Previous page"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></button>
+                      <sc-for list="{{cd.pg.pages}}" as="pg" hint-placeholder-count="3"><sc-if value="{{pg.gap}}" hint-placeholder-val="{{ false }}"><span class="pgGap" aria-hidden="true">…</span></sc-if><sc-if value="{{pg.isNum}}" hint-placeholder-val="{{ true }}"><button class="pgb pgNum {{pg.cls}}" aria-current="{{pg.cur}}" aria-label="{{pg.aria}}" onClick="{{pg.go}}">{{pg.n}}</button></sc-if></sc-for>
+                      <span class="pgCompact num">{{cd.pg.compact}}</span>
+                      <button class="pgb" onClick="{{cd.pg.next}}" disabled="{{cd.pg.nextDis}}" aria-label="Next page"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></button>
                     </nav>
-                    <span class="pgEnd"><button class="perBtn" data-menu="per" onClick="{{BP.openPer}}" aria-haspopup="menu">{{BP.perLabel}}<svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
-                    <button class="lnk viewAll" onClick="{{BP.all}}">View all<svg class="ic arr" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"></path></svg></button></span>
+                    <span class="pgEnd"><button class="perBtn" data-menu="per" onClick="{{cd.pg.openPer}}" aria-haspopup="menu">{{cd.pg.perLabel}}<svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
+                    <button class="lnk viewAll" onClick="{{cd.pg.all}}">View all<svg class="ic arr" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"></path></svg></button></span>
                   </div>
+</sc-if>
+                    </sc-if>
 
-                </section>
-              </div>
-
-              <aside class="railCards" aria-label="{{statsTitle}}" data-tour="rail">
-                <div class="bentoWrap" style="display: flex; flex-direction: column; gap: 10px">
-                  <div style="display: flex; align-items: center"><h2 style="font-size: 16px; font-weight: 700; flex: 1">{{statsTitle}}</h2></div>
-                  <div class="bento">
-                    <sc-for list="{{stats}}" as="k" hint-placeholder-count="4">
-                      <button class="card lift rise stat {{k.delay}}" onClick="{{k.open}}" aria-label="{{k.aria}}" style="--k: {{k.dot}}; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; text-align: left; min-height: 104px">
-                        <span class="statHd"><span class="statIc" style="background: {{k.tile}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="{{k.ic}}"></path></svg></span><span class="statLbl">{{k.label}}</span></span>
-                        <span class="num" style="font-size: clamp(22px, 2.4vw, 26px); font-weight: 700; line-height: 1.1">{{k.value}}</span>
-                        <span style="font-size: 12px; font-weight: 600; color: {{k.noteCol}}">{{k.note}}</span>
-                      </button>
-                    </sc-for>
-                  </div>
-                </div>
-
-                <sc-for list="{{railCards}}" as="rc" hint-placeholder-count="2">
-                  <section class="card rise {{rc.delay}}" aria-label="{{rc.title}}" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 6px">
-                    <div style="display: flex; align-items: center; gap: 8px"><h2 style="font-size: 16px; font-weight: 700; flex: 1">{{rc.title}}</h2><sc-if value="{{rc.hasSub}}" hint-placeholder-val="{{ false }}"><span style="font-size: 12px; color: var(--ad-dim)">{{rc.sub}}</span></sc-if></div>
-                    <sc-if value="{{rc.hasNote}}" hint-placeholder-val="{{ false }}"><p style="font-size: 13px; color: var(--ad-dim)">{{rc.note}}</p></sc-if>
-                    <sc-for list="{{rc.rows}}" as="r" hint-placeholder-count="3">
-                      <button class="rowh" onClick="{{r.open}}" style="display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 12px; width: 100%; text-align: left; min-height: 44px">
-                        <span class="svcIc" style="background: {{r.tone}}"><svg class="ic" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="{{r.d}}"></path></svg></span>
-                        <span style="flex: 1; min-width: 0; font-size: 13px"><strong>{{r.t}}</strong><br><span style="color: var(--ad-dim)">{{r.s}}</span></span>
-                        <sc-if value="{{r.hasTag}}" hint-placeholder-val="{{ false }}"><span class="tag" style="background: {{r.tagTone}}; color: {{r.tagInk}}">{{r.tag}}</span></sc-if>
-                      </button>
-                    </sc-for>
-                    <sc-if value="{{rc.hasAct}}" hint-placeholder-val="{{ false }}"><button class="btn2" style="align-self: stretch" onClick="{{rc.act}}">{{rc.actLabel}}</button></sc-if>
+                    <sc-if value="{{cd.isGrid}}" hint-placeholder-val="{{ false }}">
+                      <div class="tblWrap" tabindex="0" aria-label="{{cd.title}}, scrolls sideways" style="border-top: 1px solid var(--ad-line)">
+                        <table class="tbl">
+                          <thead><tr><th scope="col">{{cd.gridHead}}</th><sc-for list="{{cd.cols}}" as="h" hint-placeholder-count="3"><th scope="col" style="text-align: center">{{h}}</th></sc-for></tr></thead>
+                          <tbody>
+                            <sc-for list="{{cd.grid}}" as="g" hint-placeholder-count="4">
+                              <tr style="cursor: default">
+                                <td><span style="display: flex; flex-direction: column; min-height: 44px; justify-content: center; min-width: 200px"><strong style="font-weight: 600">{{g.t}}</strong><span style="color: var(--ad-dim); font-size: 12px">{{g.s}}</span></span></td>
+                                <sc-for list="{{g.cells}}" as="c" hint-placeholder-count="3">
+                                  <td style="text-align: center"><button class="switch gridSw" role="switch" aria-checked="{{c.checked}}" aria-label="{{c.aria}}" disabled="{{c.locked}}" onClick="{{c.toggle}}"></button></td>
+                                </sc-for>
+                              </tr>
+                            </sc-for>
+                          </tbody>
+                        </table>
+                      </div>
+                      <sc-if value="{{cd.hasGridNote}}" hint-placeholder-val="{{ false }}"><div style="padding: 12px 20px 16px"><div class="lockNote"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="flex: none; margin-top: 2px"><path d="M19 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2zM7 11V7a5 5 0 0 1 10 0v4"></path></svg><span><strong>{{cd.gridNoteT}}</strong>{{cd.gridNoteS}}</span></div></div></sc-if>
+                    </sc-if>
                   </section>
                 </sc-for>
-              </aside>
+
+                <div class="saveBar secFoot" role="region" aria-label="Save {{secName}}"><span style="flex: 1; min-width: 0">{{dirtyText}}<sc-if value="{{hasOther}}" hint-placeholder-val="{{ false }}"><span class="otherN"> · {{otherNote}}</span></sc-if></span><button class="btn2" style="min-height: 44px" disabled="{{discardDis}}" onClick="{{discard}}">Discard</button><button class="btn" style="min-height: 44px" disabled="{{saveDis}}" onClick="{{save}}">Save changes</button></div>
+                <sc-if value="{{showWhy}}" hint-placeholder-val="{{ false }}"><p class="hint" style="margin: 0 4px">{{saveWhy}}</p></sc-if>
+              </div>
             </div>
             </sc-if>
 
@@ -1429,6 +1413,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
             <div class="noticeB" role="status" style="--nt: {{sheet.notice.tone}}"><span class="noticeIc"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="{{sheet.notice.icon}}"></path></svg></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><strong>{{sheet.notice.title}}</strong><span>{{sheet.notice.body}}</span></span><sc-if value="{{sheet.notice.hasAct}}" hint-placeholder-val="{{ false }}"><button class="btn2" style="min-height: 40px" onClick="{{sheet.notice.act}}">{{sheet.notice.actLabel}}</button></sc-if></div>
           </sc-if>
           <sc-if value="{{sheet.hasRows}}" hint-placeholder-val="{{ true }}"><dl class="dl"><sc-for list="{{sheet.rows}}" as="r" hint-placeholder-count="4"><div style="min-width: 0"><dt>{{r.k}}</dt><dd class="num">{{r.v}}</dd></div></sc-for></dl></sc-if>
+          <sc-if value="{{sheet.hasQuick}}" hint-placeholder-val="{{ false }}"><div class="quickRow" role="group" aria-label="More for this item"><sc-for list="{{sheet.quick}}" as="q" hint-placeholder-count="3"><button type="button" class="chip" onClick="{{q.fn}}">{{q.t}}</button></sc-for></div></sc-if>
           <sc-if value="{{sheet.hasBody}}" hint-placeholder-val="{{ true }}"><p style="max-width: 62ch">{{sheet.body}}</p></sc-if>
           <sc-if value="{{sheet.hasPreview}}" hint-placeholder-val="{{ false }}">
             <div class="preview"><span style="font-size: 12px; color: var(--ad-dim)">To <strong style="color: var(--ad-ink)">{{sheet.preview.to}}</strong></span><strong>{{sheet.preview.subject}}</strong><span>{{sheet.preview.text}}</span></div>
@@ -1746,7 +1731,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 
           <sc-if value="{{sheet.hasFeed}}" hint-placeholder-val="{{ false }}">
             <div style="display: flex; flex-direction: column">
-              <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 10px">History</h3>
+              <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 10px">{{sheet.feedTitle}}</h3>
               <sc-for list="{{sheet.feed}}" as="f" hint-placeholder-count="3"><div class="feedRow"><span style="display: flex; flex-direction: column; align-items: center"><span class="d"></span><span style="flex: 1; width: 2px; background: var(--ad-line)"></span></span><span style="padding-bottom: 14px"><span style="font-weight: 600">{{f.t}}</span><br><span style="color: var(--ad-dim); font-size: 13px">{{f.when}}</span></span></div></sc-for>
             </div>
           </sc-if>
@@ -2232,12 +2217,12 @@ class Component extends DCLogic {
 
   /* ---------- the values every template shares ---------- */
   kit() {
-    var s = this.state, self = this, I = this.icons();
+    var s = this.state, self = this, I = this.icons(); var svq = (function () { try { return new URLSearchParams(window.location.search); } catch (e) { return new URLSearchParams(''); } })();
     var DEV = [['desktop', 'Desktop', 'M2 4h20v12H2zM8 20h8M12 16v4', '100%', 'auto', 'Full width'], ['tablet', 'Tablet', 'M6 2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM11 18h2', '834px', '1112px', '834 × 1112'], ['phone', 'Phone', 'M8 2h8a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM11 18h2', '390px', '844px', '390 × 844']];
     var devI = 0; DEV.forEach(function (d, i) { if (d[0] === s.dev) devI = i; });
     var cur = DEV[devI];
     var navOn = this.navSection ? this.navSection() : this.pageName();
-    var mk = function (n) { var on = n.label === navOn; return { label: n.label, d: n.d, href: n.href || '#', hasCount: n.count > 0, count: n.count, tone: n.tone || 'var(--ad-tone-brand)', aria: n.label + (n.count ? ', ' + n.count + ' new' : ''), cls: on ? 'on' : '', current: on ? 'page' : 'false', go: function (e) { if (on || !n.href || n.href === '#') { if (e && e.preventDefault) e.preventDefault(); self.setState({ drawer: false }); } } }; };
+    var mk = function (n) { var on = n.label === navOn; return {  label: n.label, d: n.d, href: n.href || '#', hasCount: n.count > 0, count: n.count, tone: n.tone || 'var(--ad-tone-brand)', aria: n.label + (n.count ? ', ' + n.count + ' new' : ''), cls: on ? 'on' : '', current: on ? 'page' : 'false', go: function (e) { if (on || !n.href || n.href === '#') { if (e && e.preventDefault) e.preventDefault(); self.setState({ drawer: false }); } } }; };
     var nav2 = this.roleNav().filter(function (n) { return n.second; }).map(mk);
     var nav = this.navData().map(function (n) { var on = n.label === navOn; return { label: n.label, d: n.d, href: n.href || '#', hasCount: n.count > 0, count: n.count, tone: n.tone || 'var(--ad-tone-brand)', aria: n.label + (n.count ? ', ' + n.count + ' new' : ''), cls: on ? 'on' : '', current: on ? 'page' : 'false', go: function (e) { if (on || !n.href || n.href === '#') { if (e && e.preventDefault) e.preventDefault(); self.setState({ drawer: false }); if (!on) self.later(n.label + ' opens in the full prototype.'); } } }; });
     var notesRaw = this.notesData();
@@ -2291,7 +2276,7 @@ class Component extends DCLogic {
     if (raw.primaryDis) { var pd = raw.primaryDis(ctx, s); if (pd) { dis = 'y'; reqText = pd; } }
     var galRaw = typeof raw.gallery === 'function' ? raw.gallery(s) : (raw.gallery || []), galEmpty = typeof raw.galleryEmpty === 'function' ? raw.galleryEmpty(s) : false;
     var sheet = Object.assign({}, raw, {
-      hasGallery: galRaw.length > 0, gallery: galRaw, galleryEmpty: galEmpty, back: s.stack.length > 0, hasChip: !!raw.chip, hasIcon: !!raw.icon, icon: raw.icon || '', iconTone: raw.iconTone || 'var(--ad-tone-brand)', hasRows: raw.rows.length > 0, hasBody: !!raw.body, hasPreview: !!raw.preview, preview: raw.preview || {},
+      feedTitle: raw.feedTitle || 'History', hasQuick: !!(raw.quick && raw.quick.length), quick: (raw.quick || []).map(function (q) { return { t: q.t, d: q.d || '', fn: function () { if (q.fn) q.fn(); } }; }), hasGallery: galRaw.length > 0, gallery: galRaw, galleryEmpty: galEmpty, back: s.stack.length > 0, hasChip: !!raw.chip, hasIcon: !!raw.icon, icon: raw.icon || '', iconTone: raw.iconTone || 'var(--ad-tone-brand)', hasRows: raw.rows.length > 0, hasBody: !!raw.body, hasPreview: !!raw.preview, preview: raw.preview || {},
       hasList: list.length > 0 || ss.has, list: list, ss: ss, listRole: raw.select ? (raw.multi ? 'group' : 'radiogroup') : 'list', hasChecks: checks.length > 0, checks: checks, checksTitle: raw.checksTitle || 'Checklist', checksDone: ckDone + ' of ' + checks.length, checksPct: checks.length ? Math.round(ckDone / checks.length * 100) : 0,
       hasFeed: raw.feed.length > 0, hasNote: !!raw.note, reason: !!raw.reason, reasonLabel: raw.reason ? raw.reason.label : '', reasonPh: raw.reason ? raw.reason.ph : '', ack: !!raw.ack, ackText: raw.ack || '',
       hasFields: fields.length > 0, fields: fields, fieldsCls: raw.chipsFirst ? 'fieldsLate' : '', listCls: raw.chipsFirst ? 'listLate' : '', chipsCls: raw.chipsFirst ? 'chipsMid' : '', hasChipSets: chipSets.length > 0, chipSets: chipSets, hasNotice: !!notice, notice: notice || {}, primaryLabel: plabel, primaryCls: raw.danger ? 'btnD' : (raw.green ? 'btnG' : 'btn'), primaryDis: !!dis, why: reqText, hasSecondary: !!raw.secondary, secondaryLabel: typeof raw.secondary === 'function' ? raw.secondary(ctx, s) : raw.secondary, chip: typeof raw.chip === 'function' ? raw.chip(ctx, s) : raw.chip, tone: typeof raw.tone === 'function' ? raw.tone(ctx, s) : raw.tone, hasFoot: !raw.noFoot, busy: !!raw.busy
@@ -2306,7 +2291,7 @@ class Component extends DCLogic {
     }
     var client = s.vis === 'client';
     var anyOverlay = !!(s.sheet || s.drawer || s.pal || (s.pop && s.pop.asSheet) || s.tour >= 0);
-    return {
+    return { svOn: !!svq.get('sv'), svName: svq.get('who') ? svq.get('who') + ' as ' + svq.get('sv') : 'read only', svEnds: '09:00',
       rootCls: 'wdc' + (s.dark ? ' dark' : '') + (s.dev === 'phone' ? ' isPhone' : '') + (anyOverlay ? ' locked' : ''),
       themeLabel: s.dark ? 'Switch to light mode' : 'Switch to dark mode', themeIcon: s.dark ? I.sun : I.moon, themeShort: s.dark ? 'Light' : 'Dark', themeLong: s.dark ? 'Light mode' : 'Dark mode',
       toggleTheme: function () { self.setState({ dark: !self.state.dark }); },
@@ -3355,7 +3340,10 @@ class Component extends DCLogic {
       { when: '60 days', what: 'Play developer account', client: 'Kora Logistics', amount: '$25', tone: 'var(--ad-tone-neutral)', sheet: S({ eyebrow: 'Renewal', title: 'Google Play account', icon: I.link, rows: [{ k: 'Owner', v: 'WDC, movable on request' }, { k: 'Renews', v: '9 Dec 2026' }], primary: 'Remind me in November', pToast: 'Reminder set for 1 November.' }) }
     ].map(function (r) { return Object.assign({}, r, { open: function () { self.open(r.sheet); } }); });
 
+    var pn = this.shared('dashPanels', ['Cash in', 'Team today']);
     return Object.assign(this.kit(), this.extraVals(), dv, {
+      showCash: pn.indexOf('Cash in') >= 0, showTeam: pn.indexOf('Team today') >= 0,
+      customise: function () { var all = ['Cash in', 'Team today']; self.open(self.sh({ eyebrow: 'Customise', title: 'What the dashboard shows', icon: I.layers, keepOpen: true, body: 'Untick what you do not need. You can bring it back here. The studio pulse figures always stay.', form: { pn: pn.slice() }, chipSets: [{ key: 'pn', label: 'Panels beside the deck', multi: true, opts: all }], primary: 'Save', secondary: 'Cancel', onPrimary: function (ctx) { self.setShared('dashPanels', ctx.form.pn); self.setState({ ra: self.state.ra + 1, sheet: null, stack: [] }); self.say('Saved. The dashboard is updated.'); } })); },
       deckTitle: 'Up next', deckKeys: 'Focus the card: D done, S snooze', snoozeLabel: 'Snooze', snoozeShort: 'Snooze', canPass: true,
       emptyTitle: 'You are clear, Babatope.', emptyBody: 'Nothing needs you right now. Next on the calendar:', emptyNext: 'Discovery call with Zara Events at 11:00.', emptyPrimaryLabel: 'Plan tomorrow', emptySecondaryLabel: 'Bring everything back',
       emptyPrimary: function () { self.open(S({ eyebrow: 'Tomorrow', title: 'Sunday 11 October', icon: I.cal, listTitle: 'Already booked', list: [{ t: '09:00 · Send November retainers', s: '4 drafts ready · ₦1,450,000', tag: 'Money', tone: 'var(--ad-tone-live)' }, { t: '10:00 · Halo milestone 2 demo', s: 'Google Meet · Daniel', tag: 'Meeting', tone: 'var(--ad-tone-brand)' }], body: 'Anything you snooze to tomorrow lands here at 09:00.', primary: 'Close' })); },
@@ -3536,132 +3524,241 @@ class Component extends DCLogic {
       onPrimary: function (ctx) { if (onAdd) onAdd(ctx.form); self.say('Task added. It is on ' + ctx.form.who.split(' ')[0] + '’s My Day, due ' + ctx.form.due.toLowerCase() + '.'); } });
   }
 
-  /* ======================= Hub pages (Email, Forms, Meetings): tabs, one table, a rail ======================= */
-  pageState() { return { tab: 0, chip: 'all', hpg: 0, hper: 5, hq: '', ra: 0, pst: {}, added: {}, gone: {}, flt: {}, bsel: {} }; }
-  hubApply(key, base) { var s = this.state; return (s.added[key] || []).concat(base).map(function (x) { return s.pst[x.id] ? Object.assign({}, x, s.pst[x.id]) : x; }).filter(function (x) { return !s.gone[x.id]; }); }
-  hubPatch(id, patch) { var m = Object.assign({}, this.state.pst); m[id] = Object.assign({}, m[id] || {}, patch); this.setState({ pst: m, ra: this.state.ra + 1 }); }
-  hubAdd(key, item) { var a = Object.assign({}, this.state.added); a[key] = [item].concat(a[key] || []); this.setState({ added: a, ra: this.state.ra + 1 }); }
-  hubGone(ids, label) { var self = this, g = Object.assign({}, this.state.gone); ids.forEach(function (i) { g[i] = true; }); this.setState({ gone: g, ra: this.state.ra + 1 }); this.say(label, { undo: function () { var u = Object.assign({}, self.state.gone); ids.forEach(function (i) { delete u[i]; }); self.setState({ gone: u, ra: self.state.ra + 1 }); } }); }
-  hubPick(k) { var T = this.hubCfg().tabs; return T[Math.min(this.state.tab, T.length - 1)]; }
+  /* ======================= Settings (shared by all roles, driven by this.setModel()) ======================= */
+  pageState() { return { sec: 0, sv: {}, saved: {}, ra: 0, lists: {} }; }
+  pageName() { return 'Settings'; }
+  tourSteps() {
+    var I = this.icons(), M = this.setModel();
+    return [
+      { target: 'nav', title: 'Sections', icon: I.gear, body: M.tourNav, hint: 'On a phone this is a strip you swipe sideways.' },
+      { target: 'cards', title: 'Each row says what it does', icon: I.check, body: 'The label and one line of explanation sit on the left, the control on the right. A control you cannot use says why, and who can change it.' },
+      { target: 'search|searchS', title: 'Changes wait for Save', icon: I.search, body: 'Nothing changes until you press Save changes. Discard puts everything back.' }
+    ];
+  }
+  navCounts() { return this.setModel().navBase || {}; }
+  sval(key, def) { var s = this.state; return key in s.sv ? s.sv[key] : (key in s.saved ? s.saved[key] : def); }
+  setv(key, v, def) { var s = this.state, sv = Object.assign({}, s.sv), base = key in s.saved ? s.saved[key] : def; if (JSON.stringify(v) === JSON.stringify(base)) delete sv[key]; else sv[key] = v; this.setState({ sv: sv }); }
+  /* the keys that belong to one tab, so each tab has its own Save */
+  secKeys(sec) {
+    var out = [];
+    sec.cards.forEach(function (c) { (c.rows || []).forEach(function (r) { out.push(r.key); }); if (c.grid) c.grid.rows.forEach(function (r) { r.cells.forEach(function (cl) { out.push(cl.key); }); }); });
+    return out;
+  }
+  saveSection(si) {
+    var self = this, M = this.setModel(), sec = M.sections[si], keys = this.secKeys(sec), s = this.state, I = this.icons();
+    var dirty = Object.keys(s.sv).filter(function (k) { return keys.indexOf(k) >= 0; });
+    if (!dirty.length) return;
+    var rows = this.allRows(), byKey = {}; rows.forEach(function (r) { byKey[r.key] = r; });
+    var commit = function () {
+      var m = Object.assign({}, self.state.saved), sv = Object.assign({}, self.state.sv), th = null;
+      dirty.forEach(function (k) { m[k] = sv[k]; if (k === 'theme') th = sv[k]; delete sv[k]; });
+      self.setState(Object.assign({ saved: m, sv: sv, ra: self.state.ra + 1 }, th ? { dark: th === 'Dark' } : {}));
+      self.say('Updated. ' + dirty.length + (dirty.length === 1 ? ' setting is' : ' settings are') + ' live on ' + sec.label + '.');
+    };
+    var confirmRows = dirty.map(function (k) { return byKey[k]; }).filter(function (r) { return r && r.confirm; });
+    var verifyRow = dirty.map(function (k) { return byKey[k]; }).filter(function (r) { return r && r.verify; })[0];
+    var afterVerify = function () {
+      if (!confirmRows.length) { commit(); return; }
+      self.ask({ eyebrow: sec.label, title: 'Confirm ' + confirmRows.length + (confirmRows.length === 1 ? ' change' : ' changes'), body: confirmRows.map(function (r) { return r.confirm(self.sval(r.key, r.def)); }).join(' '), ok: 'Confirm and save', icon: I.check, tone: 'var(--ad-tone-brand)', back: false, onOk: function () { commit(); } });
+    };
+    if (verifyRow) {
+      var val = s.sv[verifyRow.key];
+      this.open(this.sh({ eyebrow: 'Verify', title: 'Verify the new ' + verifyRow.label.toLowerCase(), icon: I.mail, body: verifyRow.verify.body(val), focus: 'f-code',
+        fields: [{ key: 'code', label: '6 digit code', ph: '000000', mode: 'numeric', hint: verifyRow.verify.hint, check: function (v) { return v.trim() && !/^\d{0,6}$/.test(v.trim()) ? 'Numbers only.' : ''; } }],
+        primary: 'Verify and save', secondary: 'Cancel', primaryDis: function (ctx) { return /^\d{6}$/.test((ctx.form.code || '').trim()) ? '' : 'Enter the 6 digit code we sent.'; },
+        onPrimary: function () { afterVerify(); } }));
+      return;
+    }
+    afterVerify();
+  }
+  discardSection(si) { var keys = this.secKeys(this.setModel().sections[si]), sv = Object.assign({}, this.state.sv); Object.keys(sv).forEach(function (k) { if (keys.indexOf(k) >= 0) delete sv[k]; }); this.setState({ sv: sv, ra: this.state.ra + 1 }); this.say('Changes discarded.'); }
+  allRows() { var out = []; this.setModel().sections.forEach(function (sec) { sec.cards.forEach(function (c) { (c.rows || []).forEach(function (r) { out.push(r); }); }); }); return out; }
   popItems(pop) {
-    var I = this.icons(), it = this.menuItem.bind(this), self = this, C = this.hubCfg();
-    if (pop.kind === 'row') { var T = this.hubPick(), x = T.items().filter(function (r) { return r.id === pop.id; })[0]; return x ? T.actions(x, it, I) : []; }
-    if (pop.kind === 'chores') return C.chores(it, I);
+    var self = this, I = this.icons(), it = this.menuItem.bind(this), M = this.setModel();
+    if (pop.kind === 'sel') {
+      var r = this.allRows().filter(function (x) { return x.key === pop.id; })[0]; if (!r) return [];
+      var cur = this.sval(r.key, r.def);
+      return r.opts.map(function (o) { return it(o, '', function () { self.setv(r.key, o, r.def); }, o === cur ? { hint: 'Current' } : undefined); });
+    }
+    if (pop.kind === 'item') {
+      var p = pop.id.split(':'), sec = M.sections[+p[0]], card = sec && sec.cards[+p[1]], items = card && card.list ? card.list(this) : [], row = items[+p[2]];
+      return row && row.menu ? row.menu.map(function (m) { return m.sep ? self.menuSep() : it(m.t, I[m.icon] || I.open, m.fn, m.danger ? { danger: true } : (m.hint ? { hint: m.hint } : undefined)); }) : [];
+    }
+    if (pop.kind === 'chores') return M.chores(this, it, I);
     return [];
   }
-  deck() { return this.hubCfg().deck(); }
   renderVals() {
-    var s = this.state, self = this, I = this.icons(), C = this.hubCfg(), q = s.hq.trim().toLowerCase();
-    var T = this.hubPick(), all = T.items(), F = 'var(--ad-tone-flat)';
-    var dk = this.deck(), dv = this.deckView(dk);
-    var chips = T.chips || [['all', 'All', function () { return true; }]];
-    var cur = chips.filter(function (c) { return c[0] === s.chip; })[0] || chips[0];
-    var match = function (x) { return !q || x.hay.toLowerCase().indexOf(q) >= 0; };
-    var FX = T.facets ? T.facets(all) : [], list0 = all.filter(function (x) { return cur[2](x) && match(x); }), list = FX.length ? this.applyFlt(T.key, list0, FX) : list0;
-    var cp = Math.min(s.hpg, Math.max(0, Math.ceil(list.length / s.hper) - 1)), pageList = list.slice(cp * s.hper, cp * s.hper + s.hper);
-    var rows = pageList.map(function (x, i) {
-      var open = function () { self.open(T.sheet(x)); };
-      var cells = [{ isTwo: true, t: x.name, s: x.sub, cls: '', tcls: '' }].concat(x.cells.map(function (c) { return c.tag ? { isTag: true, t: c.t, tone: c.tone || F, ink: c.ink || 'var(--ad-on-flat)', cls: '' } : { isOne: true, t: c.t, col: c.col || 'var(--ad-ink)', fw: 400, cls: c.cls || '', tcls: c.cls || '' }; }));
-      return { cells: cells, anim: self.anim(s.ra), delay: (i * 0.035) + 's', aria: x.name + '. Press Enter to open.', menuAria: 'Actions for ' + x.name, menuX: self.popOn('row', x.id),
-        open: function (e) { if (e && e.target && e.target.closest && e.target.closest('[data-menu]')) return; open(); }, key: function (e) { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); open(); } },
-        menu: function (e) { if (e && e.stopPropagation) e.stopPropagation(); self.openPop(e, 'row', x.id, 260, 330, 'Actions for ' + x.name); } };
+    var s = this.state, self = this, I = this.icons(), M = this.setModel(), S = this.sh.bind(this);
+    var si = Math.min(s.sec, M.sections.length - 1), sec = M.sections[si], F = 'var(--ad-tone-flat)';
+    var tone = function (t) { return t || F; }, ink = function (t) { return tone(t) === F ? 'var(--ad-on-flat)' : '#fff'; };
+    var sections = M.sections.map(function (x, i) { var on = i === si, n = x.n && x.n(self), keysI = self.secKeys(x), dirtyI = Object.keys(s.sv).filter(function (k) { return keysI.indexOf(k) >= 0; }).length; return { label: x.label, d: I[x.icon] || x.icon, cls: on ? 'on' : '', current: on ? 'page' : 'false', hasN: !!n, n: n, hasDot: dirtyI > 0, dotAria: dirtyI + ' unsaved', nTone: x.nTone || 'var(--ad-tone-live)', pick: function (e) { if (e && e.preventDefault) e.preventDefault(); if (!on) self.setState({ sec: i, ra: self.state.ra + 1 }); } }; });
+    var errs = 0;
+    var cards = sec.cards.map(function (c, ci) {
+      var out = { title: c.title, hasSub: !!c.sub, sub: c.sub || '', delay: (ci * 0.06) + 's', hasAct: !!c.act, actLabel: c.act ? c.act.label : '', act: c.act ? c.act.fn : null, rows: [], isList: false, isGrid: false };
+      out.rows = (c.rows || []).map(function (r) {
+        var v = self.sval(r.key, r.def), dirty = r.key in s.sv, locked = !!r.lock, err = (!locked && r.check && dirty) ? r.check(v) : '';
+        if (err) errs++;
+        var row = { label: r.label, hint: r.hint || '', cls: err ? 'err' : '', locked: locked, hasErr: !!err, err: err, hasLock: locked, lockWhy: locked ? r.lock.why + ' ' : '', lockFix: locked ? r.lock.fix : '', ph: r.ph || '',
+          isText: r.type === 'text', isArea: r.type === 'area', isSwitch: r.type === 'switch', isSeg: r.type === 'seg', isSelect: r.type === 'select', isStatic: r.type === 'static', value: r.type === 'static' ? (typeof r.value === 'function' ? r.value(self) : r.value) : v };
+        row.on = function (e) { self.setv(r.key, e.target.value, r.def); };
+        row.checked = v ? 'true' : 'false'; row.state = r.type === 'switch' ? (v ? (r.onText || 'On') : (r.offText || 'Off')) : '';
+        row.toggle = function () { self.setv(r.key, !self.sval(r.key, r.def), r.def); };
+        if (r.type === 'seg') { row.segI = r.opts.indexOf(v) < 0 ? 0 : r.opts.indexOf(v); row.opts = r.opts.map(function (o) { var on = o === v; return { t: o, cls: on ? 'on' : '', pressed: on ? 'true' : 'false', pick: function () { self.setv(r.key, o, r.def); } }; }); }
+        if (r.type === 'select') { row.menuX = self.popOn('sel', r.key); row.open = function (e) { self.openPop(e, 'sel', r.key, 300, Math.min(360, r.opts.length * 48 + 24), r.label); }; }
+        if (r.type === 'static') { var tg = typeof r.tag === 'function' ? r.tag(self) : r.tag; row.hasTag = !!tg; row.tag = tg ? tg[0] : ''; row.tagTone = tg ? tone(tg[1]) : ''; row.tagInk = tg ? ink(tg[1]) : ''; row.hasAct = !!r.action; row.actLabel = r.action ? (typeof r.action.label === 'function' ? r.action.label(self) : r.action.label) : ''; row.act = r.action ? r.action.fn : null; }
+        return row;
+      });
+      if (c.list) {
+        out.isList = true; var items = c.list(self), tkey = 'set-' + si + '-' + ci, LQ = (s.lists['q:' + tkey] || ''), LP = s.lists['p:' + tkey] || 0, LN = s.lists['n:' + tkey] || 5;
+        var find = c.find || null, facets = (find && find.facets) || [], searchable = !!find;
+        var all0 = items, qq = LQ.trim().toLowerCase();
+        if (qq) items = items.filter(function (x) { return (x.t + ' ' + x.s + ' ' + (x.tag || '')).toLowerCase().indexOf(qq) >= 0; });
+        items = self.applyFlt(tkey, items, facets);
+        var paged = !!find || items.length > 5, pgN = Math.min(LP, Math.max(0, Math.ceil(items.length / LN) - 1)), pageItems = paged ? items.slice(pgN * LN, pgN * LN + LN) : items;
+        out.hasFind = searchable; out.findPh = find ? find.ph : ''; out.findQ = LQ; out.hasFindQ = !!LQ; out.findId = 'fq-' + tkey;
+        out.onFind = function (e) { var l = Object.assign({}, self.state.lists); l['q:' + tkey] = e.target.value; l['p:' + tkey] = 0; self.setState({ lists: l }); };
+        out.clearFind = function () { var l = Object.assign({}, self.state.lists); l['q:' + tkey] = ''; l['p:' + tkey] = 0; self.setState({ lists: l }); };
+        out.hasSel = !!c.bulk; out.hasTools = !!(c.bulk || facets.length);
+        var bk = c.bulk || {};
+        out.TL = out.hasTools ? self.toolsView(tkey, { noun: bk.noun || (c.title || 'items').toLowerCase(), one: bk.one || 'item', pageIds: pageItems.map(function (x) { return x.id; }), allIds: items.map(function (x) { return x.id; }), rowsById: function (ids) { return items.filter(function (x) { return ids.indexOf(x.id) >= 0; }); }, rows: all0, unfiltered: all0, facets: facets, acts: bk.acts || [], exportFn: bk.cols ? function (sel) { self.exportSheet({ noun: bk.noun, file: bk.file || 'wdc-' + bk.noun, cols: bk.cols, all: all0, filtered: items, selected: sel }); } : null }) : {};
+        out.pg = paged ? Object.assign(self.pager(tkey, items.length, LN, pgN, function (k) { var l = Object.assign({}, self.state.lists); l['p:' + tkey] = k; self.setState({ lists: l, ra: self.state.ra + 1 }); }, function (n) { var l = Object.assign({}, self.state.lists); l['n:' + tkey] = n; l['p:' + tkey] = 0; self.setState({ lists: l, ra: self.state.ra + 1 }); }), { all: function () { var l = Object.assign({}, self.state.lists); l['n:' + tkey] = 20; l['p:' + tkey] = 0; self.setState({ lists: l, ra: self.state.ra + 1 }); } }) : {};
+        out.hasPg = paged && items.length > 5;
+        var filtered = !!(qq || (out.TL && out.TL.hasFn));
+        out.items = pageItems.map(function (x, ii) {
+          var bt = x.btn, rs = out.hasSel ? self.rowSel(tkey, x.id, x.t) : { sel: 'false', selCls: '', selAria: '', togSel: null, selRow: '' };
+          return Object.assign({ t: x.t, s: x.s, tone: x.tone || 'var(--ad-tone-brand)', tileCls: 'lrTile' + (x.ini ? ' round' : ''), hasIni: !!x.ini, ini: x.ini, hasIcon: !x.ini, d: I[x.icon] || x.icon || I.folder, hasTag: !!x.tag, tag: x.tag, tagTone: tone(x.tagTone), tagInk: ink(x.tagTone), anim: self.anim(s.ra), delay: (ii * 0.035) + 's',
+            hasBtn: !!bt, btnLabel: bt ? bt.label : '', btnCls: bt && bt.kind === 'danger' ? 'btnD' : 'btn2', btnDis: !!(bt && bt.dis), btn: bt ? bt.fn : null,
+            hasMenu: !!(x.menu && x.menu.length), menuAria: 'Actions for ' + x.t, menuX: self.popOn('item', si + ':' + ci + ':' + all0.indexOf(x)), menu: function (e) { if (e && e.stopPropagation) e.stopPropagation(); self.openPop(e, 'item', si + ':' + ci + ':' + all0.indexOf(x), 260, 220, 'Actions for ' + x.t); } }, rs);
+        });
+        out.listEmpty = !items.length; out.emptyTitle = filtered ? 'Nothing matches.' : (c.emptyTitle || 'Nothing here.'); out.emptyBody = filtered ? 'Change the search or the filters, or clear them.' : (c.emptyBody || '');
+        out.hasClearList = filtered; out.clearList = function () { var l = Object.assign({}, self.state.lists); l['q:' + tkey] = ''; l['p:' + tkey] = 0; var f = Object.assign({}, self.state.flt); delete f[tkey]; self.setState({ lists: l, flt: f, ra: self.state.ra + 1 }); };
+      }
+      if (c.grid) {
+        var g = c.grid; out.isGrid = true; out.gridHead = g.head; out.cols = g.cols; out.hasGridNote = !!g.note; out.gridNoteT = g.note ? g.note.t + ' ' : ''; out.gridNoteS = g.note ? g.note.s : '';
+        out.grid = g.rows.map(function (r) { return { t: r.t, s: r.s || '', cells: r.cells.map(function (cl) { var cur = self.sval(cl.key, cl.def); return { checked: cur ? 'true' : 'false', aria: cl.aria, locked: !!cl.locked, toggle: function () { self.setv(cl.key, !self.sval(cl.key, cl.def), cl.def); } }; }) }; });
+      }
+      return out;
     });
-    rows.forEach(function (r, i) { Object.assign(r, self.rowSel(T.key, pageList[i].id, pageList[i].name)); });
-    var TBL = this.toolsView(T.key, { noun: T.noun, one: T.one, pageIds: pageList.map(function (x) { return x.id; }), allIds: list.map(function (x) { return x.id; }), rowsById: function (ids) { return list.filter(function (x) { return ids.indexOf(x.id) >= 0; }); }, rows: list0, unfiltered: list0, facets: FX, acts: T.bulk ? T.bulk(self) : [], exportFn: function (sel) { self.exportSheet({ noun: T.noun, file: T.file, all: all, filtered: list, selected: sel, cols: T.exportCols }); } });
-    var BP = Object.assign(this.pager(T.key, list.length, s.hper, cp, function (k) { self.setState({ hpg: k, ra: s.ra + 1 }); }, function (n) { self.setState({ hper: n, hpg: 0, ra: self.state.ra + 1 }); }), { all: function () { self.setState({ hper: 20, hpg: 0, ra: self.state.ra + 1 }); self.say('Showing all ' + list.length + ' ' + T.noun + '.'); } });
-    var chipsV = chips.map(function (c) { var on = c === cur; return { t: c[1], n: all.filter(function (x) { return c[2](x) && match(x); }).length, cls: on ? 'on' : '', pressed: on ? 'true' : 'false', pick: function () { self.setState({ chip: c[0], hpg: 0, ra: self.state.ra + 1 }); } }; });
-    var tabs = C.tabs.map(function (t, i) { var on = i === Math.min(s.tab, C.tabs.length - 1), w = t.warn && t.warn(); return { label: t.label, n: t.items().length, chip: w ? 'var(--ad-tone-warn)' : F, ink: w ? '#fff' : 'var(--ad-on-flat)', cls: on ? 'on' : '', sel: on ? 'true' : 'false', pick: function () { if (!on) self.setState({ tab: i, chip: 'all', hpg: 0, hq: '', flt: {}, ra: self.state.ra + 1 }); } }; });
-    var stats = C.stats(this).map(function (k, i) { return Object.assign({}, k, self.statDeco(k), { delay: 'd' + (i + 1), aria: k.label + ': ' + k.value + '. ' + k.note, open: k.fn || function () {} }); });
-    var railCards = C.rail(this).map(function (c, i) { return { title: c.title, sub: c.sub || '', hasSub: !!c.sub, note: c.note || '', hasNote: !!c.note, delay: 'd' + (i + 3), hasAct: !!c.act, actLabel: c.actLabel || '', act: c.act || null, rows: c.rows.map(function (r) { var tt = r.tagTone || F; return { t: r.t, s: r.s, d: r.d, tone: r.tone || 'var(--ad-tone-neutral)', hasTag: !!r.tag, tag: r.tag || '', tagTone: tt, tagInk: tt === F ? 'var(--ad-on-flat)' : '#fff', open: r.open || function () {} }; }) }; });
-    var hasFilter = !!q || cur !== chips[0] || TBL.hasFn;
-    return Object.assign(this.kit(), this.extraVals(), dv, {
-      pageTitle: C.title, ledeA: C.ledeA(this), ledeB: C.ledeB(this), newLabel: C.newLabel, newPost: function () { C.newFn(self); }, openChores: function (e) { self.openPop(e, 'chores', 'chores', 260, 220, 'More for ' + C.title); }, choresX: this.popOn('chores', 'chores'),
-      deckTitle: C.deckTitle, deckKeys: 'Focus the card: D done, S snooze', snoozeLabel: 'Snooze', snoozeShort: 'Snooze', canPass: true,
-      emptyTitle: C.emptyTitle, emptyBody: 'Nothing needs a decision. Next:', emptyNext: C.emptyNext, emptyPrimaryLabel: C.newLabel, emptySecondaryLabel: 'Bring everything back', emptyPrimary: function () { C.newFn(self); },
-      tabsAria: C.title + ' sections', tabs: tabs, tabTitle: T.title, total: list.length, chips: chipsV, cols: T.cols, rows: rows, BP: BP, TBL: TBL, qPh: T.ph, q: s.hq, hasQ: !!s.hq,
-      onQ: function (e) { self.setState({ hq: e.target.value, hpg: 0, ra: self.state.ra + 1 }); }, clearQ: function () { self.setState({ hq: '', ra: self.state.ra + 1 }); },
-      tabActLabel: T.actLabel, tabActD: T.actD, tabAct: function () { T.act(self); },
-      empty: !list.length, hasFilter: hasFilter && !!all.length, noFilterEmpty: !all.length, clearFilters: function () { self.setState({ hq: '', chip: 'all', hpg: 0, flt: {}, ra: self.state.ra + 1 }); }, emptyTitleT: q ? 'Nothing matches "' + s.hq + '".' : (all.length ? 'Nothing in this view.' : T.emptyT), emptyBodyT: q ? T.ph + '.' : (all.length ? 'Try another filter.' : T.emptyB),
-      hasStats: true, statsTitle: C.statsTitle, stats: stats, railCards: railCards
+    var keysS = this.secKeys(sec), n = Object.keys(s.sv).filter(function (k) { return keysS.indexOf(k) >= 0; }).length, others = Object.keys(s.sv).length - n;
+    return Object.assign(this.kit(), this.extraVals(), {
+      pageTitle: M.title || 'Settings', hasHeadAct: !!M.headAct, headActLabel: M.headAct ? M.headAct.label : '', headAct: M.headAct ? function () { M.headAct.fn(self); } : null, lede: M.lede, sections: sections, cards: cards, dirty: n > 0, secName: sec.label, dirtyText: n ? n + (n === 1 ? ' change not saved' : ' changes not saved') : 'Nothing to save on ' + sec.label, otherNote: others ? others + (others === 1 ? ' change' : ' changes') + ' waiting on other tabs.' : '', hasOther: others > 0, saveDis: n === 0 || errs > 0, discardDis: n === 0, saveWhy: n === 0 ? 'Change a setting on this tab and Save lights up.' : 'Fix the highlighted fields to save.', showWhy: n === 0 || errs > 0,
+      discard: function () { self.discardSection(si); },
+      save: function () { self.saveSection(si); },
+      openChores: function (e) { self.openPop(e, 'chores', 'chores', 260, 200, 'More for settings'); }, choresX: this.popOn('chores', 'chores')
     });
   }
+  /* shared building blocks for the role models */
+  notifGrid(kinds, locked) {
+    var cols = ['Email', 'Push', 'In app'], self = this;
+    return { head: 'Tell me about', cols: cols, rows: kinds.map(function (k) { return { t: k[1], s: k[2], cells: cols.map(function (c, i) { var lk = !!(k[4] && k[4][i]); return { key: 'n.' + k[0] + '.' + i, def: k[3][i], locked: lk, aria: k[1] + ' by ' + c.toLowerCase() + (lk ? ', required' : '') }; }) }; }), note: locked || null };
+  }
+  themeRow() { return { key: 'theme', type: 'seg', label: 'Theme', hint: 'Light or dark. The sidebar footer switch does the same thing.', def: 'Light', opts: ['Light', 'Dark'] }; }
 
-  /* ======================= Owner · Form builder (Contact form) ======================= */
+  /* ======================= Owner · Form builder =======================
+     The same page shape as Settings: sections on the left, rows on the right, a Save bar per section.
+     Questions are a list with a menu per row. Wording, schedule, emails and spam are rows. Publish sits in the head. */
+  setL(key, v) { var l = Object.assign({}, this.state.lists); l[key] = v; this.setState({ lists: l, ra: this.state.ra + 1 }); }
+  getL(key) { return this.state.lists[key]; }
   pageName() { return 'Clients'; }
-  tourSteps() {
-    var I = this.icons();
+  fbTypes() { return ['Short answer', 'Long answer', 'Email', 'Phone', 'Number', 'Date', 'Dropdown', 'Choose one', 'Choose several', 'File', 'Section heading', 'Agreement']; }
+  fbBase() {
     return [
-      { target: 'deck', title: 'What the form needs', icon: I.target, body: 'Questions that people skip, and the one setting that stops the form working.' },
-      { target: 'table', title: 'The questions, in order', icon: I.file, body: 'Move a question up or down, make it required, or remove it. The preview on the right updates as you go.' },
-      { target: 'rail', title: 'How it reads to a visitor', icon: I.eye, body: 'The form exactly as it shows on the site, with the required marks.' },
-      { target: 'new', title: 'Add a question', icon: I.plus, body: 'Short answer, long answer, a choice or a file. Each says why it is asked.' }
+      { id: 'q1', name: 'Your name', help: 'So we know who to reply to', type: 'Short answer', req: true, skips: 1 },
+      { id: 'q2', name: 'Email address', help: 'Where we reply. Temporary inboxes are refused', type: 'Email', req: true, skips: 0 },
+      { id: 'q3', name: 'Phone or WhatsApp', help: 'Optional, for a quick call', type: 'Phone', req: false, skips: 61 },
+      { id: 'q4', name: 'What do you need?', help: 'Brand, website, social media, SEO, an app or something else', type: 'Dropdown', req: true, skips: 2, opts: ['Brand identity', 'Website', 'Social media', 'SEO', 'App or software', 'Something else'] },
+      { id: 'q5', name: 'Tell us about it', help: 'A few lines about the project', type: 'Long answer', req: true, skips: 4, min: 20 },
+      { id: 'q6', name: 'Anything we should look at?', help: 'A brief, a logo or a link', type: 'File', req: false, skips: 78 }
     ];
   }
-  fbTypes() { return ['Short answer', 'Long answer', 'Email', 'Phone', 'Choice', 'File']; }
-  fbAll() {
-    var base = [
-      { id: 'q1', name: 'Your name', sub: 'So we know who to reply to', type: 'Short answer', req: true, skips: 1 },
-      { id: 'q2', name: 'Email address', sub: 'Where we reply. Temporary inboxes are refused', type: 'Email', req: true, skips: 0 },
-      { id: 'q3', name: 'Phone number', sub: 'Optional, for a quick call', type: 'Phone', req: false, skips: 61 },
-      { id: 'q4', name: 'What do you need?', sub: 'Brand, website, social media, SEO, an app or something else', type: 'Choice', req: true, skips: 2, opts: ['Brand identity', 'Website', 'Social media', 'SEO', 'App or software', 'Something else'] },
-      { id: 'q5', name: 'Tell us about it', sub: 'A few lines about the project', type: 'Long answer', req: true, skips: 4 },
-      { id: 'q6', name: 'Anything we should look at?', sub: 'A brief, a logo or a link', type: 'File', req: false, skips: 78 }
-    ];
-    var self = this, list = this.hubApply('fq', base);
-    return list.map(function (x, i) { return Object.assign({ ord: i }, x); }).sort(function (a, b) { return (a.ord || 0) - (b.ord || 0); });
-  }
+  fbQs() { return this.getL('fq') || this.fbBase(); }
   fbMove(q, d) {
-    var self = this, all = this.fbAll(), i = all.map(function (x) { return x.id; }).indexOf(q.id), j = i + d;
-    if (j < 0 || j >= all.length) { this.say(d < 0 ? 'It is already the first question.' : 'It is already the last question.'); return; }
-    var m = Object.assign({}, this.state.pst);
-    all.forEach(function (x, k) { m[x.id] = Object.assign({}, m[x.id] || {}, { ord: k }); });
-    m[all[i].id].ord = j; m[all[j].id].ord = i;
-    this.setState({ pst: m, ra: this.state.ra + 1 }); this.say('Updated. “' + q.name + '” moved ' + (d < 0 ? 'up' : 'down') + '.');
+    var a = this.fbQs().slice(), i = a.map(function (x) { return x.id; }).indexOf(q.id), j = i + d;
+    if (j < 0 || j >= a.length) { this.say(d < 0 ? 'It is already the first question.' : 'It is already the last question.'); return; }
+    var t = a[i]; a[i] = a[j]; a[j] = t; this.setL('fq', a); this.say('Updated. “' + q.name + '” moved ' + (d < 0 ? 'up' : 'down') + '.');
   }
   fbEdit(q) {
     var self = this, I = this.icons(), edit = !!q;
-    var start = q ? { name: q.name, sub: q.sub, type: q.type, req: q.req ? 'Required' : 'Optional', opts: (q.opts || []).join(', ') } : { name: '', sub: '', type: 'Short answer', req: 'Optional', opts: '' };
+    var start = q ? { name: q.name, help: q.help || '', ph: q.ph || '', type: q.type, req: q.req ? 'Required' : 'Optional', opts: (q.opts || []).join('\n'), min: q.min ? String(q.min) : '', max: q.max ? String(q.max) : '' } : { name: '', help: '', ph: '', type: 'Short answer', req: 'Optional', opts: '', min: '', max: '' };
+    var choice = function (t) { return ['Dropdown', 'Choose one', 'Choose several'].indexOf(t) >= 0; };
     this.open(this.sh({ eyebrow: edit ? 'Edit question' : 'New question', title: edit ? q.name : 'Add a question', icon: I.file, keepOpen: true, focus: 'f-name',
       body: 'Ask only what changes the work. Every extra question costs a few visitors.',
-      guard: function (ctx) { var f = ctx.form; return ['name', 'sub', 'opts'].some(function (k) { return (f[k] || '') !== (start[k] || ''); }); }, guardBody: 'The question is not saved. If you close now, your changes are lost.',
+      guard: function (ctx) { var f = ctx.form; return ['name', 'help', 'opts'].some(function (k) { return (f[k] || '') !== (start[k] || ''); }); }, guardBody: 'The question is not saved. If you close now, your changes are lost.',
       form: start,
-      fields: function (st) { var f = st.form, out = [{ key: 'name', label: 'The question', ph: 'What do you need?', wide: true }, { key: 'sub', label: 'Why we ask', ph: 'A short line under the question', wide: true, hint: 'Shown under the question. Say what it changes for them.' }]; if (f.type === 'Choice') out.push({ key: 'opts', label: 'Options', ph: 'Brand identity, Website, SEO', type: 'area', wide: true, hint: 'Separate the options with commas. Three or more shows as a dropdown, two as a switch.' }); return out; },
-      chipSets: [{ key: 'type', label: 'Type of answer', opts: this.fbTypes() }, { key: 'req', label: 'Is it required?', opts: ['Required', 'Optional'] }],
+      fields: function (st) { var f = st.form, out = [{ key: 'name', label: f.type === 'Section heading' ? 'Heading' : (f.type === 'Agreement' ? 'What they agree to' : 'The question'), ph: 'What do you need?', wide: true }]; if (f.type !== 'Section heading') out.push({ key: 'help', label: 'Help text', ph: 'A short line under the question', wide: true, hint: 'Say what it changes for them.' }); if (['Short answer', 'Long answer', 'Email', 'Phone', 'Number'].indexOf(f.type) >= 0) out.push({ key: 'ph', label: 'Placeholder', ph: 'Shown inside the field', wide: true }); if (f.type === 'Number') { out.push({ key: 'min', label: 'Smallest', mode: 'numeric' }); out.push({ key: 'max', label: 'Largest', mode: 'numeric' }); } if (choice(f.type)) out.push({ key: 'opts', label: 'Choices, one per line', type: 'area', wide: true, hint: f.type === 'Dropdown' && (f.opts || '').split('\n').filter(function (x) { return x.trim(); }).length > 10 ? 'More than ten: shown as a searchable list.' : (f.type === 'Dropdown' ? 'Ten or fewer: shown as a plain list.' : 'Visitors tick from these.') }); return out; },
+      chipSets: function (st) { var out = [{ key: 'type', label: 'Type of answer', opts: self.fbTypes() }]; if (st.form.type !== 'Section heading') out.push({ key: 'req', label: 'Is it required?', opts: ['Required', 'Optional'] }); return out; },
       primary: edit ? 'Save question' : 'Add question', secondary: 'Cancel',
-      primaryDis: function (ctx) { var f = ctx.form; if (!(f.name || '').trim()) return 'Write the question.'; if (f.type === 'Choice' && (f.opts || '').split(',').filter(function (x) { return x.trim(); }).length < 2) return 'Add at least two options.'; if (f.type === 'Email' && f.req === 'Optional') return ''; return ''; },
-      onPrimary: function (ctx) { var f = ctx.form, d = { id: edit ? q.id : 'qn' + Date.now(), name: f.name.trim(), sub: (f.sub || '').trim(), type: f.type, req: f.req === 'Required', skips: edit ? q.skips : 0, opts: f.type === 'Choice' ? f.opts.split(',').map(function (x) { return x.trim(); }).filter(Boolean) : undefined }; self.setState({ sheet: null, stack: [] }); if (edit) self.hubPatch(q.id, d); else self.hubAdd('fq', Object.assign(d, { ord: 99 })); self.say(edit ? 'Updated. The question is saved on the live form.' : 'Saved. The question is on the form.'); } }));
+      primaryDis: function (ctx) { var f = ctx.form; if (!(f.name || '').trim()) return 'Write the question.'; if (choice(f.type) && (f.opts || '').split('\n').filter(function (x) { return x.trim(); }).length < 2) return 'Add at least two choices.'; if (f.type === 'Number' && f.min && f.max && +f.min > +f.max) return 'The smallest cannot be above the largest.'; return ''; },
+      onPrimary: function (ctx) { var f = ctx.form, d = { id: edit ? q.id : 'qn' + Date.now(), name: f.name.trim(), help: (f.help || '').trim(), ph: (f.ph || '').trim(), type: f.type, req: f.req === 'Required' && f.type !== 'Section heading', skips: edit ? q.skips : 0, min: f.min ? +f.min : undefined, max: f.max ? +f.max : undefined, opts: choice(f.type) ? f.opts.split('\n').map(function (x) { return x.trim(); }).filter(Boolean) : undefined }; var a = self.fbQs().slice(); if (edit) a = a.map(function (x) { return x.id === q.id ? d : x; }); else a.push(d); self.setState({ sheet: null, stack: [] }); self.setL('fq', a); self.say(edit ? 'Updated. The question is saved on the draft.' : 'Saved. The question is on the draft.'); } }));
   }
-  fbSheet(q) {
-    var self = this, I = this.icons();
-    return this.sh({ eyebrow: q.type + ' · ' + (q.req ? 'Required' : 'Optional'), title: q.name, icon: I.file, iconTone: 'var(--ad-tone-brand)', chip: q.req ? 'Required' : 'Optional', tone: q.req ? 'var(--ad-tone-brand)' : 'var(--ad-tone-flat)',
-      rows: [{ k: 'Why we ask', v: q.sub || 'Not set' }, { k: 'Type', v: q.type }, { k: 'Skipped by', v: q.skips + '% of visitors' }].concat(q.opts ? [{ k: 'Options', v: q.opts.join(', ') }] : []),
-      body: q.skips > 50 ? 'More than half of visitors skip this. If you never use the answer, remove it.' : 'Most visitors answer this.',
-      primary: 'Edit question', secondary: q.req ? 'Make optional' : 'Make required',
-      onPrimary: function () { self.closeSheet(true); setTimeout(function () { self.fbEdit(q); }, 80); },
-      onSecondary: function () { self.hubPatch(q.id, { req: !q.req }); self.closeSheet(true); self.say('Updated. “' + q.name + '” is ' + (q.req ? 'optional' : 'required') + '.'); } });
+  fbPreview() {
+    var self = this, I = this.icons(), qs = this.fbQs();
+    this.open(this.sh({ eyebrow: 'Preview', title: this.sval('fb.title', 'Contact the studio'), icon: I.eye, body: this.sval('fb.intro', 'Tell us what you need and we will reply within one working day.'),
+      rows: qs.map(function (q) { return { k: q.name + (q.req ? ' *' : ''), v: q.type + (q.opts ? ': ' + q.opts.slice(0, 3).join(', ') + (q.opts.length > 3 ? '…' : '') : '') }; }).concat([{ k: 'Button', v: self.sval('fb.button', 'Send') }]),
+      primary: 'Close', onPrimary: function () {} }));
   }
-  hubCfg() {
-    var self = this, I = this.icons(), G = 'var(--ad-tone-good)', Fl = 'var(--ad-tone-flat)';
-    var items = function () { return self.fbAll().map(function (q, i) { return Object.assign({}, q, { hay: q.name + ' ' + q.type, cells: [{ t: q.type }, { tag: true, t: q.req ? 'Required' : 'Optional', tone: q.req ? 'var(--ad-tone-brand)' : Fl, ink: q.req ? '#fff' : 'var(--ad-on-flat)' }, { t: q.skips + '%', cls: 'r num' }, { t: String(i + 1), cls: 'r num' }] }); }); };
-    return {
-      title: 'Contact form', statsTitle: 'Form pulse', deckTitle: 'The form this week', newLabel: 'Add a question', newFn: function () { self.fbEdit(); },
-      ledeA: function () { var a = self.fbAll(); return a.length + ' questions, ' + a.filter(function (q) { return q.req; }).length + ' required.'; }, ledeB: function () { return 'Live at /contact.'; },
-      emptyTitle: 'The form is in good shape.', emptyNext: 'The next change shows on the site straight away.',
-      chores: function (it, I2) { return [it('Add a question', I2.plus, function () { self.fbEdit(); }), it('Back to Enquiries', I2.inbox, function () { window.location.href = 'A-Forms.dc.html'; }), it('View on the site', I2.link, function () { self.say('The form opens on the site in a new tab.'); })]; },
-      tabs: [{ key: 'fq', label: 'Questions', title: 'Questions', noun: 'questions', one: 'question', ph: 'Question or type', file: 'wdc-contact-form', actLabel: 'Add a question', actD: I.plus, act: function () { self.fbEdit(); }, emptyT: 'No questions yet.', emptyB: 'Start with the name and email.',
-        cols: [{ t: 'Question' }, { t: 'Type' }, { t: 'Required' }, { t: 'Skipped', cls: 'r' }, { t: 'Order', cls: 'r' }], items: items,
-        chips: [['all', 'All', function () { return true; }], ['req', 'Required', function (x) { return x.req; }], ['opt', 'Optional', function (x) { return !x.req; }]],
-        exportCols: [{ t: 'Question', v: function (q) { return q.name; } }, { t: 'Type', v: function (q) { return q.type; } }, { t: 'Required', v: function (q) { return q.req ? 'Yes' : 'No'; } }, { t: 'Skipped %', v: function (q) { return q.skips; } }],
-        sheet: function (q) { return self.fbSheet(q); },
-        actions: function (q, it, I2) { return [it('Edit question', I2.edit, function () { self.fbEdit(q); }), it('Move up', I2.out, function () { self.fbMove(q, -1); }), it('Move down', I2.down, function () { self.fbMove(q, 1); }), it(q.req ? 'Make optional' : 'Make required', I2.check, function () { self.hubPatch(q.id, { req: !q.req }); self.say('Updated.'); }), self.menuSep(), it('Remove…', I2.trash, function () { self.ask({ eyebrow: 'Remove', title: 'Remove “' + q.name + '” from the form?', body: 'Visitors stop seeing it straight away. Answers already received stay on their entries.', ok: 'Remove question', danger: true, icon: I2.trash, tone: 'var(--ad-tone-bad)', onOk: function () { self.hubGone([q.id], '“' + q.name + '” removed from the form.'); } }); }, { danger: true })]; },
-        bulk: function () { return [{ label: 'Make optional', icon: I.check, fn: function (sel, done) { sel.forEach(function (q) { self.hubPatch(q.id, { req: false }); }); self.say('Updated. ' + sel.length + ' made optional.'); done(); } }, { label: 'Remove', icon: I.trash, danger: true, fn: function (sel, done) { self.ask({ eyebrow: 'Remove', title: 'Remove ' + sel.length + ' questions?', body: 'They leave the form straight away.', ok: 'Remove questions', danger: true, icon: I.trash, tone: 'var(--ad-tone-bad)', onOk: function () { self.hubGone(sel.map(function (x) { return x.id; }), sel.length + ' questions removed.'); done(); } }); } }]; } }],
-      stats: function () { var a = self.fbAll(); return [
-        { label: 'Questions', value: String(a.length), note: 'Fewer finish more', noteCol: 'var(--ad-dim)', dot: 'var(--ad-series-1)', ic: I.file, fn: function () {} },
-        { label: 'Finish rate', value: '38%', note: 'Of people who start', noteCol: G, dot: G, ic: I.check, fn: function () {} }]; },
-      rail: function () { var a = self.fbAll(); return [{ title: 'Preview', sub: 'As visitors see it', rows: a.map(function (q) { return { t: q.name + (q.req ? ' *' : ''), s: q.type, d: I.file, open: function () { self.open(self.fbSheet(q)); } }; }) }]; },
-      deck: function () { var q6 = self.fbAll().filter(function (q) { return q.id === 'q6'; })[0] || { id: 'q6', name: '', sub: '', type: 'File', req: false, skips: 0 }; return [
-        { id: 'fb1', kind: 'Drop off', urgency: '78% skip it', utone: '#a16207', label: 'Question', dept: 'Studio', title: 'Most visitors skip the file upload', body: '“Anything we should look at?” is optional and 78% leave it empty. People who attach a file get a reply that is more specific.', meta: [{ k: 'Skipped by', v: '78%' }, { k: 'Type', v: 'File' }, { k: 'Required', v: 'No' }], why: 'A line saying what a good file looks like usually lifts uploads.', primaryLabel: 'Edit the question', primaryFn: function () { self.fbEdit(q6); }, secondaryLabel: 'Leave it', sToast: 'Left as it is.', sheet: self.fbSheet(q6) }]; }
-    };
+  fbProblems() {
+    var p = [], qs = this.fbQs(); if (!this.sval('fb.title', 'Contact the studio').trim()) p.push('Give the form a title.'); if (!qs.some(function (q) { return q.type !== 'Section heading'; })) p.push('Add at least one question.'); if (!/^[a-z0-9-]{2,}$/.test(this.sval('fb.addr', 'contact'))) p.push('The address needs two or more small letters, numbers or dashes.'); if (this.sval('fb.state', 'Taking entries') === 'Closed' && !this.sval('fb.closedMsg', '').trim()) p.push('Say what visitors see while the form is closed.'); if (this.sval('fb.limit', '') && !/^\d+$/.test(this.sval('fb.limit', ''))) p.push('The entry limit is a whole number.');
+    return p;
+  }
+  setModel() {
+    var self = this, I = this.icons(), S = this.sh.bind(this), G = 'var(--ad-tone-good)', F = 'var(--ad-tone-flat)', B = 'var(--ad-tone-brand)', W = 'var(--ad-tone-warn)';
+    var qs = this.fbQs(), TY = { 'Short answer': 'edit', 'Long answer': 'edit', Email: 'mail', Phone: 'phone', Number: 'chart', Date: 'cal', Dropdown: 'nav', 'Choose one': 'check', 'Choose several': 'check', File: 'upload', 'Section heading': 'layers', Agreement: 'check' };
+    var sections = [
+      { label: 'Questions', icon: 'edit', n: function () { return qs.length; }, cards: [
+        { title: 'Questions', sub: 'In the order visitors see them. Open one to change it.', act: { label: 'Add a question', fn: function () { self.fbEdit(); } }, list: function () {
+          return self.fbQs().map(function (q, i) { return { id: q.id, t: q.name, s: q.type + (q.req ? ', required' : '') + (q.skips > 50 ? ', skipped by ' + q.skips + '%' : ''), ini: String(i + 1), tone: q.skips > 50 ? W : B, tag: q.req ? 'Required' : 'Optional', tagTone: q.req ? B : F,
+            menu: [{ t: 'Edit question', icon: 'edit', fn: function () { self.fbEdit(q); } }, { t: 'Move up', icon: 'out', fn: function () { self.fbMove(q, -1); } }, { t: 'Move down', icon: 'down', fn: function () { self.fbMove(q, 1); } }, { t: 'Duplicate', icon: 'file', fn: function () { var a = self.fbQs().slice(), k = a.map(function (x) { return x.id; }).indexOf(q.id); a.splice(k + 1, 0, Object.assign({}, q, { id: 'qc' + Date.now(), name: q.name + ' (copy)' })); self.setL('fq', a); self.say('Saved. The copy is on the draft.'); } }, { t: q.req ? 'Make optional' : 'Make required', icon: 'check', fn: function () { self.setL('fq', self.fbQs().map(function (x) { return x.id === q.id ? Object.assign({}, x, { req: !x.req }) : x; })); self.say('Updated.'); } }, { sep: true }, { t: 'Remove…', icon: 'trash', danger: true, fn: function () { self.ask({ eyebrow: 'Remove', title: 'Remove “' + q.name + '” from the form?', body: 'Visitors stop seeing it once you publish. Answers already received stay on their entries.', ok: 'Remove question', danger: true, icon: I.trash, tone: 'var(--ad-tone-bad)', onOk: function () { self.setL('fq', self.fbQs().filter(function (x) { return x.id !== q.id; })); self.say('“' + q.name + '” removed from the draft.'); } }); } }] }; });
+        } }
+      ] },
+      { label: 'Wording and style', icon: 'layers', cards: [
+        { title: 'The form', sub: 'What visitors read first.', rows: [
+          { key: 'fb.title', type: 'text', label: 'Title', hint: 'The one heading on the page.', def: 'Contact the studio', check: function (v) { return v.trim() ? '' : 'Give the form a title.'; } },
+          { key: 'fb.intro', type: 'area', label: 'Introduction', hint: 'Optional. One or two lines under the title.', def: 'Tell us what you need and we will reply within one working day.' },
+          { key: 'fb.style', type: 'seg', label: 'Form style', hint: 'Sections puts every question on one page. Conversation asks one or two at a time with a progress bar.', def: 'Sections', opts: ['Sections', 'Conversation'] },
+          { key: 'fb.per', type: 'seg', label: 'Questions on each screen', hint: 'Only for the Conversation style.', def: '1', opts: ['1', '2'] },
+          { key: 'fb.button', type: 'text', label: 'Button', hint: 'Name the action.', def: 'Send your message' },
+          { key: 'fb.addr', type: 'text', label: 'Address', hint: 'wdc.ng/f/' + this.sval('fb.addr', 'contact') + '. Two or more small letters, numbers or dashes.', def: 'contact', check: function (v) { return /^[a-z0-9-]{2,}$/.test(v) ? '' : 'Two or more small letters, numbers or dashes.'; } }] },
+        { title: 'After sending', sub: 'What a visitor sees once the entry is in.', rows: [
+          { key: 'fb.after', type: 'seg', label: 'Then', hint: 'Show a message here, or send them to a page on this site.', def: 'Show a message', opts: ['Show a message', 'Go to a page'] },
+          { key: 'fb.thanks', type: 'text', label: 'Heading', hint: 'Used when you show a message.', def: 'Thank you' },
+          { key: 'fb.msg', type: 'area', label: 'Message', hint: 'Empty fields keep the wording written for this form.', def: 'We have your message and will reply within one working day.' },
+          { key: 'fb.page', type: 'text', label: 'Page on this site', hint: 'For a thank-you page. Only addresses on this site are allowed.', def: '', ph: '/thank-you', check: function (v) { return v && !/^\//.test(v) ? 'Start with a slash, for example /thank-you.' : ''; } }] }
+      ] },
+      { label: 'Opens and closes', icon: 'cal', cards: [
+        { title: 'Taking entries', sub: 'Open or close the form, on a date or by a limit.', rows: [
+          { key: 'fb.state', type: 'seg', label: 'State', hint: 'Closed shows the message below instead of the questions.', def: 'Taking entries', opts: ['Taking entries', 'Closed'] },
+          { key: 'fb.closedMsg', type: 'area', label: 'What a visitor sees when it is closed', hint: 'Plain words, and where else to reach you.', def: 'This form is closed. Email hello@wdc.ng and we will help.' },
+          { key: 'fb.opens', type: 'text', label: 'Opens on', hint: 'Optional. Studio time, UTC+1.', def: '', ph: '2026-10-20' },
+          { key: 'fb.closes', type: 'text', label: 'Closes after', hint: 'Optional. The form takes entries until the end of this day.', def: '', ph: '2026-11-30' },
+          { key: 'fb.limit', type: 'text', label: 'Entry limit', hint: 'Leave empty for no limit. Spam does not count.', def: '', ph: '200', check: function (v) { return v && !/^\d+$/.test(v) ? 'Use a whole number.' : ''; } },
+          { key: 'fb.count', type: 'seg', label: 'Counted', hint: 'Whether the limit is for the whole life of the form or each month.', def: 'In total', opts: ['In total', 'Per month'] },
+          { key: 'fb.limitMsg', type: 'area', label: 'What a visitor sees when the limit is reached', hint: 'Empty uses the closed message.', def: '' }] }
+      ] },
+      { label: 'Emails', icon: 'mail', cards: [
+        { title: 'Who hears about an entry', sub: 'Every entry also sits in Enquiries.', rows: [
+          { key: 'fb.to', type: 'text', label: 'Send to', hint: 'Separate addresses with commas. Empty means the studio inbox.', def: '', ph: 'Studio inbox' },
+          { key: 'fb.reply', type: 'seg', label: 'A reply goes to', hint: 'The person who filled the form, or the studio.', def: 'The visitor', opts: ['The visitor', 'The studio'] },
+          { key: 'fb.cc', type: 'text', label: 'Copy to', hint: 'Optional.', def: '' },
+          { key: 'fb.bcc', type: 'text', label: 'Blind copy to', hint: 'Optional. Nobody else sees this address.', def: '' },
+          { key: 'fb.subject', type: 'text', label: 'Subject', hint: 'Use {{name}} to add the visitor’s name.', def: 'New enquiry from {{name}}' }] },
+        { title: 'Emails this form sends', sub: 'Preview uses the latest entry.', rows: [
+          { key: 'fb.thank', type: 'switch', label: 'Send a thank you to the person who filled the form', hint: 'A short note with what happens next.', def: true },
+          { key: 'fb.thankBody', type: 'area', label: 'The note', hint: 'Plain words. It is sent from the studio address.', def: 'Hello {{name}}, thank you for writing. We will reply within one working day.' },
+          { key: 'fb.test', type: 'static', label: 'Send a test', hint: 'A test goes to you alone, with sample answers.', value: 'To babatope@wendiloveee.com', action: { label: 'Send test', fn: function () { self.say('A test went to babatope@wendiloveee.com.'); } } }] }
+      ] },
+      { label: 'Spam and keeping', icon: 'ban', cards: [
+        { title: 'Spam', sub: 'A hidden field and a rate limit are always on.', rows: [
+          { key: 'fb.blocked', type: 'area', label: 'Blocked words', hint: 'One per line. Entries with these words land in Spam instead of the inbox.', def: 'seo offer\ncrypto\nloan' }] },
+        { title: 'Keeping entries', sub: 'Deleted entries wait in the Trash first.', rows: [
+          { key: 'fb.keep', type: 'select', label: 'Keep entries in Trash for', hint: 'Then they are deleted for good.', def: '30 days', opts: ['7 days', '30 days', '90 days'] },
+          { key: 'fb.reset', type: 'static', label: 'Reset to the defaults', hint: 'Puts every setting on this form back to the default. Questions stay.', value: 'Wording, emails and limits', action: { label: 'Reset settings', fn: function () { self.ask({ eyebrow: 'Reset', title: 'Put every setting on this form back to the default?', body: 'Wording, schedule, emails and spam words go back to the studio defaults. Your questions stay.', ok: 'Reset settings', danger: true, icon: I.undo, tone: 'var(--ad-tone-warn)', onOk: function () { self.setState({ saved: {}, sv: {}, ra: self.state.ra + 1 }); self.say('Updated. The settings are back to the defaults.'); } }); } } }] }
+      ] }
+    ];
+    var ver = this.sval('fb.ver', 3);
+    return { role: 'admin', title: 'Contact form', sections: sections, navBase: { Clients: { n: 5 }, Money: { n: 3, tone: 'var(--ad-tone-bad)' }, Messages: { n: 6 } }, lede: 'Live at wdc.ng/f/' + this.sval('fb.addr', 'contact') + ', version ' + ver + '. Changes wait for Save, then Publish.', tourNav: 'Questions, wording and style, when it opens, who hears about entries, and spam. Publish sits at the top.',
+      headAct: { label: 'Publish changes', fn: function (s) { var p = s.fbProblems(); if (p.length) { s.open(s.sh({ eyebrow: 'Before it can be published', title: p.length + (p.length === 1 ? ' thing' : ' things') + ' to fix', icon: I.alert, iconTone: 'var(--ad-tone-warn)', rows: p.map(function (x, i) { return { k: String(i + 1), v: x }; }), primary: 'Close', onPrimary: function () {} })); return; } if (Object.keys(s.state.sv).length) { s.say('Save the unsaved changes on this section first.'); return; } s.ask({ eyebrow: 'Publish', title: 'Publish version ' + (ver + 1) + ' of this form?', body: 'Visitors see the new questions straight away. Entries keep the version they answered, so editing a live form never rewrites an answer.', ok: 'Publish version ' + (ver + 1), green: true, icon: I.send, tone: 'var(--ad-tone-good)', onOk: function () { s.setState({ saved: Object.assign({}, s.state.saved, { 'fb.ver': ver + 1 }), ra: s.state.ra + 1 }); s.say('Updated. Version ' + (ver + 1) + ' is live.'); } }); } },
+      chores: function (s, it, I2) { return [it('Preview the form', I2.eye, function () { s.fbPreview(); }), it('Copy the address', I2.link, function () { s.say('Address copied: wdc.ng/f/' + s.sval('fb.addr', 'contact')); }), it('View live', I2.out, function () { s.say('The form opens at its address in a new tab.'); }), s.menuSep(), it('Back to Enquiries', I2.inbox, function () { window.location.href = 'A-Forms.dc.html'; }), it('Move form to Trash…', I2.trash, function () { s.ask({ eyebrow: 'Trash', title: 'Move this form to Trash?', body: 'It stops taking entries. Entries stay in Enquiries. You can restore it from Settings, Trash, for 30 days.', ok: 'Move to Trash', danger: true, icon: I2.trash, tone: 'var(--ad-tone-bad)', onOk: function () { window.location.href = 'A-Forms.dc.html'; } }); }, { danger: true })]; } };
   }
 
 }

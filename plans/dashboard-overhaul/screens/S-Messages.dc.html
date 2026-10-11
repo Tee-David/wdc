@@ -1017,6 +1017,69 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .imgHost{position:relative;overflow:hidden}
 .imgHost.hasImg{background:#fff !important;color:var(--ad-ink);box-shadow:inset 0 0 0 1px var(--ad-line-2)}
 .logoImg{position:absolute;inset:15%;width:70%;height:70%;object-fit:contain}
+/* Sheet quick actions: a row of chips under the details */
+.quickRow{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+/* Email builder */
+.ebGrid{display:grid;grid-template-columns:260px minmax(0,1fr) 300px;gap:16px;align-items:start}
+@container app (max-width:1180px){.ebGrid{grid-template-columns:minmax(0,1fr) 280px}.ebSide{grid-column:1/-1;order:3}}
+@container app (max-width:760px){.ebGrid{grid-template-columns:minmax(0,1fr)}.ebSet{order:2}.ebStage{order:1}}
+.ebSide .tabs{overflow-x:auto}
+.ebBar .seg button{min-height:44px;white-space:nowrap}
+.ebSide,.ebSet{padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.ebStage{padding:12px;min-width:0;display:flex;flex-direction:column;gap:10px}
+.ebBar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ebHint{font-size:12px;color:var(--ad-dim);overflow-wrap:anywhere}
+.ebList{display:flex;flex-direction:column;gap:8px}
+.ebAdd{display:flex;align-items:center;gap:10px;min-height:48px;padding:6px 8px;border-radius:12px;border:1px solid var(--ad-line);background:var(--ad-panel);color:var(--ad-ink);cursor:pointer;width:100%}
+.ebAdd:hover{background:var(--ad-hover)}
+.ebAdd:focus-visible{outline:2px solid var(--ad-focus);outline-offset:2px}
+.ebCheck{display:flex;align-items:center;gap:10px}
+.ebTick{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;flex:none;color:#fff;background:var(--ad-tone-good)}
+.ebTick.no{background:var(--ad-tone-warn)}
+.ebFrame{background:var(--ad-panel-2);border-radius:14px;padding:16px;display:flex;justify-content:center;overflow:auto;max-height:70vh}
+.ebMail{width:100%;max-width:600px;background:#fff;color:#0e0e2c;border-radius:6px;padding:20px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.ebFrame.phone .ebMail{max-width:340px}
+.ebBlk{position:relative;border-radius:8px;padding:8px;outline:2px solid transparent;cursor:pointer;min-width:0}
+.ebBlk:hover{outline-color:#c9ccdc}
+.ebBlk.on{outline-color:#0e0e2c}
+.ebH{font:700 24px/1.2 'Space Grotesk',sans-serif;overflow-wrap:anywhere}
+.ebP{font-size:15px;line-height:1.5;overflow-wrap:anywhere;white-space:pre-wrap}
+.ebPic{display:grid;place-items:center;aspect-ratio:16/7;background:#e4e6f0;border-radius:8px;color:#5c5c7a;font-size:13px;text-align:center;padding:8px}
+.ebBtn{display:inline-block;padding:12px 22px;border-radius:999px;background:#000065;color:#fff;font-weight:600}
+.ebCols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ebFrame.phone .ebCols{grid-template-columns:1fr}
+.ebHr{border:0;border-top:1px solid #c9ccdc;margin:8px 0}
+.ebSmall{font-size:12px;color:#5c5c7a}
+.ebRule{display:inline-block;margin-top:4px;padding:2px 8px;border-radius:999px;background:#5c5c7a;color:#fff;font-size:11px}
+.ebFoot{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;border-top:1px solid #e4e6f0;margin-top:12px;padding-top:12px;font-size:12px;color:#5c5c7a}
+.ebUnsub{text-decoration:underline}
+.ebTools{position:absolute;top:-16px;right:8px;display:flex;gap:2px;background:#0e0e2c;border-radius:10px;padding:2px;z-index:2}
+.ebT{display:grid;place-items:center;width:32px;height:32px;border-radius:8px;border:0;background:transparent;color:#fff;cursor:pointer;position:relative}
+.ebT::after{content:"";position:absolute;inset:-6px}
+.ebT:hover{background:#33366a}.ebT.bad:hover{background:#c62828}
+/* Automation flow canvas */
+.afBar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--ad-line)}
+.afZoom{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+.afCanvas{background:var(--ad-panel-2);padding:24px 16px;overflow:auto;max-height:72vh;display:flex;justify-content:center}
+.afFlow{display:flex;flex-direction:column;align-items:center;width:min(100%,680px);min-width:0}
+.afNode{display:flex;align-items:center;gap:12px;width:min(100%,340px);min-height:64px;padding:10px 12px;border-radius:16px;border:1px solid var(--ad-line-2);background:var(--ad-panel);color:var(--ad-ink);cursor:pointer;min-width:0}
+.afNode:hover{background:var(--ad-hover)}
+.afNode.on{border-color:var(--ad-ink);box-shadow:0 0 0 4px var(--ad-ring,rgba(14,14,44,.12))}
+.afNode:focus-visible{outline:2px solid var(--ad-focus);outline-offset:2px}
+.afLink{display:block;width:2px;height:14px;background:var(--ad-line-2)}
+.afPlus{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;border:1px solid var(--ad-line-2);background:var(--ad-panel);color:var(--ad-ink);cursor:pointer;position:relative}
+.afPlus::after{content:"";position:absolute;inset:-6px}
+.afPlus:hover{background:var(--ad-ink);color:var(--ad-panel)}
+.afLanes{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;align-items:start}
+@container app (max-width:640px){.afLanes{grid-template-columns:1fr}}
+.afLane{display:flex;flex-direction:column;align-items:center;gap:0;min-width:0;border-radius:16px;border:1px dashed var(--ad-line-2);padding:10px 8px}
+.afLaneT{font-size:11px;font-weight:700;padding:2px 10px;border-radius:999px;color:#fff;margin-bottom:8px}
+.afLaneT.yes{background:var(--ad-tone-good)}.afLaneT.no{background:var(--ad-tone-neutral)}
+.afEnd{margin-top:10px;font-size:12px;color:var(--ad-dim)}
+.afPlus,.afLink,.afNode{flex:none}
+/* Support view bar: read-only view of another account */
+.svBar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 16px;background:var(--ad-tone-warn);color:#fff;font-size:14px}
+.svBar .svExit{min-height:44px}
 
 /* ===== Messages: three panes, presence, delivery, reactions, mentions, emoji, details panel ===== */
 .mxWrap{display:grid;gap:16px;height:clamp(640px,calc(100vh - 196px),800px);min-height:0;align-items:stretch}
@@ -1028,11 +1091,11 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .mxWrap.m-sheet:not(.isThread) .mxThread{display:none}
 .mxWrap.m-skel{grid-template-columns:minmax(0,1fr)}
 .mxWrap.m-skel .mxThread,.mxWrap.m-skel .mxInfo{display:none}
-@container app (min-width:641px){.mxWrap.m-skel{grid-template-columns:minmax(240px,300px) minmax(0,1fr)}.mxWrap.m-skel .mxThread{display:flex}}
-@container app (min-width:1100px){.mxWrap.m-skel{grid-template-columns:minmax(260px,296px) minmax(0,1fr) minmax(280px,308px)}.mxWrap.m-skel .mxInfo{display:block}}
+@container app (min-width:641px){.mxWrap.m-skel{grid-template-columns:minmax(236px,268px) minmax(0,1fr)}.mxWrap.m-skel .mxThread{display:flex}}
+@container app (min-width:1100px){.mxWrap.m-skel{grid-template-columns:minmax(300px,324px) minmax(0,1fr) minmax(280px,300px)}.mxWrap.m-skel .mxInfo{display:block}}
 .mxBack{display:none}
 .m-sheet .mxBack{display:inline-flex}
-.m-sheet .mxHideN{display:none !important}
+.m-sheet .mxHideN,.m-over .mxHideN{display:none !important}
 .mxList{display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden}
 .mxRows{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain}
 .mxThread{display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden}
@@ -1052,10 +1115,10 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .mxLi{position:relative}
 .mxRow{min-height:72px}
 .mxAv{position:relative;flex:none;display:inline-flex}
-.pDot{position:absolute;right:-1px;bottom:-1px;width:12px;height:12px;border-radius:50%;box-shadow:0 0 0 2px var(--ad-panel);background:var(--ad-tone-neutral)}
+.pDot{position:absolute;right:-1px;bottom:-1px;width:12px;height:12px;border-radius:50%;box-shadow:0 0 0 2px var(--ad-panel);background:var(--ad-dim)}
 .pDot.on{background:var(--ad-tone-good)}
 .pDot.away{background:var(--ad-tone-warn)}
-.pDot.off{background:var(--ad-tone-neutral)}
+.pDot.off{background:var(--ad-dim)}
 .pDot.big{width:16px;height:16px;right:2px;bottom:2px;box-shadow:0 0 0 3px var(--ad-panel)}
 .pDot.inl{position:static;display:inline-block;flex:none;width:8px;height:8px;box-shadow:none;margin-right:6px}
 .msgRow.on .pDot{box-shadow:0 0 0 2px var(--ad-nav-on)}
@@ -1149,11 +1212,10 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .mxBar .attB{width:44px;justify-content:center;padding:0}
 .mxBar .attB[aria-expanded=true]{background:var(--ad-nav-on);color:var(--ad-nav-on-ink)}
 .mxHint{font-size:12px;color:var(--ad-dim);padding:0 4px;min-height:16px}
-.mxHint.why{color:var(--ad-ink)}
+.mxHint.mxWhy{color:var(--ad-ink)}
 .m-sheet .mxHint.tip{display:none}
-.mxShowC{display:none !important}
+.mxHideA{display:none !important}
 .m-over .mxHideC,.m-sheet .mxHideC{display:none !important}
-.m-over .mxShowC,.m-sheet .mxShowC{display:inline-flex !important}
 .m-sheet .mxSendL{display:none}
 .m-sheet .mxSend{width:44px;padding:0;justify-content:center}
 .m-sheet .qrRow,.m-sheet .mxComposer .seg+span{display:none}
@@ -1188,11 +1250,12 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .mxInfoHead{display:flex;align-items:center;gap:8px;padding:14px 16px 6px;min-height:56px}
 .mxInfoT{flex:1;margin:0;font:600 16px 'Space Grotesk',system-ui,sans-serif}
 .mxInfoBody{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:0 16px 20px;display:flex;flex-direction:column;gap:16px}
+.mxInfoBody>*{flex:none}
 .mxInfoTop{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;padding-top:6px}
 .mxBigAv{position:relative;width:80px;height:80px;border-radius:50%;color:#fff;font:700 24px 'Space Grotesk',system-ui,sans-serif;display:flex;align-items:center;justify-content:center;margin-bottom:6px;transition:transform .2s var(--spring)}
 .mxBigAv:hover{transform:scale(1.04)}.mxBigAv:active{transform:scale(.97)}
-.mxStackBig{display:flex;justify-content:center;margin-bottom:6px;padding-left:14px}
-.mxStackBig .stk{width:48px;height:48px;font-size:14px;margin-left:-14px;box-shadow:0 0 0 3px var(--ad-panel)}
+.mxStackBig{display:flex;justify-content:center;margin-bottom:6px;padding-left:10px}
+.mxStackBig .stk{width:52px;height:52px;font-size:14px;margin-left:-10px;box-shadow:0 0 0 3px var(--ad-panel)}
 .mxInfoName{margin:0;font:600 18px 'Space Grotesk',system-ui,sans-serif;overflow-wrap:anywhere}
 .mxInfoSub{font-size:13px;color:var(--ad-dim);overflow-wrap:anywhere}
 .mxPresT{display:inline-flex;align-items:center;font-size:13px;font-weight:600;margin-top:2px}
@@ -1213,11 +1276,10 @@ button.mxRowBtn:hover{background:var(--ad-hover)}
 .mxSwT{font-size:12px;color:var(--ad-dim)}
 .mxSec{display:flex;flex-direction:column;gap:10px}
 .mxSecHead{display:flex;align-items:center;gap:8px;min-height:32px}
-.mxSecHead h4{margin:0;flex:1;font:600 14px 'Space Grotesk',system-ui,sans-serif}
-.mxSecN{font-size:12px;color:var(--ad-dim)}
-.mxSecHead .mxSecN{order:2}
-.mxAll{min-height:44px;display:inline-flex;align-items:center;order:3}
-.mxSecHead .mxSm{order:3;min-height:44px}
+.mxSecHead h4{margin:0;font:600 14px 'Space Grotesk',system-ui,sans-serif}
+.mxSecN{flex:1;min-width:0;font-size:12px;color:var(--ad-dim);white-space:nowrap}
+.mxAll{min-height:44px;display:inline-flex;align-items:center}
+.mxSecHead .mxSm{min-height:44px;padding:0 12px;white-space:nowrap}
 .mxMembers,.mxFiles{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
 .mxMember,.mxFile{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:6px 8px;border-radius:12px;text-align:left;transition:background .15s}
 @media (hover:hover){.mxMember:hover,.mxFile:hover{background:var(--ad-hover)}}
@@ -1249,6 +1311,18 @@ button.mxRowBtn:hover{background:var(--ad-hover)}
   .mxJump,.rxBar,.mxPop,.mxOv,.mxScrim{animation:none}
   .mxBigAv,.rxPick,.mxEmo{transition:none}
 }
+
+.mxEmptyLi{list-style:none}
+.mxEmptyLi .emptyRow{padding:28px 14px}
+.msgItem:not(.mine) .rxBar{left:-44px}
+.m-sheet .rxPick{width:40px;height:40px}
+.m-sheet .msgItem:not(.mine) .rxBar{left:-44px}
+.m-sheet .mxHead2{padding:10px 8px;gap:4px}
+.m-sheet .mxHead2 .ibtn{width:40px;height:40px}
+.m-sheet .mxHeadWho .av0{width:36px !important;height:36px !important}
+
+.msgRow.on .av0{color:#fff !important}
+.msgRow.on .mxFlag{color:var(--ad-nav-on-ink)}
 
 </style>
 </helmet>
@@ -1337,6 +1411,7 @@ button.mxRowBtn:hover{background:var(--ad-hover)}
             
           </header>
 
+          <sc-if value="{{svOn}}" hint-placeholder-val="{{ false }}"><div class="svBar" role="status"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path></svg><span style="flex: 1; min-width: 0"><strong>Support view: {{svName}}.</strong> Read-only. Changes, payments and downloads are off. Your owner account stays signed in. Ends at {{svEnds}}.</span><a class="btn2 svExit" href="A-Users.dc.html">Exit support view</a></div></sc-if>
           <main id="main" class="mainPad">
             <div class="pageHead rise">
               <div>
@@ -1389,11 +1464,9 @@ button.mxRowBtn:hover{background:var(--ad-hover)}
                       </span>
                     </button><button class="mxMore" data-menu="row" aria-label="Actions for {{c.name}}" aria-haspopup="menu" aria-expanded="{{c.moreX}}" onClick="{{c.more}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg></button></li></sc-if>
                   </sc-for>
+                    <sc-if value="{{noConvs}}" hint-placeholder-val="{{ false }}"><li class="mxEmptyLi"><div class="emptyRow rowIn" style="animation-name: rinA"><span class="emptyIc" style="background: var(--ad-tone-brand)"><svg class="ic" viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="{{emptyD}}"></path></svg></span><strong>{{emptyTitle}}</strong><span style="color: var(--ad-dim)">{{emptyBody}}</span><sc-if value="{{hasFilter}}" hint-placeholder-val="{{ false }}"><button class="btn2" onClick="{{clearFilters}}">Clear filters</button></sc-if><sc-if value="{{emptyNew}}" hint-placeholder-val="{{ false }}"><button class="btn" onClick="{{newMsg}}">New message</button></sc-if></div></li></sc-if>
                 </ul>
-                <sc-if value="{{noConvs}}" hint-placeholder-val="{{ false }}">
-                  <div class="emptyRow rowIn" style="animation-name: rinA"><span class="emptyIc" style="background: var(--ad-tone-brand)"><svg class="ic" viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="{{emptyD}}"></path></svg></span><strong>{{emptyTitle}}</strong><span style="color: var(--ad-dim)">{{emptyBody}}</span><sc-if value="{{hasFilter}}" hint-placeholder-val="{{ false }}"><button class="btn2" onClick="{{clearFilters}}">Clear filters</button></sc-if><sc-if value="{{emptyNew}}" hint-placeholder-val="{{ false }}"><button class="btn" onClick="{{newMsg}}">New message</button></sc-if></div>
-                </sc-if>
-                <div class="pgFoot">
+<div class="pgFoot">
                     <span class="pgInfo num">{{MG.range}}</span>
                     <nav class="pager" aria-label="Conversation pages">
                       <button class="pgb" onClick="{{MG.prev}}" disabled="{{MG.prevDis}}" aria-label="Previous page"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></button>
@@ -1443,9 +1516,9 @@ button.mxRowBtn:hover{background:var(--ad-hover)}
                           <div class="msgW">
                             <span class="swHint" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="18" height="18"><path d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 6 6v4"></path></svg></span>
                             <div class="msgItem {{m.cls}}" onPointerDown="{{m.swipe}}">
-                              <span class="mxAvHit" role="button" tabindex="0" aria-label="Open the profile of {{m.who}}" onClick="{{m.profile}}" onKeyDown="{{m.profKey}}"><span class="av0 msgAv" style="width: 30px; height: 30px; font-size: 10px; background: {{m.tone}}">{{m.i}}</span></span>
+                              <span class="mxAvHit" role="{{m.profRole}}" tabindex="{{m.profTab}}" aria-label="{{m.profAria}}" onClick="{{m.profile}}" onKeyDown="{{m.profKey}}"><span class="av0 msgAv" style="width: 30px; height: 30px; font-size: 10px; background: {{m.tone}}">{{m.i}}</span></span>
                               <span class="bubbleCol mxCol">
-                                <span class="bMeta"><span class="mxNameBtn" role="button" tabindex="0" onClick="{{m.profile}}" onKeyDown="{{m.profKey}}"><strong>{{m.who}}</strong></span><sc-if value="{{m.isNote}}" hint-placeholder-val="{{ false }}"><span class="tag" style="background: var(--ad-tone-warn); color: #fff; height: 20px; font-size: 11px">Team only</span></sc-if><span class="num">{{m.when}}</span><sc-if value="{{m.starred}}" hint-placeholder-val="{{ false }}"><svg class="ic" viewBox="0 0 24 24" width="13" height="13" role="img" aria-label="Starred" style="color: var(--ad-accent-ink)"><path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"></path></svg></sc-if></span>
+                                <span class="bMeta"><span class="mxNameBtn" role="{{m.profRole}}" tabindex="{{m.profTab}}" aria-label="{{m.profAria}}" onClick="{{m.profile}}" onKeyDown="{{m.profKey}}"><strong>{{m.who}}</strong></span><sc-if value="{{m.isNote}}" hint-placeholder-val="{{ false }}"><span class="tag" style="background: var(--ad-tone-warn); color: #fff; height: 20px; font-size: 11px">Team only</span></sc-if><span class="num">{{m.when}}</span><sc-if value="{{m.starred}}" hint-placeholder-val="{{ false }}"><svg class="ic" viewBox="0 0 24 24" width="13" height="13" role="img" aria-label="Starred" style="color: var(--ad-accent-ink)"><path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"></path></svg></sc-if></span>
                                 <span class="bubble {{m.bcls}}"><sc-if value="{{m.hasQuote}}" hint-placeholder-val="{{ false }}"><span class="quoteBlk"><strong>{{m.quote.who}}</strong><span>{{m.quote.text}}</span></span></sc-if><sc-if value="{{m.hasText}}" hint-placeholder-val="{{ true }}"><span class="bTxt"><sc-for list="{{m.parts}}" as="pt" hint-placeholder-count="1"><sc-if value="{{pt.isMen}}" hint-placeholder-val="{{ false }}"><span class="mxMen">{{pt.t}}</span></sc-if><sc-if value="{{pt.isTxt}}" hint-placeholder-val="{{ true }}">{{pt.t}}</sc-if></sc-for></span></sc-if></span>
                                 <sc-if value="{{m.hasMedia}}" hint-placeholder-val="{{ false }}"><span class="{{m.mediaCls}}"><sc-for list="{{m.media}}" as="md" hint-placeholder-count="2"><button class="mgTile" aria-label="{{md.aria}}" onClick="{{md.open}}"><sc-if value="{{md.isVideo}}" hint-placeholder-val="{{ false }}"><video src="{{md.url}}" muted playsinline preload="metadata"></video><span class="vidTag">Video</span></sc-if><sc-if value="{{md.isImage}}" hint-placeholder-val="{{ true }}"><img src="{{md.url}}" alt="{{md.name}}" loading="lazy"></sc-if><sc-if value="{{md.hasMore}}" hint-placeholder-val="{{ false }}"><span class="mgMore">{{md.more}}</span></sc-if></button></sc-for></span></sc-if>
                                 <sc-if value="{{m.hasDocs}}" hint-placeholder-val="{{ false }}"><sc-for list="{{m.docs}}" as="dc" hint-placeholder-count="1"><button class="fileCard" onClick="{{dc.open}}" aria-label="{{dc.aria}}"><span class="extTile" style="background: {{dc.tone}}">{{dc.ext}}</span><span style="min-width: 0; display: flex; flex-direction: column; text-align: left"><strong style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px">{{dc.name}}</strong><span style="font-size: 12px; color: var(--ad-dim)">{{dc.size}}</span></span></button></sc-for></sc-if>
@@ -1486,13 +1559,13 @@ button.mxRowBtn:hover{background:var(--ad-hover)}
                         <span class="attBar" role="group" aria-label="Attach and insert">
                           <label class="attB fileBtn" title="Photo or video"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM8.5 10a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM21 15l-5-5L5 21"></path></svg><span class="sr">Photo or video</span><input type="file" multiple accept="image/*,video/*" aria-label="Attach photos or video" onChange="{{attFilesPhoto}}"></label>
                           <label class="attB fileBtn" title="File"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg><span class="sr">File</span><input type="file" multiple aria-label="Attach files" onChange="{{attFilesDoc}}"></label>
-                          <button class="attB mxHideC" title="From the library" aria-label="Attach from the library" onClick="{{attLib}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></svg></button>
-                          <button class="attB mxHideC" title="Link" aria-label="Attach a link" onClick="{{attLink}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button>
+                          <button class="attB mxHideA" title="From the library" aria-label="Attach from the library" onClick="{{attLib}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></svg></button>
+                          <button class="attB mxHideA" title="Link" aria-label="Attach a link" onClick="{{attLink}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button>
                           <button class="attB" title="Emoji" aria-label="Emoji" aria-expanded="{{emoX}}" onClick="{{toggleEmo}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"></path></svg></button>
                           <button class="attB" title="Mention someone" aria-label="Mention someone" onClick="{{startMention}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"></path></svg></button>
                           <sc-if value="{{canSaved}}" hint-placeholder-val="{{ false }}"><button class="attB mxHideC" title="Saved replies" aria-label="Saved replies" onClick="{{openSaved}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"></path></svg></button></sc-if>
                           <sc-if value="{{canSched}}" hint-placeholder-val="{{ false }}"><button class="attB mxHideC" title="Schedule send" aria-label="Schedule send" onClick="{{openSched}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5M16 2v4M8 2v4M3 10h5M17.5 17.5 16 16.3V14M22 16a6 6 0 1 1-12 0 6 6 0 0 1 12 0"></path></svg></button></sc-if>
-                          <button class="attB mxShowC" title="More options" aria-label="More options" aria-haspopup="menu" aria-expanded="{{moreOptX}}" data-menu="attmore" onClick="{{openMoreOpt}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM19 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM5 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg></button>
+                          <button class="attB" title="More options" aria-label="More options" aria-haspopup="menu" aria-expanded="{{moreOptX}}" data-menu="attmore" onClick="{{openMoreOpt}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM19 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM5 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg></button>
                         </span>
                         <button class="btn mxSend" disabled="{{sendDis}}" aria-label="Send" aria-describedby="sendWhy" onClick="{{send}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4zM22 2 11 13"></path></svg><span class="mxSendL">Send</span></button>
                       </div>
@@ -1501,10 +1574,10 @@ button.mxRowBtn:hover{background:var(--ad-hover)}
                   </div>
                 </sc-if>
                 <sc-if value="{{noPerm}}" hint-placeholder-val="{{ false }}">
-                  <div class="emptyRow" style="min-height: 320px; justify-content: center; align-items: center; text-align: center; flex: 1"><span class="emptyIc" style="background: var(--ad-tone-neutral)"><svg class="ic" viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4"></path></svg></span><strong>You do not have access to this conversation</strong><span style="color: var(--ad-dim); max-width: 44ch">It belongs to a project you are not part of. Ask Admin to add you and it appears here with its full history.</span><button class="btn" onClick="{{askAccess}}">Ask Admin for access</button></div>
+                  <div class="emptyRow" style="min-height: 320px; justify-content: center; align-items: center; text-align: center; flex: 1"><span class="emptyIc" style="background: var(--ad-tone-neutral)"><svg class="ic" viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4"></path></svg></span><strong>{{noPermT}}</strong><span style="color: var(--ad-dim); max-width: 44ch">{{noPermB}}</span><button class="btn" onClick="{{askAccess}}">{{noPermBtn}}</button></div>
                 </sc-if>
                 <sc-if value="{{noThread}}" hint-placeholder-val="{{ false }}">
-                  <div class="emptyRow" style="min-height: 320px; justify-content: center; flex: 1"><span class="emptyIc" style="background: var(--ad-tone-brand)"><svg class="ic" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></svg></span><strong>Pick a conversation</strong><span style="color: var(--ad-dim)">Or start a new one with New message.</span></div>
+                  <div class="emptyRow" style="min-height: 320px; justify-content: center; align-items: center; text-align: center; flex: 1"><span class="emptyIc" style="background: var(--ad-tone-brand)"><svg class="ic" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></svg></span><strong>Pick a conversation</strong><span style="color: var(--ad-dim)">Or start a new one with New message.</span></div>
                 </sc-if>
               </section>
 
@@ -1708,6 +1781,7 @@ button.mxRowBtn:hover{background:var(--ad-hover)}
             <div class="noticeB" role="status" style="--nt: {{sheet.notice.tone}}"><span class="noticeIc"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="{{sheet.notice.icon}}"></path></svg></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><strong>{{sheet.notice.title}}</strong><span>{{sheet.notice.body}}</span></span><sc-if value="{{sheet.notice.hasAct}}" hint-placeholder-val="{{ false }}"><button class="btn2" style="min-height: 40px" onClick="{{sheet.notice.act}}">{{sheet.notice.actLabel}}</button></sc-if></div>
           </sc-if>
           <sc-if value="{{sheet.hasRows}}" hint-placeholder-val="{{ true }}"><dl class="dl"><sc-for list="{{sheet.rows}}" as="r" hint-placeholder-count="4"><div style="min-width: 0"><dt>{{r.k}}</dt><dd class="num">{{r.v}}</dd></div></sc-for></dl></sc-if>
+          <sc-if value="{{sheet.hasQuick}}" hint-placeholder-val="{{ false }}"><div class="quickRow" role="group" aria-label="More for this item"><sc-for list="{{sheet.quick}}" as="q" hint-placeholder-count="3"><button type="button" class="chip" onClick="{{q.fn}}">{{q.t}}</button></sc-for></div></sc-if>
           <sc-if value="{{sheet.hasBody}}" hint-placeholder-val="{{ true }}"><p style="max-width: 62ch">{{sheet.body}}</p></sc-if>
           <sc-if value="{{sheet.hasPreview}}" hint-placeholder-val="{{ false }}">
             <div class="preview"><span style="font-size: 12px; color: var(--ad-dim)">To <strong style="color: var(--ad-ink)">{{sheet.preview.to}}</strong></span><strong>{{sheet.preview.subject}}</strong><span>{{sheet.preview.text}}</span></div>
@@ -2025,7 +2099,7 @@ button.mxRowBtn:hover{background:var(--ad-hover)}
 
           <sc-if value="{{sheet.hasFeed}}" hint-placeholder-val="{{ false }}">
             <div style="display: flex; flex-direction: column">
-              <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 10px">History</h3>
+              <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 10px">{{sheet.feedTitle}}</h3>
               <sc-for list="{{sheet.feed}}" as="f" hint-placeholder-count="3"><div class="feedRow"><span style="display: flex; flex-direction: column; align-items: center"><span class="d"></span><span style="flex: 1; width: 2px; background: var(--ad-line)"></span></span><span style="padding-bottom: 14px"><span style="font-weight: 600">{{f.t}}</span><br><span style="color: var(--ad-dim); font-size: 13px">{{f.when}}</span></span></div></sc-for>
             </div>
           </sc-if>
@@ -2511,12 +2585,12 @@ class Component extends DCLogic {
 
   /* ---------- the values every template shares ---------- */
   kit() {
-    var s = this.state, self = this, I = this.icons();
+    var s = this.state, self = this, I = this.icons(); var svq = (function () { try { return new URLSearchParams(window.location.search); } catch (e) { return new URLSearchParams(''); } })();
     var DEV = [['desktop', 'Desktop', 'M2 4h20v12H2zM8 20h8M12 16v4', '100%', 'auto', 'Full width'], ['tablet', 'Tablet', 'M6 2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM11 18h2', '834px', '1112px', '834 × 1112'], ['phone', 'Phone', 'M8 2h8a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM11 18h2', '390px', '844px', '390 × 844']];
     var devI = 0; DEV.forEach(function (d, i) { if (d[0] === s.dev) devI = i; });
     var cur = DEV[devI];
     var navOn = this.navSection ? this.navSection() : this.pageName();
-    var mk = function (n) { var on = n.label === navOn; return { label: n.label, d: n.d, href: n.href || '#', hasCount: n.count > 0, count: n.count, tone: n.tone || 'var(--ad-tone-brand)', aria: n.label + (n.count ? ', ' + n.count + ' new' : ''), cls: on ? 'on' : '', current: on ? 'page' : 'false', go: function (e) { if (on || !n.href || n.href === '#') { if (e && e.preventDefault) e.preventDefault(); self.setState({ drawer: false }); } } }; };
+    var mk = function (n) { var on = n.label === navOn; return {  label: n.label, d: n.d, href: n.href || '#', hasCount: n.count > 0, count: n.count, tone: n.tone || 'var(--ad-tone-brand)', aria: n.label + (n.count ? ', ' + n.count + ' new' : ''), cls: on ? 'on' : '', current: on ? 'page' : 'false', go: function (e) { if (on || !n.href || n.href === '#') { if (e && e.preventDefault) e.preventDefault(); self.setState({ drawer: false }); } } }; };
     var nav2 = this.roleNav().filter(function (n) { return n.second; }).map(mk);
     var nav = this.navData().map(function (n) { var on = n.label === navOn; return { label: n.label, d: n.d, href: n.href || '#', hasCount: n.count > 0, count: n.count, tone: n.tone || 'var(--ad-tone-brand)', aria: n.label + (n.count ? ', ' + n.count + ' new' : ''), cls: on ? 'on' : '', current: on ? 'page' : 'false', go: function (e) { if (on || !n.href || n.href === '#') { if (e && e.preventDefault) e.preventDefault(); self.setState({ drawer: false }); if (!on) self.later(n.label + ' opens in the full prototype.'); } } }; });
     var notesRaw = this.notesData();
@@ -2570,7 +2644,7 @@ class Component extends DCLogic {
     if (raw.primaryDis) { var pd = raw.primaryDis(ctx, s); if (pd) { dis = 'y'; reqText = pd; } }
     var galRaw = typeof raw.gallery === 'function' ? raw.gallery(s) : (raw.gallery || []), galEmpty = typeof raw.galleryEmpty === 'function' ? raw.galleryEmpty(s) : false;
     var sheet = Object.assign({}, raw, {
-      hasGallery: galRaw.length > 0, gallery: galRaw, galleryEmpty: galEmpty, back: s.stack.length > 0, hasChip: !!raw.chip, hasIcon: !!raw.icon, icon: raw.icon || '', iconTone: raw.iconTone || 'var(--ad-tone-brand)', hasRows: raw.rows.length > 0, hasBody: !!raw.body, hasPreview: !!raw.preview, preview: raw.preview || {},
+      feedTitle: raw.feedTitle || 'History', hasQuick: !!(raw.quick && raw.quick.length), quick: (raw.quick || []).map(function (q) { return { t: q.t, d: q.d || '', fn: function () { if (q.fn) q.fn(); } }; }), hasGallery: galRaw.length > 0, gallery: galRaw, galleryEmpty: galEmpty, back: s.stack.length > 0, hasChip: !!raw.chip, hasIcon: !!raw.icon, icon: raw.icon || '', iconTone: raw.iconTone || 'var(--ad-tone-brand)', hasRows: raw.rows.length > 0, hasBody: !!raw.body, hasPreview: !!raw.preview, preview: raw.preview || {},
       hasList: list.length > 0 || ss.has, list: list, ss: ss, listRole: raw.select ? (raw.multi ? 'group' : 'radiogroup') : 'list', hasChecks: checks.length > 0, checks: checks, checksTitle: raw.checksTitle || 'Checklist', checksDone: ckDone + ' of ' + checks.length, checksPct: checks.length ? Math.round(ckDone / checks.length * 100) : 0,
       hasFeed: raw.feed.length > 0, hasNote: !!raw.note, reason: !!raw.reason, reasonLabel: raw.reason ? raw.reason.label : '', reasonPh: raw.reason ? raw.reason.ph : '', ack: !!raw.ack, ackText: raw.ack || '',
       hasFields: fields.length > 0, fields: fields, fieldsCls: raw.chipsFirst ? 'fieldsLate' : '', listCls: raw.chipsFirst ? 'listLate' : '', chipsCls: raw.chipsFirst ? 'chipsMid' : '', hasChipSets: chipSets.length > 0, chipSets: chipSets, hasNotice: !!notice, notice: notice || {}, primaryLabel: plabel, primaryCls: raw.danger ? 'btnD' : (raw.green ? 'btnG' : 'btn'), primaryDis: !!dis, why: reqText, hasSecondary: !!raw.secondary, secondaryLabel: typeof raw.secondary === 'function' ? raw.secondary(ctx, s) : raw.secondary, chip: typeof raw.chip === 'function' ? raw.chip(ctx, s) : raw.chip, tone: typeof raw.tone === 'function' ? raw.tone(ctx, s) : raw.tone, hasFoot: !raw.noFoot, busy: !!raw.busy
@@ -2585,7 +2659,7 @@ class Component extends DCLogic {
     }
     var client = s.vis === 'client';
     var anyOverlay = !!(s.sheet || s.drawer || s.pal || (s.pop && s.pop.asSheet) || s.tour >= 0);
-    return {
+    return { svOn: !!svq.get('sv'), svName: svq.get('who') ? svq.get('who') + ' as ' + svq.get('sv') : 'read only', svEnds: '09:00',
       rootCls: 'wdc' + (s.dark ? ' dark' : '') + (s.dev === 'phone' ? ' isPhone' : '') + (anyOverlay ? ' locked' : ''),
       themeLabel: s.dark ? 'Switch to light mode' : 'Switch to dark mode', themeIcon: s.dark ? I.sun : I.moon, themeShort: s.dark ? 'Light' : 'Dark', themeLong: s.dark ? 'Light mode' : 'Dark mode',
       toggleTheme: function () { self.setState({ dark: !self.state.dark }); },
@@ -3761,7 +3835,7 @@ class Component extends DCLogic {
     var media = att.filter(function (a) { return a.kind === 'image' || a.kind === 'video'; }), docs = att.filter(function (a) { return a.kind === 'doc'; }), link = att.filter(function (a) { return a.kind === 'link'; })[0];
     if (media.length) msg.media = media; if (docs.length) msg.files = docs; if (link) msg.link = link;
     var id = c.id + ':' + c.msgs.length, mens = this.msgMentionsIn(text), d = Object.assign({}, s.drafts); d[c.id] = '';
-    this.setState({ mreply: null, matt: [], drafts: d, emoOn: false, mnOn: false });
+    this._thScroll = 0; this.setState({ mreply: null, matt: [], drafts: d, emoOn: false, mnOn: false, jumpOn: false, newBelow: 0 });
     this.msgAppend(c.id, msg);
     if (!team) this.msgChain(id, c.id);
     var note = mens.length ? ' ' + (mens.length > 2 ? mens.length + ' people are' : mens.join(' and ') + (mens.length === 1 ? ' is' : ' are')) + ' notified.' : '';
@@ -3826,7 +3900,7 @@ class Component extends DCLogic {
           names.push(rec.name.split(' (')[0]);
         });
         self.setState({ conv: first, thread: true, mfilter: 'inbox', mkind: 'all', mq: '', mpage: 0, ra: self.state.ra + 1 });
-        self.say('Sent to ' + (names.length > 2 ? names[0] + ' and ' + (names.length - 1) + ' others' : names.join(' and ')) + '.' + (ctx.items.some(function (it) { return it.ref.kind === 'client' || it.ref.isNew; }) && M.role !== 'client' ? ' Clients also get an email.' : ''));
+        self.say(('Sent to ' + (names.length > 2 ? names[0] + ' and ' + (names.length - 1) + ' others' : names.join(' and ')) + '.' + (ctx.items.some(function (it) { return it.ref.kind === 'client' || it.ref.isNew; }) && M.role !== 'client' ? ' Clients also get an email.' : '')).replace(/\.\.+/g, '.'));
       } }));
   }
   /* tags on a message: a few ready made, and your own */
@@ -3940,7 +4014,7 @@ class Component extends DCLogic {
     if (pop.kind === 'thread' || pop.kind === 'row') { var c = this.msgAll().filter(function (x) { return x.id === pop.id; })[0]; return c ? (pop.kind === 'row' ? this.rowMenu(c) : this.threadMenu(c)) : []; }
     if (pop.kind === 'attmore') { var sc = this.state.conv && this.msgAll().filter(function (x) { return x.id === self.state.conv; })[0]; if (!sc) return []; return [
       it('Attach from the library', I.folder, function () { self.attachFile(sc); }), it('Attach a link', I.link, function () { self.attLinkSheet(); })
-    ].concat(M.role !== 'client' && M.saved && M.saved.length ? [it('Saved replies', X.zap, function () { self.msgSavedSheet(sc); })] : []).concat(M.role === 'admin' ? [it('Schedule send', X.cal, function () { self.msgScheduleSheet(sc); })] : []); }
+    ].concat(M.role !== 'client' && M.saved && M.saved.length && self._mxMode !== 'col' ? [it('Saved replies', X.zap, function () { self.msgSavedSheet(sc); })] : []).concat(M.role === 'admin' && self._mxMode !== 'col' ? [it('Schedule send', X.cal, function () { self.msgScheduleSheet(sc); })] : []); }
     if (pop.kind === 'chores') return [
       it('Mark all as read', I.check, function () { var m = Object.assign({}, self.state.mread); self.msgAll().forEach(function (c) { m[c.id] = true; }); self.setState({ mread: m, munread: {}, ra: self.state.ra + 1 }); self.say('Everything is marked as read.'); }),
       it('Search all messages', I.search, function () { self.setState({ pal: true, q: '' }); }, { hint: 'Ctrl K' })
@@ -3978,7 +4052,7 @@ class Component extends DCLogic {
       var n = self.msgUnread(c), on = sel && sel.id === c.id && (mode !== 'sheet' || s.thread), pn = self.isPinned(c), typ = s.typing === c.id, w = typ ? self.msgTypingWho(c) : null, pr = self.mxPres(c.pp), mine = null, lastM = c.msgs.filter(function (m) { return m.kind !== 'event'; }).slice(-1)[0];
       if (anyPinned) { var hk = pn ? 'p' : 'r'; if (!seenHead[hk]) { seenHead[hk] = true; convs.push({ isHead: true, isRow: false, label: pn ? 'Pinned' : 'Recent' }); } }
       var del = lastM && lastM.mine ? self.msgDelivery(c, lastM, c.msgs.indexOf(lastM), c.msgs) : null;
-      convs.push({ isHead: false, isRow: true, label: '', name: c.name, i: c.i, tone: c.tone, sub: c.ckind === 'direct' && c.pp ? c.pp.role + ' · ' + c.pp.grp : c.sub, last: typ ? (w ? self.mxFirst(w.name) + ' is typing…' : 'typing…') : self.msgLast(c), when: self.msgWhen(c), unread: n, hasUnread: n > 0, fw: n > 0 ? 600 : 400, pcol: typ ? 'var(--ad-accent-ink)' : (n > 0 ? 'var(--ad-ink)' : 'var(--ad-dim)'), cls: on ? 'on' : '', current: on ? 'true' : 'false', anim: self.anim(s.ra), delay: (i * 0.035) + 's',
+      convs.push({ isHead: false, isRow: true, label: '', name: c.name, i: c.i, tone: c.tone, sub: c.ckind === 'direct' && c.pp ? self.mxRoleLine(c.pp) : c.sub, last: typ ? (w ? self.mxFirst(w.name) + ' is typing…' : 'typing…') : self.msgLast(c), when: self.mxShort(self.msgWhen(c)), unread: n, hasUnread: n > 0, fw: n > 0 ? 600 : 400, pcol: typ ? 'var(--ad-accent-ink)' : (n > 0 ? 'var(--ad-ink)' : 'var(--ad-dim)'), cls: on ? 'on' : '', current: on ? 'true' : 'false', anim: self.anim(s.ra), delay: (i * 0.035) + 's',
         avDirect: c.ckind === 'direct' || c.ckind === 'support', avGroup: c.ckind === 'group', avProj: c.ckind === 'project', dotCls: pr.cls, presT: pr.t, pinned: pn, muted: self.isMuted(c),
         hasTick: !!del && !typ, tickD: del ? del.d : '', tickCls: del ? del.cls : '', tickAria: del ? del.txt : '',
         aria: c.name + ', ' + (c.pp ? pr.t : c.sub) + (pn ? ', pinned' : '') + (self.isMuted(c) ? ', muted' : '') + (n ? ', ' + n + ' unread' : '') + '. ' + self.msgLast(c),
@@ -3992,12 +4066,12 @@ class Component extends DCLogic {
 
     var th = { aria: 'Conversation' }, msgs = [], quick = [], canVis = false, team = s.mvis === 'team', infoOpen = this.msgInfoOpen(mode), inf = this.msgInfoVals(null, mode);
     var draft = sel ? (s.drafts[sel.id] || '') : '';
-    var blank = { isDate: false, isDiv: false, isTyping: false, isSched: false, isEvent: false, isMsg: false, label: '', text: '', tone: '', i: '', who: '', when: '', d: '', cls: '', bcls: '', isNote: false, starred: false, hasQuote: false, quote: { who: '', text: '' }, hasText: false, parts: [], hasMedia: false, mediaCls: '', media: [], hasDocs: false, docs: [], hasLink: false, link: {}, hasRx: false, rx: [], hasTags: false, tags: [], hasDel: false, delCls: '', delIc: false, delD: '', delAria: '', delTxt: '', isFailed: false, hasStatus: false, status: '' };
+    var blank = { isDate: false, isDiv: false, isTyping: false, isSched: false, isEvent: false, isMsg: false, label: '', text: '', tone: '', i: '', who: '', when: '', d: '', cls: '', bcls: '', isNote: false, starred: false, hasQuote: false, quote: { who: '', text: '' }, hasText: false, parts: [], hasMedia: false, mediaCls: '', media: [], hasDocs: false, docs: [], hasLink: false, link: {}, profRole: 'button', profTab: '0', profAria: '', hasRx: false, rx: [], hasTags: false, tags: [], hasDel: false, delCls: '', delIc: false, delD: '', delAria: '', delTxt: '', isFailed: false, hasStatus: false, status: '' };
     if (sel && !noPerm) {
       var kindT = ({ client: ['Client', 'var(--ad-tone-brand)'], team: ['Team', 'var(--ad-tone-flat)'], support: ['Support', 'var(--ad-tone-live)'] })[sel.kind] || ['Team', 'var(--ad-tone-flat)'];
       if (sel.ckind === 'group') kindT = ['Group', 'var(--ad-tone-flat)']; if (sel.ckind === 'project') kindT = ['Project', 'var(--ad-tone-brand)'];
       var direct = sel.ckind === 'direct' || sel.ckind === 'support', p = sel.pp, pr = this.mxPres(p), typ = s.typing === sel.id, tw = typ ? this.msgTypingWho(sel) : null, mem = sel.mem || [], online = mem.filter(function (x) { return x.id !== me.id && x.pres === 'on'; }).length;
-      var sub = direct ? (p ? pr.t + ' · ' + p.grp : sel.sub) : (sel.ckind === 'project' ? 'Project channel · ' : '') + mem.length + ' members · ' + online + ' active';
+      var sub = direct ? (p ? pr.t + (p.grp !== p.role ? ' · ' + p.grp : '') : sel.sub) : (sel.ckind === 'project' ? 'Project channel · ' : '') + mem.length + ' members · ' + online + ' active';
       if (typ) sub = (tw ? this.mxFirst(tw.name) : 'Someone') + ' is typing…';
       var brief = s.briefs[sel.id] != null ? s.briefs[sel.id] : (sel.brief || '');
       th = { aria: 'Conversation with ' + sel.name, name: sel.name.split(' (')[0], i: sel.i, tone: sel.tone, avDirect: direct, avGroup: sel.ckind === 'group', avProj: sel.ckind === 'project', dotCls: direct ? pr.cls : 'off', presT: pr.t, showDot: direct && !typ && !!p, sub: sub, subCls: typ ? 'typ' : '',
@@ -4039,7 +4113,7 @@ class Component extends DCLogic {
           rxBar: self.mxReacts().map(function (r) { var mine = rx.filter(function (x) { return x.k === r[0]; })[0]; var on = !!(mine && mine.mine); return { d: r[2], cls: on ? 'on' : '', pressed: on ? 'true' : 'false', aria: (on ? 'Remove ' : 'React: ') + r[1], pick: function () { self.msgReactToggle(m.id, r[0]); } }; }),
           react: function () { self.setState({ rxFor: rxOn ? null : m.id }); },
           hasDel: !!del, delCls: del ? del.cls : '', delIc: !!del, delD: del ? del.d : '', delAria: del ? del.txt : '', delTxt: del ? del.txt : '', isFailed: !!del && del.st === 'failed', retry: function () { self.msgRetry(m.id, sel.id); }, discard: function () { self.msgDiscard(m.id); },
-          profile: openProf, profKey: function (e) { if (e && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openProf(); } },
+          profRole: m.mine ? 'presentation' : 'button', profTab: m.mine ? '-1' : '0', profAria: m.mine ? 'You' : 'Open the profile of ' + m.who, profile: openProf, profKey: function (e) { if (e && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openProf(); } },
           reply: reply, swipe: function (e) { self.msgHold(e, function () { self.setState({ rxFor: m.id }); }); self.swipeReply(e, reply); }, more: function (e) { if (e && e.stopPropagation) e.stopPropagation(); self.openPop(e, 'msg', m.id, 250, 320, 'Message actions'); }, moreX: self.popOn('msg', m.id),
           hasStatus: !!(m.mine && m.status && i === lastMine && note), status: m.status || '' }));
       });
@@ -4074,13 +4148,14 @@ class Component extends DCLogic {
     var sendHint = sendDis ? 'Write a message or attach something to send it.' : (s.offline ? 'You are offline. This sends when you are back.' : 'Enter to send, Shift Enter for a new line');
     var ovOn = !!sel && !noPerm && infoOpen && mode !== 'col';
     return Object.assign(this.kit(), this.extraVals(), M.vals ? M.vals(this) : {}, {
-      ledeA: total ? total + (total === 1 ? ' unread message' : ' unread messages') + ' in ' + unreadN + (unreadN === 1 ? ' conversation.' : ' conversations.') : 'You are all caught up.', ledeB: M.waiting ? M.waiting(this, all) : '',
+      ledeA: s.demoEmpty ? 'Your inbox is empty.' : total ? total + (total === 1 ? ' unread message' : ' unread messages') + ' in ' + unreadN + (unreadN === 1 ? ' conversation.' : ' conversations.') : 'You are all caught up.', ledeB: M.waiting ? M.waiting(this, all) : '',
       skRows: [1, 2, 3, 4, 5], modeCls: 'm-' + mode, paneCls: s.thread ? 'isThread' : '', infoCls: mode === 'col' && infoOpen && sel && !noPerm ? 'hasInfo' : '', showInfoCol: mode === 'col' && infoOpen && !!sel && !noPerm,
       offline: s.offline, goOnline: function () { self.setOffline(false); },
       tabs: tabs, hasKinds: V.KINDS.length > 0, kinds: kinds, convs: convs, MG: MG, mq: s.mq, hasMq: !!s.mq,
       onMq: function (e) { self.setState({ mq: e.target.value, mpage: 0, ra: self.state.ra + 1 }); }, clearMq: function () { self.setState({ mq: '', ra: self.state.ra + 1 }); }, clearFilters: function () { self.setState({ mq: '', mkind: 'all', mpage: 0, ra: self.state.ra + 1 }); },
       noConvs: !list.length, hasFilter: hasFilter, emptyTitle: emptyTitle, emptyBody: emptyBody, emptyD: emptyD, emptyNew: emptyNew,
-      hasThread: !!sel && !noPerm, noThread: !sel && !noPerm, noPerm: noPerm, askAccess: function () { self.say('Admin has been asked. You get a message here when you are added.'); },
+      hasThread: !!sel && !noPerm, noThread: !sel && !noPerm, noPerm: noPerm, noPermT: M.role === 'admin' ? 'You are not a member of this channel' : 'You do not have access to this conversation', noPermB: M.role === 'admin' ? 'Only members can read a channel. Add yourself and it opens with its full history.' : 'It belongs to a project you are not part of. Ask Admin to add you and it appears here with its full history.', noPermBtn: M.role === 'admin' ? 'Add me to the channel' : 'Ask Admin for access',
+      askAccess: function () { if (M.role === 'admin') { self.setState({ demoNoPerm: false, ra: self.state.ra + 1 }); self.say('Added. The channel is open in your list.'); } else self.say('Admin has been asked. You get a message here when you are added.'); },
       th: th, msgs: msgs, noMsgs: !msgs.length && !!sel, quick: quick, hasQuick: quick.length > 0,
       hasReply: !!s.mreply, replyWho: s.mreply ? s.mreply.who : '', replyText: s.mreply ? s.mreply.text : '', cancelReply: function () { self.setState({ mreply: null }); },
       hasAtt: attN > 0, attN: attN + ' attached', att: (s.matt || []).map(function (a, k) { return { name: a.name, size: a.size || '', ext: a.ext || '', url: a.url || '', isImg: a.kind === 'image', isVid: a.kind === 'video', isDoc: a.kind === 'doc', isLink: a.kind === 'link', aria: 'Remove ' + a.name, remove: function () { var c = (self.state.matt || []).slice(); c.splice(k, 1); self.setState({ matt: c }); } }; }),
@@ -4102,7 +4177,7 @@ class Component extends DCLogic {
         if ((e.ctrlKey || e.metaKey) && k === 'Enter') { e.preventDefault(); self.sendMsg(); }
       },
       moreOptX: this.popOn('attmore', 'attmore'), openMoreOpt: function (e) { self.openPop(e, 'attmore', 'attmore', 270, 240, 'More options'); },
-      send: function () { self.sendMsg(); }, sendDis: sendDis, sendHint: sendHint, hintCls: sendDis ? 'why' : 'tip',
+      send: function () { self.sendMsg(); }, sendDis: sendDis, sendHint: sendHint, hintCls: sendDis ? 'mxWhy' : 'tip',
       canSaved: M.role !== 'client' && !!(M.saved && M.saved.length), openSaved: function () { if (sel) self.msgSavedSheet(sel); }, canSched: M.role === 'admin', openSched: function () { if (sel) self.msgScheduleSheet(sel); },
       hasMens: mens.length > 0, mens: mens, mnOn: s.mnOn, mnList: mnList, mnNone: !mnList.length,
       startMention: function () { if (!sel) return; var d = Object.assign({}, self.state.drafts), v = d[sel.id] || ''; v += (v && !/\s$/.test(v) ? ' ' : '') + '@'; d[sel.id] = v; self._mnAt = v.length - 1; self.setState({ drafts: d, mnOn: true, mnq: '', mnI: 0, emoOn: false }); setTimeout(function () { var el = document.getElementById('msgIn'); if (el) { el.focus(); try { el.setSelectionRange(v.length, v.length); } catch (er) { /* no caret */ } } }, 60); },
@@ -4174,7 +4249,7 @@ class Component extends DCLogic {
       P('bisi', 'Bisi O.', 'BO', '#15803d', 'SEO specialist', 'SEO', 'team', 'away', 'Last seen 10:48', { hours: T, email: 'bisi@wdc.studio', proj: ['bloom-seo'] }),
       P('tolu', 'Tolu A.', 'TA', '#23239b', 'Content creator, freelance', 'Social & Ads', 'team', 'off', 'Last seen 09:12', { hours: 'Mon to Fri, 10:00 to 16:00', email: 'tolu@wdc.studio', hideSeen: true, proj: ['ade-oct', 'mira-so'] }),
       P('adaeze', 'Adaeze O.', 'AO', '#1f4d3a', 'Founder', 'Mira Skincare', 'client', 'off', 'Last seen yesterday', { cid: 'mira', hours: C, proj: ['mira-br', 'mira-so'] }),
-      P('daniel', 'Daniel O.', 'DO', '#23239b', 'Owner', 'Lumen Fitness', 'client', 'on', '', { cid: 'lumen', hours: C, proj: ['lumen-ads'] }),
+      P('daniel', 'Daniel O.', 'DO', '#23239b', 'Founder', 'Lumen Fitness', 'client', 'on', '', { cid: 'lumen', hours: C, proj: ['lumen-ads'] }),
       P('adebayo', 'Adebayo K.', 'AK', '#5c3d1f', 'Operations lead', 'Kora Logistics', 'client', 'off', 'Last seen Thu 8 Oct', { cid: 'kora', hours: C, proj: ['kora-app'] }),
       P('ngozi', 'Ngozi E.', 'NE', '#15803d', 'Pharmacist in charge', 'Bloom Pharmacy', 'client', 'away', 'Last seen 11:10', { cid: 'bloom', hours: C, proj: ['bloom-seo'] }),
       P('tunde', 'Tunde O.', 'TO', '#5c5c7a', 'Principal', 'Tunde Okafor Law', 'client', 'off', 'Last seen 09:41', { cid: 'okafor', hours: C, proj: ['okafor-web'] }),
@@ -4193,8 +4268,10 @@ class Component extends DCLogic {
     if (p.pres === 'away') return { cls: 'away', t: 'Away' };
     return { cls: 'off', t: p.hideSeen ? 'Last seen hidden' : (p.seen || 'Offline') };
   }
+  mxRoleLine(p) { return p.grp && p.grp !== p.role ? p.role + ' · ' + p.grp : p.role; }
   mxFirst(n) { return (n || '').split(' (')[0].split(' ')[0]; }
   mxTime() { return '11:32'; }
+  mxShort(w) { var t = w || '', m; if ((m = /^Today, (\d{1,2}:\d{2})/.exec(t))) return m[1]; if (/^Yesterday/.test(t)) return 'Yesterday'; if ((m = /^(\d+ \w{3}), /.exec(t))) return m[1]; if ((m = /^(\d+ days? ago)/.exec(t))) return m[1]; return t; }
   mxTimeOf(w) { var m = /(\d{1,2}:\d{2})/.exec(w || ''); return m ? m[1] : ''; }
   /* "Today", "Yesterday, 18:40", "3 h ago", "28 Sep, 11:05": the day it falls on, as a key and a label */
   mxDay(w) {
@@ -4244,7 +4321,7 @@ class Component extends DCLogic {
     if (staffView && p.kind === 'client' && cl) { var href = M.role === 'admin' ? (cl.id === 'mira' ? 'A-Client.dc.html' : 'A-Clients.dc.html') : 'S-Clients.dc.html'; list.push({ t: 'Client record', s: cl.name + ' · ' + cl.services.join(', '), ini: 'CR', av: 'var(--ad-tone-flat)', act: { label: 'Open', fn: function () { window.location.href = href; } } }); }
     var body = staffView ? (p.kind === 'client' ? 'Client contact details are only visible to the studio team.' : 'Everyone at the studio sees this.') : 'You see their role and when they are around. Contact details stay private. Message them here and they reply within a working day.';
     var meOk = p.id !== this.msgMeId();
-    this.open(this.sh({ eyebrow: 'Profile', title: p.name, icon: X.users, iconTone: p.tone, chip: pr.cls === 'on' ? 'Active now' : (pr.cls === 'away' ? 'Away' : 'Offline'), tone: pr.cls === 'on' ? 'var(--ad-tone-good)' : (pr.cls === 'away' ? 'var(--ad-tone-warn)' : 'var(--ad-tone-neutral)'), body: body, rows: rows, listTitle: 'Projects and records', list: list.slice(1),
+    this.open(this.sh({ eyebrow: 'Profile', title: p.name, icon: X.users, iconTone: p.tone, chip: pr.cls === 'on' ? 'Active now' : (pr.cls === 'away' ? 'Away' : 'Offline'), tone: pr.cls === 'on' ? 'var(--ad-tone-good)' : (pr.cls === 'away' ? 'var(--ad-tone-warn)' : 'var(--ad-tone-neutral)'), body: body, rows: rows, listTitle: 'Who and what you share', list: list,
       primary: meOk ? 'Message ' + this.mxFirst(p.name) : 'Close', secondary: meOk ? 'Book a meeting' : '',
       onPrimary: function () { if (meOk) setTimeout(function () { self.msgOpenPerson(p.id); }, 40); },
       onSecondary: function () { self.msgMeetSheet(p.cid ? p.grp : p.name, true, p.id); return 'stay'; } }), push);
@@ -4252,7 +4329,7 @@ class Component extends DCLogic {
   /* meeting: the studio's own booking flow for Admin and staff, a request for a client */
   msgMeetSheet(who, push, pid) {
     var self = this, I = this.icons(), X = this.mxI(), M = this.msgModel();
-    var done = function (sl) { var c = self.state.conv; self.say('Offered ' + sl + ' to ' + who + '. A Google Meet link is in the invite.'); };
+    var w = who.replace(/\.$/, ''), done = function (sl) { if (M.role === 'client') self.say('Requested ' + sl + '. ' + self.mxFirst(who) + ' confirms, and you both get a Google Meet invite.'); else self.say('Offered ' + sl + ' to ' + w + '. A Google Meet link is in the invite.'); };
     if (M.role !== 'client' && this.bookSheet) { this.bookSheet(who, push, done); return; }
     var slots = [['Mon 12 Oct, 11:00', '30 min on Google Meet'], ['Tue 13 Oct, 15:00', '30 min on Google Meet'], ['Wed 14 Oct, 10:00', '30 min on Google Meet']];
     this.open(this.sh({ eyebrow: 'Book a meeting · ' + who, title: 'Pick a time to ask for', icon: I.cal, iconTone: 'var(--ad-tone-brand)', body: 'We send ' + who + ' a request for this time. When they confirm, you both get a Google Meet invite by email.', listTitle: 'Times that suit the team', select: true, pick: 0, list: slots.map(function (x) { return { t: x[0], s: x[1] }; }),
@@ -4346,7 +4423,7 @@ class Component extends DCLogic {
     var setMute = function () { self.msgToggleMute(sel); }, setPin = function () { self.msgTogglePin(sel); };
     var d = Object.assign({}, empty, {
       isDirect: direct && !!p, isStack: !direct || !p, stack: this.mxStack(sel), name: sel.name.split(' (')[0], i: sel.i, tone: sel.tone, dotCls: direct ? pr.cls : (online ? 'on' : 'off'),
-      sub: direct ? (p ? p.role + ' · ' + p.grp : sel.sub) : (sel.ckind === 'project' ? 'Project channel' : 'Group') + ' · ' + sel.sub,
+      sub: direct ? (p ? this.mxRoleLine(p) : sel.sub) : (sel.ckind === 'group' ? 'Group · ' : '') + sel.sub,
       presT: direct ? pr.t : (online ? online + ' active now' : 'Nobody else is active'),
       profile: function () { if (p) self.msgProfile(p.id, true); else self.say('Their profile appears once they have replied.'); },
       acts: [
@@ -4384,12 +4461,12 @@ class Component extends DCLogic {
     var F = { cal: { name: 'October content calendar.pdf', ext: 'PDF', size: '860 KB', when: '2 Oct', project: "Ade's Kitchen", view: 'doc', ref: 'CAL-26-10', docTitle: 'October content calendar', tone: 'var(--ad-tone-bad)' }, res: { name: 'Lumen October results.pdf', ext: 'PDF', size: '1.4 MB', when: '6 Oct', project: 'Lumen Fitness', view: 'doc', ref: 'RPT-26-10L', docTitle: 'Lumen October results', tone: 'var(--ad-tone-bad)' }, tpl: { name: 'Social templates.zip', ext: 'ZIP', size: '12 MB', when: 'Yesterday', project: 'Mira Skincare', view: 'doc', ref: 'TPL-26', docTitle: 'Social templates pack', tone: 'var(--ad-tone-live)' } };
     var ask = function (project) { return function () { self.say('The task is added to ' + project + ' and lands on your My Day.'); }; };
     var convs = [
-      { id: 'lumen', p: 'daniel', pinned: true, auto: ['Thank you Chiamaka. Admin already called me, so two creatives at ₦200,000 is fine.', 'Understood, thank you.'], name: 'Daniel O.', i: 'DO', tone: '#23239b', sub: 'Lumen Fitness · Instagram ads', kind: 'client', unread: 1,
-        ctx: [{ t: 'Lumen Fitness', icon: 'users', href: 'S-Clients.dc.html' }, { t: 'Instagram ads', icon: 'folder', href: 'S-Project.dc.html?p=lumen-ads' }, { t: 'Ad budget', icon: 'wallet', tag: 'Admin is agreeing', tone: 'warn', fn: function () { self.say('Admin is agreeing options with Daniel. Plan for ₦200,000 to ₦300,000.'); } }],
+      { id: 'lumen', p: 'daniel', pinned: true, auto: ['Thank you Chiamaka. Admin already called me, so two creatives is fine.', 'Understood, thank you.'], name: 'Daniel O.', i: 'DO', tone: '#23239b', sub: 'Lumen Fitness · Instagram ads', kind: 'client', unread: 1,
+        ctx: [{ t: 'Lumen Fitness', icon: 'users', href: 'S-Clients.dc.html' }, { t: 'Instagram ads', icon: 'folder', href: 'S-Project.dc.html?p=lumen-ads' }, { t: 'Ad budget', icon: 'wallet', tag: 'Admin is agreeing', tone: 'warn', fn: function () { self.say('Admin is agreeing options with Daniel. Plan for two creatives until it is settled.'); } }],
         menu: [{ t: 'Open the project', icon: 'folder', fn: function () { window.location.href = 'S-Project.dc.html?p=lumen-ads'; } }, { t: 'Create a task from this', icon: 'task', fn: ask('Instagram ads') }],
-        quick: ['Thanks Daniel. Admin is confirming the options and we will come back today.', 'At ₦200,000 we would run two creatives instead of three.', 'Happy to talk it through on a call.'],
-        msgs: [mine('October results are in: 212 leads at ₦1,415 each. The full report is in your portal.', '6 Oct, 16:20', { file: F.res }), m(P.daniel, 'Great numbers. Can we lower the ad spend to ₦200k from November? Cash is tight this month.', '18 h ago')] },
-      { id: 'ade', p: 'ade', auto: ['Perfect, thank you!', 'Great, I will tell the team in the kitchen.'], name: 'Ade B.', i: 'AK', tone: '#7a2e0e', sub: 'Ade’s Kitchen · October content', kind: 'client', unread: 0,
+        quick: ['Thanks Daniel. Admin is confirming the options and we will come back today.', 'At a lower spend we would run two creatives instead of three.', 'Happy to talk it through on a call.'],
+        msgs: [mine('October results are in: 212 leads. The full report is in your portal.', '6 Oct, 16:20', { file: F.res }), m(P.daniel, 'Great numbers. Can we lower the ad spend from November? Cash is tight this month.', '18 h ago')] },
+      { id: 'ade', p: 'ade', auto: ['Perfect, thank you.', 'Great, I will tell the team in the kitchen.'], name: 'Ade B.', i: 'AK', tone: '#7a2e0e', sub: 'Ade’s Kitchen · October content', kind: 'client', unread: 0,
         ctx: [{ t: 'Ade’s Kitchen', icon: 'users', href: 'S-Clients.dc.html' }, { t: 'October content', icon: 'folder', tag: '18 of 24', tone: 'good', href: 'S-Project.dc.html?p=ade-oct' }],
         menu: [{ t: 'Open the project', icon: 'folder', fn: function () { window.location.href = 'S-Project.dc.html?p=ade-oct'; } }],
         quick: ['The last six posts go to you today.', 'Thank you Ade. It goes live Tuesday at 12:30.'],

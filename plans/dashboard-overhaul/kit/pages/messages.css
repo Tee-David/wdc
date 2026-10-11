@@ -8,11 +8,11 @@
 .mxWrap.m-sheet:not(.isThread) .mxThread{display:none}
 .mxWrap.m-skel{grid-template-columns:minmax(0,1fr)}
 .mxWrap.m-skel .mxThread,.mxWrap.m-skel .mxInfo{display:none}
-@container app (min-width:641px){.mxWrap.m-skel{grid-template-columns:minmax(240px,300px) minmax(0,1fr)}.mxWrap.m-skel .mxThread{display:flex}}
-@container app (min-width:1100px){.mxWrap.m-skel{grid-template-columns:minmax(260px,296px) minmax(0,1fr) minmax(280px,308px)}.mxWrap.m-skel .mxInfo{display:block}}
+@container app (min-width:641px){.mxWrap.m-skel{grid-template-columns:minmax(236px,268px) minmax(0,1fr)}.mxWrap.m-skel .mxThread{display:flex}}
+@container app (min-width:1100px){.mxWrap.m-skel{grid-template-columns:minmax(300px,324px) minmax(0,1fr) minmax(280px,300px)}.mxWrap.m-skel .mxInfo{display:block}}
 .mxBack{display:none}
 .m-sheet .mxBack{display:inline-flex}
-.m-sheet .mxHideN{display:none !important}
+.m-sheet .mxHideN,.m-over .mxHideN{display:none !important}
 .mxList{display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden}
 .mxRows{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain}
 .mxThread{display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden}
@@ -32,10 +32,10 @@
 .mxLi{position:relative}
 .mxRow{min-height:72px}
 .mxAv{position:relative;flex:none;display:inline-flex}
-.pDot{position:absolute;right:-1px;bottom:-1px;width:12px;height:12px;border-radius:50%;box-shadow:0 0 0 2px var(--ad-panel);background:var(--ad-tone-neutral)}
+.pDot{position:absolute;right:-1px;bottom:-1px;width:12px;height:12px;border-radius:50%;box-shadow:0 0 0 2px var(--ad-panel);background:var(--ad-dim)}
 .pDot.on{background:var(--ad-tone-good)}
 .pDot.away{background:var(--ad-tone-warn)}
-.pDot.off{background:var(--ad-tone-neutral)}
+.pDot.off{background:var(--ad-dim)}
 .pDot.big{width:16px;height:16px;right:2px;bottom:2px;box-shadow:0 0 0 3px var(--ad-panel)}
 .pDot.inl{position:static;display:inline-block;flex:none;width:8px;height:8px;box-shadow:none;margin-right:6px}
 .msgRow.on .pDot{box-shadow:0 0 0 2px var(--ad-nav-on)}
@@ -129,11 +129,10 @@
 .mxBar .attB{width:44px;justify-content:center;padding:0}
 .mxBar .attB[aria-expanded=true]{background:var(--ad-nav-on);color:var(--ad-nav-on-ink)}
 .mxHint{font-size:12px;color:var(--ad-dim);padding:0 4px;min-height:16px}
-.mxHint.why{color:var(--ad-ink)}
+.mxHint.mxWhy{color:var(--ad-ink)}
 .m-sheet .mxHint.tip{display:none}
-.mxShowC{display:none !important}
+.mxHideA{display:none !important}
 .m-over .mxHideC,.m-sheet .mxHideC{display:none !important}
-.m-over .mxShowC,.m-sheet .mxShowC{display:inline-flex !important}
 .m-sheet .mxSendL{display:none}
 .m-sheet .mxSend{width:44px;padding:0;justify-content:center}
 .m-sheet .qrRow,.m-sheet .mxComposer .seg+span{display:none}
@@ -168,11 +167,12 @@
 .mxInfoHead{display:flex;align-items:center;gap:8px;padding:14px 16px 6px;min-height:56px}
 .mxInfoT{flex:1;margin:0;font:600 16px 'Space Grotesk',system-ui,sans-serif}
 .mxInfoBody{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:0 16px 20px;display:flex;flex-direction:column;gap:16px}
+.mxInfoBody>*{flex:none}
 .mxInfoTop{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;padding-top:6px}
 .mxBigAv{position:relative;width:80px;height:80px;border-radius:50%;color:#fff;font:700 24px 'Space Grotesk',system-ui,sans-serif;display:flex;align-items:center;justify-content:center;margin-bottom:6px;transition:transform .2s var(--spring)}
 .mxBigAv:hover{transform:scale(1.04)}.mxBigAv:active{transform:scale(.97)}
-.mxStackBig{display:flex;justify-content:center;margin-bottom:6px;padding-left:14px}
-.mxStackBig .stk{width:48px;height:48px;font-size:14px;margin-left:-14px;box-shadow:0 0 0 3px var(--ad-panel)}
+.mxStackBig{display:flex;justify-content:center;margin-bottom:6px;padding-left:10px}
+.mxStackBig .stk{width:52px;height:52px;font-size:14px;margin-left:-10px;box-shadow:0 0 0 3px var(--ad-panel)}
 .mxInfoName{margin:0;font:600 18px 'Space Grotesk',system-ui,sans-serif;overflow-wrap:anywhere}
 .mxInfoSub{font-size:13px;color:var(--ad-dim);overflow-wrap:anywhere}
 .mxPresT{display:inline-flex;align-items:center;font-size:13px;font-weight:600;margin-top:2px}
@@ -193,11 +193,10 @@ button.mxRowBtn:hover{background:var(--ad-hover)}
 .mxSwT{font-size:12px;color:var(--ad-dim)}
 .mxSec{display:flex;flex-direction:column;gap:10px}
 .mxSecHead{display:flex;align-items:center;gap:8px;min-height:32px}
-.mxSecHead h4{margin:0;flex:1;font:600 14px 'Space Grotesk',system-ui,sans-serif}
-.mxSecN{font-size:12px;color:var(--ad-dim)}
-.mxSecHead .mxSecN{order:2}
-.mxAll{min-height:44px;display:inline-flex;align-items:center;order:3}
-.mxSecHead .mxSm{order:3;min-height:44px}
+.mxSecHead h4{margin:0;font:600 14px 'Space Grotesk',system-ui,sans-serif}
+.mxSecN{flex:1;min-width:0;font-size:12px;color:var(--ad-dim);white-space:nowrap}
+.mxAll{min-height:44px;display:inline-flex;align-items:center}
+.mxSecHead .mxSm{min-height:44px;padding:0 12px;white-space:nowrap}
 .mxMembers,.mxFiles{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
 .mxMember,.mxFile{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:6px 8px;border-radius:12px;text-align:left;transition:background .15s}
 @media (hover:hover){.mxMember:hover,.mxFile:hover{background:var(--ad-hover)}}
@@ -229,3 +228,15 @@ button.mxRowBtn:hover{background:var(--ad-hover)}
   .mxJump,.rxBar,.mxPop,.mxOv,.mxScrim{animation:none}
   .mxBigAv,.rxPick,.mxEmo{transition:none}
 }
+
+.mxEmptyLi{list-style:none}
+.mxEmptyLi .emptyRow{padding:28px 14px}
+.msgItem:not(.mine) .rxBar{left:-44px}
+.m-sheet .rxPick{width:40px;height:40px}
+.m-sheet .msgItem:not(.mine) .rxBar{left:-44px}
+.m-sheet .mxHead2{padding:10px 8px;gap:4px}
+.m-sheet .mxHead2 .ibtn{width:40px;height:40px}
+.m-sheet .mxHeadWho .av0{width:36px !important;height:36px !important}
+
+.msgRow.on .av0{color:#fff !important}
+.msgRow.on .mxFlag{color:var(--ad-nav-on-ink)}

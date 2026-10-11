@@ -1017,6 +1017,69 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .imgHost{position:relative;overflow:hidden}
 .imgHost.hasImg{background:#fff !important;color:var(--ad-ink);box-shadow:inset 0 0 0 1px var(--ad-line-2)}
 .logoImg{position:absolute;inset:15%;width:70%;height:70%;object-fit:contain}
+/* Sheet quick actions: a row of chips under the details */
+.quickRow{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+/* Email builder */
+.ebGrid{display:grid;grid-template-columns:260px minmax(0,1fr) 300px;gap:16px;align-items:start}
+@container app (max-width:1180px){.ebGrid{grid-template-columns:minmax(0,1fr) 280px}.ebSide{grid-column:1/-1;order:3}}
+@container app (max-width:760px){.ebGrid{grid-template-columns:minmax(0,1fr)}.ebSet{order:2}.ebStage{order:1}}
+.ebSide .tabs{overflow-x:auto}
+.ebBar .seg button{min-height:44px;white-space:nowrap}
+.ebSide,.ebSet{padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.ebStage{padding:12px;min-width:0;display:flex;flex-direction:column;gap:10px}
+.ebBar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ebHint{font-size:12px;color:var(--ad-dim);overflow-wrap:anywhere}
+.ebList{display:flex;flex-direction:column;gap:8px}
+.ebAdd{display:flex;align-items:center;gap:10px;min-height:48px;padding:6px 8px;border-radius:12px;border:1px solid var(--ad-line);background:var(--ad-panel);color:var(--ad-ink);cursor:pointer;width:100%}
+.ebAdd:hover{background:var(--ad-hover)}
+.ebAdd:focus-visible{outline:2px solid var(--ad-focus);outline-offset:2px}
+.ebCheck{display:flex;align-items:center;gap:10px}
+.ebTick{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;flex:none;color:#fff;background:var(--ad-tone-good)}
+.ebTick.no{background:var(--ad-tone-warn)}
+.ebFrame{background:var(--ad-panel-2);border-radius:14px;padding:16px;display:flex;justify-content:center;overflow:auto;max-height:70vh}
+.ebMail{width:100%;max-width:600px;background:#fff;color:#0e0e2c;border-radius:6px;padding:20px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.ebFrame.phone .ebMail{max-width:340px}
+.ebBlk{position:relative;border-radius:8px;padding:8px;outline:2px solid transparent;cursor:pointer;min-width:0}
+.ebBlk:hover{outline-color:#c9ccdc}
+.ebBlk.on{outline-color:#0e0e2c}
+.ebH{font:700 24px/1.2 'Space Grotesk',sans-serif;overflow-wrap:anywhere}
+.ebP{font-size:15px;line-height:1.5;overflow-wrap:anywhere;white-space:pre-wrap}
+.ebPic{display:grid;place-items:center;aspect-ratio:16/7;background:#e4e6f0;border-radius:8px;color:#5c5c7a;font-size:13px;text-align:center;padding:8px}
+.ebBtn{display:inline-block;padding:12px 22px;border-radius:999px;background:#000065;color:#fff;font-weight:600}
+.ebCols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ebFrame.phone .ebCols{grid-template-columns:1fr}
+.ebHr{border:0;border-top:1px solid #c9ccdc;margin:8px 0}
+.ebSmall{font-size:12px;color:#5c5c7a}
+.ebRule{display:inline-block;margin-top:4px;padding:2px 8px;border-radius:999px;background:#5c5c7a;color:#fff;font-size:11px}
+.ebFoot{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;border-top:1px solid #e4e6f0;margin-top:12px;padding-top:12px;font-size:12px;color:#5c5c7a}
+.ebUnsub{text-decoration:underline}
+.ebTools{position:absolute;top:-16px;right:8px;display:flex;gap:2px;background:#0e0e2c;border-radius:10px;padding:2px;z-index:2}
+.ebT{display:grid;place-items:center;width:32px;height:32px;border-radius:8px;border:0;background:transparent;color:#fff;cursor:pointer;position:relative}
+.ebT::after{content:"";position:absolute;inset:-6px}
+.ebT:hover{background:#33366a}.ebT.bad:hover{background:#c62828}
+/* Automation flow canvas */
+.afBar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--ad-line)}
+.afZoom{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+.afCanvas{background:var(--ad-panel-2);padding:24px 16px;overflow:auto;max-height:72vh;display:flex;justify-content:center}
+.afFlow{display:flex;flex-direction:column;align-items:center;width:min(100%,680px);min-width:0}
+.afNode{display:flex;align-items:center;gap:12px;width:min(100%,340px);min-height:64px;padding:10px 12px;border-radius:16px;border:1px solid var(--ad-line-2);background:var(--ad-panel);color:var(--ad-ink);cursor:pointer;min-width:0}
+.afNode:hover{background:var(--ad-hover)}
+.afNode.on{border-color:var(--ad-ink);box-shadow:0 0 0 4px var(--ad-ring,rgba(14,14,44,.12))}
+.afNode:focus-visible{outline:2px solid var(--ad-focus);outline-offset:2px}
+.afLink{display:block;width:2px;height:14px;background:var(--ad-line-2)}
+.afPlus{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;border:1px solid var(--ad-line-2);background:var(--ad-panel);color:var(--ad-ink);cursor:pointer;position:relative}
+.afPlus::after{content:"";position:absolute;inset:-6px}
+.afPlus:hover{background:var(--ad-ink);color:var(--ad-panel)}
+.afLanes{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;align-items:start}
+@container app (max-width:640px){.afLanes{grid-template-columns:1fr}}
+.afLane{display:flex;flex-direction:column;align-items:center;gap:0;min-width:0;border-radius:16px;border:1px dashed var(--ad-line-2);padding:10px 8px}
+.afLaneT{font-size:11px;font-weight:700;padding:2px 10px;border-radius:999px;color:#fff;margin-bottom:8px}
+.afLaneT.yes{background:var(--ad-tone-good)}.afLaneT.no{background:var(--ad-tone-neutral)}
+.afEnd{margin-top:10px;font-size:12px;color:var(--ad-dim)}
+.afPlus,.afLink,.afNode{flex:none}
+/* Support view bar: read-only view of another account */
+.svBar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 16px;background:var(--ad-tone-warn);color:#fff;font-size:14px}
+.svBar .svExit{min-height:44px}
 
 </style>
 </helmet>
@@ -1105,6 +1168,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
             
           </header>
 
+          <sc-if value="{{svOn}}" hint-placeholder-val="{{ false }}"><div class="svBar" role="status"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path></svg><span style="flex: 1; min-width: 0"><strong>Support view: {{svName}}.</strong> Read-only. Changes, payments and downloads are off. Your owner account stays signed in. Ends at {{svEnds}}.</span><a class="btn2 svExit" href="A-Users.dc.html">Exit support view</a></div></sc-if>
           <main id="main" class="mainPad">
             <div class="pageHead rise">
               <div>
@@ -1429,6 +1493,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
             <div class="noticeB" role="status" style="--nt: {{sheet.notice.tone}}"><span class="noticeIc"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="{{sheet.notice.icon}}"></path></svg></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><strong>{{sheet.notice.title}}</strong><span>{{sheet.notice.body}}</span></span><sc-if value="{{sheet.notice.hasAct}}" hint-placeholder-val="{{ false }}"><button class="btn2" style="min-height: 40px" onClick="{{sheet.notice.act}}">{{sheet.notice.actLabel}}</button></sc-if></div>
           </sc-if>
           <sc-if value="{{sheet.hasRows}}" hint-placeholder-val="{{ true }}"><dl class="dl"><sc-for list="{{sheet.rows}}" as="r" hint-placeholder-count="4"><div style="min-width: 0"><dt>{{r.k}}</dt><dd class="num">{{r.v}}</dd></div></sc-for></dl></sc-if>
+          <sc-if value="{{sheet.hasQuick}}" hint-placeholder-val="{{ false }}"><div class="quickRow" role="group" aria-label="More for this item"><sc-for list="{{sheet.quick}}" as="q" hint-placeholder-count="3"><button type="button" class="chip" onClick="{{q.fn}}">{{q.t}}</button></sc-for></div></sc-if>
           <sc-if value="{{sheet.hasBody}}" hint-placeholder-val="{{ true }}"><p style="max-width: 62ch">{{sheet.body}}</p></sc-if>
           <sc-if value="{{sheet.hasPreview}}" hint-placeholder-val="{{ false }}">
             <div class="preview"><span style="font-size: 12px; color: var(--ad-dim)">To <strong style="color: var(--ad-ink)">{{sheet.preview.to}}</strong></span><strong>{{sheet.preview.subject}}</strong><span>{{sheet.preview.text}}</span></div>
@@ -1746,7 +1811,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 
           <sc-if value="{{sheet.hasFeed}}" hint-placeholder-val="{{ false }}">
             <div style="display: flex; flex-direction: column">
-              <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 10px">History</h3>
+              <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 10px">{{sheet.feedTitle}}</h3>
               <sc-for list="{{sheet.feed}}" as="f" hint-placeholder-count="3"><div class="feedRow"><span style="display: flex; flex-direction: column; align-items: center"><span class="d"></span><span style="flex: 1; width: 2px; background: var(--ad-line)"></span></span><span style="padding-bottom: 14px"><span style="font-weight: 600">{{f.t}}</span><br><span style="color: var(--ad-dim); font-size: 13px">{{f.when}}</span></span></div></sc-for>
             </div>
           </sc-if>
@@ -2232,12 +2297,12 @@ class Component extends DCLogic {
 
   /* ---------- the values every template shares ---------- */
   kit() {
-    var s = this.state, self = this, I = this.icons();
+    var s = this.state, self = this, I = this.icons(); var svq = (function () { try { return new URLSearchParams(window.location.search); } catch (e) { return new URLSearchParams(''); } })();
     var DEV = [['desktop', 'Desktop', 'M2 4h20v12H2zM8 20h8M12 16v4', '100%', 'auto', 'Full width'], ['tablet', 'Tablet', 'M6 2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM11 18h2', '834px', '1112px', '834 × 1112'], ['phone', 'Phone', 'M8 2h8a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM11 18h2', '390px', '844px', '390 × 844']];
     var devI = 0; DEV.forEach(function (d, i) { if (d[0] === s.dev) devI = i; });
     var cur = DEV[devI];
     var navOn = this.navSection ? this.navSection() : this.pageName();
-    var mk = function (n) { var on = n.label === navOn; return { label: n.label, d: n.d, href: n.href || '#', hasCount: n.count > 0, count: n.count, tone: n.tone || 'var(--ad-tone-brand)', aria: n.label + (n.count ? ', ' + n.count + ' new' : ''), cls: on ? 'on' : '', current: on ? 'page' : 'false', go: function (e) { if (on || !n.href || n.href === '#') { if (e && e.preventDefault) e.preventDefault(); self.setState({ drawer: false }); } } }; };
+    var mk = function (n) { var on = n.label === navOn; return {  label: n.label, d: n.d, href: n.href || '#', hasCount: n.count > 0, count: n.count, tone: n.tone || 'var(--ad-tone-brand)', aria: n.label + (n.count ? ', ' + n.count + ' new' : ''), cls: on ? 'on' : '', current: on ? 'page' : 'false', go: function (e) { if (on || !n.href || n.href === '#') { if (e && e.preventDefault) e.preventDefault(); self.setState({ drawer: false }); } } }; };
     var nav2 = this.roleNav().filter(function (n) { return n.second; }).map(mk);
     var nav = this.navData().map(function (n) { var on = n.label === navOn; return { label: n.label, d: n.d, href: n.href || '#', hasCount: n.count > 0, count: n.count, tone: n.tone || 'var(--ad-tone-brand)', aria: n.label + (n.count ? ', ' + n.count + ' new' : ''), cls: on ? 'on' : '', current: on ? 'page' : 'false', go: function (e) { if (on || !n.href || n.href === '#') { if (e && e.preventDefault) e.preventDefault(); self.setState({ drawer: false }); if (!on) self.later(n.label + ' opens in the full prototype.'); } } }; });
     var notesRaw = this.notesData();
@@ -2291,7 +2356,7 @@ class Component extends DCLogic {
     if (raw.primaryDis) { var pd = raw.primaryDis(ctx, s); if (pd) { dis = 'y'; reqText = pd; } }
     var galRaw = typeof raw.gallery === 'function' ? raw.gallery(s) : (raw.gallery || []), galEmpty = typeof raw.galleryEmpty === 'function' ? raw.galleryEmpty(s) : false;
     var sheet = Object.assign({}, raw, {
-      hasGallery: galRaw.length > 0, gallery: galRaw, galleryEmpty: galEmpty, back: s.stack.length > 0, hasChip: !!raw.chip, hasIcon: !!raw.icon, icon: raw.icon || '', iconTone: raw.iconTone || 'var(--ad-tone-brand)', hasRows: raw.rows.length > 0, hasBody: !!raw.body, hasPreview: !!raw.preview, preview: raw.preview || {},
+      feedTitle: raw.feedTitle || 'History', hasQuick: !!(raw.quick && raw.quick.length), quick: (raw.quick || []).map(function (q) { return { t: q.t, d: q.d || '', fn: function () { if (q.fn) q.fn(); } }; }), hasGallery: galRaw.length > 0, gallery: galRaw, galleryEmpty: galEmpty, back: s.stack.length > 0, hasChip: !!raw.chip, hasIcon: !!raw.icon, icon: raw.icon || '', iconTone: raw.iconTone || 'var(--ad-tone-brand)', hasRows: raw.rows.length > 0, hasBody: !!raw.body, hasPreview: !!raw.preview, preview: raw.preview || {},
       hasList: list.length > 0 || ss.has, list: list, ss: ss, listRole: raw.select ? (raw.multi ? 'group' : 'radiogroup') : 'list', hasChecks: checks.length > 0, checks: checks, checksTitle: raw.checksTitle || 'Checklist', checksDone: ckDone + ' of ' + checks.length, checksPct: checks.length ? Math.round(ckDone / checks.length * 100) : 0,
       hasFeed: raw.feed.length > 0, hasNote: !!raw.note, reason: !!raw.reason, reasonLabel: raw.reason ? raw.reason.label : '', reasonPh: raw.reason ? raw.reason.ph : '', ack: !!raw.ack, ackText: raw.ack || '',
       hasFields: fields.length > 0, fields: fields, fieldsCls: raw.chipsFirst ? 'fieldsLate' : '', listCls: raw.chipsFirst ? 'listLate' : '', chipsCls: raw.chipsFirst ? 'chipsMid' : '', hasChipSets: chipSets.length > 0, chipSets: chipSets, hasNotice: !!notice, notice: notice || {}, primaryLabel: plabel, primaryCls: raw.danger ? 'btnD' : (raw.green ? 'btnG' : 'btn'), primaryDis: !!dis, why: reqText, hasSecondary: !!raw.secondary, secondaryLabel: typeof raw.secondary === 'function' ? raw.secondary(ctx, s) : raw.secondary, chip: typeof raw.chip === 'function' ? raw.chip(ctx, s) : raw.chip, tone: typeof raw.tone === 'function' ? raw.tone(ctx, s) : raw.tone, hasFoot: !raw.noFoot, busy: !!raw.busy
@@ -2306,7 +2371,7 @@ class Component extends DCLogic {
     }
     var client = s.vis === 'client';
     var anyOverlay = !!(s.sheet || s.drawer || s.pal || (s.pop && s.pop.asSheet) || s.tour >= 0);
-    return {
+    return { svOn: !!svq.get('sv'), svName: svq.get('who') ? svq.get('who') + ' as ' + svq.get('sv') : 'read only', svEnds: '09:00',
       rootCls: 'wdc' + (s.dark ? ' dark' : '') + (s.dev === 'phone' ? ' isPhone' : '') + (anyOverlay ? ' locked' : ''),
       themeLabel: s.dark ? 'Switch to light mode' : 'Switch to dark mode', themeIcon: s.dark ? I.sun : I.moon, themeShort: s.dark ? 'Light' : 'Dark', themeLong: s.dark ? 'Light mode' : 'Dark mode',
       toggleTheme: function () { self.setState({ dark: !self.state.dark }); },
@@ -3355,7 +3420,10 @@ class Component extends DCLogic {
       { when: '60 days', what: 'Play developer account', client: 'Kora Logistics', amount: '$25', tone: 'var(--ad-tone-neutral)', sheet: S({ eyebrow: 'Renewal', title: 'Google Play account', icon: I.link, rows: [{ k: 'Owner', v: 'WDC, movable on request' }, { k: 'Renews', v: '9 Dec 2026' }], primary: 'Remind me in November', pToast: 'Reminder set for 1 November.' }) }
     ].map(function (r) { return Object.assign({}, r, { open: function () { self.open(r.sheet); } }); });
 
+    var pn = this.shared('dashPanels', ['Cash in', 'Team today']);
     return Object.assign(this.kit(), this.extraVals(), dv, {
+      showCash: pn.indexOf('Cash in') >= 0, showTeam: pn.indexOf('Team today') >= 0,
+      customise: function () { var all = ['Cash in', 'Team today']; self.open(self.sh({ eyebrow: 'Customise', title: 'What the dashboard shows', icon: I.layers, keepOpen: true, body: 'Untick what you do not need. You can bring it back here. The studio pulse figures always stay.', form: { pn: pn.slice() }, chipSets: [{ key: 'pn', label: 'Panels beside the deck', multi: true, opts: all }], primary: 'Save', secondary: 'Cancel', onPrimary: function (ctx) { self.setShared('dashPanels', ctx.form.pn); self.setState({ ra: self.state.ra + 1, sheet: null, stack: [] }); self.say('Saved. The dashboard is updated.'); } })); },
       deckTitle: 'Up next', deckKeys: 'Focus the card: D done, S snooze', snoozeLabel: 'Snooze', snoozeShort: 'Snooze', canPass: true,
       emptyTitle: 'You are clear, Babatope.', emptyBody: 'Nothing needs you right now. Next on the calendar:', emptyNext: 'Discovery call with Zara Events at 11:00.', emptyPrimaryLabel: 'Plan tomorrow', emptySecondaryLabel: 'Bring everything back',
       emptyPrimary: function () { self.open(S({ eyebrow: 'Tomorrow', title: 'Sunday 11 October', icon: I.cal, listTitle: 'Already booked', list: [{ t: '09:00 · Send November retainers', s: '4 drafts ready · ₦1,450,000', tag: 'Money', tone: 'var(--ad-tone-live)' }, { t: '10:00 · Halo milestone 2 demo', s: 'Google Meet · Daniel', tag: 'Meeting', tone: 'var(--ad-tone-brand)' }], body: 'Anything you snooze to tomorrow lands here at 09:00.', primary: 'Close' })); },
@@ -3578,7 +3646,7 @@ class Component extends DCLogic {
       pageTitle: C.title, ledeA: C.ledeA(this), ledeB: C.ledeB(this), newLabel: C.newLabel, newPost: function () { C.newFn(self); }, openChores: function (e) { self.openPop(e, 'chores', 'chores', 260, 220, 'More for ' + C.title); }, choresX: this.popOn('chores', 'chores'),
       deckTitle: C.deckTitle, deckKeys: 'Focus the card: D done, S snooze', snoozeLabel: 'Snooze', snoozeShort: 'Snooze', canPass: true,
       emptyTitle: C.emptyTitle, emptyBody: 'Nothing needs a decision. Next:', emptyNext: C.emptyNext, emptyPrimaryLabel: C.newLabel, emptySecondaryLabel: 'Bring everything back', emptyPrimary: function () { C.newFn(self); },
-      tabsAria: C.title + ' sections', tabs: tabs, tabTitle: T.title, total: list.length, chips: chipsV, cols: T.cols, rows: rows, BP: BP, TBL: TBL, qPh: T.ph, q: s.hq, hasQ: !!s.hq,
+      tabsAria: C.title + ' sections', tabs: tabs, tabTitle: T.title, total: list.length, chips: chipsV, cols: typeof T.cols === 'function' ? T.cols(self) : T.cols, rows: rows, BP: BP, TBL: TBL, qPh: T.ph, q: s.hq, hasQ: !!s.hq,
       onQ: function (e) { self.setState({ hq: e.target.value, hpg: 0, ra: self.state.ra + 1 }); }, clearQ: function () { self.setState({ hq: '', ra: self.state.ra + 1 }); },
       tabActLabel: T.actLabel, tabActD: T.actD, tabAct: function () { T.act(self); },
       empty: !list.length, hasFilter: hasFilter && !!all.length, noFilterEmpty: !all.length, clearFilters: function () { self.setState({ hq: '', chip: 'all', hpg: 0, flt: {}, ra: self.state.ra + 1 }); }, emptyTitleT: q ? 'Nothing matches "' + s.hq + '".' : (all.length ? 'Nothing in this view.' : T.emptyT), emptyBodyT: q ? T.ph + '.' : (all.length ? 'Try another filter.' : T.emptyB),
@@ -3586,116 +3654,187 @@ class Component extends DCLogic {
     });
   }
 
-  /* ======================= Owner · Forms and enquiries ======================= */
+  /* ======================= Owner · Enquiries (forms, entries, subscribers, links) ======================= */
   pageName() { return 'Clients'; }
   tourSteps() {
     var I = this.icons();
     return [
       { target: 'deck', title: 'Enquiries waiting for you', icon: I.target, body: 'The newest entries that nobody has answered. Reply, assign to a client or mark as spam.', hint: 'Focus the card: D done, S snooze.' },
-      { target: 'table', title: 'Entries, forms and links', icon: I.inbox, body: 'Entries are what people sent. Forms are the pages that collect them. Links are pre-filled forms you send to a client.', hint: 'Tap a row to open it.' },
-      { target: 'rail', title: 'How the forms are doing', icon: I.chart, body: 'Entries and replies for the last 30 days, and the form that brings the most work.' },
+      { target: 'table', title: 'Entries, forms, subscribers and links', icon: I.inbox, body: 'Entries are what people sent. Forms are the pages that collect them. Subscribers are the newsletter list. Links are pre-filled forms you send to a client.', hint: 'Tap a row to open it. The ⋮ has star, notes, spam and Trash.' },
+      { target: 'rail', title: 'How the forms are doing', icon: I.chart, body: 'Entries and replies for the last 30 days, the form that brings the most work, and emails that failed to send.' },
       { target: 'new', title: 'Pre-filled link', icon: I.link, body: 'Pick an existing client or add one. A returning client keeps one record and one portal, never a second one.' }
     ];
   }
   fmForms() {
     return this.hubApply('form', [
-      { id: 'f1', name: 'Contact', sub: 'The form on /contact', where: '/contact', on: true, n: 21, conv: 38 },
-      { id: 'f2', name: 'Onboarding, brand identity', sub: 'Eleven questions about the brand', where: '/start/brand', on: true, n: 6, conv: 67 },
-      { id: 'f3', name: 'Onboarding, website', sub: 'Pages, content and payments', where: '/start/website', on: true, n: 4, conv: 75 },
-      { id: 'f4', name: 'Quote request', sub: 'A short form from the services pages', where: '/services', on: true, n: 12, conv: 42 },
-      { id: 'f5', name: 'Newsletter signup', sub: 'One field in the footer', where: 'Footer', on: false, n: 0, conv: 0 }
+      { id: 'f1', name: 'Contact', sub: 'The form on /contact', where: '/f/contact', st: 'Live', n: 21, unread: 2, last: 'Today, 08:12', conv: 38, drafts: 0, ver: 3 },
+      { id: 'f2', name: 'Onboarding, brand identity', sub: 'Eleven questions about the brand', where: '/start/brand', st: 'Live', n: 6, unread: 0, last: 'Fri 9 Oct', conv: 67, drafts: 0, ver: 5, built: false },
+      { id: 'f3', name: 'Onboarding, website', sub: 'Pages, content and payments', where: '/start/website', st: 'Live', n: 4, unread: 0, last: 'Mon 5 Oct', conv: 75, drafts: 1, ver: 4, built: false },
+      { id: 'f4', name: 'Quote request', sub: 'A short form from the services pages', where: '/f/quote', st: 'Limit reached', n: 12, unread: 1, last: 'Today, 07:40', conv: 42, drafts: 0, ver: 2 },
+      { id: 'f5', name: 'Newsletter signup', sub: 'One field in the footer', where: 'Footer', st: 'Not open yet', n: 0, unread: 0, last: 'No entries yet', conv: 0, drafts: 1, ver: 0 }
     ]);
   }
   fmEntries() {
     return this.hubApply('ent', [
-      { id: 'e1', name: 'Temi Adeoye', sub: 'Contact · “We need a site for our estate agency…”', form: 'Contact', status: 'New', client: '', recv: 'Today, 08:12', email: 'temi@oakandivy.ng' },
-      { id: 'e2', name: 'Ifeoma Eze', sub: 'Quote request · Social media management', form: 'Quote request', status: 'New', client: '', recv: 'Today, 07:40', email: 'ifeoma@lumenads.com' },
-      { id: 'e3', name: 'Mira Skincare', sub: 'Onboarding, brand identity · Logo and guide', form: 'Onboarding, brand identity', status: 'Assigned', client: 'Mira Skincare', recv: 'Fri 9 Oct', email: 'adaeze@miraskincare.ng' },
-      { id: 'e4', name: 'Tunde Bakare', sub: 'Contact · “Can you redo our menu design?”', form: 'Contact', status: 'Replied', client: 'Zara Events', recv: 'Thu 8 Oct', email: 'tunde@zaraevents.ng' },
-      { id: 'e5', name: 'seo-offers@cheapranks.top', sub: 'Contact · “Rank first on Google in 24 hours”', form: 'Contact', status: 'Spam', client: '', recv: 'Wed 7 Oct', email: 'seo-offers@cheapranks.top' },
-      { id: 'e6', name: 'Bola Shittu', sub: 'Onboarding, website · Pages and payments', form: 'Onboarding, website', status: 'Assigned', client: 'Bloom SEO', recv: 'Mon 5 Oct', email: 'bola@bloomseo.ng' }
+      { id: 'e1', name: 'Temi Adeoye', sub: '“We need a site for our estate agency, with listings we can update ourselves.”', form: 'Contact', status: 'New', read: false, star: false, client: '', project: '', recv: 'Today, 08:12', email: 'temi@oakandivy.ng', phone: '+234 802 000 0191', answers: [['What do you need?', 'Website'], ['Tell us about it', 'We need a site for our estate agency, with listings we can update ourselves.']], files: [{ n: 'listing-ideas.pdf', size: '1.2 MB' }], hist: [{ t: 'Entry received', when: 'Today, 08:12' }], notes: [], emails: [{ t: 'Thank you sent to the visitor', when: 'Today, 08:12' }, { t: 'Studio notice delivered to the studio inbox', when: 'Today, 08:12' }] },
+      { id: 'e2', name: 'Ifeoma Eze', sub: 'Social media management for three platforms', form: 'Quote request', status: 'New', read: false, star: true, client: '', project: '', recv: 'Today, 07:40', email: 'ifeoma@lumenads.com', phone: '', answers: [['What do you need?', 'Social media'], ['Tell us about it', 'Social media management for three platforms']], files: [], hist: [{ t: 'Entry received', when: 'Today, 07:40' }], notes: [], emails: [{ t: 'Thank you sent to the visitor', when: 'Today, 07:40' }] },
+      { id: 'e3', name: 'Mira Skincare', sub: 'Logo and guide', form: 'Onboarding, brand identity', status: 'Assigned', read: true, star: false, client: 'Mira Skincare', project: 'Brand identity', recv: 'Fri 9 Oct', email: 'adaeze@miraskincare.ng', phone: '+234 802 114 3390', answers: [['Brand name', 'Mira Skincare'], ['What do you need?', 'Logo and brand guide']], files: [], hist: [{ t: 'Entry received', when: 'Fri 9 Oct' }, { t: 'Assigned to Mira Skincare by you', when: 'Fri 9 Oct' }], notes: [{ t: 'Daniel to book the discovery call.', when: 'Fri 9 Oct' }], emails: [] },
+      { id: 'e4', name: 'Tunde Bakare', sub: 'Can you redo our menu design?', form: 'Contact', status: 'Replied', read: true, star: false, client: 'Zara Events', project: '', recv: 'Thu 8 Oct', email: 'tunde@zaraevents.ng', phone: '', answers: [['Tell us about it', 'Can you redo our menu design?']], files: [], hist: [{ t: 'Entry received', when: 'Thu 8 Oct' }, { t: 'Reply sent by you', when: 'Thu 8 Oct' }], notes: [], emails: [{ t: 'Reply sent to tunde@zaraevents.ng', when: 'Thu 8 Oct' }] },
+      { id: 'e5', name: 'seo-offers@cheapranks.top', sub: '“Rank first on Google in 24 hours”', form: 'Contact', status: 'Spam', read: true, star: false, client: '', project: '', recv: 'Wed 7 Oct', email: 'seo-offers@cheapranks.top', phone: '', answers: [['Tell us about it', 'Rank first on Google in 24 hours']], files: [], hist: [{ t: 'Held as spam: blocked word “seo offer”', when: 'Wed 7 Oct' }], notes: [], emails: [] },
+      { id: 'e6', name: 'Bola Shittu', sub: 'Pages and payments', form: 'Onboarding, website', status: 'Assigned', read: true, star: false, client: 'Bloom Pharmacy', project: 'Website', recv: 'Mon 5 Oct', email: 'bola@bloompharmacy.ng', phone: '', answers: [['Pages', 'Home, services, delivery, contact'], ['Payments', 'Paystack']], files: [], hist: [{ t: 'Entry received', when: 'Mon 5 Oct' }], notes: [], emails: [] }
+    ]);
+  }
+  fmSubs() {
+    return this.hubApply('sub', [
+      { id: 's1', name: 'Amaka Obi', sub: 'amaka@obifoods.ng', src: 'Footer signup', st: 'Subscribed', added: '8 Oct' },
+      { id: 's2', name: 'Dele Fash', sub: 'dele@fashhq.ng', src: 'Footer signup', st: 'Subscribed', added: '2 Oct' },
+      { id: 's3', name: 'Nneka Uzo', sub: 'nneka@uzocreates.com', src: 'Blog', st: 'Subscribed', added: '29 Sep' },
+      { id: 's4', name: 'Halima Sule', sub: 'halima@haloai.dev', src: 'Footer signup', st: 'Unsubscribed', added: '14 Jun' }
     ]);
   }
   fmLinks() {
     return this.hubApply('lnk', [
-      { id: 'l1', name: 'Halo AI', sub: 'Onboarding, website · created Mon 5 Oct', form: 'Onboarding, website', state: 'Opened', when: 'Mon 5 Oct' },
-      { id: 'l2', name: 'Lumen Ads', sub: 'Onboarding, brand identity · created Sat 3 Oct', form: 'Onboarding, brand identity', state: 'Not opened', when: 'Sat 3 Oct' },
-      { id: 'l3', name: 'Oak and Ivy Interiors', sub: 'Quote request · created Thu 1 Oct', form: 'Quote request', state: 'Completed', when: 'Thu 1 Oct' }
+      { id: 'l1', name: 'Halo AI', sub: 'Onboarding, website · created Mon 5 Oct', form: 'Onboarding, website', state: 'Opened', when: 'Mon 5 Oct', note: 'A site for the AI studio, three pages.' },
+      { id: 'l2', name: 'Lumen Ads', sub: 'Onboarding, brand identity · created Sat 3 Oct', form: 'Onboarding, brand identity', state: 'Not opened', when: 'Sat 3 Oct', note: '' },
+      { id: 'l3', name: 'Oak and Ivy Interiors', sub: 'Quote request · created Thu 1 Oct', form: 'Quote request', state: 'Completed', when: 'Thu 1 Oct', note: '' }
     ]);
   }
-  fmTone(st) { return { New: ['var(--ad-tone-live)', '#fff'], Assigned: ['var(--ad-tone-brand)', '#fff'], Replied: ['var(--ad-tone-good)', '#fff'], Spam: ['var(--ad-tone-flat)', 'var(--ad-on-flat)'], Opened: ['var(--ad-tone-brand)', '#fff'], 'Not opened': ['var(--ad-tone-warn)', '#fff'], Completed: ['var(--ad-tone-good)', '#fff'] }[st] || ['var(--ad-tone-flat)', 'var(--ad-on-flat)']; }
+  fmTone(st) { return { New: ['var(--ad-tone-live)', '#fff'], Assigned: ['var(--ad-tone-brand)', '#fff'], Replied: ['var(--ad-tone-good)', '#fff'], Spam: ['var(--ad-tone-flat)', 'var(--ad-on-flat)'], Opened: ['var(--ad-tone-brand)', '#fff'], 'Not opened': ['var(--ad-tone-warn)', '#fff'], Completed: ['var(--ad-tone-good)', '#fff'], Live: ['var(--ad-tone-good)', '#fff'], Draft: ['var(--ad-tone-flat)', 'var(--ad-on-flat)'], 'Limit reached': ['var(--ad-tone-warn)', '#fff'], 'Not open yet': ['var(--ad-tone-flat)', 'var(--ad-on-flat)'], Closed: ['var(--ad-tone-warn)', '#fff'], Subscribed: ['var(--ad-tone-good)', '#fff'], Unsubscribed: ['var(--ad-tone-flat)', 'var(--ad-on-flat)'] }[st] || ['var(--ad-tone-flat)', 'var(--ad-on-flat)']; }
+  fmCols() { var p = this.state.pst.__cols; return p ? p.v : ['Form', 'Status', 'Client', 'Received']; }
+  fmAddHist(e, t) { var h = (e.hist || []).concat([{ t: t, when: 'Just now' }]); this.hubPatch(e.id, { hist: h }); }
+  entryNote(e) {
+    var self = this, I = this.icons();
+    this.open(this.sh({ eyebrow: 'Studio note', title: 'Add a note to ' + e.name + '’s entry', icon: I.edit, body: 'Only the studio sees notes. They stay on this entry’s history.', compose: true, composeLabel: 'Note', composePh: 'Daniel to book the discovery call.', required: true, primary: 'Add note', secondary: 'Cancel',
+      onPrimary: function (ctx) { var t = ctx.draft; self.hubPatch(e.id, { notes: (e.notes || []).concat([{ t: t, when: 'Just now' }]), hist: (e.hist || []).concat([{ t: 'Note added by you', when: 'Just now' }]) }); self.say('Saved. The note is on the entry.'); } }), true);
+  }
+  entryReply(e, push) {
+    var self = this, I = this.icons();
+    this.open(this.sh({ eyebrow: 'Reply by email', title: 'Reply to ' + e.name, icon: I.mail, body: 'Goes from hello@wedigcreativity.com to ' + e.email + ' and is kept on the entry and the client’s history.', compose: true, composeLabel: 'Your reply', composePh: 'Hello ' + e.name.split(' ')[0] + ', thank you for writing.', required: true, primary: 'Review and send', secondary: 'Cancel',
+      onPrimary: function (ctx) { var t = ctx.draft; self.ask({ eyebrow: 'Send', title: 'Send this reply to ' + e.email + '?', body: 'It cannot be taken back once sent.', to: e.email, subject: 'Re: your message to WDC Studio', preview: t, ok: 'Send reply', green: true, icon: I.send, tone: 'var(--ad-tone-good)', external: true, onOk: function () { self.hubPatch(e.id, { status: e.status === 'New' ? 'Replied' : e.status, read: true, emails: (e.emails || []).concat([{ t: 'Reply sent to ' + e.email, when: 'Just now' }]), hist: (e.hist || []).concat([{ t: 'Reply sent by you', when: 'Just now' }]) }); self.say('Reply sent to ' + e.email + '.', { delay: 8 }); } }, true); return 'stay'; } }), push !== false);
+  }
+  entryForward(e) {
+    var self = this, I = this.icons();
+    this.open(this.sh({ eyebrow: 'Forward', title: 'Send this entry to someone', icon: I.send, keepOpen: true, body: 'The entry and its answers go as an email. Files are left off.', form: { to: '' }, fields: [{ key: 'to', label: 'Send to', type: 'email', ph: 'daniel@wdc.ng', wide: true }], chipSets: [{ key: 'who', label: 'Or choose', opts: ['Whoever it went to first', 'Another address'], hint: 'With the form’s saved copies. Another address leaves the copies off.' }], primary: 'Forward', secondary: 'Cancel',
+      primaryDis: function (ctx) { return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test((ctx.form.to || '').trim()) || ctx.form.who === 'Whoever it went to first' ? '' : 'Add an email address, or choose the first recipient.'; },
+      onPrimary: function (ctx) { self.hubPatch(e.id, { emails: (e.emails || []).concat([{ t: 'Forwarded to ' + (ctx.form.to || 'the first recipient'), when: 'Just now' }]) }); self.setState({ sheet: null, stack: [] }); self.say('Sent. The entry is on its way.'); } }), true);
+  }
   entryAssign(e) {
-    var self = this, I = this.icons(), cs = this.clientsData();
-    this.open(this.sh({ eyebrow: 'Assign', title: 'Which client is this?', icon: I.users, body: 'Search first. A returning client keeps one record and one portal, matched by email or phone.', listTitle: 'Clients and leads', select: true, searchPh: 'Search clients by name, contact or email', create: this.clientCreate('Add a new client'), list: cs.map(function (c) { return { t: c.name, s: c.contact + ' · ' + c.email, ini: c.ini, av: c.tone, ref: c, k: c.phone, hit: c.email && e.email && c.email.toLowerCase() === e.email.toLowerCase() }; }), selectWhy: 'Choose the client.',
-      primary: 'Assign entry', secondary: 'Cancel', primaryDis: function (ctx) { return ctx.pick < 0 ? 'Choose the client.' : ''; },
-      onPrimary: function (ctx) { var c = ctx.item && ctx.item.ref; if (!c) return; self.hubPatch(e.id, { status: 'Assigned', client: c.name }); self.say('Updated. The entry is assigned to ' + c.name + '.'); } }), true);
+    var self = this, I = this.icons(), cs = this.clientsData(), SV = ['Branding and design', 'Web and apps', 'Social media', 'SEO', 'Custom software'];
+    this.open(this.sh({ eyebrow: 'Assign', title: 'Whose is this?', icon: I.users, keepOpen: true, body: 'Search the clients already on the books, or make a new one from this entry. A returning client keeps one record and one portal.', listTitle: 'Client', select: true, searchPh: 'Search clients by name, contact or email', create: this.clientCreate('Add a new client'), list: cs.map(function (c) { return { t: c.name, s: c.contact + ' · ' + c.email, ini: c.ini, av: c.tone, ref: c, k: c.phone, hit: c.email && e.email && c.email.toLowerCase() === e.email.toLowerCase() }; }), selectWhy: 'Choose the client.',
+      form: { proj: 'No project yet', svc: 'Web and apps', pname: '', tell: [] },
+      fields: function (st) { return st.form.proj !== 'No project yet' ? [{ key: 'pname', label: 'Project name', ph: 'Leave empty to name it after the client', wide: true }] : []; },
+      chipSets: function (st) { var out = [{ key: 'proj', label: 'Is there a project?', opts: ['No project yet', 'Open a new project (starts at Onboarding)'], hint: 'You can open one later from the client.' }]; if (st.form.proj !== 'No project yet') out.push({ key: 'svc', label: 'Which service is it for?', opts: SV }); out.push({ key: 'tell', label: 'Tell the client', multi: true, opts: ['Email them that we have it'], hint: 'They get a short note that their form is on their record. Off unless you tick it.' }); return out; },
+      primary: 'Assign', secondary: 'Cancel', primaryDis: function (ctx) { return ctx.pick < 0 ? 'Choose the client.' : ''; },
+      onPrimary: function (ctx) { var c = ctx.item && ctx.item.ref; if (!c) return; var np = ctx.form.proj !== 'No project yet'; self.hubPatch(e.id, { status: 'Assigned', client: c.name, read: true, project: np ? (ctx.form.pname || c.name) : e.project, hist: (e.hist || []).concat([{ t: 'Assigned to ' + c.name + ' by you' + (np ? ', project opened at Onboarding' : ''), when: 'Just now' }]) }); self.setState({ sheet: null, stack: [] }); self.say('Updated. The entry is assigned to ' + c.name + (np ? ' and the project is open at Onboarding.' : '.')); } }), true);
   }
   entrySheet(e) {
     var self = this, I = this.icons(), t = this.fmTone(e.status), spam = e.status === 'Spam';
-    return this.sh({ eyebrow: e.form + ' · ' + e.status, title: e.name, chip: e.status, tone: t[0], icon: I.inbox, iconTone: t[0],
-      rows: [{ k: 'Form', v: e.form }, { k: 'Email', v: e.email }, { k: 'Received', v: e.recv }, { k: 'Client', v: e.client || 'Not assigned yet' }],
-      body: e.sub.replace(/^[^·]*·\s*/, ''), primary: e.client ? 'Open ' + e.client : 'Assign to a client', secondary: spam ? 'Not spam' : 'Reply by email',
-      onPrimary: function () { if (e.client) { window.location.href = 'A-Clients.dc.html'; return; } self.entryAssign(e); return 'stay'; },
-      onSecondary: function () { if (spam) { self.hubPatch(e.id, { status: 'New' }); self.closeSheet(true); self.say('Updated. The entry is back in New.'); return; } self.ask({ eyebrow: 'Reply', title: 'Reply to ' + e.name + '?', body: 'The reply goes from hello@wedigcreativity.com to ' + e.email + ' and is kept in the client’s message history.', ok: 'Send reply', green: true, icon: I.send, tone: 'var(--ad-tone-good)', external: true, onOk: function () { self.hubPatch(e.id, { status: 'Replied' }); self.say('Reply sent to ' + e.email + '.'); } }, true); return 'stay'; } });
+    return this.sh({ eyebrow: e.form + ' · ' + e.status + (e.trashed ? ' · In Trash' : ''), title: e.name, chip: e.status, tone: t[0], icon: I.inbox, iconTone: t[0],
+      rows: [{ k: 'Form', v: e.form }, { k: 'Email', v: e.email }, { k: 'Phone', v: e.phone || 'Not given' }, { k: 'Received', v: e.recv }, { k: 'Client', v: e.client || 'Not assigned yet' }, { k: 'Project', v: e.project || 'None' }].concat(e.answers.map(function (a) { return { k: a[0], v: a[1] }; })).concat((e.files || []).map(function (f) { return { k: 'Attachment', v: f.n + ' · ' + f.size }; })),
+      feed: (e.notes || []).map(function (n) { return { t: 'Note: ' + n.t, when: n.when }; }).concat((e.hist || []).slice().reverse()).concat((e.emails || []).map(function (m) { return { t: m.t, when: m.when }; })),
+      quick: [{ t: e.star ? 'Unstar' : 'Star', fn: function () { self.hubPatch(e.id, { star: !e.star }); self.closeSheet(true); self.say('Updated.'); } }, { t: 'Add a note', fn: function () { self.entryNote(e); } }, { t: 'Forward', fn: function () { self.entryForward(e); } }, { t: 'Print', fn: function () { self.say('The print view opens.'); } }, { t: 'Download PDF', fn: function () { self.saveBlob && self.saveBlob(new Blob(['Entry from ' + e.name + '\n' + e.answers.map(function (a) { return a[0] + ': ' + a[1]; }).join('\n')], { type: 'text/plain' }), 'entry-' + e.id + '.txt'); self.say('The entry downloaded.'); } }, { t: spam ? 'Not spam' : 'Mark as spam', fn: function () { self.hubPatch(e.id, { status: spam ? 'New' : 'Spam' }); self.closeSheet(true); self.say(spam ? 'Updated. The entry is back in New.' : 'Marked as spam.'); } }],
+      primary: 'Reply by email', secondary: e.client ? 'Open ' + e.client : 'Assign to a client',
+      onPrimary: function () { self.entryReply(e, true); return 'stay'; },
+      onSecondary: function () { if (e.client) { window.location.href = 'A-Clients.dc.html'; return; } self.entryAssign(e); return 'stay'; } });
+  }
+  fmNew() {
+    var self = this, I = this.icons();
+    this.open(this.sh({ eyebrow: 'New form', title: 'Name the form', icon: I.file, keepOpen: true, focus: 'f-name', body: 'Name it and pick its address. You add the questions next.', form: { name: '', addr: '' },
+      fields: function (st) { var f = st.form, auto = (f.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); return [{ key: 'name', label: 'Name', ph: 'Event sign-up', wide: true }, { key: 'addr', label: 'Address', ph: auto || 'event-signup', wide: true, hint: 'wdc.ng/f/' + ((f.addr || '').trim() || auto || 'your-form') + '. Two or more small letters, numbers or dashes.', check: function (v) { return v.trim() && !/^[a-z0-9-]{2,}$/.test(v.trim()) ? 'Two or more small letters, numbers or dashes.' : (self.fmForms().some(function (x) { return x.where === '/f/' + v.trim(); }) ? 'Another form already uses this address.' : ''); } }]; },
+      primary: 'Create and add questions', secondary: 'Cancel', primaryDis: function (ctx) { var f = ctx.form, a = (f.addr || '').trim() || (f.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); if (!(f.name || '').trim()) return 'Give the form a name.'; if (!/^[a-z0-9-]{2,}$/.test(a)) return 'Pick an address of two or more letters, numbers or dashes.'; return ''; },
+      onPrimary: function (ctx) { var f = ctx.form, a = (f.addr || '').trim() || f.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); self.hubAdd('form', { id: 'fn' + Date.now(), name: f.name.trim(), sub: 'New form', where: '/f/' + a, st: 'Draft', n: 0, unread: 0, last: 'No entries yet', conv: 0, drafts: 1, ver: 0 }); self.setState({ sheet: null, stack: [], tab: 1 }); self.say('Saved. “' + f.name.trim() + '” is a draft. Add the questions next.'); } }));
   }
   formSheet(f) {
-    var self = this, I = this.icons();
-    return this.sh({ eyebrow: 'Form · ' + (f.on ? 'Live' : 'Paused'), title: f.name, chip: f.on ? 'Live' : 'Paused', tone: f.on ? 'var(--ad-tone-good)' : 'var(--ad-tone-flat)', icon: I.file, iconTone: 'var(--ad-tone-brand)',
-      rows: [{ k: 'Where it lives', v: f.where }, { k: 'Entries, 30 days', v: String(f.n) }, { k: 'Finish rate', v: f.n ? f.conv + '% of people who start it' : 'Nothing yet' }, { k: 'Spam check', v: 'On: a hidden field and a rate limit' }],
-      body: f.on ? 'Turning it off shows people a note to email you instead. Entries already received stay.' : 'Paused. The page shows a note to email you.',
-      primary: f.on ? 'Pause form' : 'Turn on', secondary: 'Edit questions',
-      onPrimary: function () { self.hubPatch(f.id, { on: !f.on }); self.say(f.on ? 'Paused. “' + f.name + '” shows a note to email you.' : 'Updated. “' + f.name + '” is live.'); },
-      onSecondary: function () { window.location.href = 'A-FormBuilder.dc.html'; } });
+    var self = this, I = this.icons(), t = this.fmTone(f.st);
+    return this.sh({ eyebrow: 'Form · ' + f.st, title: f.name, chip: f.st, tone: t[0], icon: I.file, iconTone: 'var(--ad-tone-brand)',
+      rows: [{ k: 'Address', v: f.where }, { k: 'Version', v: f.ver ? 'Version ' + f.ver + (f.drafts ? ', draft waiting' : '') : 'Not published' }, { k: 'Entries, 30 days', v: String(f.n) }, { k: 'Unread', v: String(f.unread) }, { k: 'Finish rate', v: f.n ? f.conv + '% of people who start it' : 'Nothing yet' }, { k: 'Spam check', v: 'A hidden field and a rate limit' }],
+      body: f.st === 'Live' ? 'Closing it shows visitors the closed message. Entries already received stay.' : (f.st === 'Limit reached' ? 'It closed itself at the entry limit. Raise the limit in the form settings to open it again.' : 'Not taking entries.'),
+      quick: [{ t: 'Copy address', fn: function () { self.say('Address copied: ' + f.where); } }, { t: 'View live', fn: function () { self.say('The form opens in a new tab.'); } }, { t: 'Duplicate', fn: function () { self.hubAdd('form', Object.assign({}, f, { id: 'fd' + Date.now(), name: f.name + ' (copy)', st: 'Draft', n: 0, unread: 0, ver: 0, last: 'No entries yet', where: f.where + '-copy' })); self.closeSheet(true); self.say('Saved. The copy is a draft.'); } }],
+      primary: 'Edit the form', secondary: f.st === 'Live' ? 'Close the form' : 'Open the form',
+      onPrimary: function () { window.location.href = 'A-FormBuilder.dc.html'; },
+      onSecondary: function () { var to = f.st === 'Live' ? 'Closed' : 'Live'; self.hubPatch(f.id, { st: to }); self.closeSheet(true); self.say(to === 'Live' ? 'Updated. The form takes entries.' : 'Updated. The form is closed.'); } });
   }
   linkMake() {
     var self = this, I = this.icons(), cs = this.clientsData(), forms = this.fmForms().map(function (f) { return f.name; });
-    this.open(this.sh({ eyebrow: 'Pre-filled link', title: 'Send a form to a client', icon: I.link, keepOpen: true, body: 'The link opens the form with the client’s details already filled in. One record, one portal per person.', listTitle: 'Client', select: true, searchPh: 'Search clients by name, contact or email', create: this.clientCreate('Add a new client'), list: cs.map(function (c) { return { t: c.name, s: c.contact + ' · ' + c.email, ini: c.ini, av: c.tone, ref: c, k: c.phone }; }), selectWhy: 'Choose the client.',
-      form: { form: forms[1] }, chipSets: [{ key: 'form', label: 'Which form', opts: forms }], primary: 'Create the link', secondary: 'Cancel',
+    this.open(this.sh({ eyebrow: 'Pre-filled link', title: 'Send a form to a client', icon: I.link, keepOpen: true, body: 'The link opens the form with the client’s details already filled in. Existing clients keep one record and the same portal. Search by name, email or phone, or add a new person.', listTitle: 'Client', select: true, searchPh: 'Search clients by name, email or phone', create: this.clientCreate('No, a new person'), list: cs.map(function (c) { return { t: c.name, s: c.contact + ' · ' + c.email, ini: c.ini, av: c.tone, ref: c, k: c.phone }; }), selectWhy: 'Choose the client.',
+      form: { form: forms[1], note: '' }, fields: [{ key: 'note', label: 'A line about the job, from the call', type: 'area', wide: true, ph: 'A site for the AI studio, three pages.', hint: 'Shown to the client under Tell us about your company, and they can change it.' }],
+      chipSets: [{ key: 'form', label: 'Which form', opts: forms }], primary: 'Make the link', secondary: 'Cancel',
       primaryDis: function (ctx) { return ctx.pick < 0 ? 'Choose the client.' : (!ctx.form.form ? 'Choose the form.' : ''); },
-      onPrimary: function (ctx) { var c = ctx.item.ref; self.hubAdd('lnk', { id: 'ln' + Date.now(), name: c.name, sub: ctx.form.form + ' · created Today', form: ctx.form.form, state: 'Not opened', when: 'Today' }); self.setState({ tab: 2, sheet: null, stack: [] }); self.say('Saved. The link for ' + c.name + ' is copied.'); } }));
+      onPrimary: function (ctx) { var c = ctx.item.ref; self.hubAdd('lnk', { id: 'ln' + Date.now(), name: c.name, sub: ctx.form.form + ' · created Today', form: ctx.form.form, state: 'Not opened', when: 'Today', note: ctx.form.note || '' }); self.setState({ tab: 3, sheet: null, stack: [] }); self.say('Saved. The link for ' + c.name + ' is copied.'); } }));
+  }
+  fmImportSubs() {
+    var self = this, I = this.icons();
+    this.open(this.sh({ eyebrow: 'Import subscribers', title: 'Who is in this file?', icon: I.upload, keepOpen: true, body: 'A CSV of people who asked to hear from the studio. People who unsubscribed are never added back, and temporary inboxes are refused.', form: { ok: [] }, chipSets: [{ key: 'ok', label: 'Permission', multi: true, opts: ['Everyone in this file asked to hear from the studio'] }], primary: 'Choose the file', secondary: 'Cancel', primaryDis: function (ctx) { return (ctx.form.ok || []).length ? '' : 'Confirm they asked to hear from you.'; },
+      onPrimary: function () { self.setState({ sheet: null, stack: [] }); setTimeout(function () { self.importSheet({ noun: 'subscribers', one: 'subscriber', file: 'wdc-subscribers', intro: 'Every row is checked against current subscribers first.', rule: 'One row per person.', fields: [{ k: 'name', t: 'Name', req: true, alias: ['full name'] }, { k: 'email', t: 'Email', req: true, alias: ['email address'] }], sample: [['Kemi Hair', 'kemi@kemihair.ng'], ['Zuri K', 'zuri@zurifashion.ng']], check: function (r, seen) { if (!r.name) return 'Missing name'; var em = (r.email || '').toLowerCase(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return 'Invalid email'; if (self.fmSubs().some(function (x) { return x.sub.toLowerCase() === em; })) return 'Already a subscriber'; if (seen[em]) return 'Repeated in this file'; seen[em] = true; return ''; }, label: function (r) { return r.name || 'No name'; }, detail: function (r) { return r.email || ''; }, initials: function (r) { return (r.name || '?').charAt(0).toUpperCase(); }, onImport: function (ready) { ready.forEach(function (r, i) { self.hubAdd('sub', { id: 'si' + Date.now() + i, name: r.name, sub: r.email, src: 'Import', st: 'Subscribed', added: 'Today' }); }); self.setState({ tab: 2 }); self.say(ready.length + ' subscribers imported.'); } }); }, 60); } }));
+  }
+  fmColumns() {
+    var self = this, I = this.icons(), all = ['Form', 'Status', 'Client', 'Received', 'Email', 'Phone'];
+    this.open(this.sh({ eyebrow: 'Columns', title: 'Choose columns', icon: I.layers, keepOpen: true, body: 'The name is always shown. Your choice is kept for this list.', form: { cols: this.fmCols() }, chipSets: [{ key: 'cols', label: 'Show', multi: true, opts: all }], primary: 'Save columns', secondary: 'Reset', primaryDis: function (ctx) { return (ctx.form.cols || []).length ? '' : 'Show at least one column.'; },
+      onPrimary: function (ctx) { self.hubPatch('__cols', { v: all.filter(function (c) { return ctx.form.cols.indexOf(c) >= 0; }), id: '__cols' }); self.setState({ sheet: null, stack: [] }); self.say('Saved. The columns are updated.'); },
+      onSecondary: function () { self.hubPatch('__cols', { v: ['Form', 'Status', 'Client', 'Received'] }); self.setState({ sheet: null, stack: [] }); self.say('Updated. The columns are back to the default.'); } }));
   }
   hubCfg() {
     var self = this, I = this.icons(), G = 'var(--ad-tone-good)', Fl = 'var(--ad-tone-flat)';
     var pill = function (t) { var x = self.fmTone(t); return { tag: true, t: t, tone: x[0], ink: x[1] }; };
     var ents = function () { return self.fmEntries(); };
+    var live = function () { return ents().filter(function (e) { return !e.trashed; }); };
+    var eRows = function (list) { return list; };
+    var entryMenu = function (e, it, I2) {
+      if (e.trashed) return [it('Open entry', I2.open, function () { self.open(self.entrySheet(e)); }), it('Put back', I2.undo, function () { self.hubPatch(e.id, { trashed: false }); self.say('Updated. The entry is back.'); }), self.menuSep(), it('Delete for good…', I2.trash, function () { self.ask({ eyebrow: 'Delete', title: 'Delete this entry for good?', body: 'The answers and files are removed. This cannot be undone.', ok: 'Delete for good', danger: true, needAck: true, icon: I2.trash, tone: 'var(--ad-tone-bad)', onOk: function () { self.hubGone([e.id], 'Entry deleted for good.'); } }); }, { danger: true })];
+      var o = [it('Open entry', I2.open, function () { self.open(self.entrySheet(e)); }), it('Reply by email', I2.mail, function () { self.entryReply(e, false); })];
+      if (!e.client) o.push(it('Assign to a client', I2.users, function () { self.entryAssign(e); }));
+      o.push(it(e.star ? 'Unstar' : 'Star', I2.star, function () { self.hubPatch(e.id, { star: !e.star }); self.say('Updated.'); }));
+      o.push(it(e.read ? 'Mark unread' : 'Mark read', I2.eye, function () { self.hubPatch(e.id, { read: !e.read }); self.say('Updated.'); }));
+      o.push(it('Add a note', I2.edit, function () { self.entryNote(e); })); o.push(it('Forward', I2.send, function () { self.entryForward(e); }));
+      o.push(it(e.status === 'Spam' ? 'Not spam' : 'Mark as spam', I2.ban, function () { self.hubPatch(e.id, { status: e.status === 'Spam' ? 'New' : 'Spam' }); self.say(e.status === 'Spam' ? 'Updated.' : 'Marked as spam.'); }));
+      o.push(self.menuSep()); o.push(it('Move to Trash…', I2.trash, function () { self.ask({ eyebrow: 'Trash', title: 'Move this entry to Trash?', body: 'It waits in the Trash for 30 days, then is deleted for good. You can put it back until then.', ok: 'Move to Trash', danger: true, icon: I2.trash, tone: 'var(--ad-tone-bad)', onOk: function () { self.hubPatch(e.id, { trashed: true }); self.say('Entry moved to Trash.', { undo: function () { self.hubPatch(e.id, { trashed: false }); } }); } }); }, { danger: true }));
+      return o;
+    };
     return {
       title: 'Enquiries', statsTitle: 'Form pulse', deckTitle: 'Enquiries this week', newLabel: 'Pre-filled link', newFn: function () { self.linkMake(); },
-      ledeA: function () { var e = ents(); return e.filter(function (x) { return x.status === 'New'; }).length + ' new, ' + e.filter(function (x) { return x.status === 'Assigned'; }).length + ' assigned to a client.'; },
+      ledeA: function () { var e = live(); return e.filter(function (x) { return !x.read; }).length + ' unread, ' + e.filter(function (x) { return x.status === 'Assigned'; }).length + ' assigned to a client.'; },
       ledeB: function () { return 'Most come from Contact.'; }, emptyTitle: 'No enquiry is waiting.', emptyNext: 'The next entry shows here the moment it arrives.',
-      chores: function (it, I2) { return [it('Pre-filled link', I2.link, function () { self.linkMake(); }), it('Export entries', I2.down, function () { self.exportSheet({ noun: 'entries', file: 'wdc-entries', all: ents(), filtered: ents(), selected: [], cols: [{ t: 'Name', v: function (e) { return e.name; } }, { t: 'Email', v: function (e) { return e.email; } }, { t: 'Form', v: function (e) { return e.form; } }, { t: 'Status', v: function (e) { return e.status; } }, { t: 'Client', v: function (e) { return e.client; } }, { t: 'Received', v: function (e) { return e.recv; } }] }); }, { hint: 'CSV or Excel' }), it('Form settings', I2.gear, function () { window.location.href = 'A-Settings.dc.html'; })]; },
+      chores: function (it, I2) { return [it('Pre-filled link', I2.link, function () { self.linkMake(); }), it('New form', I2.plus, function () { self.fmNew(); }), it('Choose columns', I2.layers, function () { self.fmColumns(); }), it('Import subscribers', I2.upload, function () { self.fmImportSubs(); }, { hint: 'CSV' }), self.menuSep(), it('Form emails that failed', I2.alert, function () { window.location.href = 'A-Settings.dc.html'; }, { hint: 'Message log' })]; },
       tabs: [
-        { key: 'ent', label: 'Entries', title: 'Entries', noun: 'entries', one: 'entry', ph: 'Name, email or form', file: 'wdc-entries', actLabel: 'Pre-filled link', actD: I.link, act: function () { self.linkMake(); }, emptyT: 'No entries yet.', emptyB: 'They arrive here from your forms.',
-          cols: [{ t: 'From' }, { t: 'Form' }, { t: 'Status' }, { t: 'Client' }, { t: 'Received' }],
-          items: function () { return ents().map(function (e) { return Object.assign({}, e, { hay: e.name + ' ' + e.email + ' ' + e.form + ' ' + e.client, cells: [{ t: e.form }, pill(e.status), { t: e.client || 'Not assigned', col: e.client ? 'var(--ad-ink)' : 'var(--ad-dim)' }, { t: e.recv }] }); }); },
-          chips: [['all', 'All', function () { return true; }], ['New', 'New', function (x) { return x.status === 'New'; }], ['Assigned', 'Assigned', function (x) { return x.status === 'Assigned'; }], ['Replied', 'Replied', function (x) { return x.status === 'Replied'; }], ['Spam', 'Spam', function (x) { return x.status === 'Spam'; }]],
-          facets: function (all) { var u = []; all.forEach(function (x) { if (u.indexOf(x.form) < 0) u.push(x.form); }); return [{ k: 'form', t: 'Form', opts: u, get: function (x) { return x.form; } }]; },
-          exportCols: [{ t: 'Name', v: function (e) { return e.name; } }, { t: 'Email', v: function (e) { return e.email; } }, { t: 'Form', v: function (e) { return e.form; } }, { t: 'Status', v: function (e) { return e.status; } }, { t: 'Client', v: function (e) { return e.client; } }, { t: 'Received', v: function (e) { return e.recv; } }],
-          sheet: function (e) { return self.entrySheet(e); },
-          actions: function (e, it, I2) { var o = [it('Open entry', I2.open, function () { self.open(self.entrySheet(e)); })]; if (!e.client) o.push(it('Assign to a client', I2.users, function () { self.entryAssign(e); })); if (e.status !== 'Spam') o.push(it('Mark as spam', I2.ban, function () { self.hubPatch(e.id, { status: 'Spam' }); self.say('Marked as spam.', { undo: function () { self.hubPatch(e.id, { status: e.status }); } }); })); o.push(self.menuSep()); o.push(it('Move to Trash…', I2.trash, function () { self.ask({ eyebrow: 'Trash', title: 'Move this entry to Trash?', body: 'You can restore it from Settings, Trash, for 30 days.', ok: 'Move to Trash', danger: true, icon: I2.trash, tone: 'var(--ad-tone-bad)', onOk: function () { self.hubGone([e.id], 'Entry moved to Trash.'); } }); }, { danger: true })); return o; },
-          bulk: function () { return [{ label: 'Mark as spam', icon: I.ban, fn: function (sel, done) { sel.forEach(function (e) { self.hubPatch(e.id, { status: 'Spam' }); }); self.say(sel.length + ' marked as spam.'); done(); } }, { label: 'Move to Trash', icon: I.trash, danger: true, fn: function (sel, done) { self.ask({ eyebrow: 'Trash', title: 'Move ' + sel.length + ' entries to Trash?', body: 'You can restore them from Settings, Trash, for 30 days.', ok: 'Move to Trash', danger: true, icon: I.trash, tone: 'var(--ad-tone-bad)', onOk: function () { self.hubGone(sel.map(function (x) { return x.id; }), sel.length + ' entries moved to Trash.'); done(); } }); } }]; } },
-        { key: 'form', label: 'Forms', title: 'Forms', noun: 'forms', one: 'form', ph: 'Name or address', file: 'wdc-forms', actLabel: 'New form', actD: I.plus, act: function () { window.location.href = 'A-FormBuilder.dc.html'; }, emptyT: 'No forms yet.', emptyB: 'Start from Contact.',
-          cols: [{ t: 'Form' }, { t: 'Where' }, { t: 'State' }, { t: 'Entries, 30 days', cls: 'r' }, { t: 'Finish rate', cls: 'r' }],
-          items: function () { return self.fmForms().map(function (f) { return Object.assign({}, f, { hay: f.name + ' ' + f.where, cells: [{ t: f.where }, { tag: true, t: f.on ? 'Live' : 'Paused', tone: f.on ? G : Fl, ink: f.on ? '#fff' : 'var(--ad-on-flat)' }, { t: String(f.n), cls: 'r num' }, { t: f.n ? f.conv + '%' : 'None yet', cls: 'r num' }] }); }); },
-          chips: [['all', 'All', function () { return true; }], ['on', 'Live', function (x) { return x.on; }], ['off', 'Paused', function (x) { return !x.on; }]],
-          exportCols: [{ t: 'Form', v: function (f) { return f.name; } }, { t: 'Where', v: function (f) { return f.where; } }, { t: 'State', v: function (f) { return f.on ? 'Live' : 'Paused'; } }, { t: 'Entries 30 days', v: function (f) { return f.n; } }],
+        { key: 'ent', label: 'Entries', title: 'Entries', noun: 'entries', one: 'entry', ph: 'Name, email or any answer', file: 'wdc-entries', actLabel: 'Columns', actD: I.layers, act: function () { self.fmColumns(); }, emptyT: 'No entries yet.', emptyB: 'They arrive here from your forms.', warn: function () { return live().some(function (e) { return !e.read; }); },
+          cols: function () { var c = self.fmCols(), o = [{ t: 'From' }]; c.forEach(function (x) { o.push({ t: x }); }); return o; },
+          items: function () { var c = self.fmCols(); return ents().map(function (e) { var cells = c.map(function (x) { if (x === 'Form') return { t: e.form }; if (x === 'Status') return pill(e.read ? e.status : (e.status === 'New' ? 'New' : e.status)); if (x === 'Client') return { t: e.client || 'Not assigned', col: e.client ? 'var(--ad-ink)' : 'var(--ad-dim)' }; if (x === 'Received') return { t: e.recv }; if (x === 'Email') return { t: e.email }; return { t: e.phone || 'Not given' }; }); return Object.assign({}, e, { sub: (e.star ? 'Starred · ' : '') + e.form + ' · ' + e.sub, hay: e.name + ' ' + e.email + ' ' + e.form + ' ' + e.client + ' ' + e.answers.map(function (a) { return a[1]; }).join(' '), cells: cells }); }); },
+          chips: [['all', 'All', function (x) { return !x.trashed && x.status !== 'Spam'; }], ['unread', 'Unread', function (x) { return !x.trashed && !x.read; }], ['star', 'Starred', function (x) { return !x.trashed && x.star; }], ['Assigned', 'Assigned', function (x) { return !x.trashed && x.status === 'Assigned'; }], ['Spam', 'Spam', function (x) { return !x.trashed && x.status === 'Spam'; }], ['trash', 'Trash', function (x) { return !!x.trashed; }]],
+          facets: function (all) { var u = []; all.forEach(function (x) { if (u.indexOf(x.form) < 0) u.push(x.form); }); return [{ k: 'form', t: 'Form', opts: u, get: function (x) { return x.form; } }, { k: 'cl', t: 'Client', opts: ['Assigned', 'Not assigned'], get: function (x) { return x.client ? 'Assigned' : 'Not assigned'; } }]; },
+          exportCols: [{ t: 'Name', v: function (e) { return e.name; } }, { t: 'Email', v: function (e) { return e.email; } }, { t: 'Phone', v: function (e) { return e.phone; } }, { t: 'Form', v: function (e) { return e.form; } }, { t: 'Status', v: function (e) { return e.status; } }, { t: 'Client', v: function (e) { return e.client; } }, { t: 'Received', v: function (e) { return e.recv; } }],
+          sheet: function (e) { if (!e.read) setTimeout(function () { self.hubPatch(e.id, { read: true }); }, 400); return self.entrySheet(e); }, actions: entryMenu,
+          bulk: function () { return [{ label: 'Star', icon: I.star, fn: function (sel, done) { sel.forEach(function (e) { self.hubPatch(e.id, { star: true }); }); self.say('Updated. ' + sel.length + ' starred.'); done(); } }, { label: 'Mark read', icon: I.eye, fn: function (sel, done) { sel.forEach(function (e) { self.hubPatch(e.id, { read: true }); }); self.say('Updated. ' + sel.length + ' marked read.'); done(); } }, { label: 'Mark unread', icon: I.eye, fn: function (sel, done) { sel.forEach(function (e) { self.hubPatch(e.id, { read: false }); }); self.say('Updated. ' + sel.length + ' marked unread.'); done(); } }, { label: 'Mark as spam', icon: I.ban, fn: function (sel, done) { sel.forEach(function (e) { self.hubPatch(e.id, { status: 'Spam' }); }); self.say(sel.length + ' marked as spam.'); done(); } }, { label: 'Put back', icon: I.undo, fn: function (sel, done) { sel.forEach(function (e) { self.hubPatch(e.id, { trashed: false }); }); self.say('Updated. ' + sel.length + ' put back.'); done(); } }, { label: 'Move to Trash', icon: I.trash, danger: true, fn: function (sel, done) { self.ask({ eyebrow: 'Trash', title: 'Move ' + sel.length + ' entries to Trash?', body: 'They wait in the Trash for 30 days, then are deleted for good.', ok: 'Move to Trash', danger: true, icon: I.trash, tone: 'var(--ad-tone-bad)', onOk: function () { sel.forEach(function (e) { self.hubPatch(e.id, { trashed: true }); }); self.say(sel.length + ' entries moved to Trash.'); done(); } }); } }, { label: 'Delete for good', icon: I.trash, danger: true, fn: function (sel, done) { var t = sel.filter(function (e) { return e.trashed; }); if (!t.length) { self.say('Only entries in the Trash can be deleted for good.'); return; } self.ask({ eyebrow: 'Delete', title: 'Delete ' + t.length + ' entries for good?', body: 'Answers and files are removed. This cannot be undone.', ok: 'Delete for good', danger: true, needAck: true, icon: I.trash, tone: 'var(--ad-tone-bad)', onOk: function () { self.hubGone(t.map(function (e) { return e.id; }), t.length + ' entries deleted for good.'); done(); } }); } }]; } },
+        { key: 'form', label: 'Forms', title: 'Forms', noun: 'forms', one: 'form', ph: 'Name or address', file: 'wdc-forms', actLabel: 'New form', actD: I.plus, act: function () { self.fmNew(); }, emptyT: 'No forms yet.', emptyB: 'Start from Contact.', warn: function () { return self.fmForms().some(function (f) { return f.unread > 0; }); },
+          cols: [{ t: 'Form' }, { t: 'State' }, { t: 'Unread', cls: 'r' }, { t: 'Drafts', cls: 'r' }, { t: 'Last entry' }, { t: 'Entries, 30 days', cls: 'r' }],
+          items: function () { return self.fmForms().map(function (f) { return Object.assign({}, f, { hay: f.name + ' ' + f.where, sub: f.where + ' · ' + f.sub, cells: [pill(f.st), { t: String(f.unread), cls: 'r num' }, { t: f.drafts ? 'Draft waiting' : 'None', cls: 'r' }, { t: f.last }, { t: String(f.n), cls: 'r num' }] }); }); },
+          chips: [['all', 'All', function () { return true; }], ['on', 'Live', function (x) { return x.st === 'Live'; }], ['off', 'Closed or waiting', function (x) { return x.st !== 'Live'; }]],
+          exportCols: [{ t: 'Form', v: function (f) { return f.name; } }, { t: 'Address', v: function (f) { return f.where; } }, { t: 'State', v: function (f) { return f.st; } }, { t: 'Unread', v: function (f) { return f.unread; } }, { t: 'Entries 30 days', v: function (f) { return f.n; } }],
           sheet: function (f) { return self.formSheet(f); },
-          actions: function (f, it, I2) { return [it('Open form', I2.open, function () { self.open(self.formSheet(f)); }), it(f.on ? 'Pause…' : 'Turn on', f.on ? I2.ban : I2.play, function () { self.hubPatch(f.id, { on: !f.on }); self.say(f.on ? 'Paused.' : 'Updated. The form is live.'); })]; } },
+          actions: function (f, it, I2) { var o = [it('Open entries', I2.inbox, function () { self.setState({ tab: 0, hq: f.name === 'Contact' ? 'Contact' : f.name, chip: 'all', hpg: 0, ra: self.state.ra + 1 }); }), it('Edit the form', I2.edit, function () { window.location.href = 'A-FormBuilder.dc.html'; }), it('Copy address', I2.link, function () { self.say('Address copied: ' + f.where); }), it(f.st === 'Live' ? 'Close the form…' : 'Open the form', f.st === 'Live' ? I2.ban : I2.play, function () { var to = f.st === 'Live' ? 'Closed' : 'Live'; self.hubPatch(f.id, { st: to }); self.say(to === 'Live' ? 'Updated. The form takes entries.' : 'Updated. The form is closed.'); }), it('Duplicate', I2.file, function () { self.hubAdd('form', Object.assign({}, f, { id: 'fd' + Date.now(), name: f.name + ' (copy)', st: 'Draft', n: 0, unread: 0, ver: 0, last: 'No entries yet', where: f.where + '-copy' })); self.say('Saved. The copy is a draft.'); })]; if (f.built !== false) { o.push(self.menuSep()); o.push(it('Move to Trash…', I2.trash, function () { self.ask({ eyebrow: 'Trash', title: 'Move “' + f.name + '” to Trash?', body: 'It stops taking entries. Entries stay. You can restore it from Settings, Trash, for 30 days.', ok: 'Move to Trash', danger: true, icon: I2.trash, tone: 'var(--ad-tone-bad)', onOk: function () { self.hubGone([f.id], '“' + f.name + '” moved to Trash.'); } }); }, { danger: true })); } return o; } },
+        { key: 'sub', label: 'Subscribers', title: 'Subscribers', noun: 'subscribers', one: 'subscriber', ph: 'Name or email', file: 'wdc-subscribers', actLabel: 'Import CSV', actD: I.upload, act: function () { self.fmImportSubs(); }, emptyT: 'No subscribers yet.', emptyB: 'Everyone who asked for the newsletter shows here.',
+          cols: [{ t: 'Person' }, { t: 'Source' }, { t: 'State' }, { t: 'Added' }],
+          items: function () { return self.fmSubs().map(function (p) { return Object.assign({}, p, { hay: p.name + ' ' + p.sub, cells: [{ t: p.src }, pill(p.st), { t: p.added }] }); }); },
+          chips: [['all', 'All', function () { return true; }], ['sub', 'Subscribed', function (x) { return x.st === 'Subscribed'; }], ['uns', 'Unsubscribed', function (x) { return x.st === 'Unsubscribed'; }]],
+          exportCols: [{ t: 'Name', v: function (p) { return p.name; } }, { t: 'Email', v: function (p) { return p.sub; } }, { t: 'Source', v: function (p) { return p.src; } }, { t: 'State', v: function (p) { return p.st; } }],
+          sheet: function (p) { return self.sh({ eyebrow: p.src + ' · ' + p.st, title: p.name, chip: p.st, tone: self.fmTone(p.st)[0], icon: I.users, rows: [{ k: 'Email', v: p.sub }, { k: 'Source', v: p.src }, { k: 'Added', v: p.added }], body: p.st === 'Subscribed' ? 'Gets the newsletter and campaigns sent to subscribers.' : 'Asked to stop. Never added back.', primary: 'Close', onPrimary: function () {} }); },
+          actions: function (p, it, I2) { return [it('Remove…', I2.trash, function () { self.ask({ eyebrow: 'Remove', title: 'Remove ' + p.name + ' from the newsletter?', body: 'They stop getting it. Invoices and receipts still reach them.', ok: 'Remove', danger: true, icon: I2.trash, tone: 'var(--ad-tone-bad)', onOk: function () { self.hubGone([p.id], p.name + ' removed.'); } }); }, { danger: true })]; } },
         { key: 'lnk', label: 'Links', title: 'Pre-filled links', noun: 'links', one: 'link', ph: 'Client or form', file: 'wdc-links', actLabel: 'Pre-filled link', actD: I.link, act: function () { self.linkMake(); }, emptyT: 'No links yet.', emptyB: 'Make one for a client and it appears here.',
           cols: [{ t: 'Client' }, { t: 'Form' }, { t: 'State' }, { t: 'Created' }],
           items: function () { return self.fmLinks().map(function (l) { return Object.assign({}, l, { hay: l.name + ' ' + l.form, cells: [{ t: l.form }, pill(l.state), { t: l.when }] }); }); },
           chips: [['all', 'All', function () { return true; }], ['no', 'Not opened', function (x) { return x.state === 'Not opened'; }], ['done', 'Completed', function (x) { return x.state === 'Completed'; }]],
           exportCols: [{ t: 'Client', v: function (l) { return l.name; } }, { t: 'Form', v: function (l) { return l.form; } }, { t: 'State', v: function (l) { return l.state; } }],
-          sheet: function (l) { return self.sh({ eyebrow: 'Pre-filled link · ' + l.state, title: l.name, chip: l.state, tone: self.fmTone(l.state)[0], icon: I.link, rows: [{ k: 'Form', v: l.form }, { k: 'Created', v: l.when }, { k: 'State', v: l.state }], body: 'The link works once for this client and expires after thirty days.', primary: 'Copy link', secondary: 'Send a reminder', onPrimary: function () { self.say('The link is copied.'); return 'stay'; }, onSecondary: function () { self.ask({ eyebrow: 'Remind', title: 'Remind ' + l.name + ' to finish the form?', body: 'A short email with the link goes from hello@wedigcreativity.com.', ok: 'Send reminder', green: true, icon: I.send, tone: 'var(--ad-tone-good)', external: true, onOk: function () { self.say('Reminder sent to ' + l.name + '.'); } }, true); return 'stay'; } }); },
+          sheet: function (l) { return self.sh({ eyebrow: 'Pre-filled link · ' + l.state, title: l.name, chip: l.state, tone: self.fmTone(l.state)[0], icon: I.link, rows: [{ k: 'Form', v: l.form }, { k: 'Created', v: l.when }, { k: 'State', v: l.state }, { k: 'Note shown to the client', v: l.note || 'None' }], body: 'The link works once for this client and expires after thirty days.', primary: 'Copy link', secondary: 'Send a reminder', onPrimary: function () { self.say('The link is copied.'); return 'stay'; }, onSecondary: function () { self.ask({ eyebrow: 'Remind', title: 'Remind ' + l.name + ' to finish the form?', body: 'A short email with the link goes from hello@wedigcreativity.com.', ok: 'Send reminder', green: true, icon: I.send, tone: 'var(--ad-tone-good)', external: true, onOk: function () { self.say('Reminder sent to ' + l.name + '.'); } }, true); return 'stay'; } }); },
           actions: function (l, it, I2) { return [it('Copy link', I2.link, function () { self.say('The link is copied.'); }), it('Remove…', I2.trash, function () { self.hubGone([l.id], 'Link removed. It no longer opens.'); }, { danger: true })]; } }
       ],
-      stats: function () { var e = ents(); return [
-        { label: 'New entries', value: String(e.filter(function (x) { return x.status === 'New'; }).length), note: 'Oldest from today 07:40', noteCol: 'var(--ad-accent-ink)', dot: 'var(--ad-tone-live)', ic: I.inbox, fn: function () { self.setState({ tab: 0, chip: 'New', hpg: 0, ra: self.state.ra + 1 }); } },
+      stats: function () { var e = live(); return [
+        { label: 'Unread entries', value: String(e.filter(function (x) { return !x.read; }).length), note: 'Oldest from today 07:40', noteCol: 'var(--ad-accent-ink)', dot: 'var(--ad-tone-live)', ic: I.inbox, fn: function () { self.setState({ tab: 0, chip: 'unread', hpg: 0, ra: self.state.ra + 1 }); } },
         { label: 'Entries, 30 days', value: '43', note: '+9 on last month', noteCol: G, dot: G, ic: I.chart, fn: function () { self.setState({ tab: 0, chip: 'all', hpg: 0, ra: self.state.ra + 1 }); } },
-        { label: 'Replied', value: '81%', note: 'Within 3 hours on average', noteCol: 'var(--ad-dim)', dot: 'var(--ad-series-1)', ic: I.send, fn: function () { self.setState({ tab: 0, chip: 'Replied', hpg: 0, ra: self.state.ra + 1 }); } },
+        { label: 'Replied', value: '81%', note: 'Within 3 hours on average', noteCol: 'var(--ad-dim)', dot: 'var(--ad-series-1)', ic: I.send, fn: function () { self.setState({ tab: 0, chip: 'Assigned', hpg: 0, ra: self.state.ra + 1 }); } },
         { label: 'Spam stopped', value: '14', note: 'Never reached your inbox', noteCol: 'var(--ad-dim)', dot: 'var(--ad-tone-neutral)', ic: I.ban, fn: function () { self.setState({ tab: 0, chip: 'Spam', hpg: 0, ra: self.state.ra + 1 }); } }]; },
       rail: function () { return [
         { title: 'Best forms', sub: '30 days', rows: self.fmForms().filter(function (f) { return f.n; }).sort(function (a, b) { return b.n - a.n; }).slice(0, 3).map(function (f) { return { t: f.name, s: f.n + ' entries · ' + f.conv + '% finish', d: I.file, open: function () { self.open(self.formSheet(f)); } }; }) },
-        { title: 'Links to follow up', sub: 'Not opened', rows: self.fmLinks().filter(function (l) { return l.state === 'Not opened'; }).map(function (l) { return { t: l.name, s: l.form + ' · ' + l.when, d: I.link, tag: 'Remind', tagTone: 'var(--ad-tone-warn)', open: function () { self.setState({ tab: 2, ra: self.state.ra + 1 }); } }; }) }]; },
+        { title: 'Notices that failed', sub: 'Form emails', rows: [{ t: 'Studio notice to hello@wdc.ng', s: 'Quote request · Wed 7 Oct · mail server refused it', d: I.alert, tag: 'Failed', tagTone: 'var(--ad-tone-bad)', open: function () { window.location.href = 'A-Settings.dc.html'; } }], act: function () { window.location.href = 'A-Settings.dc.html'; }, actLabel: 'Open the message log' },
+        { title: 'Links to follow up', sub: 'Not opened', rows: self.fmLinks().filter(function (l) { return l.state === 'Not opened'; }).map(function (l) { return { t: l.name, s: l.form + ' · ' + l.when, d: I.link, tag: 'Remind', tagTone: 'var(--ad-tone-warn)', open: function () { self.setState({ tab: 3, ra: self.state.ra + 1 }); } }; }) }]; },
       deck: function () { var n1 = ents().filter(function (e) { return e.id === 'e1'; })[0], n2 = ents().filter(function (e) { return e.id === 'e2'; })[0]; return [
         { id: 'fe1', kind: 'Enquiry', urgency: 'Today, 08:12', utone: '#a16207', label: 'Contact', dept: 'Studio', title: 'Temi Adeoye wants a website', body: '“We need a site for our estate agency, with listings we can update ourselves.” Not answered yet.', meta: [{ k: 'Form', v: 'Contact' }, { k: 'Email', v: 'temi@oakandivy.ng' }, { k: 'Match', v: 'Oak and Ivy Interiors, a client' }], why: 'The email matches Oak and Ivy Interiors. Assign it so the project starts on the existing record and portal.', primaryLabel: 'Assign to Oak and Ivy', primaryConfirm: { eyebrow: 'Assign', title: 'Assign this entry to Oak and Ivy Interiors?', body: 'It joins their record. No second client or portal is made.', ok: 'Assign', green: true, okToast: 'Updated. The entry is assigned to Oak and Ivy Interiors.', icon: I.check, tone: 'var(--ad-tone-good)' }, secondaryLabel: 'Reply first', sheetSecondary: true, sheet: self.entrySheet(n1) },
         { id: 'fe2', kind: 'Quote', urgency: 'Today, 07:40', utone: '#a16207', label: 'Quote request', dept: 'Social & Ads', title: 'Ifeoma Eze asked for a social media quote', body: 'Social media management, three platforms. She is not in your clients yet.', meta: [{ k: 'Form', v: 'Quote request' }, { k: 'Service', v: 'Social media' }, { k: 'Known client', v: 'No' }], why: 'Leads answered within the hour book at about twice the rate.', primaryLabel: 'Assign to a client', primaryFn: function () { self.entryAssign(n2); }, secondaryLabel: 'Not now', sToast: 'Parked. It comes back this afternoon.', sheet: self.entrySheet(n2) }]; }
