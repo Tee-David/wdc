@@ -171,7 +171,7 @@ export default function AdminTourProvider({
      gets the map, not a twenty-step lecture; the walkthrough stays one
      click away in the launcher for whoever wants it. */
   useEffect(() => {
-    if (!mounted || !synced || pathname !== HOME) return;
+    if (!mounted || !synced || pathname !== HOME || runningTour) return;
     let already = false;
     try { already = localStorage.getItem(tourPersonKey(FIRST_SIGN_IN_KEY)) === "1"; } catch { /* offer it */ }
     if (already) return;
@@ -183,7 +183,7 @@ export default function AdminTourProvider({
       setRunningTour(WELCOME);
     }, 1_500);
     return () => window.clearTimeout(id);
-  }, [mounted, synced, pathname, HOME, FIRST_SIGN_IN_KEY, WELCOME]);
+  }, [mounted, synced, pathname, HOME, FIRST_SIGN_IN_KEY, WELCOME, runningTour]);
 
   const value = useMemo<AdminTourContext>(() => ({
     active: runningTour !== null,
