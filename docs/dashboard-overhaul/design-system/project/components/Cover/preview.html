@@ -1,0 +1,38 @@
+<!-- @dsCard height=288 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Cover</title>
+<style>
+  body{margin:0;background:var(--ad-bg)}
+  .cv{position:relative;width:960px;height:288px;background:var(--ad-bg);overflow:hidden}
+  .cv svg{position:absolute;left:0;top:0}
+  .navy{fill:var(--ad-tone-brand)} .orange{fill:var(--ad-series-2)} .burnt{fill:var(--ad-accent-ink)} .tint{fill:var(--ad-hero-dim)} .ink{fill:var(--ad-ink)}
+  .g1{fill:var(--ad-line-2)} .g2{fill:var(--ad-hero-dim)}
+  .r24{rx:24px} .r20{rx:20px} .pill{rx:8px}
+  .txt{position:absolute;left:40px;top:156px;max-width:880px}
+  .name{font:700 64px/.95 'Space Grotesk',system-ui,sans-serif;letter-spacing:-.02em;color:var(--ad-ink);margin:0}
+  .tag{font:400 14px/1.4 Outfit,system-ui,sans-serif;color:var(--ad-dim);margin:12px 0 0}
+</style></head>
+<body>
+<div class="cv">
+  <!--
+    blocks: ad-tone-brand slab 352x96, ad-series-2 160x96, ad-accent-ink 96x96, ad-hero-dim 200x96, ad-ink 72x96 bleeding off the right (radius-2xl 24, radius-xl 20)
+    arrangement: a strip of unequal bands across the top; the top-band skeleton, because the name is wider than its zone at 64px
+    pattern: the deck itself, the navy card with two ghost cards stacked under it and its two tags as pills, cut from radii, because every role opens on the deck
+    scales: gaps space-3 12px, top inset space-6 24px, sides 40px, radii radius-2xl 24, radius-xl 20, radius-sm 8
+  -->
+  <svg width="960" height="140" viewBox="0 0 960 140" aria-hidden="true">
+    <rect class="g2 r20" x="76" y="114" width="280" height="22"></rect>
+    <rect class="g1 r20" x="58" y="104" width="316" height="24"></rect>
+    <rect class="navy r24" x="40" y="24" width="352" height="96"></rect>
+    <rect class="orange pill" x="64" y="48" width="64" height="16"></rect>
+    <rect class="tint pill" x="140" y="48" width="96" height="16"></rect>
+    <rect class="orange r20" x="404" y="24" width="160" height="96"></rect>
+    <rect class="burnt r20" x="576" y="24" width="96" height="96"></rect>
+    <rect class="tint r20" x="684" y="24" width="200" height="96"></rect>
+    <rect class="ink r20" x="896" y="24" width="96" height="96"></rect>
+  </svg>
+  <div class="txt"><h1 class="name">WDC Dashboard System</h1><p class="tag">One shell, one vocabulary, three roles: the owner, the staff and the client.</p></div>
+</div>
+</body>
+</html>

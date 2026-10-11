@@ -1,0 +1,9 @@
+{
+ "file": "D-Staff.dc.html",
+ "title": "My Day, Staff",
+ "role": 1,
+ "html": "staff.html",
+ "js": [
+  "staff.js"
+ ]
+}

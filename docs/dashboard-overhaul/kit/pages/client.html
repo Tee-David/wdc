@@ -1,6 +1,6 @@
 <div class="rise" style="display: flex; flex-direction: column; gap: 6px; min-width: 0">
               <h1 class="h1">{{headline}}</h1>
-              <p class="lede">Since your last visit on Tuesday: <strong style="color: var(--ink)">round 2 of your logo arrived and 5 posts are ready for next week.</strong></p>
+              <p class="lede">Since your last visit on Tuesday: <strong style="color: var(--ad-ink)">round 2 of your logo arrived and 5 posts are ready for next week.</strong></p>
             </div>
             %%SKEL%%
             <sc-if value="{{ready}}" hint-placeholder-val="{{ true }}">
@@ -11,14 +11,14 @@
                 <section class="card cq rise d2" aria-label="What we are doing next" data-tour="later" style="overflow: hidden">
                   <div style="display: flex; align-items: center; gap: 10px; padding: 16px 20px 6px; flex-wrap: wrap">
                     <h2 style="font-size: 17px; font-weight: 700">What we are doing next</h2>
-                    <span class="tag num" style="background: var(--flat); color: var(--onflat)">{{nextTotal}}</span>
+                    <span class="tag num" style="background: var(--ad-tone-flat); color: var(--ad-on-flat)">{{nextTotal}}</span>
                   </div>
                   <ol style="list-style: none; margin: 0; padding: 4px 20px 8px">
                     <sc-for list="{{nextItems}}" as="l" hint-placeholder-count="5">
                       <li class="tlRow rowIn" style="animation-name: {{l.anim}}; animation-delay: {{l.delay}}">
                         <span class="tlRail" aria-hidden="true"><span class="tlDot {{l.dotCls}}"></span></span>
                         <button class="tlBtn" onClick="{{l.open}}">
-                          <span style="flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column"><strong>{{l.t}}</strong><span style="color: var(--dim); font-size: 13px">{{l.s}}</span></span>
+                          <span style="flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column"><strong>{{l.t}}</strong><span style="color: var(--ad-dim); font-size: 13px">{{l.s}}</span></span>
                           <span class="tag" style="background: {{l.tone}}; color: #fff">{{l.svc}}</span>
                           <span class="num" style="font-weight: 600; color: {{l.whenCol}}; font-size: 13px; min-width: 86px; text-align: right">{{l.whenShow}}</span>
                         </button>
@@ -33,7 +33,7 @@
                     <h2 style="font-size: 17px; font-weight: 700">Your files</h2>
                     <span style="flex: 1"></span>
                     <label class="sfield">
-                      <svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="color: var(--dim)"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"></path></svg>
+                      <svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="color: var(--ad-dim)"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"></path></svg>
                       <span class="sr">Search files</span>
                       <input value="{{fq}}" onChange="{{onFq}}" placeholder="File name">
                       <sc-if value="{{hasFq}}" hint-placeholder-val="{{ false }}"><button class="clr" aria-label="Clear search" onClick="{{clearFq}}"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></sc-if>
@@ -41,21 +41,21 @@
                   </div>
                   <div role="tablist" aria-label="File type" class="tabs">
                     <sc-for list="{{ftabs}}" as="tb" hint-placeholder-count="4">
-                      <button role="tab" class="tab {{tb.cls}}" aria-selected="{{tb.sel}}" onClick="{{tb.pick}}"><span style="width: 8px; height: 8px; border-radius: 50%; background: {{tb.dot}}"></span>{{tb.label}}<span class="tag num" style="background: var(--flat); color: var(--onflat); height: 20px; padding: 0 7px">{{tb.n}}</span></button>
+                      <button role="tab" class="tab {{tb.cls}}" aria-selected="{{tb.sel}}" onClick="{{tb.pick}}"><span style="width: 8px; height: 8px; border-radius: 50%; background: {{tb.dot}}"></span>{{tb.label}}<span class="tag num" style="background: var(--ad-tone-flat); color: var(--ad-on-flat); height: 20px; padding: 0 7px">{{tb.n}}</span></button>
                     </sc-for>
                   </div>
                   <ul style="list-style: none; margin: 0; padding: 8px">
                     <sc-for list="{{frows}}" as="f" hint-placeholder-count="5">
                       <li class="fRow rowIn" tabindex="0" aria-label="{{f.aria}}" onClick="{{f.preview}}" onKeyDown="{{f.key}}" style="animation-name: {{f.anim}}; animation-delay: {{f.delay}}">
                         <span class="extTile" style="background: {{f.tone}}">{{f.ext}}</span>
-                        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; min-height: 44px; justify-content: center"><strong style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{f.name}}</strong><span style="color: var(--dim); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{f.meta}}</span></span>
-                        <sc-if value="{{f.fresh}}" hint-placeholder-val="{{ false }}"><span class="tag hideS" style="background: var(--live); color: #fff">New</span></sc-if>
+                        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; min-height: 44px; justify-content: center"><strong style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{f.name}}</strong><span style="color: var(--ad-dim); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{f.meta}}</span></span>
+                        <sc-if value="{{f.fresh}}" hint-placeholder-val="{{ false }}"><span class="tag hideS" style="background: var(--ad-tone-live); color: #fff">New</span></sc-if>
                         <button class="ibtn ghostB" data-menu="dl" aria-label="{{f.dlAria}}" onClick="{{f.get}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg></button>
                         <button class="ibtn ghostB" data-menu="row" aria-label="{{f.menuAria}}" aria-haspopup="menu" onClick="{{f.menu}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg></button>
                       </li>
                     </sc-for>
                   </ul>
-                  <sc-if value="{{fEmpty}}" hint-placeholder-val="{{ false }}"><div class="emptyRow rowIn" style="animation-name: rinA"><strong>No file matches "{{fq}}".</strong><span style="color: var(--dim)">Try part of the name, or look in another tab.</span><button class="btn2" onClick="{{clearFq}}">Clear search</button></div></sc-if>
+                  <sc-if value="{{fEmpty}}" hint-placeholder-val="{{ false }}"><div class="emptyRow rowIn" style="animation-name: rinA"><strong>No file matches "{{fq}}".</strong><span style="color: var(--ad-dim)">Try part of the name, or look in another tab.</span><button class="btn2" onClick="{{clearFq}}">Clear search</button></div></sc-if>
                   %%PAGER:FP:File%%
                 </section>
               </div>
@@ -64,17 +64,17 @@
                 <section class="card rise d2" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 12px" aria-label="Billing">
                   <div style="display: flex; align-items: center"><h2 style="font-size: 16px; font-weight: 700; flex: 1">Billing</h2><button class="lnk viewAll" onClick="{{openInvoices}}">Invoices and receipts<svg class="ic arr" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"></path></svg></button></div>
                   <div class="billTop">
-                    <span class="ringW" role="img" aria-label="{{billAria}}"><svg viewBox="0 0 76 76" width="76" height="76"><circle class="rTrack" cx="38" cy="38" r="32"></circle><circle class="rVal" cx="38" cy="38" r="32" pathLength="100" style="stroke-dasharray: 100; stroke-dashoffset: {{ringOff}}"></circle></svg><span class="rTxt"><strong class="num" style="font-size: 17px">{{paidPct}}%</strong><span style="font-size: 10px; color: var(--dim)">paid</span></span></span>
-                    <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font-size: 13px; color: var(--dim)">Paid so far</span><strong class="num" style="font-size: 22px; line-height: 1.15">{{paid}}</strong><span style="font-size: 13px; color: var(--dim)">of {{invoiced}} across 2 projects</span></span>
+                    <span class="ringW" role="img" aria-label="{{billAria}}"><svg viewBox="0 0 76 76" width="76" height="76"><circle class="rTrack" cx="38" cy="38" r="32"></circle><circle class="rVal" cx="38" cy="38" r="32" pathLength="100" style="stroke-dasharray: 100; stroke-dashoffset: {{ringOff}}"></circle></svg><span class="rTxt"><strong class="num" style="font-size: 17px">{{paidPct}}%</strong><span style="font-size: 10px; color: var(--ad-dim)">paid</span></span></span>
+                    <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font-size: 13px; color: var(--ad-dim)">Paid so far</span><strong class="num" style="font-size: 22px; line-height: 1.15">{{paid}}</strong><span style="font-size: 13px; color: var(--ad-dim)">of {{invoiced}} across 2 projects</span></span>
                   </div>
                   <sc-if value="{{hasDue}}" hint-placeholder-val="{{ true }}">
                     <div class="payNext">
-                      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><strong class="num">{{dueAmount}} due {{dueWhen}}</strong><span style="font-size: 12px; color: var(--dim)">Social media deposit · INV-26-9QX4LM</span></span>
+                      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><strong class="num">{{dueAmount}} due {{dueWhen}}</strong><span style="font-size: 12px; color: var(--ad-dim)">Social media deposit · INV-26-9QX4LM</span></span>
                       <button class="btn" style="min-height: 44px; padding: 0 14px" onClick="{{payNow}}">Pay</button>
                     </div>
                   </sc-if>
-                  <sc-if value="{{allPaid}}" hint-placeholder-val="{{ false }}"><div class="payNext"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" style="color: var(--good)"><path d="M20 6 9 17l-5-5"></path></svg><span style="flex: 1; font-size: 13px"><strong>Nothing due.</strong> Your next invoice comes with the final logo files.</span></div></sc-if>
-                  <button class="rowh" onClick="{{openReceipt}}" style="display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 12px; text-align: left; width: 100%; font-size: 13px"><span class="extTile" style="width: 32px; height: 32px; background: var(--good)"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span><span style="flex: 1; min-width: 0"><strong>{{lastReceipt}}</strong><br><span style="color: var(--dim)">{{lastReceiptSub}}</span></span></button>
+                  <sc-if value="{{allPaid}}" hint-placeholder-val="{{ false }}"><div class="payNext"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" style="color: var(--ad-tone-good)"><path d="M20 6 9 17l-5-5"></path></svg><span style="flex: 1; font-size: 13px"><strong>Nothing due.</strong> Your next invoice comes with the final logo files.</span></div></sc-if>
+                  <button class="rowh" onClick="{{openReceipt}}" style="display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 12px; text-align: left; width: 100%; font-size: 13px"><span class="extTile" style="width: 32px; height: 32px; background: var(--ad-tone-good)"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span><span style="flex: 1; min-width: 0"><strong>{{lastReceipt}}</strong><br><span style="color: var(--ad-dim)">{{lastReceiptSub}}</span></span></button>
                 </section>
 
                 <section class="card rise d3" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 12px" aria-label="Next meeting">
@@ -84,11 +84,11 @@
                     <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
                       <strong class="disp rowIn" style="font-size: 17px; animation-name: {{slotAnim}}">{{meetTime}}</strong>
                       <span style="font-size: 13px">Logo review with Ifeanyi</span>
-                      <span style="font-size: 12px; color: var(--dim); display: inline-flex; align-items: center; gap: 6px"><span class="platform" style="width: 18px; height: 18px; border-radius: 5px; background: {{meetLogoC}}"><svg class="logo" viewBox="0 0 24 24" width="11" height="11" aria-hidden="true"><path d="{{meetLogoD}}"></path></svg></span>Google Meet · 30 min · review 1 of 2</span>
+                      <span style="font-size: 12px; color: var(--ad-dim); display: inline-flex; align-items: center; gap: 6px"><span class="platform" style="width: 18px; height: 18px; border-radius: 5px; background: {{meetLogoC}}"><svg class="logo" viewBox="0 0 24 24" width="11" height="11" aria-hidden="true"><path d="{{meetLogoD}}"></path></svg></span>Google Meet · 30 min · review 1 of 2</span>
                     </span>
                   </div>
                   <button class="btn" disabled="{{joinDis}}" onClick="{{join}}">Join the meeting</button>
-                  <span style="font-size: 12px; color: var(--dim); margin-top: -4px">{{joinNote}}</span>
+                  <span style="font-size: 12px; color: var(--ad-dim); margin-top: -4px">{{joinNote}}</span>
                   <span style="display: flex; gap: 8px; flex-wrap: wrap"><button class="btn2" style="flex: 1 1 140px" onClick="{{addCal}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path></svg>Add to calendar</button><button class="btn2" style="flex: 1 1 110px" onClick="{{moveMeeting}}">Move it</button></span>
                 </section>
 
@@ -97,10 +97,10 @@
                     <span class="avStack" role="group" aria-label="Your team"><sc-for list="{{teamStack}}" as="a" hint-placeholder-count="2"><button class="av" style="background: {{a.tone}}" aria-label="{{a.name}}" onClick="{{a.open}}">{{a.i}}</button></sc-for><button class="av avMore" aria-label="{{teamMoreAria}}" onClick="{{openTeam}}">+{{teamMore}}</button></span>
                   </div>
                   <sc-for list="{{projects}}" as="pj" hint-placeholder-count="2">
-                    <button class="lift" onClick="{{pj.open}}" style="display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 14px; border: 1px solid var(--line); text-align: left; width: 100%; background: var(--panel)">
+                    <button class="lift" onClick="{{pj.open}}" style="display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 14px; border: 1px solid var(--ad-line); text-align: left; width: 100%; background: var(--ad-panel)">
                       <span style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap"><strong style="flex: 1; min-width: 0">{{pj.name}}</strong><span class="tag" style="background: {{pj.tone}}; color: #fff">{{pj.status}}</span></span>
                       <div class="cq" style="width: 100%"><div class="steps" role="img" aria-label="{{pj.stepAria}}"><sc-for list="{{pj.track}}" as="st" hint-placeholder-count="5"><span class="stp {{st.cls}}" title="{{st.l}}" style="animation-delay: {{st.delay}}"><span class="stpN"><sc-if value="{{st.isDone}}" hint-placeholder-val="{{ false }}"><svg class="ic draw" viewBox="0 0 24 24" width="11" height="11" aria-hidden="true" style="stroke-width: 3"><path pathLength="1" d="M20 6 9 17l-5-5"></path></svg></sc-if><sc-if value="{{st.notDone}}" hint-placeholder-val="{{ true }}">{{st.n}}</sc-if></span><span class="stpL">{{st.l}}</span></span></sc-for></div></div>
-                      <span style="font-size: 13px; color: var(--dim)">{{pj.next}}</span>
+                      <span style="font-size: 13px; color: var(--ad-dim)">{{pj.next}}</span>
                     </button>
                   </sc-for>
                 </section>
