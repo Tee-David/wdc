@@ -1,1 +1,1 @@
-{"file":"A-Messages.dc.html","title":"Messages, Owner","role":0,"html":"messages.html","js":["admin.js","ra-common.js","messages-common.js","a-messages.js"]}
+{"file": "A-Messages.dc.html", "title": "Messages, Owner", "role": 0, "html": "messages.html", "js": ["admin.js", "ra-common.js", "messages-common.js", "messages-extra.js", "a-messages.js"], "css": ["messages.css"], "overlay": "messages-overlay.html"}

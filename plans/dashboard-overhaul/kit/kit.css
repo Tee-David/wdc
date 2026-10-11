@@ -958,3 +958,49 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 /* Avatar stacks: 34px tiles get a 44px hit area */
 .avStack>button{position:relative}
 .avStack>button::after{content:"";position:absolute;inset:-5px}
+/* Bank picker row, suggested banks and lookup status (add a bank account) */
+.bankRow{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:6px 14px 6px 8px;border-radius:12px;border:1px solid var(--ad-line-2);background:var(--ad-panel);color:var(--ad-ink);text-align:left;font:inherit;cursor:pointer}
+.bankRow:hover{background:var(--ad-hover)}
+.bankRow:focus-visible{outline:2px solid var(--ad-focus);outline-offset:2px}
+.bankRow .bnkName{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bankRow .bnkName.ph{font-weight:400;color:var(--ad-dim)}
+.bnkLogo{display:inline-grid;place-items:center;flex:none;width:36px;height:36px;border-radius:50%;color:#fff;font:700 12px/1 'Space Grotesk',sans-serif;letter-spacing:.02em}
+.bnkLogo.sm{width:24px;height:24px;font-size:9px}
+.bnkSug{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.bnkSug .chip{display:inline-flex;align-items:center;gap:8px;padding-left:6px}
+.bnkStat{display:flex;align-items:center;gap:10px;margin-top:10px;padding:12px 14px;border-radius:12px;font-weight:600;font-size:14px;background:var(--ad-panel-2);color:var(--ad-ink);min-width:0}
+.bnkStat span{min-width:0;overflow-wrap:anywhere}
+.bnkStat.ok{background:var(--ad-tone-good);color:#fff}
+.bnkStat.bad,.bnkStat.none{background:var(--ad-panel-2);color:var(--ad-ink)}
+.bnkStat.bad{background:var(--ad-tone-bad);color:#fff}
+.bnkStat .ic{flex:none}
+.bnkSpin{flex:none;width:18px;height:18px;border-radius:50%;border:2px solid var(--ad-line-2);border-top-color:var(--ad-ink);animation:spin .8s linear infinite}
+@media (prefers-reduced-motion:reduce){.bnkSpin{animation:none;border-top-color:var(--ad-ink)}}
+/* Phones: the pinned first column leaves room to see the next one. Titles wrap to two lines. */
+@container app (max-width:640px){
+  .tbl th:first-child,.tbl td:first-child{min-width:124px;max-width:min(176px,46cqw)}
+  .tbl.hasCk th:first-child,.tbl.hasCk td:first-child{min-width:44px;width:44px;max-width:44px;padding-left:10px;padding-right:0}
+  .tbl.hasCk th:nth-child(2),.tbl.hasCk td:nth-child(2){left:44px;min-width:124px;max-width:min(176px,46cqw)}
+  .tbl td:first-child strong,.tbl.hasCk td:nth-child(2) strong{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:normal;overflow-wrap:anywhere;font-size:14px;line-height:1.25}
+  .tbl td:first-child strong+span,.tbl.hasCk td:nth-child(2) strong+span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tbl td,.tbl th{padding-left:12px;padding-right:12px}
+}
+/* Search result and link card previews (blog editor) */
+.serp{display:flex;flex-direction:column;gap:2px;padding:14px 16px;border-radius:14px;border:1px solid var(--ad-line);background:var(--ad-panel);min-width:0}
+.serpUrl{font-size:12px;color:var(--ad-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.serpTitle{font:600 18px/1.3 'Space Grotesk',sans-serif;color:var(--ad-ink);overflow-wrap:anywhere}
+.serpDesc{font-size:13px;color:var(--ad-dim);overflow-wrap:anywhere}
+.lcard{display:flex;flex-direction:column;margin-top:10px;border-radius:14px;border:1px solid var(--ad-line);background:var(--ad-panel);overflow:hidden;min-width:0}
+.lcImg{display:block;width:100%;aspect-ratio:1200/630;object-fit:cover;background:var(--ad-panel-2)}
+.lcImg.ph{display:grid;place-items:center;color:var(--ad-dim);font-size:13px}
+.lcBody{display:flex;flex-direction:column;gap:2px;padding:12px 14px;min-width:0}
+.lcHost{font-size:11px;letter-spacing:.06em;color:var(--ad-dim)}
+.lcBody strong{font-size:15px;overflow-wrap:anywhere}
+.lcBody span:last-child{font-size:13px;color:var(--ad-dim);overflow-wrap:anywhere}
+.vidFig{margin:0;display:flex;flex-direction:column;gap:6px}
+.vidBox{display:grid;place-items:center;aspect-ratio:16/9;border-radius:12px;background:var(--ad-tone-neutral);color:#fff}
+.lcard{max-width:440px}
+/* Bank logos: the site's favicon over a white disc. If it does not load, the initials show. */
+.imgHost{position:relative;overflow:hidden}
+.imgHost.hasImg{background:#fff !important;color:var(--ad-ink);box-shadow:inset 0 0 0 1px var(--ad-line-2)}
+.logoImg{position:absolute;inset:15%;width:70%;height:70%;object-fit:contain}

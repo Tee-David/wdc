@@ -1,0 +1,42 @@
+<div class="pageHead rise">
+              <div>
+                <h1 class="h1">{{pageTitle}}</h1>
+                <p class="lede">{{ledeA}} <strong style="color: var(--ad-ink)">{{ledeB}}</strong></p>
+              </div>
+              <div class="headActs">
+                <button class="btn2" style="min-height: 44px" onClick="{{skip}}">{{skipLabel}}</button>
+              </div>
+            </div>
+            <div class="layout">
+              <div class="col">
+                <section class="card rise d1" aria-label="Setup progress" style="padding: 20px; display: flex; flex-direction: column; gap: 14px; background: var(--ad-hero); color: #fff">
+                  <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap"><h2 style="font-size: 20px; font-weight: 700; flex: 1; min-width: 0">{{heroTitle}}</h2><span class="num" style="font-size: 14px; font-weight: 600">{{progressText}}</span></div>
+                  <div role="progressbar" aria-valuemin="0" aria-valuemax="{{total}}" aria-valuenow="{{doneN}}" aria-label="Setup progress" style="height: 10px; border-radius: 999px; background: rgba(255,255,255,.28); overflow: hidden"><div style="height: 100%; width: {{pct}}%; background: #fff; border-radius: 999px; transition: width .5s cubic-bezier(.16,1,.3,1)"></div></div>
+                  <p style="font-size: 14px">{{heroBody}}</p>
+                </section>
+                <section class="card rise d2" aria-label="Steps" data-tour="table" style="overflow: hidden">
+                  <sc-for list="{{steps}}" as="s" hint-placeholder-count="5">
+                    <div style="display: flex; align-items: center; gap: 14px; padding: 16px 20px; border-top: 1px solid var(--ad-line); flex-wrap: wrap">
+                      <span class="svcIc" style="width: 40px; height: 40px; border-radius: 12px; background: {{s.tone}}"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="{{s.d}}"></path></svg></span>
+                      <span style="flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 2px"><strong style="font-size: 15px">{{s.t}}</strong><span style="font-size: 13px; color: var(--ad-dim)">{{s.s}}</span></span>
+                      <span class="tag" style="background: {{s.tagTone}}; color: {{s.tagInk}}">{{s.tag}}</span>
+                      <button class="{{s.btnCls}}" style="min-height: 44px" onClick="{{s.run}}">{{s.label}}</button>
+                    </div>
+                  </sc-for>
+                </section>
+              </div>
+              <aside class="railCards" aria-label="Help" data-tour="rail">
+                <sc-for list="{{railCards}}" as="rc" hint-placeholder-count="2">
+                  <section class="card rise {{rc.delay}}" aria-label="{{rc.title}}" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 6px">
+                    <h2 style="font-size: 16px; font-weight: 700">{{rc.title}}</h2>
+                    <p style="font-size: 13px; color: var(--ad-dim)">{{rc.note}}</p>
+                    <sc-for list="{{rc.rows}}" as="r" hint-placeholder-count="3">
+                      <button class="rowh" onClick="{{r.open}}" style="display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 12px; width: 100%; text-align: left; min-height: 44px">
+                        <span class="svcIc" style="background: var(--ad-tone-neutral)"><svg class="ic" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="{{r.d}}"></path></svg></span>
+                        <span style="flex: 1; min-width: 0; font-size: 13px"><strong>{{r.t}}</strong><br><span style="color: var(--ad-dim)">{{r.s}}</span></span>
+                      </button>
+                    </sc-for>
+                  </section>
+                </sc-for>
+              </aside>
+            </div>

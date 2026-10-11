@@ -1,6 +1,5 @@
   /* ======================= Hub pages (Email, Forms, Meetings): tabs, one table, a rail ======================= */
   pageState() { return { tab: 0, chip: 'all', hpg: 0, hper: 5, hq: '', ra: 0, pst: {}, added: {}, gone: {}, flt: {}, bsel: {} }; }
-  navCounts() { return { Clients: { n: 5 }, Money: { n: 3, tone: 'var(--ad-tone-bad)' }, Messages: { n: 6 } }; }
   hubApply(key, base) { var s = this.state; return (s.added[key] || []).concat(base).map(function (x) { return s.pst[x.id] ? Object.assign({}, x, s.pst[x.id]) : x; }).filter(function (x) { return !s.gone[x.id]; }); }
   hubPatch(id, patch) { var m = Object.assign({}, this.state.pst); m[id] = Object.assign({}, m[id] || {}, patch); this.setState({ pst: m, ra: this.state.ra + 1 }); }
   hubAdd(key, item) { var a = Object.assign({}, this.state.added); a[key] = [item].concat(a[key] || []); this.setState({ added: a, ra: this.state.ra + 1 }); }

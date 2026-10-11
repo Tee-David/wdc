@@ -20,6 +20,7 @@
     ];
     return this.hubApply('camp', B);
   }
+  emSteps(a) { return a.steps || ({ a1: [['Immediately', 'Welcome to your portal'], ['2 days', 'Newsletter layout'], ['7 days', 'Newsletter layout']], a2: [['3 days before', 'Invoice'], ['On the day', 'Invoice'], ['3 days after', 'Invoice']], a3: [['7 days after', 'Review ready']], a4: [['90 days quiet', 'Newsletter layout']], a5: [['Immediately', 'Welcome to your portal']] }[a.id] || [['Immediately', 'Invoice']]).map(function (x, i) { return { id: a.id + 's' + i, wait: x[0], tpl: x[1], at: '09:00' }; }); }
   emAutos() {
     return this.hubApply('auto', [
       { id: 'a1', name: 'Welcome series', sub: 'Three emails over a week', trig: 'A person joins the newsletter', on: true, sent: 96, open: 61 },
@@ -81,14 +82,48 @@
         else fin('draft', 'Edited just now', 'Saved. “' + f.name.trim() + '” is a draft.');
       } }));
   }
+  tplEditor(t) {
+    var self = this, I = this.icons(), VARS = { Money: ['client name', 'invoice number', 'amount', 'due date', 'pay link'], Clients: ['client name', 'portal link', 'studio contact'], Projects: ['client name', 'project name', 'review link'], Meetings: ['client name', 'meeting time', 'meet link'], Marketing: ['first name', 'unsubscribe link'] }[t.kind] || ['client name'];
+    var start = { subject: t.subject || t.name + ' from WDC Studio', pre: t.pre || '', body: t.body || 'Hello {{client name}},\n\nThank you for working with us. Everything you need is below.\n\nWarm regards,\nWDC Studio' };
+    this.open(this.sh({ wide: true, eyebrow: 'Edit template', title: t.name, icon: I.mail, keepOpen: true, focus: 'f-subject',
+      body: 'Details in double braces are filled in when the email is sent. Pick one below to add it at the end.',
+      guard: function (ctx) { var f = ctx.form; return ['subject', 'pre', 'body'].some(function (k) { return (f[k] || '') !== (start[k] || ''); }); }, guardBody: 'The template is not saved. If you close now, your changes are lost.',
+      form: Object.assign({ ins: '' }, start),
+      fields: function () { return [{ key: 'subject', label: 'Subject line', wide: true, hint: 'Under 50 characters reads whole on a phone.' }, { key: 'pre', label: 'Preview line', ph: 'The line shown next to the subject', wide: true }, { key: 'body', type: 'editor', label: 'The email', hint: 'Short sentences. One link, one ask.' }]; },
+      chipSets: [{ key: 'ins', label: 'Add a detail', opts: VARS, hint: 'Added at the end of the email.' }],
+      watch: function (ctx, st) { var f = ctx.form; if (f.ins) self.setState({ form: Object.assign({}, st.form, { body: (f.body || '') + (/\s$/.test(f.body || '') || !f.body ? '' : ' ') + '{{' + f.ins + '}}', ins: '' }) }); },
+      notice: function (ctx) { var f = ctx.form, bad = (f.body || '').match(/\{\{[^}]*\}\}/g) || []; var unknown = bad.filter(function (b) { return VARS.indexOf(b.slice(2, -2)) < 0; }); return unknown.length ? { tone: 'var(--ad-tone-warn)', icon: I.alert, title: 'Unknown detail', body: unknown[0] + ' is not available in this email, so it would show as empty.' } : { tone: 'var(--ad-tone-good)', icon: I.check, title: 'All details are known', body: (bad.length || 'No') + ' details will be filled in when it is sent.' }; },
+      primary: 'Save template', secondary: 'Send a test',
+      primaryDis: function (ctx) { var f = ctx.form; if (!(f.subject || '').trim()) return 'Add a subject line.'; if ((f.body || '').trim().split(/\s+/).filter(Boolean).length < 8) return 'Write at least 8 words.'; return ''; },
+      onPrimary: function (ctx) { var f = ctx.form; self.setState({ sheet: null, stack: [] }); self.hubPatch(t.id, { custom: true, edited: 'Today', subject: f.subject.trim(), pre: f.pre || '', body: f.body }); self.say('Updated. Every new email uses this wording.'); },
+      onSecondary: function () { self.say('A test went to babatope@wendiloveee.com.'); return 'stay'; } }));
+  }
+  stepEdit(a, st) {
+    var self = this, I = this.icons(), edit = !!st, tpls = this.emTemplates().map(function (t) { return t.name; });
+    var WAITS = ['Immediately', '1 day', '2 days', '3 days', '7 days', '3 days before', 'On the day', '3 days after', '7 days after', '90 days quiet'];
+    this.open(this.sh({ eyebrow: edit ? 'Edit step' : 'New step', title: edit ? st.tpl : 'Add a step to ' + a.name, icon: I.mail, keepOpen: true, body: 'Each step sends one email after the wait. Steps run in the order shown.',
+      form: edit ? { wait: st.wait, tpl: st.tpl, at: st.at } : { wait: '1 day', tpl: tpls[0], at: '09:00' },
+      fields: function () { return [{ key: 'at', type: 'time', label: 'Send at', hint: 'Emails go out at this time of day, studio time.' }]; },
+      chipSets: [{ key: 'wait', label: 'Wait', opts: WAITS }, { key: 'tpl', label: 'Which email', opts: tpls }],
+      primary: edit ? 'Save step' : 'Add step', secondary: 'Cancel', primaryDis: function (ctx) { return !ctx.form.wait || !ctx.form.tpl ? 'Choose the wait and the email.' : ''; },
+      onPrimary: function (ctx) { var f = ctx.form, steps = self.emSteps(a).slice(); if (edit) steps = steps.map(function (x) { return x.id === st.id ? Object.assign({}, x, { wait: f.wait, tpl: f.tpl, at: f.at || '09:00' }) : x; }); else steps.push({ id: a.id + 's' + Date.now(), wait: f.wait, tpl: f.tpl, at: f.at || '09:00' }); self.hubPatch(a.id, { steps: steps }); self.say('Updated. The steps of “' + a.name + '” are saved.'); } }), true);
+  }
+  autoSteps(a) {
+    var self = this, I = this.icons(), steps = this.emSteps(a);
+    this.open(this.sh({ eyebrow: 'Steps', title: a.name, icon: I.mail, body: 'Starts when ' + a.trig.charAt(0).toLowerCase() + a.trig.slice(1) + '. Choose a step to change it, or add one at the end.', listTitle: 'Steps, in order', select: true, selectWhy: 'Choose a step.', noSearch: true,
+      list: steps.map(function (x, i) { return { t: (i + 1) + '. ' + x.tpl, s: x.wait + ' at ' + x.at, ini: String(i + 1), av: 'var(--ad-tone-brand)', ref: x }; }),
+      primary: 'Edit this step', secondary: 'Add a step', primaryDis: function (ctx) { return ctx.pick < 0 ? 'Choose a step.' : ''; },
+      onPrimary: function (ctx) { var x = ctx.item && ctx.item.ref; if (x) setTimeout(function () { self.stepEdit(a, x); }, 60); return 'stay'; },
+      onSecondary: function () { setTimeout(function () { self.stepEdit(a); }, 60); return 'stay'; } }), true);
+  }
   autoSheet(a) {
     var self = this, I = this.icons();
     return this.sh({ eyebrow: 'Automation · ' + (a.on ? 'On' : 'Paused'), title: a.name, chip: a.on ? 'On' : 'Paused', tone: a.on ? 'var(--ad-tone-good)' : 'var(--ad-tone-flat)', icon: I.play, iconTone: a.on ? 'var(--ad-tone-good)' : 'var(--ad-tone-neutral)',
-      rows: [{ k: 'Starts when', v: a.trig }, { k: 'Steps', v: a.sub }, { k: 'Sent, 30 days', v: String(a.sent) }, { k: 'Opened', v: a.sent ? a.open + '%' : 'Nothing sent yet' }],
+      rows: [{ k: 'Starts when', v: a.trig }, { k: 'Steps', v: self.emSteps(a).length + ': ' + a.sub }, { k: 'Sent, 30 days', v: String(a.sent) }, { k: 'Opened', v: a.sent ? a.open + '%' : 'Nothing sent yet' }],
       body: a.on ? 'Runs by itself. Pausing stops new sends and leaves emails already queued to go.' : 'Paused. Nothing is sent until you turn it on.',
       primary: a.on ? 'Pause automation' : 'Turn on', secondary: 'Edit the emails',
       onPrimary: function () { self.hubPatch(a.id, { on: !a.on }); self.say(a.on ? 'Paused. “' + a.name + '” stops sending.' : 'Updated. “' + a.name + '” is on.'); },
-      onSecondary: function () { self.say('The email editor opens for “' + a.name + '”.'); return 'stay'; } });
+      onSecondary: function () { self.autoSteps(a); return 'stay'; } });
   }
   tplSheet(t) {
     var self = this, I = this.icons();
@@ -96,7 +131,7 @@
       rows: [{ k: 'Used for', v: t.sub }, { k: 'Last edit', v: t.edited }, { k: 'Sender', v: 'WDC Studio, hello@wedigcreativity.com' }],
       body: 'Names and amounts are filled in when it is sent. Preview shows it with sample details.',
       primary: 'Edit template', secondary: t.custom ? 'Reset to default' : 'Send a test',
-      onPrimary: function () { self.say('The template editor opens.'); return 'stay'; },
+      onPrimary: function () { self.closeSheet(true); setTimeout(function () { self.tplEditor(t); }, 80); },
       onSecondary: function () { if (t.custom) { self.ask({ eyebrow: 'Reset', title: 'Reset “' + t.name + '” to the default?', body: 'Your wording is replaced by the studio default. This cannot be undone.', ok: 'Reset template', danger: true, icon: I.undo, tone: 'var(--ad-tone-warn)', confirmCheck: true, onOk: function () { self.hubPatch(t.id, { custom: false, edited: 'Default' }); self.say('Updated. “' + t.name + '” is back to the default.'); } }, true); return 'stay'; } self.say('A test went to babatope@wendiloveee.com.'); return 'stay'; } });
   }
   contactSheet(p) {
@@ -128,7 +163,7 @@
           sheet: function (c) { return self.campaignSheet(c); },
           actions: function (c, it, I2) { var o = [it('Open campaign', I2.open, function () { self.open(self.campaignSheet(c)); })]; if (c.status !== 'sent') o.push(it('Edit campaign', I2.edit, function () { self.campaignEditor(c); })); o.push(it('Duplicate', I2.file, function () { self.campaignEditor(Object.assign({}, c, { id: null, name: c.name + ' (copy)', status: 'draft' })); })); o.push(self.menuSep()); o.push(it('Move to Trash…', I2.trash, function () { self.ask({ eyebrow: 'Trash', title: 'Move “' + c.name + '” to Trash?', body: 'Sent campaigns keep their numbers in reports. You can restore it from Settings, Trash, for 30 days.', ok: 'Move to Trash', danger: true, icon: I2.trash, tone: 'var(--ad-tone-bad)', onOk: function () { self.hubGone([c.id], '“' + c.name + '” moved to Trash.'); } }); }, { danger: true })); return o; },
           bulk: function () { return [{ label: 'Move to Trash', icon: I.trash, danger: true, fn: function (sel, done) { self.ask({ eyebrow: 'Trash', title: 'Move ' + sel.length + ' campaigns to Trash?', body: 'You can restore them from Settings, Trash, for 30 days.', ok: 'Move to Trash', danger: true, icon: I.trash, tone: 'var(--ad-tone-bad)', onOk: function () { self.hubGone(sel.map(function (x) { return x.id; }), sel.length + ' campaigns moved to Trash.'); done(); } }); } }]; } },
-        { key: 'auto', label: 'Automations', title: 'Automations', noun: 'automations', one: 'automation', ph: 'Name or trigger', file: 'wdc-automations', actLabel: 'New automation', actD: I.plus, act: function () { self.say('Pick a trigger, then write the steps. Welcome, reminder and thank you emails are ready to copy.'); }, emptyT: 'No automations yet.', emptyB: 'Start from a welcome series.', warn: function () { return self.emAutos().some(function (a) { return !a.on; }); },
+        { key: 'auto', label: 'Automations', title: 'Automations', noun: 'automations', one: 'automation', ph: 'Name or trigger', file: 'wdc-automations', actLabel: 'New automation', actD: I.plus, act: function () { self.say('Start from a copy of Welcome series, then change the trigger and the steps.'); }, emptyT: 'No automations yet.', emptyB: 'Start from a welcome series.', warn: function () { return self.emAutos().some(function (a) { return !a.on; }); },
           cols: [{ t: 'Automation' }, { t: 'Starts when' }, { t: 'State' }, { t: 'Sent, 30 days', cls: 'r' }, { t: 'Opened', cls: 'r' }],
           items: function () { return self.emAutos().map(function (a) { return Object.assign({}, a, { hay: a.name + ' ' + a.trig, cells: [{ t: a.trig }, pill(a.on ? 'On' : 'Paused', a.on ? G : Fl, a.on ? '#fff' : 'var(--ad-on-flat)'), { t: String(a.sent), cls: 'r num' }, { t: a.sent ? a.open + '%' : 'None yet', cls: 'r num' }] }); }); },
           chips: [['all', 'All', function () { return true; }], ['on', 'On', function (x) { return x.on; }], ['off', 'Paused', function (x) { return !x.on; }]],
