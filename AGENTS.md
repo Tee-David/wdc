@@ -153,7 +153,7 @@ Short on purpose. Each line is a decision already made; do not re-ask it.
 
 ## Dashboard design system (Admin, staff and client)
 
-The admin (owner), staff and client dashboards are three views of one studio. They share one shell, one component set and one vocabulary. This section is the binding summary. The full reference is `docs/dashboard-overhaul/design-system/project/` (README, Writing, Patterns, Money, Settings, States, Motion, Pages, `tokens.json`, `components/`), published as the Design System artifact (https://claude.ai/artifact/XRhmw3yngg9bTxBzim5zLr). The approved page prototypes live in the canvas artifact (https://claude.ai/artifact/1HG99eCtChsHCLyTnh7iEQ, row "Overhaul pages"). Every decision the owner gave is logged in `docs/dashboard-overhaul-preferences.md`, and a newer line there wins. Do not deviate from any of these. If a screen needs something the system lacks, add it to the system first, then use it.
+The admin (owner), staff and client dashboards are three views of one studio. They share one shell, one component set and one vocabulary. This section is the binding summary. The full reference is `plans/dashboard-overhaul/design-system/project/` (README, Writing, Patterns, Money, Settings, States, Motion, Pages, `tokens.json`, `components/`), published as the Design System artifact (https://claude.ai/artifact/XRhmw3yngg9bTxBzim5zLr). The approved page prototypes live in the canvas artifact (https://claude.ai/artifact/1HG99eCtChsHCLyTnh7iEQ, row "Overhaul pages"). Every decision the owner gave is logged in `plans/dashboard-overhaul/preferences.md`, and a newer line there wins. Do not deviate from any of these. If a screen needs something the system lacks, add it to the system first, then use it.
 
 ### The standard every page meets
 
@@ -246,7 +246,7 @@ All colour comes from the `--ad-*` tokens shared with `components/admin/admin.cs
 
 ### How the prototypes are made
 
-- Source: `docs/dashboard-overhaul/kit/` holds the shared styles, shell, sheet, behaviour and a module per page, assembled by `build.py` into `.dc.html` boards. A correction goes into the kit once and lands on every page. The implementation follows the kit's patterns, not its prototype data.
+- Source: `plans/dashboard-overhaul/kit/` holds the shared styles, shell, sheet, behaviour and a module per page, assembled by `build.py` into `.dc.html` boards. A correction goes into the kit once and lands on every page. The implementation follows the kit's patterns, not its prototype data.
 - Each finished page is verified (desktop, phone, dark tablet; overflow, target sizes; an end to end interaction run), published to the canvas artifact, and committed. Show the owner the artifact, not screenshots.
 - The design work is done by the main session alone. No agents for design. If agents are ever approved for implementation: at most 2 Sonnet agents, model set explicitly.
 

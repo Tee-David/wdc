@@ -54,5 +54,7 @@ frontend/playwright-report/
 frontend/.lighthouse-mobile.json
 
 # Planning and audit documents. Local reference only, never committed.
-plans/
+# The dashboard overhaul folder is the exception, by the owner's request: it holds the design system, kit and screens.
+plans/*
+!plans/dashboard-overhaul/
 *.docx
