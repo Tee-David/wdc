@@ -30,7 +30,7 @@
                   %%PAGER:LP:Later%%
                 </section>
 
-                <section class="card cq rise d3" aria-label="Money moving" style="overflow: hidden">
+                <sc-if value="{{showCash}}" hint-placeholder-val="{{ true }}"><section class="card cq rise d3" aria-label="Money moving" style="overflow: hidden">
                   <div style="display: flex; align-items: center; gap: 10px; padding: 16px 20px 12px; flex-wrap: wrap">
                     <h2 style="font-size: 17px; font-weight: 700">Money moving</h2>
                     <span style="flex: 1"></span>
@@ -68,12 +68,12 @@
                     </sc-if>
                   </div>
                   %%PAGER:MP:Invoice%%
-                </section>
+                </section></sc-if>
               </div>
 
               <aside class="railCards" aria-label="Studio pulse" data-tour="rail">
                 <div class="bentoWrap" style="display: flex; flex-direction: column; gap: 10px">
-                  <div style="display: flex; align-items: center"><h2 style="font-size: 16px; font-weight: 700; flex: 1">Studio pulse</h2><button class="lnk viewAll" onClick="{{openAllStats}}">View all 8<svg class="ic arr" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"></path></svg></button></div>
+                  <div style="display: flex; align-items: center"><h2 style="font-size: 16px; font-weight: 700; flex: 1">Studio pulse</h2><button class="lnk viewAll" onClick="{{customise}}" style="margin-right: 8px">Customise</button><button class="lnk viewAll" onClick="{{openAllStats}}">View all 8<svg class="ic arr" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"></path></svg></button></div>
                   <div class="bento">
                     <sc-for list="{{stats}}" as="k" hint-placeholder-count="4">
                       <button class="card lift rise stat {{k.delay}}" onClick="{{k.open}}" aria-label="{{k.aria}}" style="--k: {{k.dot}}; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; text-align: left; min-height: 104px">
@@ -115,7 +115,7 @@
                   </div>
                 </section>
 
-                <section class="card rise d4" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+                <sc-if value="{{showTeam}}" hint-placeholder-val="{{ true }}"><section class="card rise d4" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
                   <div style="display: flex; align-items: center; gap: 8px"><h2 style="font-size: 16px; font-weight: 700; flex: 1">Team today</h2>
                     <span class="avStack" role="group" aria-label="On today"><sc-for list="{{teamStack}}" as="a" hint-placeholder-count="3"><button class="av" style="background: {{a.tone}}" aria-label="{{a.name}}" data-tip="{{a.name}}" onClick="{{a.open}}">{{a.i}}</button></sc-for><button class="av avMore" aria-label="{{teamMoreAria}}" onClick="{{openTeam}}">+{{teamMore}}</button></span>
                   </div>
@@ -126,7 +126,7 @@
                     </button>
                   </sc-for>
                   <button class="lnk viewAll" style="align-self: flex-start" onClick="{{openFeed}}">Weekly updates<svg class="ic arr" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"></path></svg></button>
-                </section>
+                </section></sc-if>
 
                 <section class="card rise d5" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 8px">
                   <div style="display: flex; align-items: center"><h2 style="font-size: 16px; font-weight: 700; flex: 1">Renewals</h2><button class="lnk viewAll" onClick="{{openRenewals}}">View all 6<svg class="ic arr" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"></path></svg></button></div>

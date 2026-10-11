@@ -186,7 +186,7 @@
     var media = att.filter(function (a) { return a.kind === 'image' || a.kind === 'video'; }), docs = att.filter(function (a) { return a.kind === 'doc'; }), link = att.filter(function (a) { return a.kind === 'link'; })[0];
     if (media.length) msg.media = media; if (docs.length) msg.files = docs; if (link) msg.link = link;
     var id = c.id + ':' + c.msgs.length, mens = this.msgMentionsIn(text), d = Object.assign({}, s.drafts); d[c.id] = '';
-    this.setState({ mreply: null, matt: [], drafts: d, emoOn: false, mnOn: false });
+    this._thScroll = 0; this.setState({ mreply: null, matt: [], drafts: d, emoOn: false, mnOn: false, jumpOn: false, newBelow: 0 });
     this.msgAppend(c.id, msg);
     if (!team) this.msgChain(id, c.id);
     var note = mens.length ? ' ' + (mens.length > 2 ? mens.length + ' people are' : mens.join(' and ') + (mens.length === 1 ? ' is' : ' are')) + ' notified.' : '';
@@ -251,7 +251,7 @@
           names.push(rec.name.split(' (')[0]);
         });
         self.setState({ conv: first, thread: true, mfilter: 'inbox', mkind: 'all', mq: '', mpage: 0, ra: self.state.ra + 1 });
-        self.say('Sent to ' + (names.length > 2 ? names[0] + ' and ' + (names.length - 1) + ' others' : names.join(' and ')) + '.' + (ctx.items.some(function (it) { return it.ref.kind === 'client' || it.ref.isNew; }) && M.role !== 'client' ? ' Clients also get an email.' : ''));
+        self.say(('Sent to ' + (names.length > 2 ? names[0] + ' and ' + (names.length - 1) + ' others' : names.join(' and ')) + '.' + (ctx.items.some(function (it) { return it.ref.kind === 'client' || it.ref.isNew; }) && M.role !== 'client' ? ' Clients also get an email.' : '')).replace(/\.\.+/g, '.'));
       } }));
   }
   /* tags on a message: a few ready made, and your own */
@@ -365,7 +365,7 @@
     if (pop.kind === 'thread' || pop.kind === 'row') { var c = this.msgAll().filter(function (x) { return x.id === pop.id; })[0]; return c ? (pop.kind === 'row' ? this.rowMenu(c) : this.threadMenu(c)) : []; }
     if (pop.kind === 'attmore') { var sc = this.state.conv && this.msgAll().filter(function (x) { return x.id === self.state.conv; })[0]; if (!sc) return []; return [
       it('Attach from the library', I.folder, function () { self.attachFile(sc); }), it('Attach a link', I.link, function () { self.attLinkSheet(); })
-    ].concat(M.role !== 'client' && M.saved && M.saved.length ? [it('Saved replies', X.zap, function () { self.msgSavedSheet(sc); })] : []).concat(M.role === 'admin' ? [it('Schedule send', X.cal, function () { self.msgScheduleSheet(sc); })] : []); }
+    ].concat(M.role !== 'client' && M.saved && M.saved.length && self._mxMode !== 'col' ? [it('Saved replies', X.zap, function () { self.msgSavedSheet(sc); })] : []).concat(M.role === 'admin' && self._mxMode !== 'col' ? [it('Schedule send', X.cal, function () { self.msgScheduleSheet(sc); })] : []); }
     if (pop.kind === 'chores') return [
       it('Mark all as read', I.check, function () { var m = Object.assign({}, self.state.mread); self.msgAll().forEach(function (c) { m[c.id] = true; }); self.setState({ mread: m, munread: {}, ra: self.state.ra + 1 }); self.say('Everything is marked as read.'); }),
       it('Search all messages', I.search, function () { self.setState({ pal: true, q: '' }); }, { hint: 'Ctrl K' })
@@ -403,7 +403,7 @@
       var n = self.msgUnread(c), on = sel && sel.id === c.id && (mode !== 'sheet' || s.thread), pn = self.isPinned(c), typ = s.typing === c.id, w = typ ? self.msgTypingWho(c) : null, pr = self.mxPres(c.pp), mine = null, lastM = c.msgs.filter(function (m) { return m.kind !== 'event'; }).slice(-1)[0];
       if (anyPinned) { var hk = pn ? 'p' : 'r'; if (!seenHead[hk]) { seenHead[hk] = true; convs.push({ isHead: true, isRow: false, label: pn ? 'Pinned' : 'Recent' }); } }
       var del = lastM && lastM.mine ? self.msgDelivery(c, lastM, c.msgs.indexOf(lastM), c.msgs) : null;
-      convs.push({ isHead: false, isRow: true, label: '', name: c.name, i: c.i, tone: c.tone, sub: c.ckind === 'direct' && c.pp ? c.pp.role + ' · ' + c.pp.grp : c.sub, last: typ ? (w ? self.mxFirst(w.name) + ' is typing…' : 'typing…') : self.msgLast(c), when: self.msgWhen(c), unread: n, hasUnread: n > 0, fw: n > 0 ? 600 : 400, pcol: typ ? 'var(--ad-accent-ink)' : (n > 0 ? 'var(--ad-ink)' : 'var(--ad-dim)'), cls: on ? 'on' : '', current: on ? 'true' : 'false', anim: self.anim(s.ra), delay: (i * 0.035) + 's',
+      convs.push({ isHead: false, isRow: true, label: '', name: c.name, i: c.i, tone: c.tone, sub: c.ckind === 'direct' && c.pp ? self.mxRoleLine(c.pp) : c.sub, last: typ ? (w ? self.mxFirst(w.name) + ' is typing…' : 'typing…') : self.msgLast(c), when: self.mxShort(self.msgWhen(c)), unread: n, hasUnread: n > 0, fw: n > 0 ? 600 : 400, pcol: typ ? 'var(--ad-accent-ink)' : (n > 0 ? 'var(--ad-ink)' : 'var(--ad-dim)'), cls: on ? 'on' : '', current: on ? 'true' : 'false', anim: self.anim(s.ra), delay: (i * 0.035) + 's',
         avDirect: c.ckind === 'direct' || c.ckind === 'support', avGroup: c.ckind === 'group', avProj: c.ckind === 'project', dotCls: pr.cls, presT: pr.t, pinned: pn, muted: self.isMuted(c),
         hasTick: !!del && !typ, tickD: del ? del.d : '', tickCls: del ? del.cls : '', tickAria: del ? del.txt : '',
         aria: c.name + ', ' + (c.pp ? pr.t : c.sub) + (pn ? ', pinned' : '') + (self.isMuted(c) ? ', muted' : '') + (n ? ', ' + n + ' unread' : '') + '. ' + self.msgLast(c),
@@ -417,12 +417,12 @@
 
     var th = { aria: 'Conversation' }, msgs = [], quick = [], canVis = false, team = s.mvis === 'team', infoOpen = this.msgInfoOpen(mode), inf = this.msgInfoVals(null, mode);
     var draft = sel ? (s.drafts[sel.id] || '') : '';
-    var blank = { isDate: false, isDiv: false, isTyping: false, isSched: false, isEvent: false, isMsg: false, label: '', text: '', tone: '', i: '', who: '', when: '', d: '', cls: '', bcls: '', isNote: false, starred: false, hasQuote: false, quote: { who: '', text: '' }, hasText: false, parts: [], hasMedia: false, mediaCls: '', media: [], hasDocs: false, docs: [], hasLink: false, link: {}, hasRx: false, rx: [], hasTags: false, tags: [], hasDel: false, delCls: '', delIc: false, delD: '', delAria: '', delTxt: '', isFailed: false, hasStatus: false, status: '' };
+    var blank = { isDate: false, isDiv: false, isTyping: false, isSched: false, isEvent: false, isMsg: false, label: '', text: '', tone: '', i: '', who: '', when: '', d: '', cls: '', bcls: '', isNote: false, starred: false, hasQuote: false, quote: { who: '', text: '' }, hasText: false, parts: [], hasMedia: false, mediaCls: '', media: [], hasDocs: false, docs: [], hasLink: false, link: {}, profRole: 'button', profTab: '0', profAria: '', hasRx: false, rx: [], hasTags: false, tags: [], hasDel: false, delCls: '', delIc: false, delD: '', delAria: '', delTxt: '', isFailed: false, hasStatus: false, status: '' };
     if (sel && !noPerm) {
       var kindT = ({ client: ['Client', 'var(--ad-tone-brand)'], team: ['Team', 'var(--ad-tone-flat)'], support: ['Support', 'var(--ad-tone-live)'] })[sel.kind] || ['Team', 'var(--ad-tone-flat)'];
       if (sel.ckind === 'group') kindT = ['Group', 'var(--ad-tone-flat)']; if (sel.ckind === 'project') kindT = ['Project', 'var(--ad-tone-brand)'];
       var direct = sel.ckind === 'direct' || sel.ckind === 'support', p = sel.pp, pr = this.mxPres(p), typ = s.typing === sel.id, tw = typ ? this.msgTypingWho(sel) : null, mem = sel.mem || [], online = mem.filter(function (x) { return x.id !== me.id && x.pres === 'on'; }).length;
-      var sub = direct ? (p ? pr.t + ' · ' + p.grp : sel.sub) : (sel.ckind === 'project' ? 'Project channel · ' : '') + mem.length + ' members · ' + online + ' active';
+      var sub = direct ? (p ? pr.t + (p.grp !== p.role ? ' · ' + p.grp : '') : sel.sub) : (sel.ckind === 'project' ? 'Project channel · ' : '') + mem.length + ' members · ' + online + ' active';
       if (typ) sub = (tw ? this.mxFirst(tw.name) : 'Someone') + ' is typing…';
       var brief = s.briefs[sel.id] != null ? s.briefs[sel.id] : (sel.brief || '');
       th = { aria: 'Conversation with ' + sel.name, name: sel.name.split(' (')[0], i: sel.i, tone: sel.tone, avDirect: direct, avGroup: sel.ckind === 'group', avProj: sel.ckind === 'project', dotCls: direct ? pr.cls : 'off', presT: pr.t, showDot: direct && !typ && !!p, sub: sub, subCls: typ ? 'typ' : '',
@@ -464,7 +464,7 @@
           rxBar: self.mxReacts().map(function (r) { var mine = rx.filter(function (x) { return x.k === r[0]; })[0]; var on = !!(mine && mine.mine); return { d: r[2], cls: on ? 'on' : '', pressed: on ? 'true' : 'false', aria: (on ? 'Remove ' : 'React: ') + r[1], pick: function () { self.msgReactToggle(m.id, r[0]); } }; }),
           react: function () { self.setState({ rxFor: rxOn ? null : m.id }); },
           hasDel: !!del, delCls: del ? del.cls : '', delIc: !!del, delD: del ? del.d : '', delAria: del ? del.txt : '', delTxt: del ? del.txt : '', isFailed: !!del && del.st === 'failed', retry: function () { self.msgRetry(m.id, sel.id); }, discard: function () { self.msgDiscard(m.id); },
-          profile: openProf, profKey: function (e) { if (e && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openProf(); } },
+          profRole: m.mine ? 'presentation' : 'button', profTab: m.mine ? '-1' : '0', profAria: m.mine ? 'You' : 'Open the profile of ' + m.who, profile: openProf, profKey: function (e) { if (e && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openProf(); } },
           reply: reply, swipe: function (e) { self.msgHold(e, function () { self.setState({ rxFor: m.id }); }); self.swipeReply(e, reply); }, more: function (e) { if (e && e.stopPropagation) e.stopPropagation(); self.openPop(e, 'msg', m.id, 250, 320, 'Message actions'); }, moreX: self.popOn('msg', m.id),
           hasStatus: !!(m.mine && m.status && i === lastMine && note), status: m.status || '' }));
       });
@@ -499,13 +499,14 @@
     var sendHint = sendDis ? 'Write a message or attach something to send it.' : (s.offline ? 'You are offline. This sends when you are back.' : 'Enter to send, Shift Enter for a new line');
     var ovOn = !!sel && !noPerm && infoOpen && mode !== 'col';
     return Object.assign(this.kit(), this.extraVals(), M.vals ? M.vals(this) : {}, {
-      ledeA: total ? total + (total === 1 ? ' unread message' : ' unread messages') + ' in ' + unreadN + (unreadN === 1 ? ' conversation.' : ' conversations.') : 'You are all caught up.', ledeB: M.waiting ? M.waiting(this, all) : '',
+      ledeA: s.demoEmpty ? 'Your inbox is empty.' : total ? total + (total === 1 ? ' unread message' : ' unread messages') + ' in ' + unreadN + (unreadN === 1 ? ' conversation.' : ' conversations.') : 'You are all caught up.', ledeB: M.waiting ? M.waiting(this, all) : '',
       skRows: [1, 2, 3, 4, 5], modeCls: 'm-' + mode, paneCls: s.thread ? 'isThread' : '', infoCls: mode === 'col' && infoOpen && sel && !noPerm ? 'hasInfo' : '', showInfoCol: mode === 'col' && infoOpen && !!sel && !noPerm,
       offline: s.offline, goOnline: function () { self.setOffline(false); },
       tabs: tabs, hasKinds: V.KINDS.length > 0, kinds: kinds, convs: convs, MG: MG, mq: s.mq, hasMq: !!s.mq,
       onMq: function (e) { self.setState({ mq: e.target.value, mpage: 0, ra: self.state.ra + 1 }); }, clearMq: function () { self.setState({ mq: '', ra: self.state.ra + 1 }); }, clearFilters: function () { self.setState({ mq: '', mkind: 'all', mpage: 0, ra: self.state.ra + 1 }); },
       noConvs: !list.length, hasFilter: hasFilter, emptyTitle: emptyTitle, emptyBody: emptyBody, emptyD: emptyD, emptyNew: emptyNew,
-      hasThread: !!sel && !noPerm, noThread: !sel && !noPerm, noPerm: noPerm, askAccess: function () { self.say('Admin has been asked. You get a message here when you are added.'); },
+      hasThread: !!sel && !noPerm, noThread: !sel && !noPerm, noPerm: noPerm, noPermT: M.role === 'admin' ? 'You are not a member of this channel' : 'You do not have access to this conversation', noPermB: M.role === 'admin' ? 'Only members can read a channel. Add yourself and it opens with its full history.' : 'It belongs to a project you are not part of. Ask Admin to add you and it appears here with its full history.', noPermBtn: M.role === 'admin' ? 'Add me to the channel' : 'Ask Admin for access',
+      askAccess: function () { if (M.role === 'admin') { self.setState({ demoNoPerm: false, ra: self.state.ra + 1 }); self.say('Added. The channel is open in your list.'); } else self.say('Admin has been asked. You get a message here when you are added.'); },
       th: th, msgs: msgs, noMsgs: !msgs.length && !!sel, quick: quick, hasQuick: quick.length > 0,
       hasReply: !!s.mreply, replyWho: s.mreply ? s.mreply.who : '', replyText: s.mreply ? s.mreply.text : '', cancelReply: function () { self.setState({ mreply: null }); },
       hasAtt: attN > 0, attN: attN + ' attached', att: (s.matt || []).map(function (a, k) { return { name: a.name, size: a.size || '', ext: a.ext || '', url: a.url || '', isImg: a.kind === 'image', isVid: a.kind === 'video', isDoc: a.kind === 'doc', isLink: a.kind === 'link', aria: 'Remove ' + a.name, remove: function () { var c = (self.state.matt || []).slice(); c.splice(k, 1); self.setState({ matt: c }); } }; }),
@@ -527,7 +528,7 @@
         if ((e.ctrlKey || e.metaKey) && k === 'Enter') { e.preventDefault(); self.sendMsg(); }
       },
       moreOptX: this.popOn('attmore', 'attmore'), openMoreOpt: function (e) { self.openPop(e, 'attmore', 'attmore', 270, 240, 'More options'); },
-      send: function () { self.sendMsg(); }, sendDis: sendDis, sendHint: sendHint, hintCls: sendDis ? 'why' : 'tip',
+      send: function () { self.sendMsg(); }, sendDis: sendDis, sendHint: sendHint, hintCls: sendDis ? 'mxWhy' : 'tip',
       canSaved: M.role !== 'client' && !!(M.saved && M.saved.length), openSaved: function () { if (sel) self.msgSavedSheet(sel); }, canSched: M.role === 'admin', openSched: function () { if (sel) self.msgScheduleSheet(sel); },
       hasMens: mens.length > 0, mens: mens, mnOn: s.mnOn, mnList: mnList, mnNone: !mnList.length,
       startMention: function () { if (!sel) return; var d = Object.assign({}, self.state.drafts), v = d[sel.id] || ''; v += (v && !/\s$/.test(v) ? ' ' : '') + '@'; d[sel.id] = v; self._mnAt = v.length - 1; self.setState({ drafts: d, mnOn: true, mnq: '', mnI: 0, emoOn: false }); setTimeout(function () { var el = document.getElementById('msgIn'); if (el) { el.focus(); try { el.setSelectionRange(v.length, v.length); } catch (er) { /* no caret */ } } }, 60); },

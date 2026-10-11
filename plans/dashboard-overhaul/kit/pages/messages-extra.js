@@ -51,7 +51,7 @@
       P('bisi', 'Bisi O.', 'BO', '#15803d', 'SEO specialist', 'SEO', 'team', 'away', 'Last seen 10:48', { hours: T, email: 'bisi@wdc.studio', proj: ['bloom-seo'] }),
       P('tolu', 'Tolu A.', 'TA', '#23239b', 'Content creator, freelance', 'Social & Ads', 'team', 'off', 'Last seen 09:12', { hours: 'Mon to Fri, 10:00 to 16:00', email: 'tolu@wdc.studio', hideSeen: true, proj: ['ade-oct', 'mira-so'] }),
       P('adaeze', 'Adaeze O.', 'AO', '#1f4d3a', 'Founder', 'Mira Skincare', 'client', 'off', 'Last seen yesterday', { cid: 'mira', hours: C, proj: ['mira-br', 'mira-so'] }),
-      P('daniel', 'Daniel O.', 'DO', '#23239b', 'Owner', 'Lumen Fitness', 'client', 'on', '', { cid: 'lumen', hours: C, proj: ['lumen-ads'] }),
+      P('daniel', 'Daniel O.', 'DO', '#23239b', 'Founder', 'Lumen Fitness', 'client', 'on', '', { cid: 'lumen', hours: C, proj: ['lumen-ads'] }),
       P('adebayo', 'Adebayo K.', 'AK', '#5c3d1f', 'Operations lead', 'Kora Logistics', 'client', 'off', 'Last seen Thu 8 Oct', { cid: 'kora', hours: C, proj: ['kora-app'] }),
       P('ngozi', 'Ngozi E.', 'NE', '#15803d', 'Pharmacist in charge', 'Bloom Pharmacy', 'client', 'away', 'Last seen 11:10', { cid: 'bloom', hours: C, proj: ['bloom-seo'] }),
       P('tunde', 'Tunde O.', 'TO', '#5c5c7a', 'Principal', 'Tunde Okafor Law', 'client', 'off', 'Last seen 09:41', { cid: 'okafor', hours: C, proj: ['okafor-web'] }),
@@ -70,8 +70,10 @@
     if (p.pres === 'away') return { cls: 'away', t: 'Away' };
     return { cls: 'off', t: p.hideSeen ? 'Last seen hidden' : (p.seen || 'Offline') };
   }
+  mxRoleLine(p) { return p.grp && p.grp !== p.role ? p.role + ' · ' + p.grp : p.role; }
   mxFirst(n) { return (n || '').split(' (')[0].split(' ')[0]; }
   mxTime() { return '11:32'; }
+  mxShort(w) { var t = w || '', m; if ((m = /^Today, (\d{1,2}:\d{2})/.exec(t))) return m[1]; if (/^Yesterday/.test(t)) return 'Yesterday'; if ((m = /^(\d+ \w{3}), /.exec(t))) return m[1]; if ((m = /^(\d+ days? ago)/.exec(t))) return m[1]; return t; }
   mxTimeOf(w) { var m = /(\d{1,2}:\d{2})/.exec(w || ''); return m ? m[1] : ''; }
   /* "Today", "Yesterday, 18:40", "3 h ago", "28 Sep, 11:05": the day it falls on, as a key and a label */
   mxDay(w) {
@@ -121,7 +123,7 @@
     if (staffView && p.kind === 'client' && cl) { var href = M.role === 'admin' ? (cl.id === 'mira' ? 'A-Client.dc.html' : 'A-Clients.dc.html') : 'S-Clients.dc.html'; list.push({ t: 'Client record', s: cl.name + ' · ' + cl.services.join(', '), ini: 'CR', av: 'var(--ad-tone-flat)', act: { label: 'Open', fn: function () { window.location.href = href; } } }); }
     var body = staffView ? (p.kind === 'client' ? 'Client contact details are only visible to the studio team.' : 'Everyone at the studio sees this.') : 'You see their role and when they are around. Contact details stay private. Message them here and they reply within a working day.';
     var meOk = p.id !== this.msgMeId();
-    this.open(this.sh({ eyebrow: 'Profile', title: p.name, icon: X.users, iconTone: p.tone, chip: pr.cls === 'on' ? 'Active now' : (pr.cls === 'away' ? 'Away' : 'Offline'), tone: pr.cls === 'on' ? 'var(--ad-tone-good)' : (pr.cls === 'away' ? 'var(--ad-tone-warn)' : 'var(--ad-tone-neutral)'), body: body, rows: rows, listTitle: 'Projects and records', list: list.slice(1),
+    this.open(this.sh({ eyebrow: 'Profile', title: p.name, icon: X.users, iconTone: p.tone, chip: pr.cls === 'on' ? 'Active now' : (pr.cls === 'away' ? 'Away' : 'Offline'), tone: pr.cls === 'on' ? 'var(--ad-tone-good)' : (pr.cls === 'away' ? 'var(--ad-tone-warn)' : 'var(--ad-tone-neutral)'), body: body, rows: rows, listTitle: 'Who and what you share', list: list,
       primary: meOk ? 'Message ' + this.mxFirst(p.name) : 'Close', secondary: meOk ? 'Book a meeting' : '',
       onPrimary: function () { if (meOk) setTimeout(function () { self.msgOpenPerson(p.id); }, 40); },
       onSecondary: function () { self.msgMeetSheet(p.cid ? p.grp : p.name, true, p.id); return 'stay'; } }), push);
@@ -129,7 +131,7 @@
   /* meeting: the studio's own booking flow for Admin and staff, a request for a client */
   msgMeetSheet(who, push, pid) {
     var self = this, I = this.icons(), X = this.mxI(), M = this.msgModel();
-    var done = function (sl) { var c = self.state.conv; self.say('Offered ' + sl + ' to ' + who + '. A Google Meet link is in the invite.'); };
+    var w = who.replace(/\.$/, ''), done = function (sl) { if (M.role === 'client') self.say('Requested ' + sl + '. ' + self.mxFirst(who) + ' confirms, and you both get a Google Meet invite.'); else self.say('Offered ' + sl + ' to ' + w + '. A Google Meet link is in the invite.'); };
     if (M.role !== 'client' && this.bookSheet) { this.bookSheet(who, push, done); return; }
     var slots = [['Mon 12 Oct, 11:00', '30 min on Google Meet'], ['Tue 13 Oct, 15:00', '30 min on Google Meet'], ['Wed 14 Oct, 10:00', '30 min on Google Meet']];
     this.open(this.sh({ eyebrow: 'Book a meeting · ' + who, title: 'Pick a time to ask for', icon: I.cal, iconTone: 'var(--ad-tone-brand)', body: 'We send ' + who + ' a request for this time. When they confirm, you both get a Google Meet invite by email.', listTitle: 'Times that suit the team', select: true, pick: 0, list: slots.map(function (x) { return { t: x[0], s: x[1] }; }),
@@ -223,7 +225,7 @@
     var setMute = function () { self.msgToggleMute(sel); }, setPin = function () { self.msgTogglePin(sel); };
     var d = Object.assign({}, empty, {
       isDirect: direct && !!p, isStack: !direct || !p, stack: this.mxStack(sel), name: sel.name.split(' (')[0], i: sel.i, tone: sel.tone, dotCls: direct ? pr.cls : (online ? 'on' : 'off'),
-      sub: direct ? (p ? p.role + ' · ' + p.grp : sel.sub) : (sel.ckind === 'project' ? 'Project channel' : 'Group') + ' · ' + sel.sub,
+      sub: direct ? (p ? this.mxRoleLine(p) : sel.sub) : (sel.ckind === 'group' ? 'Group · ' : '') + sel.sub,
       presT: direct ? pr.t : (online ? online + ' active now' : 'Nobody else is active'),
       profile: function () { if (p) self.msgProfile(p.id, true); else self.say('Their profile appears once they have replied.'); },
       acts: [
