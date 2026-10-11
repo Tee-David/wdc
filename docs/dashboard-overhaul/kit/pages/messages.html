@@ -1,0 +1,94 @@
+<div class="pageHead rise">
+              <div>
+                <h1 class="h1">Messages</h1>
+                <p class="lede">{{ledeA}} <strong style="color: var(--ad-ink)">{{ledeB}}</strong></p>
+              </div>
+              <div class="headActs">
+                <button class="btn" onClick="{{newMsg}}" data-tour="new"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>New message</button>
+                <button class="ibtn" data-menu="chores" aria-label="More for messages" aria-haspopup="menu" aria-expanded="{{choresX}}" onClick="{{openChores}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg></button>
+              </div>
+            </div>
+            %%SKEL%%
+            <sc-if value="{{ready}}" hint-placeholder-val="{{ true }}">
+            <div class="msgWrap rise d2 {{paneCls}}">
+              <section class="card msgList cq" aria-label="Conversations" data-tour="list">
+                <div style="display: flex; flex-direction: column; gap: 10px; padding: 14px 14px 8px">
+                  <label class="sfield" style="width: 100%">
+                    <svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="color: var(--ad-dim)"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"></path></svg>
+                    <span class="sr">Search conversations</span>
+                    <input value="{{mq}}" onChange="{{onMq}}" placeholder="Name, project or word">
+                    <sc-if value="{{hasMq}}" hint-placeholder-val="{{ false }}"><button class="clr" aria-label="Clear search" onClick="{{clearMq}}"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></sc-if>
+                  </label>
+                  <div class="chips svcChips" role="group" aria-label="Filter conversations"><sc-for list="{{filters}}" as="f" hint-placeholder-count="4"><button class="chip {{f.cls}}" aria-pressed="{{f.pressed}}" onClick="{{f.pick}}">{{f.t}}<span class="num" style="opacity: .75">{{f.n}}</span></button></sc-for></div>
+                </div>
+                <ul class="msgRows" style="list-style: none; margin: 0; padding: 4px 8px 8px">
+                  <sc-for list="{{convs}}" as="c" hint-placeholder-count="5">
+                    <li class="rowIn" style="animation-name: {{c.anim}}; animation-delay: {{c.delay}}"><button class="msgRow {{c.cls}}" aria-current="{{c.current}}" aria-label="{{c.aria}}" onClick="{{c.open}}">
+                      <span class="av0" style="width: 40px; height: 40px; font-size: 12px; background: {{c.tone}}; border-radius: {{c.round}}">{{c.i}}</span>
+                      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+                        <span style="display: flex; align-items: baseline; gap: 8px"><strong style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: {{c.fw}}">{{c.name}}</strong><span class="num" style="font-size: 12px; color: var(--ad-dim); flex: none">{{c.when}}</span></span>
+                        <span style="font-size: 12px; color: var(--ad-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{c.sub}}</span>
+                        <span style="display: flex; align-items: center; gap: 8px"><span style="flex: 1; min-width: 0; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: {{c.pcol}}; font-weight: {{c.fw}}">{{c.last}}</span><sc-if value="{{c.hasUnread}}" hint-placeholder-val="{{ false }}"><span class="tag num" style="background: var(--ad-tone-live); color: #fff; height: 20px; padding: 0 7px; flex: none">{{c.unread}}</span></sc-if></span>
+                      </span>
+                    </button></li>
+                  </sc-for>
+                </ul>
+                <sc-if value="{{noConvs}}" hint-placeholder-val="{{ false }}">
+                  <div class="emptyRow rowIn" style="animation-name: rinA"><strong>{{emptyTitle}}</strong><span style="color: var(--ad-dim)">{{emptyBody}}</span><sc-if value="{{hasFilter}}" hint-placeholder-val="{{ false }}"><button class="btn2" onClick="{{clearFilters}}">Clear filters</button></sc-if></div>
+                </sc-if>
+                %%PAGER:MG:Conversation%%
+              </section>
+
+              <section class="card msgThread" aria-label="{{th.aria}}" data-tour="thread">
+                <sc-if value="{{hasThread}}" hint-placeholder-val="{{ true }}">
+                  <header class="thHead">
+                    <button class="ibtn backBtn" aria-label="Back to conversations" onClick="{{backToList}}"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></button>
+                    <span class="av0" style="width: 40px; height: 40px; font-size: 12px; background: {{th.tone}}; border-radius: {{th.round}}">{{th.i}}</span>
+                    <span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><strong style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{th.name}}</strong><span style="font-size: 12px; color: var(--ad-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{th.sub}}</span></span>
+                    <span class="tag" style="background: {{th.kindTone}}; color: {{th.kindInk}}">{{th.kind}}</span>
+                    <button class="ibtn" data-menu="thread" aria-label="More for this conversation" aria-haspopup="menu" aria-expanded="{{th.menuX}}" onClick="{{th.menu}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg></button>
+                  </header>
+                  <sc-if value="{{th.hasCtx}}" hint-placeholder-val="{{ true }}">
+                    <div class="ctxStrip" role="group" aria-label="Linked records"><sc-for list="{{th.ctx}}" as="x" hint-placeholder-count="3"><button class="ctxChip" onClick="{{x.open}}"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="{{x.d}}"></path></svg><span style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{x.t}}</span><sc-if value="{{x.hasTag}}" hint-placeholder-val="{{ false }}"><span class="tag" style="background: {{x.tone}}; color: {{x.ink}}; height: 20px; font-size: 11px">{{x.tag}}</span></sc-if></button></sc-for></div>
+                  </sc-if>
+                  <div class="thBody" role="log" aria-label="Messages" tabindex="0" data-lenis-prevent>
+                    <sc-for list="{{msgs}}" as="m" hint-placeholder-count="5">
+                      <div class="msgItem {{m.cls}}">
+                        <sc-if value="{{m.isEvent}}" hint-placeholder-val="{{ false }}"><span class="evChip"><svg class="ic" viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path d="{{m.d}}"></path></svg>{{m.text}}</span></sc-if>
+                        <sc-if value="{{m.isMsg}}" hint-placeholder-val="{{ true }}">
+                          <span class="av0 msgAv" style="width: 30px; height: 30px; font-size: 10px; background: {{m.tone}}">{{m.i}}</span>
+                          <span class="bubbleCol">
+                            <span class="bMeta"><strong>{{m.who}}</strong><sc-if value="{{m.isNote}}" hint-placeholder-val="{{ false }}"><span class="tag" style="background: var(--ad-tone-warn); color: #fff; height: 20px; font-size: 11px">Team only</span></sc-if><span class="num">{{m.when}}</span></span>
+                            <span class="bubble {{m.bcls}}">{{m.text}}</span>
+                            <sc-if value="{{m.hasFile}}" hint-placeholder-val="{{ false }}"><button class="fileCard" onClick="{{m.file.open}}" aria-label="{{m.file.aria}}"><span class="extTile" style="background: {{m.file.tone}}">{{m.file.ext}}</span><span style="min-width: 0; display: flex; flex-direction: column; text-align: left"><strong style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px">{{m.file.name}}</strong><span style="font-size: 12px; color: var(--ad-dim)">{{m.file.size}}</span></span></button></sc-if>
+                            <sc-if value="{{m.hasStatus}}" hint-placeholder-val="{{ false }}"><span class="bStatus">{{m.status}}</span></sc-if>
+                          </span>
+                        </sc-if>
+                      </div>
+                    </sc-for>
+                  </div>
+                  <div class="composer">
+                    <sc-if value="{{canVis}}" hint-placeholder-val="{{ false }}">
+                      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+                        <div class="seg" role="group" aria-label="Who sees this" style="--n: 2; --i: {{visI}}"><span class="pill" aria-hidden="true"></span><button class="{{vClient}}" aria-pressed="{{pClient}}" onClick="{{setClient}}">{{clientLabel}}</button><button class="{{vTeam}}" aria-pressed="{{pTeam}}" onClick="{{setTeam}}">Team only</button></div>
+                        <span style="font-size: 12px; color: var(--ad-dim); flex: 1 1 200px">{{visHint}}</span>
+                      </div>
+                    </sc-if>
+                    <div class="qrRow" role="group" aria-label="Quick replies"><sc-for list="{{quick}}" as="qr" hint-placeholder-count="3"><button class="chip" onClick="{{qr.pick}}">{{qr.t}}</button></sc-for></div>
+                    <div class="compBox">
+                      <label class="sr" for="msgIn">Write a message</label>
+                      <textarea id="msgIn" rows="2" placeholder="{{ph}}" onChange="{{onDraft}}" onKeyDown="{{onKey}}">{{draft}}</textarea>
+                      <div class="compBar">
+                        <button class="ibtn" aria-label="Attach a file" onClick="{{attach}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg></button>
+                        <span style="flex: 1; font-size: 12px; color: var(--ad-dim)" class="hideS">Ctrl Enter to send</span>
+                        <button class="btn" style="min-height: 44px" onClick="{{send}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4zM22 2 11 13"></path></svg>Send</button>
+                      </div>
+                    </div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{noThread}}" hint-placeholder-val="{{ false }}">
+                  <div class="emptyRow" style="min-height: 320px; justify-content: center"><span class="emptyIc"><svg class="ic" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></svg></span><strong>Pick a conversation</strong><span style="color: var(--ad-dim)">Or start a new one with New message.</span></div>
+                </sc-if>
+              </section>
+            </div>
+            </sc-if>
