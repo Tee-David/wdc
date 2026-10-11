@@ -4,7 +4,7 @@
                 <p class="lede">{{lede}}</p>
               </div>
               <div class="headActs">
-                <button class="btn" onClick="{{newProject}}" data-tour="new"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>New project</button>
+                <sc-if value="{{canNew}}" hint-placeholder-val="{{ true }}"><button class="btn" onClick="{{newProject}}" data-tour="new"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>New project</button></sc-if>
                 <button class="ibtn" data-menu="chores" aria-label="More for projects" aria-haspopup="menu" onClick="{{openChores}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg></button>
               </div>
             </div>
@@ -39,7 +39,7 @@
                 </div>
                 <div class="tblWrap" tabindex="0" aria-label="Projects table, scrolls sideways">
                   <table class="tbl">
-                    <thead><tr><th scope="col">Project</th><th scope="col">Service</th><th scope="col">Stage</th><th scope="col">Lead</th><th scope="col">Due</th><th scope="col">Payment</th><th scope="col"><span class="sr">Actions</span></th></tr></thead>
+                    <thead><tr><th scope="col">Project</th><th scope="col">Service</th><th scope="col">Stage</th><th scope="col">Lead</th><th scope="col">Due</th><th scope="col">{{valueHead}}</th><th scope="col"><span class="sr">Actions</span></th></tr></thead>
                     <tbody>
                       <sc-for list="{{rows}}" as="r" hint-placeholder-count="5">
                         <tr class="rowIn" tabindex="0" aria-label="{{r.aria}}" onClick="{{r.open}}" onKeyDown="{{r.key}}" style="animation-name: {{r.anim}}; animation-delay: {{r.delay}}">

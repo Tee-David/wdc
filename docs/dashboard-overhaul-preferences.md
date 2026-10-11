@@ -129,3 +129,10 @@ Model rule, binding (updated 2026-10-11): the remaining prototype pages, for eve
 - Each finished page is published to the canvas artifact (https://claude.ai/artifact/1HG99eCtChsHCLyTnh7iEQ, row "Overhaul pages") as it is done. Show the owner the artifact, not screenshots. Screenshots are only for my own verification.
 - Responsive at phone, tablet and desktop in both themes, following the design system (https://claude.ai/artifact/XRhmw3yngg9bTxBzim5zLr) without deviating.
 - Tables and lists: the row and its ⋮ are two separate touch areas. Tapping the row opens the item. Tapping the ⋮ opens its options and must not light up the row. The ⋮ shows its own press and stays pressed while its menu is open (`aria-expanded`). Row hover only applies on devices that can hover, so a phone never keeps a row highlighted after a tap.
+
+## Prototype data rules (added 2026-10-11)
+
+- The prototype's "today" is Saturday 10 October 2026. Every weekday name next to a date must match the 2026 calendar (13 October is a Tuesday, 1 November is a Sunday). The prototype once used a calendar where 13 October was a Monday, and the sweep that fixed it is the reason this line exists.
+- One set of money figures across every page. Outstanding is overdue plus issued invoices not yet paid; scheduled invoices (a milestone, a retainer, a dollar deposit) are not counted until they go out. October collected is the sum of the paid invoices and matches the by-service breakdown. A matched bank transfer moves the invoice to Paid everywhere.
+- Projects differ by service, so the project page has a service tab with its own content: Branding has rounds and what the client provides, SEO has rankings and reports, Websites have pages and launch checks, Apps have builds and the store release, Software has milestones and demos, Ads have the campaign. Social projects use the content calendar. Staff and clients see the same page with the owner's money removed or reworded.
+- Staff see no amounts, only chips (Deposit paid, Awaiting payment, Retainer). Ad spend and cost per lead are campaign data, not invoice amounts, so staff may see them.
