@@ -30,6 +30,10 @@ Client workspaces live inside the existing project record pages. `components/wor
 
 Stage controls and board moves ask for confirmation through `components/admin/confirm.tsx` before saving a new stage; cancel preserves the current stage. The dialog identifies the project and the old and new stages.
 
+Tour tooltips use fixed positioning and shift on both axes to remain inside the viewport even beside a tall panel. Close, help and tour menu controls have 44px touch targets; interactive hints use the shared admin fill and label tokens. Back to top is hidden while a tour is open so it cannot cover the guide's controls.
+
+`DialogButton` mounts its content only while open. Browser-dependent controls and modal data requests wait for the reader to open the dialog; closed dialogs must not read the document during server rendering.
+
 Onboarding service choice reuses `SelectField` through `ServicePicker`: a closed trigger, compact icon/name/description rows, disabled-service reasons and explicit Next.
 
 **Onboarding forms (redesign, October 2026).** Every question is data in `lib/onboarding-services/<service>.ts` (one file per service) and the shared screens in `lib/onboarding.ts` (`CORE_STEPS`, `CLOSING_STEPS`). Each service opens with a Size first question and `showIf` conditions that combine (`{ key, equals?, filled? }`, `{ any: [...] }`, `{ tier: 2 | 3 }`) so a later pick can raise the tier; `isVisible` is the only visibility rule and a screen with no visible question is skipped. Decisions are in `plans/onboarding-decisions.md`, the research behind the numbers in `plans/onboarding-ux-research.md`, the words in `plans/onboarding-voice-guide.md`. `tests/onboarding-guardrails.spec.ts` holds every form to its question, required and free text ceilings.

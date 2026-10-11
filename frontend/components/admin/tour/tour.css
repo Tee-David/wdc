@@ -42,6 +42,10 @@
 
 /* ---------------------------------------------------------------- the card */
 
+/* The page's corner control sits above ordinary popovers. While a tour is
+   open it must not cover Next or take keyboard focus away from the guide. */
+html[data-tour-active="true"] .st { visibility: hidden; pointer-events: none; }
+
 .tourCard {
   width: min(27rem, calc(100vw - 2rem));
   /* Never taller than the screen: the text scrolls inside, and Back, Skip
@@ -77,7 +81,7 @@
 .tourCard__close {
   position: absolute; top: .6rem; right: .6rem; z-index: 1;
   display: grid; place-items: center;
-  width: 2rem; height: 2rem;
+  width: 2.75rem; height: 2.75rem;
   border: 0; border-radius: 8px; background: transparent; color: var(--ad-dim);
   cursor: pointer;
 }
@@ -111,7 +115,7 @@
 .tourCard__interactDot {
   position: relative; flex: none; display: grid; place-items: center;
   width: 1.5rem; height: 1.5rem; border-radius: 50%;
-  background: var(--ad-accent-fill); color: #000;
+  background: var(--ad-fill); color: var(--ad-on-fill);
 }
 .tourCard__interactDot svg { position: relative; width: .85rem; height: .85rem; }
 .tourCard__interactPulse {
@@ -128,7 +132,7 @@
 .tourCard__foot { display: flex; align-items: center; gap: .5rem; margin-top: 1rem; }
 .tourCard__btns { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .5rem; margin-left: auto; }
 .tourCard__btn {
-  height: 2.6rem; padding: 0 .9rem; font-size: .82rem;
+  height: 2.75rem; padding: 0 .9rem; font-size: .82rem;
   /* The card's own `font` shorthand sets a 1.55 line-height for its body
      copy; inherited into a button it inflated the text's line box well
      past its icon's fixed pixel height, so the icon sat visibly higher
@@ -172,7 +176,7 @@
 .tourLauncher { position: relative; }
 .tourLauncher__btn {
   display: grid; place-items: center;
-  width: 2.25rem; height: 2.25rem;
+  width: 2.75rem; height: 2.75rem;
   border: 1px solid var(--ad-line); border-radius: 50%;
   background: var(--ad-panel); color: var(--ad-dim);
   cursor: pointer; transition: color .15s ease, border-color .15s ease;
@@ -193,7 +197,7 @@
 .tourLauncher__rule { height: 1px; margin: .3rem 0; background: var(--ad-line); }
 .tourLauncher__item {
   display: flex; width: 100%; align-items: center; gap: .6rem;
-  min-height: 2.4rem; padding: .5rem .6rem;
+  min-height: 2.75rem; padding: .5rem .6rem;
   border: 0; border-radius: 10px; background: transparent; color: var(--ad-ink);
   font-size: .84rem; font-weight: 600; text-align: left; cursor: pointer;
 }
