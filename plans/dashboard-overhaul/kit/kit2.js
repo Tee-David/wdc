@@ -132,6 +132,7 @@
         if (ui && ui.key === fd.key && ui.kind === 'time') out.push(self.timePanel(fd.key, F[fd.key] || '', function (v) { setF(fd.key, v); self.setState({ ui: null }); }));
         return;
       }
+      if (t === 'editor') { out.push(self.editorField(fd, F, setF)); return; }
       if (t === 'file') {
         var cur = F[fd.key] || null;
         out.push({ isFile: true, isTrig: false, isPlain: false, key: fd.key, id: 'f-' + fd.key, label: fd.label, cls: 'wideF', hint: fd.hint || '', hasHint: !!fd.hint, accept: fd.accept || '', hasFile: !!cur, noFile: !cur, name: cur ? cur.name : '', info: cur ? cur.rows.length + (cur.rows.length === 1 ? ' row' : ' rows') + ' found · ' + self.fileSize(cur.size) : '',
@@ -144,7 +145,7 @@
       var err = fd.check ? fd.check(F[fd.key] || '', F) : '';
       out.push({ isPlain: true, isTrig: false, key: fd.key, id: 'f-' + fd.key, label: fd.label, ph: fd.ph || '', value: F[fd.key] != null ? F[fd.key] : '', mode: fd.mode || 'text', type: fd.type || 'text', hint: err || fd.hint || '', hasHint: !!(err || fd.hint), hintCls: err ? 'hint err' : 'hint', cls: fd.wide ? 'wideF' : '', isArea: t === 'area', isInput: t !== 'area', on: function (e) { setF(fd.key, e.target.value); } });
     });
-    return out.map(function (o) { return Object.assign({ isTrig: false, isPlain: false, isPanelDate: false, isPanelTime: false, isMedia: false, isFile: false, hasHint: !!o.hint, hintCls: 'hint', cls: '' }, o); });
+    return out.map(function (o) { return Object.assign({ isTrig: false, isPlain: false, isPanelDate: false, isPanelTime: false, isMedia: false, isFile: false, isEditor: false, hasHint: !!o.hint, hintCls: 'hint', cls: '' }, o); });
   }
   /* The calendar, as the site draws it: days, then months, then years, with Today and Clear. */
   calPanel(key, value, min, clearable, pick, max) {
@@ -212,3 +213,86 @@
     var up = function () { edge.classList.remove('dragging'); window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up); };
     window.addEventListener('pointermove', move); window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up);
   }
+
+  /* ---------- the post editor: write in plain markdown with a toolbar, read it back as it will look ---------- */
+  mdRuns(text) {
+    var out = [], re = /(\*\*[^*]+\*\*|_[^_]+_|\[[^\]]+\]\(https?:\/\/[^)\s]+\))/g, last = 0, m;
+    while ((m = re.exec(text))) {
+      if (m.index > last) out.push({ plain: true, t: text.slice(last, m.index) });
+      var tok = m[0];
+      if (tok.indexOf('**') === 0) out.push({ bold: true, t: tok.slice(2, -2) });
+      else if (tok.charAt(0) === '_') out.push({ em: true, t: tok.slice(1, -1) });
+      else { var lm = /^\[([^\]]+)\]\((.+)\)$/.exec(tok); out.push({ link: true, t: lm[1], href: lm[2] }); }
+      last = m.index + tok.length;
+    }
+    if (last < text.length) out.push({ plain: true, t: text.slice(last) });
+    return out.length ? out : [{ plain: true, t: '' }];
+  }
+  mdBlocks(text) {
+    var self = this, lines = String(text || '').split(/\r?\n/), blocks = [], para = [], list = null;
+    var flush = function () { if (para.length) { blocks.push({ isP: true, runs: self.mdRuns(para.join(' ')) }); para = []; } if (list) { blocks.push(list); list = null; } };
+    lines.forEach(function (ln) {
+      var t = ln.trim(), m;
+      if (!t) { flush(); return; }
+      if ((m = /^(#{1,3})\s+(.+)$/.exec(t))) { flush(); blocks.push(m[1].length === 3 ? { isH3: true, runs: self.mdRuns(m[2]) } : { isH2: true, runs: self.mdRuns(m[2]) }); return; }
+      if ((m = /^>\s?(.*)$/.exec(t))) { flush(); blocks.push({ isQuote: true, runs: self.mdRuns(m[1]) }); return; }
+      if ((m = /^!\[([^\]]*)\]\((\S+)\)$/.exec(t))) { flush(); blocks.push({ isImg: true, alt: m[1], src: m[2] }); return; }
+      if ((m = /^[-*]\s+(.+)$/.exec(t))) { if (!list || !list.isUl) { flush(); list = { isUl: true, items: [] }; } list.items.push({ runs: self.mdRuns(m[1]) }); return; }
+      if ((m = /^\d+\.\s+(.+)$/.exec(t))) { if (!list || !list.isOl) { flush(); list = { isOl: true, items: [] }; } list.items.push({ runs: self.mdRuns(m[1]) }); return; }
+      if (list) { blocks.push(list); list = null; }
+      para.push(t);
+    });
+    flush();
+    return blocks.map(function (b) { return Object.assign({ isH2: false, isH3: false, isP: false, isQuote: false, isUl: false, isOl: false, isImg: false, runs: [], items: [], src: '', alt: '' }, b); });
+  }
+  edApply(key, kind) {
+    var ta = document.getElementById('f-' + key); if (!ta) return;
+    var v = ta.value, a = ta.selectionStart, b = ta.selectionEnd, sel = v.slice(a, b), out = v, ns = a, ne = b;
+    var wrap = function (pre, post, ph) { var inner = sel || ph; out = v.slice(0, a) + pre + inner + post + v.slice(b); ns = a + pre.length; ne = ns + inner.length; };
+    var lines = function (fn) { var s0 = v.lastIndexOf('\n', a - 1) + 1, e0 = v.indexOf('\n', b); if (e0 < 0) e0 = v.length; var block = v.slice(s0, e0).split('\n').map(fn).join('\n'); out = v.slice(0, s0) + block + v.slice(e0); ns = s0; ne = s0 + block.length; };
+    if (kind === 'h2') lines(function (l) { return '## ' + l.replace(/^#+\s*/, ''); });
+    else if (kind === 'h3') lines(function (l) { return '### ' + l.replace(/^#+\s*/, ''); });
+    else if (kind === 'bold') wrap('**', '**', 'bold text');
+    else if (kind === 'italic') wrap('_', '_', 'italic text');
+    else if (kind === 'ul') lines(function (l) { return '- ' + l.replace(/^[-*]\s+/, ''); });
+    else if (kind === 'ol') { var n = 0; lines(function (l) { n++; return n + '. ' + l.replace(/^\d+\.\s+/, ''); }); }
+    else if (kind === 'quote') lines(function (l) { return '> ' + l.replace(/^>\s?/, ''); });
+    else if (kind === 'link') { wrap('[', '](https://)', 'link text'); ne = ns + (sel || 'link text').length; }
+    var f = Object.assign({}, this.state.form); f[key] = out; this.setState({ form: f });
+    setTimeout(function () { var t2 = document.getElementById('f-' + key); if (t2) { t2.focus(); try { t2.setSelectionRange(ns, ne); } catch (e) { /* fine */ } } }, 30);
+  }
+  editorField(fd, F, setF) {
+    var self = this, val = F[fd.key] || '', mode = this.state.edMode || 'write', words = (val.trim().match(/\S+/g) || []).length, I = this.icons();
+    var T = [['Heading', 'h2', 'M6 4v16M18 4v16M6 12h12'], ['Subheading', 'h3', 'M4 6v12M14 6v12M4 12h10M18 10c2 0 3 1 3 2.5S19.5 15 18 15M18 15c2 0 3 1 3 2.5S19.5 20 18 20'], ['Bold', 'bold', 'M6 4h8a4 4 0 0 1 0 8H6zM6 12h9a4 4 0 0 1 0 8H6z'], ['Italic', 'italic', 'M19 4h-9M14 20H5M15 4 9 20'], ['Bulleted list', 'ul', 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01'], ['Numbered list', 'ol', 'M10 6h11M10 12h11M10 18h11M4 6h1v4M4 10h2M6 18H4c0-1 2-2 2-3s-1-1.5-2-1'], ['Quote', 'quote', 'M3 21c3 0 7-1 7-8V5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h4M15 21c3 0 7-1 7-8V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h4'], ['Link', 'link', 'M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71']];
+    var cover = (F[fd.coverKey || 'cover'] || [])[0];
+    return { isEditor: true, isTrig: false, isPlain: false, key: fd.key, id: 'f-' + fd.key, label: fd.label, cls: 'wideF', ph: fd.ph || '', value: val, hint: fd.hint || '', hasHint: !!fd.hint, stats: words + (words === 1 ? ' word' : ' words') + ' · ' + Math.max(1, Math.round(words / 200)) + ' min read',
+      isWrite: mode === 'write', isPrev: mode === 'preview', modeI: mode === 'write' ? 0 : 1, wCls: mode === 'write' ? 'on' : '', pCls: mode === 'preview' ? 'on' : '', wPress: mode === 'write' ? 'true' : 'false', pPress: mode === 'preview' ? 'true' : 'false',
+      setWrite: function () { self.setState({ edMode: 'write' }); }, setPrev: function () { self.setState({ edMode: 'preview' }); },
+      tools: T.map(function (t) { return { label: t[0], d: t[2], fn: function () { self.edApply(fd.key, t[1]); } }; }),
+      on: function (e) { setF(fd.key, e.target.value); },
+      onKey: function (e) { var k = (e.key || '').toLowerCase(); if ((e.ctrlKey || e.metaKey) && k === 'b') { e.preventDefault(); self.edApply(fd.key, 'bold'); } else if ((e.ctrlKey || e.metaKey) && k === 'i') { e.preventDefault(); self.edApply(fd.key, 'italic'); } },
+      onPic: function (e) { var f = e && e.target && e.target.files && e.target.files[0]; if (!f) return; if (f.size > 8 * 1048576) { self.say('Pictures in a post stay under 8 MB so the page loads fast.'); return; } var url = URL.createObjectURL(f), alt = f.name.replace(/\.[^.]+$/, ''); e.target.value = ''; var cur = self.state.form[fd.key] || ''; setF(fd.key, cur + (cur && !/\n$/.test(cur) ? '\n\n' : '') + '![' + alt + '](' + url + ')\n\n'); self.say('Picture added at the end. Move the line where you want it.'); },
+      hasCover: !!cover, cover: cover ? cover.url : '', title: (F[fd.titleKey || 'title'] || '').trim() || 'Untitled post', blocks: this.mdBlocks(val), noBlocks: !val.trim() };
+  }
+
+  /* ---------- pause and resume a project: one shared state every page reads ---------- */
+  pauseProject(id, name, client, who) {
+    var self = this, I = this.icons(), w = who || client;
+    this.ask({ eyebrow: 'Pause', title: 'Pause ' + name + '?', body: 'Work stops: its tasks leave everyone’s My Day and deadlines stop counting down. ' + w + ' sees “Paused” in their portal with the reason you give. Nothing is lost, and you can resume it any time.', input: true, inputLabel: 'Reason ' + w + ' sees', inputPh: 'For example: paused until milestone 2 is paid', ok: 'Pause project', icon: I.clock, tone: 'var(--ad-tone-warn)',
+      onOk: function (reason) {
+        var p = Object.assign({}, self.state.paused); p[id] = { reason: (reason || '').trim() || 'Paused by Admin', since: 'Sat 10 Oct', by: self.me().name };
+        self.setState({ paused: p, ra: self.state.ra + 1, ta: (self.state.ta || 0) + 1 }); self.setShared('paused', p);
+        self.say(name + ' is paused. ' + w + ' is told, and its tasks leave My Day.', { undo: function () { var u = Object.assign({}, self.state.paused); delete u[id]; self.setState({ paused: u, ra: self.state.ra + 1 }); self.setShared('paused', u); } });
+      } });
+  }
+  resumeProject(id, name, client) {
+    var self = this, I = this.icons(), cur = this.state.paused[id];
+    this.ask({ eyebrow: 'Resume', title: 'Resume ' + name + '?', body: 'Its tasks return to My Day and deadlines count down again. ' + client + ' is told by email and in the portal.' + (cur ? ' It was paused: ' + cur.reason + '.' : ''), ok: 'Resume project', green: true, icon: I.play, tone: 'var(--ad-tone-good)',
+      onOk: function () {
+        var u = Object.assign({}, self.state.paused), prev = u[id]; delete u[id];
+        self.setState({ paused: u, ra: self.state.ra + 1, ta: (self.state.ta || 0) + 1 }); self.setShared('paused', u);
+        self.say(name + ' resumed. The team sees its tasks again and ' + client + ' is told.', { undo: function () { var p = Object.assign({}, self.state.paused); if (prev) p[id] = prev; self.setState({ paused: p, ra: self.state.ra + 1 }); self.setShared('paused', p); } });
+      } });
+  }
+
+  helpCatsDefault() { return [{ id: 'c1', name: 'Getting started', desc: 'First steps for someone new to the portal.', visible: true }, { id: 'c2', name: 'Billing and payments', desc: 'Invoices, receipts, Paystack and Flutterwave.', visible: true }, { id: 'c3', name: 'Approvals and files', desc: 'Reviewing work, comments and the file library.', visible: true }, { id: 'c4', name: 'Your account', desc: 'People, notifications and settings.', visible: true }]; }

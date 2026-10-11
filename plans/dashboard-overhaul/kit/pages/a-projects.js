@@ -1,5 +1,5 @@
   /* ======================= Owner · Projects ======================= */
-  pageState() { return { view: 'list', va: 0, svc: 'all', ptab: 'live', ppage: 0, pper: 5, q2: '', ra: 0, wk: 0, added: [], paused: {}, trashed: {}, leadOv: {} }; }
+  pageState() { return { view: 'list', va: 0, svc: 'all', ptab: 'live', ppage: 0, pper: 5, q2: '', ra: 0, wk: 0, added: [], trashed: {}, leadOv: {} }; }
   pageName() { return 'Projects'; }
   tourSteps() {
     var I = this.icons();
@@ -10,7 +10,7 @@
       { target: 'search|searchS', title: 'Jump anywhere', icon: I.search, body: 'Press Ctrl K to find any client, project or invoice.' }
     ].filter(Boolean);
   }
-  allProjects() { var s = this.state, self = this; return s.added.concat(this.projectsData()).filter(function (p) { return !s.trashed[p.id] && self.projScope(p); }).map(function (p) { var o = s.leadOv[p.id] ? Object.assign({}, p, s.leadOv[p.id]) : p; return s.paused[p.id] ? Object.assign({}, o, { flag: 'Paused' }) : o; }); }
+  allProjects() { var s = this.state, self = this; return s.added.concat(this.projectsData()).filter(function (p) { return !s.trashed[p.id] && self.projScope(p); }).map(function (p) { var o = s.leadOv[p.id] ? Object.assign({}, p, s.leadOv[p.id]) : p, ps = s.paused[p.id]; if (ps) return Object.assign({}, o, { flag: 'Paused', due: 'Paused', dueHot: true, next: ps.reason }); if (o.flag === 'Paused') return Object.assign({}, o, { flag: '', due: 'To be set', dueHot: false, next: 'Resumed. Set the next date' }); return o; }); }
   openProject(pj) { if (this.projPageKeys().indexOf(pj.id) >= 0) { window.location.href = this.projPageHref(pj.id); return; } this.open(this.projectSheet(pj)); }
   newProjectSheet() {
     var self = this, I = this.icons(), clients = this.clientsData().filter(function (c) { return c.status !== 'past'; });
@@ -50,6 +50,15 @@
         primary: function (ctx) { return ctx.item ? 'Hand over to ' + ctx.item.ref.name.split(' ')[0] : 'Hand over'; }, secondary: 'Cancel',
         onPrimary: function (ctx) { var m = ctx.item.ref, o = Object.assign({}, self.state.leadOv); sel.forEach(function (x) { o[x.id] = { lead: m.name, leadI: m.i, leadTone: m.tone }; }); self.setState({ leadOv: o, ra: self.state.ra + 1 }); done(); self.say(sel.length + (sel.length === 1 ? ' project' : ' projects') + ' handed to ' + m.name.split(' ')[0] + '.', { undo: function () { var u = Object.assign({}, self.state.leadOv); sel.forEach(function (x) { delete u[x.id]; }); self.setState({ leadOv: u, ra: self.state.ra + 1 }); } }); } }));
     } });
+    if (!this.hideMoney()) out.push({ label: 'Pause', icon: I.clock, fn: function (sel, done) {
+      var live = sel.filter(function (x) { return !self.state.paused[x.id] && x.status !== 'done'; }); if (!live.length) { self.say('Nothing selected can be paused. Done and already paused projects are left alone.'); return; }
+      self.ask({ eyebrow: 'Pause', title: 'Pause ' + live.length + (live.length === 1 ? ' project?' : ' projects?'), body: live.map(function (x) { return x.name + ' (' + x.client + ')'; }).join(', ') + '. Their tasks leave My Day, deadlines stop, and each client sees “Paused” with the reason below.', input: true, inputLabel: 'Reason the clients see', inputPh: 'For example: paused for the holiday break', ok: 'Pause ' + live.length, icon: I.clock, tone: 'var(--ad-tone-warn)',
+        onOk: function (reason) { var p = Object.assign({}, self.state.paused); live.forEach(function (x) { p[x.id] = { reason: (reason || '').trim() || 'Paused by Admin', since: 'Sat 10 Oct', by: self.me().name }; }); self.setState({ paused: p, ra: self.state.ra + 1 }); self.setShared('paused', p); done(); self.say(live.length + ' paused. Each client is told.', { undo: function () { var u = Object.assign({}, self.state.paused); live.forEach(function (x) { delete u[x.id]; }); self.setState({ paused: u, ra: self.state.ra + 1 }); self.setShared('paused', u); } }); } });
+    } }, { label: 'Resume', icon: I.play, fn: function (sel, done) {
+      var ps = sel.filter(function (x) { return self.state.paused[x.id]; }); if (!ps.length) { self.say('None of these are paused.'); return; }
+      self.ask({ eyebrow: 'Resume', title: 'Resume ' + ps.length + (ps.length === 1 ? ' project?' : ' projects?'), body: 'Tasks return to My Day, deadlines count down again, and each client is told.', ok: 'Resume ' + ps.length, green: true, icon: I.play, tone: 'var(--ad-tone-good)',
+        onOk: function () { var u = Object.assign({}, self.state.paused); ps.forEach(function (x) { delete u[x.id]; }); self.setState({ paused: u, ra: self.state.ra + 1 }); self.setShared('paused', u); done(); self.say(ps.length + ' resumed.'); } });
+    } });
     if (!this.hideMoney()) out.push({ label: 'Move to Trash', icon: I.trash, danger: true, fn: function (sel, done) {
       self.ask({ eyebrow: 'Trash', title: 'Move ' + sel.length + (sel.length === 1 ? ' project' : ' projects') + ' to Trash?', body: 'Tasks, files and content calendars go with them. Invoices stay in Money. Restore from Settings, Trash, for 30 days.', ok: 'Move to Trash', danger: true, tone: 'var(--ad-tone-bad)', icon: I.trash,
         onOk: function () { var t = Object.assign({}, self.state.trashed); sel.forEach(function (x) { t[x.id] = true; }); self.setState({ trashed: t, ra: self.state.ra + 1 }); done(); self.say(sel.length + ' moved to Trash.', { undo: function () { var u = Object.assign({}, self.state.trashed); sel.forEach(function (x) { delete u[x.id]; }); self.setState({ trashed: u, ra: self.state.ra + 1 }); } }); } });
@@ -61,10 +70,7 @@
     if (this.hideMoney()) { if (pj.status !== 'done') out.push(it('Add a task', I.task, function () { self.open(self.taskSheet(pj)); })); out.push(it('Message ' + pj.client, I.msg, function () { window.location.href = 'S-Messages.dc.html'; })); return out; }
     if (pj.status !== 'done') {
       out.push(it('Add a task', I.task, function () { self.open(self.taskSheet(pj)); }));
-      out.push(it(pj.flag === 'Paused' && self.state.paused[pj.id] ? 'Resume' : 'Pause…', I.clock, function () {
-        if (self.state.paused[pj.id]) { var u = Object.assign({}, self.state.paused); delete u[pj.id]; self.setState({ paused: u, ra: self.state.ra + 1 }); self.say(pj.name + ' resumed. The team sees it on My Day again.'); return; }
-        self.ask({ eyebrow: 'Pause', title: 'Pause ' + pj.name + '?', body: 'Its tasks leave everyone’s My Day and deadlines stop counting down. ' + pj.client + ' sees “Paused” in their portal with the reason you give.', input: true, inputLabel: 'Reason the client sees', inputPh: 'For example: paused until milestone 2 is paid', ok: 'Pause project', icon: I.clock, tone: 'var(--ad-tone-warn)', onOk: function () { var pp = Object.assign({}, self.state.paused); pp[pj.id] = true; self.setState({ paused: pp, ra: self.state.ra + 1 }); self.say(pj.name + ' paused.'); } });
-      }));
+      out.push(self.state.paused[pj.id] ? it('Resume', I.play, function () { self.resumeProject(pj.id, pj.name, pj.client); }) : it('Pause…', I.clock, function () { self.pauseProject(pj.id, pj.name, pj.client); }));
     }
     out.push(this.menuSep());
     out.push(it('Move to Trash…', I.trash, function () { self.ask({ eyebrow: 'Trash', title: 'Move ' + pj.name + ' to Trash?', body: 'Tasks, files and the content calendar go with it. Invoices stay in Money. Restore it from Settings, Trash, for 30 days.', ok: 'Move to Trash', danger: true, tone: 'var(--ad-tone-bad)', icon: I.trash, onOk: function () { var t = Object.assign({}, self.state.trashed); t[pj.id] = true; self.setState({ trashed: t, ra: self.state.ra + 1 }); self.say(pj.name + ' moved to Trash.', { undo: function () { var u = Object.assign({}, self.state.trashed); delete u[pj.id]; self.setState({ trashed: u, ra: self.state.ra + 1 }); } }); } }); }, { danger: true }));

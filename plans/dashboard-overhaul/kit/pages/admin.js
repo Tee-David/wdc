@@ -271,7 +271,7 @@
       clearHover: function () { self.setState({ hover: -1 }); },
       rangeI: s.range === 12 ? 1 : 0, c6: s.range === 6 ? 'on' : '', c12: s.range === 12 ? 'on' : '', p6: s.range === 6 ? 'true' : 'false', p12: s.range === 12 ? 'true' : 'false',
       set6: function () { self.setState({ range: 6, hover: -1 }); }, set12: function () { self.setState({ range: 12, hover: -1 }); },
-      openReport: function () { self.open(statDefs[0].sheet); }, openFeed: function () { self.open(X.feed); },
+      openReport: function () { window.location.href = 'A-Money.dc.html?tab=reports'; }, openFeed: function () { self.open(X.feed); },
       teamStack: T.slice(0, 3).map(function (m) { return Object.assign({}, m, { open: function () { self.open(personSheet(m)); } }); }), teamMore: T.length - 3, teamMoreAria: 'Show ' + (T.length - 3) + ' more people',
       openTeam: function () { self.open(S({ eyebrow: 'Team', title: 'On today', chip: T.length + ' people', tone: 'var(--ad-tone-brand)', icon: I.users, listTitle: 'Everyone', list: T.map(function (m) { return { t: m.name, s: m.dept + ' · ' + m.load, ini: m.i, av: m.tone, open: personSheet(m) }; }), primary: 'Close' })); },
       pulse: pulse, renewals: renewals,

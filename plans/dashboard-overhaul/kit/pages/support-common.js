@@ -1,22 +1,6 @@
   /* ======================= Support (shared by all roles, driven by this.supModel()) ======================= */
   pageState() { var M = this.supModel(); return { stab: M.defaultTab || 'tickets', sq: '', schip: 'all', spage: 0, sper: 5, ra: 0, tstat: {}, replies: {}, newT: [], newA: [], helpful: {} }; }
   pageName() { return 'Support'; }
-  /* The client facing knowledge base: clients read it, the owner edits it. */
-  kbClient() {
-    var I = this.icons(), st = function (t, s) { return { t: t, s: s }; };
-    return [
-      { id: 'a1', t: 'How a project works from start to finish', s: 'Discovery, deposit, work, review meetings, launch and handover.', cat: 'Getting started', mins: '3 min read', d: I.folder, kw: 'process steps start deposit handover meeting timeline', steps: [st('Discovery call', 'We agree the scope and send a quote you can accept online.'), st('50% deposit', 'Work starts when the deposit is paid.'), st('Work and approvals', 'Nothing goes live before you approve it.'), st('Two review meetings', 'Included in every project, booked from your Home page.'), st('Launch and handover', 'A recorded Google Meet, followed by a handover document.'), st('Final 20%', 'The last invoice goes out after the handover meeting.')] },
-      { id: 'a2', t: 'Install the app on your phone', s: 'Get approvals, files and receipts as push alerts.', cat: 'Getting started', mins: '1 min read', d: I.phone, kw: 'app install phone push notifications pwa', steps: [st('Open the portal in your phone browser', 'Chrome on Android, Safari on iPhone.'), st('Tap Install app', 'It is in the menu, and on the card at the bottom of the sidebar.'), st('Allow notifications', 'Choose which ones in Settings, Notifications.')] },
-      { id: 'a3', t: 'Pay an invoice with Paystack or Flutterwave', s: 'Two ways to pay, the same receipt either way.', cat: 'Billing and payments', mins: '2 min read', d: I.card, kw: 'pay invoice paystack flutterwave card payment', steps: [st('Open Billing and tap Pay', 'The amount and the invoice number are shown first.'), st('Choose Paystack or Flutterwave', 'Both take cards and bank transfers. There is no fee to you.'), st('Pay on the provider’s page', 'Closing it halfway is safe. We keep checking and email you the result.'), st('Your receipt appears', 'It is in Billing and in your email. An invoice cannot be paid twice.')] },
-      { id: 'a4', t: 'Find or resend a receipt', s: 'Every payment has a receipt in Billing.', cat: 'Billing and payments', mins: '1 min read', d: I.file, kw: 'receipt find resend accountant proof', steps: [st('Open Billing, then Receipts', 'Each one is named with its number, for example RCT-2026-038.'), st('Tap a receipt to preview it', 'Download or print from the preview.'), st('Need it emailed again?', 'Tap Resend, or ask us from Support.')] },
-      { id: 'a5', t: 'What happens when an invoice is late', s: 'Reminders first, then a final notice. Work pauses only after that.', cat: 'Billing and payments', mins: '2 min read', d: I.alert, kw: 'late overdue reminder final notice pause', steps: [st('Day after the due date', 'A friendly reminder with a pay link.'), st('One week late', 'A second reminder, copied to every billing contact.'), st('Two weeks late', 'A final notice. Work on that project pauses until it is paid.')] },
-      { id: 'a6', t: 'Approve a post or a logo route', s: 'Approve, comment or ask for changes, one item at a time.', cat: 'Approvals and files', mins: '2 min read', d: I.eye, kw: 'approve post logo route changes review approval whatsapp', steps: [st('Open the item from Home or Projects', 'A preview opens in the app.'), st('Comment, or choose Request changes', 'Say what to change. The team sees it straight away.'), st('Approve when it is right', 'Approved posts are scheduled, and you get an email when they go live.')] },
-      { id: 'a7', t: 'Where your files live', s: 'Every file we send you, with a preview, in one library.', cat: 'Approvals and files', mins: '1 min read', d: I.folder, kw: 'files library download preview pdf', steps: [st('Open Projects, then Files', 'Filter by type or search by name.'), st('Preview in the app', 'PDFs and images open without downloading.'), st('Download or print', 'Both are in the preview’s menu.')] },
-      { id: 'a8', t: 'Add someone from your business', s: 'Give a colleague their own sign in, with the access you choose.', cat: 'Your account', mins: '2 min read', d: I.users, kw: 'add person colleague team access approver invite', steps: [st('Open Settings, then People at your business', 'You see everyone who has access.'), st('Add a person', 'Their email gets an invite. Temporary inboxes are not accepted.'), st('Choose what they receive', 'Invoices, approvals and project updates, each on its own.')] },
-      { id: 'a9', t: 'Choose which emails and alerts you get', s: 'Email, push and in-app, kind by kind.', cat: 'Your account', mins: '1 min read', d: I.bell, kw: 'notifications email alerts settings unsubscribe', steps: [st('Open Settings, then Notifications', 'Each kind has its own switches.'), st('Switch off what you do not need', 'We never send what you have turned off.'), st('Keep invoices on', 'They are the one email we recommend leaving on.')] }
-    ];
-  }
-
   tourSteps() {
     var I = this.icons(), M = this.supModel();
     var st = [];
@@ -41,7 +25,7 @@
     m[id] = Object.assign({}, cur, patch, { updated: 'Just now', feedAdd: fa }); this.setState({ tstat: m, ra: this.state.ra + 1 });
   }
   tkTone(st) { return ({ open: 'var(--ad-tone-live)', wait: 'var(--ad-tone-warn)', done: 'var(--ad-tone-good)' })[st]; }
-  artAll() { var M = this.supModel(); return this.state.newA.concat(M.articles); }
+  artAll() { var M = this.supModel(), role = M.role, hidden = {}; this.helpCats().forEach(function (c) { if (!c.visible) hidden[c.name] = true; }); return this.kbEdited(this.state.newA.concat(M.articles)).filter(function (a) { return role === 'admin' || (!a.draft && !hidden[a.cat]); }); }
   tkOrder(a, b) { var o = { open: 0, wait: 1, done: 2 }; return o[a.status] - o[b.status]; }
   openTicket(t) {
     var self = this, I = this.icons(), M = this.supModel(), done = t.status === 'done', L = M.labels;
@@ -89,7 +73,7 @@
     this.open(this.sh({ eyebrow: a.cat + ' · ' + a.mins, title: a.t, icon: I.life, iconTone: 'var(--ad-tone-brand)', chip: a.draft ? 'Draft' : '', tone: 'var(--ad-tone-warn)', body: a.s,
       listTitle: 'Steps', list: a.steps.map(function (x, i) { return { t: (i + 1) + '. ' + x.t, s: x.s }; }), checksTitle: '', note: a.note || '',
       primary: M.role === 'admin' ? (a.draft ? 'Publish article' : 'Edit article') : 'Yes, this helped', secondary: M.role === 'admin' ? 'Close' : 'Not quite, ask us',
-      onPrimary: function () { if (M.role === 'admin') { self.say(a.draft ? '“' + a.t + '” is published and visible to clients.' : 'The editor opens here, with a preview of what clients see.'); return; } var h = Object.assign({}, self.state.helpful); h[a.id] = true; self.setState({ helpful: h }); self.say('Thanks. That helps us decide what to write next.'); },
+      onPrimary: function () { if (M.role === 'admin') { if (a.draft) { self.setArt(a.id, { draft: false }); self.closeSheet(true); self.say('“' + a.t + '” is published and visible to clients.'); } else { self.closeSheet(true); setTimeout(function () { self.openArticleEditor(a); }, 80); } return; } var h = Object.assign({}, self.state.helpful); h[a.id] = true; self.setState({ helpful: h }); self.say('Thanks. That helps us decide what to write next.'); },
       onSecondary: function () { if (M.role === 'admin') { self.closeSheet(); return 'stay'; } self.closeSheet(); setTimeout(function () { self.newTicketSheet('Question about: ' + a.t); }, 80); return 'stay'; } }), push);
   }
   newTicketSheet(subject) {
@@ -111,7 +95,7 @@
     var self = this, I = this.icons(), it = this.menuItem.bind(this), M = this.supModel();
     if (pop.kind === 'row') {
       var t = this.tkAll().filter(function (x) { return x.id === pop.id; })[0]; if (t) return this.ticketActions(t);
-      var a = this.artAll().filter(function (x) { return x.id === pop.id; })[0]; return a ? [it('Open article', I.open, function () { self.openArticle(a); })] : [];
+      var a = this.artAll().filter(function (x) { return x.id === pop.id; })[0]; if (!a) return []; var out = [it('Open article', I.open, function () { self.openArticle(a); })]; if (M.role === 'admin') { out.push(it('Edit article', I.edit, function () { self.openArticleEditor(a); })); out.push(it(a.draft ? 'Publish' : 'Move back to drafts', a.draft ? I.send : I.undo, function () { self.setArt(a.id, { draft: !a.draft }); self.say(a.draft ? '“' + a.t + '” is published.' : '“' + a.t + '” is a draft again and clients no longer see it.'); })); out.push(this.menuSep()); out.push(it('Move to Trash…', I.trash, function () { self.ask({ eyebrow: 'Trash', title: 'Move “' + a.t + '” to Trash?', body: 'It leaves the help centre at once. Restore it from Settings, Trash, for 30 days.', ok: 'Move to Trash', danger: true, tone: 'var(--ad-tone-bad)', icon: I.trash, onOk: function () { self.setArt(a.id, { gone: true }); self.say('Moved to Trash.'); } }); }, { danger: true })); } return out;
     }
     if (pop.kind === 'chores') return M.chores(this, it, I);
     return [];
@@ -121,7 +105,8 @@
     var dk = this.deck(), dv = this.deckView(dk), q = s.sq.trim().toLowerCase();
     var tickets = this.tkAll().sort(function (a, b) { return self.tkOrder(a, b); }), arts = this.artAll();
     var isT = s.stab === 'tickets';
-    var cats = ['all'].concat(arts.map(function (a) { return a.cat; }).filter(function (c, i, arr) { return arr.indexOf(c) === i; }));
+    var order = this.helpCats().filter(function (c) { return M.role === 'admin' || c.visible; }).map(function (c) { return c.name; }), seenC = arts.map(function (a) { return a.cat; }).filter(function (c, i, arr) { return arr.indexOf(c) === i; });
+    var cats = ['all'].concat(order, seenC.filter(function (c) { return order.indexOf(c) < 0; }));
     var chipsT = [['all', 'All'], ['open', 'Open'], ['wait', 'Waiting'], ['done', 'Resolved']];
     var chipKey = isT ? (chipsT.map(function (c) { return c[0]; }).indexOf(s.schip) >= 0 ? s.schip : 'all') : (cats.indexOf(s.schip) >= 0 ? s.schip : 'all');
     var tMatch = function (t) { return !q || (t.subject + ' ' + t.id + ' ' + t.from + ' ' + t.org + ' ' + t.about).toLowerCase().indexOf(q) >= 0; };
