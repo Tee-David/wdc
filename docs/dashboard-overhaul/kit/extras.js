@@ -16,11 +16,12 @@
     var self = this, I = this.icons();
     var client = mode === 'client';
     this.open(this.sh({ kind: 'post', eyebrow: p.client + ' · ' + p.platform + ' · ' + p.when, title: p.title, chip: this.postStatus(p).label, tone: this.postStatus(p).tone, post: p, focus: 'cmtIn',
-      primary: function (ctx, s) { return s.okPosts[p.id] ? 'Approved' : (client ? 'Approve this post' : 'Send for approval'); },
+      primary: function (ctx, s) { return s.okPosts[p.id] ? 'Approved' : (client ? 'Approve this post' : (s.askedPosts[p.id] || p.status === 'With client' ? 'Send a reminder' : 'Send for approval')); },
       primaryDis: function (ctx, s) { return s.okPosts[p.id] ? (client ? 'You approved this post. It goes out ' + p.when + '.' : 'The client approved it.') : ''; },
       secondary: client ? 'Request changes' : 'Close', keepOpen: true,
       onPrimary: function () {
         if (client) self.ask({ eyebrow: 'Approve', title: 'Approve "' + p.title + '"?', body: 'It goes out on ' + p.platform + ' on ' + p.when + ' exactly as you see it. You can still pull it until an hour before.', ok: 'Approve post', back: true, green: true, icon: I.check, tone: 'var(--ad-tone-good)', onOk: function () { var o = Object.assign({}, self.state.okPosts); o[p.id] = true; self.setState({ okPosts: o }); self.say('Approved. It goes out ' + p.when + '.', { undo: function () { var u = Object.assign({}, self.state.okPosts); delete u[p.id]; self.setState({ okPosts: u }); } }); } }, true);
+        else if (self.state.askedPosts[p.id] || p.status === 'With client') { self.closeSheet(); self.say('Reminder sent to ' + p.client + ' with a one-tap approval link.', { delay: 8, pending: function (n) { return 'Sending the reminder in ' + n + 's'; } }); }
         else self.ask({ eyebrow: 'Send for approval', title: 'Send "' + p.title + '" to ' + p.client + '?', body: 'They get an email and a portal notice. They see this version only.', ok: 'Send for approval', icon: I.send, onOk: function () { var o = Object.assign({}, self.state.askedPosts); o[p.id] = true; self.setState({ askedPosts: o }); self.closeSheet(); self.say('Sent to ' + p.client + ' for approval.'); } }, true);
       },
       onSecondary: function () {

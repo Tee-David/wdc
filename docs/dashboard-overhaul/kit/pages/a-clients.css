@@ -1,0 +1,11 @@
+/* Owner · Clients rail: pipeline rows and the service filter list */
+.pipeRow{display:flex;flex-direction:column;align-items:flex-start;gap:5px;padding:7px 10px;border-radius:12px;width:100%;text-align:left;min-height:44px}
+.svcRow{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:12px;width:100%;text-align:left;min-height:44px}
+.svcIc{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;color:#fff;flex:none}
+.svcRow.on{background:var(--ad-nav-on);color:var(--ad-nav-on-ink)}
+.svcRow.on .num{color:inherit !important;opacity:.8}
+.svcRow.on .miniBar{background:transparent;box-shadow:inset 0 0 0 1px var(--ad-nav-on-ink)}
+.svcRow.on .miniBar span{background:var(--ad-nav-on-ink)}
+.svcRow.on .svcIc{background:var(--ad-nav-on-ink) !important;color:var(--ad-nav-on)}
+.liveDot{width:8px;height:8px;border-radius:50%;background:var(--ad-tone-good);box-shadow:0 0 0 0 rgb(21 128 61/.5);animation:pulseDot 2s ease-out infinite}
+@media (prefers-reduced-motion:reduce){.liveDot{animation:none}}

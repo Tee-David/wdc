@@ -119,3 +119,13 @@ Model rule, binding: no agents for design. The main session builds every screen 
 - The design system artifact is built from `docs/dashboard-overhaul/design-system/` (`make.py` turns the kit into tokens, the stylesheet and component previews).
 
 - The boards are built from one shared kit in `docs/dashboard-overhaul/kit/` (styles, shell, sheets, behaviour) plus a module per page, assembled by `build.py`. A correction goes into the kit once and lands on every page. The implementation follows the kit's patterns, not its prototype data.
+
+## Standing direction for the page prototypes (owner, 2026-10-11)
+
+- Every page is built to the standard of the approved Flow home: the Focus idea, colours, fields, buttons, pagination and components. Nothing generic. This is an overhaul, so each page has to be clearly better than what exists today.
+- Plan each page the way the home was planned: anticipate the next step, think through UX and UI, and leave no dead ends and no gaps. Every flow is wired end to end.
+- Projects differ by service. Branding and design, social media management, SEO, web development, custom development and app development each need their own stages, deliverables, approvals and pages. Project and client screens must handle all of them, not just one.
+- Work happens in the artifacts only. Nothing goes live until implementation is approved.
+- Each finished page is published to the canvas artifact (https://claude.ai/artifact/1HG99eCtChsHCLyTnh7iEQ, row "Overhaul pages") as it is done. Show the owner the artifact, not screenshots. Screenshots are only for my own verification.
+- Responsive at phone, tablet and desktop in both themes, following the design system (https://claude.ai/artifact/XRhmw3yngg9bTxBzim5zLr) without deviating.
+- Tables and lists: the row and its ⋮ are two separate touch areas. Tapping the row opens the item. Tapping the ⋮ opens its options and must not light up the row. The ⋮ shows its own press and stays pressed while its menu is open (`aria-expanded`). Row hover only applies on devices that can hover, so a phone never keeps a row highlighted after a tap.
