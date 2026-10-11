@@ -2,12 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { Logo } from "@/components/brand/logo";
+import { BarePage, StateCard } from "@/components/layout/bare-page";
 import SignOutButton from "@/components/auth/sign-out-button";
 import { auth } from "@/lib/auth";
 import { doorFor, safeDestination } from "@/lib/roles";
 import { CONTACT_EMAIL } from "@/lib/site";
-import "../login/login.css";
 
 export const metadata: Metadata = {
   title: "Signed in",
@@ -53,38 +52,17 @@ export default async function SignedInPage({
   const name = session.user.name?.split(" ")[0] || session.user.email;
 
   return (
-    <main id="main" tabIndex={-1} className="au au--solo">
-      <section className="au__panel">
-        <div className="au__inner">
-          <Link href="/" className="au__soloLogo" aria-label="We Dig Creativity">
-            <Logo markClassName="h-10 w-auto" />
-          </Link>
-
-          <div className="au__formWrap">
-            <h1>You are signed in, {name}.</h1>
-            <p className="au__lede">
-              {door.label.charAt(0).toUpperCase() + door.label.slice(1)} is being
-              built and is not open yet. Nothing is missing from your account --
-              there is simply no page to send you to.
-            </p>
-
-            <div className="au__notice">
-              <b>What you can do now</b>
-              <span>
-                Email us at {CONTACT_EMAIL} and we will answer the
-                same working day. If you are mid-project, your WDC contact has
-                everything you need in the meantime.
-              </span>
-              <Link href="/contact">Send us a message</Link>
-            </div>
-
-            <div className="au__soloActions">
-              <Link className="au__ghost" href="/">Back to the website</Link>
-              <SignOutButton />
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
+    <BarePage>
+      <StateCard
+        tone="good"
+        icon="check"
+        title={`You are signed in, ${name}`}
+        body={`${door.label.charAt(0).toUpperCase() + door.label.slice(1)} is being built and is not open yet. Nothing is missing from your account, there is simply no page to send you to yet. Email ${CONTACT_EMAIL} and we answer the same working day.`}
+      >
+        <Link className="bareBtn" href="/contact">Send the studio a message</Link>
+        <Link className="bareBtn is-2" href="/">Back to the website</Link>
+        <SignOutButton className="bareBtn is-2" />
+      </StateCard>
+    </BarePage>
   );
 }

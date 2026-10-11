@@ -9,15 +9,17 @@
 .au {
   --au-navy: #000065;
   --au-orange: var(--accent, #ff6500);
+  /* The form side is the dashboard design system's: --ad-* tokens, declared
+     by components/admin/admin.css and the gaps in components/layout/bare.css. */
   --au-valid: #2b2bd9;
-  --au-error: #c62828;
-  --au-error-bg: #fdecec;
-  --au-focus: rgb(0 0 101 / .22);
-  --au-edge: #000065;
-  --au-border: #e4e4eb;
-  --au-border-strong: #c9c9d6;
-  --au-field: var(--background);
-  --au-placeholder: #7a7a8c;
+  --au-error: var(--ad-tone-bad);
+  --au-error-bg: var(--ad-tone-bad);
+  --au-focus: var(--ad-ring);
+  --au-edge: var(--ad-ink);
+  --au-border: var(--ad-line-2);
+  --au-border-strong: var(--ad-dim);
+  --au-field: var(--ad-panel);
+  --au-placeholder: var(--ad-dim);
   --au-ease: cubic-bezier(.2, .8, .2, 1);
   --au-pop: cubic-bezier(.34, 1.56, .64, 1);
   --au-emph: cubic-bezier(.76, 0, .24, 1);
@@ -27,23 +29,16 @@
   min-height: 100svh;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--ad-bg);
+  color: var(--ad-ink);
   font-family: var(--au-body);
 }
 .dark .au {
   --au-valid: #a3a7ff;
-  --au-error: #ff8a80;
-  --au-error-bg: #3a0d14;
-  --au-focus: rgb(163 167 255 / .35);
-  --au-edge: #a3a7ff;
-  --au-border: #262650;
-  --au-border-strong: #3d3d70;
-  --au-placeholder: #8586b3;
-  --au-field: var(--surface);
+  --au-error: var(--ad-bad-ink);
 }
 
-.au :focus-visible { outline: 3px solid var(--au-edge); outline-offset: 3px; }
+.au :focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
 .au__brand :focus-visible { outline-color: #fff; }
 
 /* ======================================================= the brand panel */
@@ -64,7 +59,7 @@
 /* The site's toggle is 40px; on these pages every control is a 44px target. */
 .au .au__theme { flex: none; width: 44px; height: 44px; }
 .au__theme--band { color: #fff; display: none; }
-.au__theme--panel { color: var(--foreground); }
+.au__theme--panel { color: var(--ad-ink); }
 
 .au__stage {
   display: flex;
@@ -264,7 +259,7 @@
   display: grid;
   grid-template-rows: auto 1fr auto;
   padding: 40px clamp(24px, 5vw, 64px) 32px;
-  background: var(--background);
+  background: var(--ad-panel);
 }
 .au__bar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .au__barEnd { display: flex; align-items: center; gap: 12px; margin-left: auto; }
@@ -275,18 +270,18 @@
   color: #fff;
   font: 600 12.5px/1.4 var(--au-body);
 }
-.dark .au__demo { background: var(--au-orange); color: #000; }
+.dark .au__demo { background: var(--ad-tone-live); color: #fff; }
 
 .au__back {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   min-height: 44px;
-  color: var(--muted);
+  color: var(--ad-dim);
   font: 500 14px var(--au-body);
   text-decoration: none;
 }
-.au__back:hover { color: var(--foreground); }
+.au__back:hover { color: var(--ad-ink); }
 .au__back svg { width: 16px; height: 16px; transition: translate .15s var(--au-ease); }
 .au__back:hover svg { translate: -2px 0; }
 .au__back--foot { display: none; }
@@ -305,13 +300,15 @@
   justify-items: center;
   gap: 4px;
   text-align: center;
-  color: var(--muted);
+  color: var(--ad-dim);
   font: 400 13px/1.5 var(--au-body);
 }
 .au__foot p { margin: 0; }
 .au__foot a { color: inherit; text-decoration: underline; text-underline-offset: .2em; }
-.au__foot a:hover { color: var(--foreground); }
-.au__footRow { display: grid; justify-items: center; gap: 4px; }
+.au__foot a:hover { color: var(--ad-ink); }
+.au__footRow { display: grid; justify-items: center; gap: 0; }
+/* Links in the footer are 44px targets, by padding the inline box. */
+.au__foot :is(.au__new, .au__legal) a { display: inline-block; padding: 13px 2px; }
 .au__new { font-size: 14px; }
 .au__new a { color: var(--accent-ink); font-weight: 600; }
 .au__new a:hover { color: var(--accent-ink); }
@@ -359,7 +356,7 @@
 
 .lx__heading {
   margin: 0;
-  font: 600 30px/1.1 var(--au-display);
+  font: 700 30px/1.15 var(--au-display);
   letter-spacing: -.02em;
   text-wrap: balance;
 }
@@ -368,77 +365,75 @@
 .au .lx__heading:focus, .au .lx__heading:focus-visible { outline: none; }
 .lx__sub {
   margin: 10px 0 0;
-  color: var(--muted);
+  color: var(--ad-dim);
   font: 400 16px/1.5 var(--au-body);
   overflow-wrap: anywhere;
 }
-.lx__email { color: var(--foreground); font-weight: 600; }
+.lx__email { color: var(--ad-ink); font-weight: 600; }
 .lx__form { display: grid; gap: 16px; margin-top: 28px; }
-.lx__note { margin: 8px 0 0; color: var(--muted); font-size: 13.5px; }
-.lx__fine { margin: 20px 0 0; color: var(--muted); font: 400 13px/1.45 var(--au-body); }
+.lx__note { margin: 8px 0 0; color: var(--ad-dim); font-size: 13.5px; }
+.lx__fine { margin: 20px 0 0; color: var(--ad-dim); font: 400 13px/1.45 var(--au-body); }
 
 .lx__or {
   display: flex;
   align-items: center;
   gap: 12px;
   margin: 24px 0 16px;
-  color: var(--muted);
+  color: var(--ad-dim);
   font: 500 13px var(--au-body);
 }
 .lx__or::before, .lx__or::after { content: ""; flex: 1; height: 1px; background: var(--au-border); }
 .lx__social { display: grid; gap: 10px; }
 
-/* THE METHOD TABS. Icons until chosen: the chosen tab grows to hold its
-   label, the others close to a 44px icon. Width is the only thing that
-   moves, by flex-grow on the tab and a 0fr -> 1fr column on the label, so
-   the label is never cut off mid-word -- it is either there or it is not. */
+/* THE METHOD TABS (the board's): text tabs on a hairline, the chosen one
+   carries a 3px orange underline that draws in. Labels are always there; the
+   icon sits beside them. */
 .lx__tabs {
+  position: relative;
   display: flex;
-  gap: 4px;
+  gap: 2px;
   margin-top: 24px;
-  padding: 4px;
-  /* Concentric pills: the track's radius is the tab's plus the 4px gap. */
-  border-radius: 26px;
-  background: var(--surface-2, var(--surface));
+  border-bottom: 1px solid var(--ad-line);
 }
 .lx__tab {
-  flex: 0 0 auto;
-  min-width: 52px;
-  min-height: 44px;
+  position: relative;
+  flex: 0 1 auto;
+  min-height: 46px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0 14px;
-  border: 1.5px solid transparent;
-  border-radius: 22px;
+  gap: 8px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px 10px 0 0;
   background: transparent;
-  color: var(--muted);
+  color: var(--ad-dim);
   font: 600 15px var(--au-body);
+  white-space: nowrap;
   cursor: pointer;
-  transition: flex-grow .32s var(--au-ease), background-color .2s var(--au-ease), color .2s var(--au-ease), border-color .2s var(--au-ease);
+  transition: color .2s var(--au-ease), background-color .2s var(--au-ease);
 }
-.lx__tab svg { flex: none; width: 18px; height: 18px; transition: transform .32s var(--au-pop); }
-.lx__tab:hover { color: var(--foreground); }
-.lx__tab:hover svg { transform: scale(1.08); }
-.lx__tab:active svg { transform: scale(.92); }
-.lx__tab[aria-selected="true"] {
-  flex-grow: 1;
-  border-color: var(--foreground);
-  background: var(--background);
-  color: var(--foreground);
-  box-shadow: 0 1px 2px rgb(0 0 40 / .08);
+.lx__tab::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: -1px;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--ad-dot);
+  transform: scaleX(0);
+  transition: transform .38s var(--au-ease);
 }
+.lx__tab svg { flex: none; width: 18px; height: 18px; }
+.lx__tab:hover { color: var(--ad-ink); background: var(--ad-panel-2); }
+.lx__tab:active { transform: scale(.97); }
+.lx__tab[aria-selected="true"] { color: var(--ad-ink); }
+.lx__tab[aria-selected="true"]::after { transform: scaleX(1); }
 .lx__tab:disabled { cursor: default; }
-.lx__tabLabel {
-  display: grid;
-  grid-template-columns: 0fr;
-  min-width: 0;
-  opacity: 0;
-  transition: grid-template-columns .32s var(--au-ease), opacity .18s var(--au-ease);
-}
-.lx__tabLabel > span { overflow: hidden; white-space: nowrap; padding-left: 0; transition: padding-left .32s var(--au-ease); }
-.lx__tab[aria-selected="true"] .lx__tabLabel { grid-template-columns: 1fr; opacity: 1; transition-delay: 0s, .08s; }
-.lx__tab[aria-selected="true"] .lx__tabLabel > span { padding-left: 8px; }
+.lx__tabLabel { display: block; min-width: 0; }
+.lx__tabLabel > span { display: block; white-space: nowrap; }
+@media (max-width: 359.98px) { .lx__tab { padding: 0 8px; gap: 5px; } .lx__tab svg { display: none; } }
 
 .lx[data-live="true"] .lx__panel { animation: lx-panel .24s var(--au-ease) both; }
 @keyframes lx-panel { from { opacity: 0; transform: translateY(6px); } }
@@ -449,11 +444,10 @@
 .lx__badge {
   padding: 2px 8px;
   border-radius: 999px;
-  background: #ffe8da;
-  color: var(--au-navy);
+  background: var(--ad-tone-flat);
+  color: var(--ad-on-flat);
   font: 600 12.5px/1.4 var(--au-body);
 }
-.dark .lx__badge { background: var(--au-orange); color: #000; }
 
 .lx__back { margin-top: 12px; }
 .lx__row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; margin-top: 12px; }
@@ -468,23 +462,25 @@
   padding: 16px;
   border: 1.5px solid var(--au-border);
   border-radius: 14px;
-  background: var(--surface);
+  background: var(--ad-panel-2);
 }
 .lx__suggest p { margin: 0; font: 400 14px/1.5 var(--au-body); }
 
 /* --------------------------------------------------------------- chip */
 
 .au-chip {
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 6px;
+  width: 100%;
   max-width: 100%;
   min-height: 44px;
   margin-bottom: 20px;
-  padding: 0 6px 0 18px;
-  border: 1px solid var(--au-border);
-  border-radius: 999px;
-  background: var(--surface);
+  padding: 4px 4px 4px 14px;
+  border: 1px solid var(--ad-line);
+  border-radius: 12px;
+  background: var(--ad-panel);
 }
 .au-chip__email {
   min-width: 0;
@@ -495,28 +491,29 @@
 }
 /* Scoped past .au-link, which comes later in this file and set this
    padding back to 0: "Change" sat against the pill's curve. */
-.au-chip .au-chip__change { flex: none; padding: 0 12px; border-radius: 999px; }
+.au-chip .au-chip__change { flex: none; padding: 0 14px; border-radius: 12px; border: 1px solid var(--ad-line); background: var(--ad-panel); color: var(--ad-ink); text-decoration: none; }
+.au-chip .au-chip__change:hover { border-color: var(--ad-ink); background: var(--ad-hover); }
 
 /* ------------------------------------------------------------- fields */
 
 .au-field { display: grid; gap: 8px; min-width: 0; }
-.au-field > label, .au-field__head > label { font: 500 14px/1.3 var(--au-body); color: var(--foreground); }
+.au-field > label, .au-field__head > label { font: 600 13px/1.3 var(--au-body); color: var(--ad-ink); }
 /* The label and its link share a line; the link keeps its 44px target by
    overhanging the row rather than padding it out. */
 .au-field__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 18px; }
 .au-field__head .au-link { margin: -13px 0; }
 /* A soft tint, not the site's orange block: after a wrong password the
    field is selected so retyping replaces it, and orange read as an error. */
-.au-input input::selection { background: var(--au-focus); color: var(--foreground); }
+.au-input input::selection { background: var(--au-focus); color: var(--ad-ink); }
 .au-input { position: relative; }
 .au-input input {
   width: 100%;
-  min-height: 52px;
-  padding: 0 48px 0 16px;
-  border: 1.5px solid var(--au-border);
-  border-radius: 14px;
+  min-height: 48px;
+  padding: 0 48px 0 14px;
+  border: 1px solid var(--au-border);
+  border-radius: 12px;
   background: var(--au-field);
-  color: var(--foreground);
+  color: var(--ad-ink);
   font: 400 16px var(--au-body); /* 16px: anything smaller makes iOS zoom. */
   outline: none;
   transition: border-color .15s var(--au-ease), box-shadow .15s var(--au-ease);
@@ -524,26 +521,26 @@
 .au-input input::placeholder { color: var(--au-placeholder); opacity: 1; }
 .au-field[data-state="typing"] input,
 .au-field[data-state="has-at"] input { border-color: var(--au-border-strong); }
-.au-field[data-state="valid"] input { border-color: var(--au-valid); }
+.au-field[data-state="valid"] input { border-color: var(--ad-tone-good); }
 .au .au-input input:focus-visible, .au .au-code__input:focus-visible { outline: none; }
-.au-input input:focus { border-color: var(--au-edge); box-shadow: 0 0 0 3px var(--au-focus); }
-.au-field[data-state="valid"] input:focus { border-color: var(--au-valid); }
+.au-input input:focus { border-color: var(--ad-ink); box-shadow: 0 0 0 4px var(--ad-ring); }
+.au-field[data-state="valid"] input:focus { border-color: var(--ad-ink); }
 .au-field[data-state="invalid"] input,
 .au-field[data-state="invalid"] input:focus { border-color: var(--au-error); }
-.au-field[data-state="invalid"] input:focus { box-shadow: 0 0 0 3px rgb(198 40 40 / .2); }
+.au-field[data-state="invalid"] input:focus { box-shadow: 0 0 0 4px var(--ad-ring); }
 .au-input input:-webkit-autofill,
 .au-input input:-webkit-autofill:hover,
 .au-input input:-webkit-autofill:focus {
-  -webkit-text-fill-color: var(--foreground);
+  -webkit-text-fill-color: var(--ad-ink);
   box-shadow: 0 0 0 100px var(--au-field) inset;
-  caret-color: var(--foreground);
+  caret-color: var(--ad-ink);
 }
 
 .au-input__mark { position: absolute; right: 16px; top: 50%; width: 18px; height: 18px; translate: 0 -50%; pointer-events: none; }
 .au-input__mark svg { position: absolute; inset: 0; width: 18px; height: 18px; opacity: 0; transition: opacity .15s var(--au-ease), scale .15s var(--au-pop), color .15s; }
-.au-input__at { color: var(--muted); }
-.au-input__check { color: var(--au-valid); scale: .4; stroke-width: 3; }
-.au-field[data-state="has-at"] .au-input__at { opacity: 1; color: var(--au-valid); }
+.au-input__at { color: var(--ad-dim); }
+.au-input__check { color: var(--ad-tone-good); scale: .4; stroke-width: 3; }
+.au-field[data-state="has-at"] .au-input__at { opacity: 1; color: var(--ad-dim); }
 .au-field[data-state="valid"] .au-input__check { opacity: 1; scale: 1; }
 
 .au-input--action input { padding-right: 56px; }
@@ -559,10 +556,10 @@
   border: 0;
   border-radius: 10px;
   background: transparent;
-  color: var(--muted);
+  color: var(--ad-dim);
   cursor: pointer;
 }
-.au-input__reveal:hover { color: var(--foreground); }
+.au-input__reveal:hover { color: var(--ad-ink); }
 .au-input__reveal svg { width: 18px; height: 18px; }
 
 .au-msg { display: flex; align-items: flex-start; gap: 6px; margin: 0; font: 400 13.5px/1.4 var(--au-body); }
@@ -571,9 +568,8 @@
 .au-msg--hint { color: var(--accent-ink); font-weight: 500; }
 
 /* "Remember me": a real checkbox, 44px tall to tap, drawn in the ground's accent. */
-.au-check { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; margin-top: -8px; justify-self: start; color: var(--foreground); font: 500 14.5px/1.3 var(--au-body); cursor: pointer; }
-.au-check input { width: 18px; height: 18px; margin: 0; accent-color: var(--au-navy); cursor: pointer; }
-.dark .au-check input { accent-color: #a3a7ff; }
+.au-check { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; margin-top: -8px; justify-self: start; color: var(--ad-ink); font: 500 14.5px/1.3 var(--au-body); cursor: pointer; }
+.au-check input { width: 18px; height: 18px; margin: 0; accent-color: var(--ad-fill); cursor: pointer; }
 
 /* THE METER under a new password: four solid bars that fill left to right,
    red, amber, green, then the strong green; one hint line under them. */
@@ -585,8 +581,8 @@
 .au-meter[data-bars="3"] span:nth-child(-n+3) { background: #16a34a; }
 .au-meter[data-bars="4"] span { background: #15803d; }
 .au-meter__row { display: flex; align-items: center; justify-content: space-between; gap: 4px 12px; flex-wrap: wrap; }
-.au-meter__hint { margin: 0; min-width: 0; color: var(--muted); font: 400 13px/1.4 var(--au-body); }
-.au-meter__hint b { color: var(--foreground); font-weight: 600; }
+.au-meter__hint { margin: 0; min-width: 0; color: var(--ad-dim); font: 400 13px/1.4 var(--au-body); }
+.au-meter__hint b { color: var(--ad-ink); font-weight: 600; }
 .au-meter__suggest { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; white-space: nowrap; }
 .au-meter__suggest svg { width: 16px; height: 16px; }
 @media (prefers-reduced-motion: reduce) { .au-meter__bars span { transition: none; } }
@@ -610,7 +606,7 @@
   --code-ring: #ffc7a1;
   --code-streak: #f05d00;
   --code-caret: var(--au-navy);
-  --code-bright: var(--foreground);
+  --code-bright: var(--ad-ink);
   --code-sweep: rgb(255 101 0 / .16);
   --code-win: 59 59 255;
 }
@@ -642,7 +638,7 @@
   height: 56px;
   border-radius: 12px;
   background: var(--au-border);
-  color: var(--foreground);
+  color: var(--ad-ink);
   font: 600 24px var(--au-display);
   font-variant-numeric: tabular-nums;
   transition: background-color .2s var(--au-ease), box-shadow .25s var(--au-ease);
@@ -857,39 +853,39 @@
 
 /* ------------------------------------------------------------ buttons */
 
-/* THE SITE'S PAIR. Primary is --btn-fill with an --btn-ink label, secondary
-   the same two the other way round, solid, with the primary's fill as its
-   edge. They trade places on hover. Asleep, the primary is quiet until the
-   step is ready: a state, not a third button. */
+/* THE DASHBOARD PAIR (the sign in board's): primary is --ad-fill with its
+   white label, navy on paper and #b84a00 in the dark; secondary is the panel
+   with a hairline that darkens on hover. Asleep, the primary is quiet until
+   the step is ready: a state, not a third button. */
 .au-btn {
   width: 100%;
-  min-height: 52px;
+  min-height: 48px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   padding: 0 20px;
-  border: 1.5px solid var(--btn-fill);
-  border-radius: 14px;
+  border: 1px solid var(--ad-fill);
+  border-radius: 12px;
   font: 600 16px var(--au-body);
   text-decoration: none;
   cursor: pointer;
-  transition: background .15s var(--au-ease), color .15s var(--au-ease), border-color .15s var(--au-ease), transform .15s var(--au-ease);
+  transition: background .18s var(--au-ease), color .18s var(--au-ease), border-color .18s var(--au-ease), transform .22s var(--au-ease), box-shadow .22s var(--au-ease);
 }
 .au-btn svg { flex: none; width: 18px; height: 18px; }
 .au-btn:active { transform: scale(.98); }
 .au-btn:disabled { opacity: .8; cursor: wait; }
 .au-btn[aria-busy="true"] { cursor: progress; }
-.au-btn--primary { background: var(--btn-fill); color: var(--btn-ink); }
-.au-btn--primary:hover { background: var(--btn-ink); color: var(--btn-fill); }
-.au-btn--secondary { background: var(--btn-ink); color: var(--btn-fill); }
-.au-btn--secondary:hover { background: var(--btn-fill); color: var(--btn-ink); }
+.au-btn--primary { background: var(--ad-fill); color: var(--ad-on-fill); }
+.au-btn--primary:hover { background: var(--ad-fill-hover); border-color: var(--ad-fill-hover); }
+.au-btn--secondary { background: var(--ad-panel); color: var(--ad-ink); border-color: var(--ad-line-2); }
+.au-btn--secondary:hover { border-color: var(--ad-ink); background: var(--ad-hover); }
 /* Asleep: a flat, borderless tone, so it cannot be mistaken for a field. */
 .au-btn--primary[data-awake="false"],
 .au-btn--primary[data-awake="false"]:hover {
-  background: var(--surface-2);
-  color: var(--muted);
-  border-color: var(--surface-2);
+  background: var(--ad-tone-flat);
+  color: var(--ad-on-flat);
+  border-color: var(--ad-tone-flat);
   cursor: default;
 }
 .au-btn--primary[data-awake="true"] { animation: au-wake .18s var(--au-ease); }
@@ -912,16 +908,16 @@
   transition: text-decoration-color .15s;
 }
 .au-link:hover { text-decoration-color: currentColor; }
-.au-link:disabled { color: var(--muted); cursor: default; text-decoration: none; }
+.au-link:disabled { color: var(--ad-dim); cursor: default; text-decoration: none; }
 
 /* ------------------------------------------------ messages and notices */
 
 .au__error {
   margin: 16px 0 0;
-  padding: 10px 12px;
+  padding: 12px 14px;
   border-radius: 12px;
-  background: var(--au-error-bg);
-  color: var(--au-error);
+  background: var(--ad-tone-bad);
+  color: #fff;
   font: 400 14px/1.45 var(--au-body);
 }
 .au__form .au__error { margin: 0; }
@@ -931,12 +927,12 @@
   gap: 10px;
   margin-top: 24px;
   padding: 18px;
-  border: 1.5px solid var(--au-border);
-  border-radius: 14px;
-  background: var(--surface);
+  border: 1px solid var(--ad-line);
+  border-radius: 12px;
+  background: var(--ad-panel-2);
 }
 .au__notice b { font-family: var(--au-display); font-size: 17px; }
-.au__notice span { color: var(--muted); font-size: 14px; line-height: 1.55; }
+.au__notice span { color: var(--ad-dim); font-size: 14px; line-height: 1.55; }
 .au__notice a:not(.au-btn) { width: fit-content; color: var(--accent-ink); font-size: 14px; font-weight: 600; text-decoration: none; }
 .au__notice .au-btn { margin-top: 6px; }
 
@@ -950,24 +946,24 @@
 .au__inner { width: 100%; max-width: 27rem; }
 .au__soloLogo { display: inline-block; margin-bottom: 2rem; text-decoration: none; }
 .au__formWrap h1 { margin: 0; font: 600 clamp(1.7rem, 4vw, 2.1rem)/1.1 var(--au-display); letter-spacing: -.02em; text-wrap: balance; }
-.au__lede { margin: .6rem 0 0; color: var(--muted); font-size: .94rem; line-height: 1.55; }
+.au__lede { margin: .6rem 0 0; color: var(--ad-dim); font-size: .94rem; line-height: 1.55; }
 .au__soloActions { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1.6rem; }
 .au__ghost {
   flex: 1 1 10rem;
-  min-height: 2.85rem;
+  min-height: 48px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0 1.1rem;
-  border: 1.5px solid var(--btn-fill);
-  border-radius: .8rem;
-  background: var(--btn-ink);
-  color: var(--btn-fill);
+  border: 1px solid var(--ad-line-2);
+  border-radius: 12px;
+  background: var(--ad-panel);
+  color: var(--ad-ink);
   font: 600 .88rem var(--au-body);
   text-decoration: none;
   cursor: pointer;
 }
-.au__ghost:hover { background: var(--btn-fill); color: var(--btn-ink); }
+.au__ghost:hover { border-color: var(--ad-ink); background: var(--ad-hover); }
 .au__ghost:disabled { opacity: .65; cursor: wait; }
 
 /* ============================================== tablet and phone: the band */
@@ -1136,3 +1132,8 @@
 @keyframes au-show { to { opacity: 1; } }
 @keyframes au-hide { to { opacity: 0; } }
 @keyframes orb-pulse { 50% { opacity: .45; } }
+
+/* Invitation and reset states: the lone action under a sentence gets room, and
+   links inside a sentence are accent text with a full-height hit area. */
+.lx__step > .au-btn { margin-top: 20px; }
+.lx__sub a { display: inline-block; padding: 13px 2px; color: var(--accent-ink); font-weight: 600; text-decoration: underline; text-underline-offset: .2em; }

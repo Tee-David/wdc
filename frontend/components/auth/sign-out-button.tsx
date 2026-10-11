@@ -12,14 +12,14 @@ import { useHydrated } from "@/components/auth/use-hydrated";
  * and it does not look inert: pressing it in that window does nothing at all,
  * on the page whose entire purpose is to let somebody leave.
  */
-export default function SignOutButton() {
+export default function SignOutButton({ className = "au__ghost" }: { className?: string }) {
   const [busy, setBusy] = useState(false);
   const hydrated = useHydrated();
 
   return (
     <button
       type="button"
-      className="au__ghost"
+      className={className}
       disabled={busy || !hydrated}
       onClick={async () => {
         setBusy(true);

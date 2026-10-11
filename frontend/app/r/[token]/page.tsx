@@ -6,7 +6,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getClient, getInvoice, getPaymentByToken, getProject } from "@/lib/admin/store";
 import { invoiceTotals, lineTotal, paymentNet, refundedTotal } from "@/lib/admin/types";
-import { DocumentShell, Headline, invoiceUrl, receiptUrl } from "@/components/money/document";
+import { DocumentShell, DocNote, DocTotals, docDay, docTime, invoiceUrl, receiptUrl, type DocTag } from "@/components/money/document";
+import { BarePage } from "@/components/layout/bare-page";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 /**
@@ -64,11 +65,18 @@ export default async function PublicReceipt({
      different questions, and a client holding this is asking one of them. */
   const fullyRefunded = !gone && refunded > 0 && net <= 0;
 
-  if((await searchParams).view!=="full")return <main className="doc doc--return"><article className="doc__sheet">
+  if((await searchParams).view!=="full")return <BarePage><div className="doc doc--return"><article className="doc__sheet docSheet"><div className="dsBody doc__slip">
     <ReceiptPrinter amount={pay.amount} receiptNo={pay.receiptNo} number={inv.number} method={pay.method} at={pay.at} outstanding={remaining} lines={inv.lines.map(l=>({description:l.description,qty:l.qty,amount:lineTotal(l)}))} subtotal={t.subtotal} vat={t.vat} vatRate={inv.vatRate} total={t.total} currency={currencyOf(inv)} refunded={refunded} reversed={Boolean(gone)}/>
-    <div className="doc__actions"><Link className="btn-primary" href={`/r/${encodeURIComponent(pay.token)}?view=full`}>View full receipt</Link></div>
-    <ReceiptControls token={pay.token}/>
-  </article></main>;
+    <div className="doc__actions"><Link className="bareBtn" href={`/r/${encodeURIComponent(pay.token)}?view=full`}>View full receipt</Link></div>
+    <ReceiptControls token={pay.token} number={pay.receiptNo}/>
+  </div></article></div></BarePage>;
+
+  const tag: DocTag =
+    gone ? { text: "Reversed", tone: "bad" }
+      : fullyRefunded ? { text: "Refunded", tone: "flat" }
+        : refunded > 0 ? { text: "Part refunded", tone: "warn" }
+          : remaining > 0 ? { text: "Part payment", tone: "warn" }
+            : { text: "Paid", tone: "good" };
 
   return (
     <DocumentShell
@@ -76,6 +84,7 @@ export default async function PublicReceipt({
       number={pay.receiptNo}
       url={receiptUrl(pay.token)}
       qrLabel={`Reopen receipt ${pay.receiptNo}`}
+      tag={tag}
       /* THE STAMP TELLS THE TRUTH ABOUT THIS RECEIPT, not about the studio's
          hopes for it. A reversed payment keeps its receipt and its number --
          the client may be holding a printout -- so the document stays live and
@@ -91,46 +100,28 @@ export default async function PublicReceipt({
       }
     >
 
-      <ReceiptControls token={pay.token} />      {gone ? (
-        <p className="doc__void" role="status">
-          <b>Payment reversed.</b>{gone.reason ? ` ${gone.reason}` : ""}
-        </p>
+      {gone ? (
+        <DocNote tone="warn"><b>Payment reversed.</b>{gone.reason ? ` ${gone.reason}` : ""}</DocNote>
+      ) : fullyRefunded ? (
+        <DocNote tone="warn">This payment was refunded in full on {docDay(refunds[refunds.length - 1].at)}. It reaches the bank in the usual time.</DocNote>
+      ) : refunded > 0 ? (
+        <DocNote tone="warn">{naira(refunded)} of this payment was refunded. The net payment is {naira(net)}.</DocNote>
+      ) : remaining > 0 ? (
+        <DocNote tone="warn">This is a part payment. {naira(remaining)} is still open on the invoice.</DocNote>
       ) : null}
 
-      <Headline
-        currency={currencyOf(inv)}
-        label={
-          gone ? "Reversed, originally received"
-            : fullyRefunded ? "Refunded, originally received"
-              : "Amount received"
-        }
-        amount={pay.amount}
-        clear={!gone && !refunded}
-        pill={
-          gone
-            ? { text: `Reversed ${new Date(gone.at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`, tone: "bad" }
-            : fullyRefunded
-              ? { text: "Returned in full", tone: "bad" }
-              : refunded > 0
-                ? { text: `${naira(refunded)} refunded · ${naira(net)} net payment`, tone: "warn" }
-                : remaining > 0
-                  ? { text: `${naira(remaining)} invoice balance`, tone: "warn" }
-                  : { text: "Invoice paid", tone: "good" }
-        }
-      />
-
-      <dl className="doc__meta">
+      <dl className="doc__meta docMetaG">
         <div>
           <dt>Received from</dt>
-          <dd>{client?.company ?? "–"}</dd>
+          <dd><strong>{client?.company ?? "–"}</strong></dd>
         </div>
         <div>
           <dt>Payment date</dt>
-          <dd>{new Date(pay.at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}</dd>
+          <dd>{docTime(pay.at)}</dd>
         </div>
         <div>
-          <dt>Payment method</dt>
-          <dd>{pay.method}</dd>
+          <dt>Paid with</dt>
+          <dd><strong>{pay.method}</strong></dd>
         </div>
         <div>
           <dt>Invoice</dt>
@@ -148,7 +139,7 @@ export default async function PublicReceipt({
           {/* THE REFERENCE IS SHOWN ON PURPOSE. It is the one field that ties
               this row to the bank's or the provider's, and it is what either
               side quotes when a payment has to be traced. */}
-          <dt>Reference</dt>
+          <dt>Provider reference</dt>
           <dd>{pay.reference}</dd>
         </div>
       </dl>
@@ -171,7 +162,7 @@ export default async function PublicReceipt({
               <tbody>
                 {refunds.map((r) => (
                   <tr key={r.id}>
-                    <td className="n">{new Date(r.at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</td>
+                    <td className="n">{docDay(r.at)}</td>
                     <td>{r.reason}</td>
                     <td>
                       {r.toCredit ? "Client credit" : "Bank refund"}
@@ -192,14 +183,14 @@ export default async function PublicReceipt({
         </>
       ) : null}
 
-      <div className="doc__scroll">
+      <div className="doc__scroll" tabIndex={0} aria-label="Invoice position, scrolls sideways">
         <table className="doc__lines">
           <thead>
-            <tr><th>Invoice</th><th className="n">Total</th><th className="n">Paid to date</th><th className="n">Outstanding</th></tr>
+            <tr><th scope="col">Description</th><th scope="col" className="n">Invoice total</th><th scope="col" className="n">Paid to date</th><th scope="col" className="n">Outstanding</th></tr>
           </thead>
           <tbody>
             <tr>
-              <td>{inv.number}</td>
+              <td><strong>Payment against invoice {inv.number}</strong></td>
               <td className="n">{naira(t.total)}</td>
               <td className="n">{naira(inv.paid)}</td>
               <td className="n">{naira(remaining)}</td>
@@ -207,6 +198,16 @@ export default async function PublicReceipt({
           </tbody>
         </table>
       </div>
+      <DocTotals
+        rows={[
+          ...(refunded > 0 ? [{ k: "Received", v: naira(pay.amount) }, { k: "Refunded", v: `−${naira(refunded)}` }] : []),
+          ...(remaining > 0 ? [{ k: "Still open on the invoice", v: naira(remaining) }] : []),
+          { k: gone ? "Reversed, was received" : refunded > 0 ? "Net payment" : "Amount paid", v: naira(gone ? pay.amount : refunded > 0 ? net : pay.amount), strong: true },
+        ]}
+      />
+
+      <ReceiptControls token={pay.token} number={pay.receiptNo} />
+      <p className="doc__hint">Keep this receipt for your records. It is a valid proof of payment.</p>
     </DocumentShell>
   );
 }
