@@ -19,7 +19,7 @@
   color: var(--ad-dim); text-decoration: none; font-weight: 500;
 }
 .adSet__nav a:hover { background: var(--ad-bg); color: var(--ad-ink); }
-.adSet__nav a[aria-current="page"] { background: var(--ad-nav-on); color: var(--ad-navy); font-weight: 600; }
+.adSet__nav a[aria-current="page"] { background: var(--ad-nav-on); color: var(--ad-nav-on-ink); font-weight: 600; }
 .dark .adSet__nav a[aria-current="page"] { color: #fff; }
 .adSet__nav a[aria-current="page"]::before {
   content: ""; position: absolute; left: -.75rem; top: .6rem; bottom: .6rem; width: 4px; border-radius: 0 4px 4px 0; background: var(--ad-accent-fill);

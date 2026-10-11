@@ -16,8 +16,8 @@ export function toast(text: string, tone: Toast["tone"] = "good", action?: Toast
 /**
  * THE TOASTS (the owner's ask: a success says so, visibly, after every action).
  * One host per shell, at the foot of the screen and above the phone's tab bar.
- * Each stays four seconds, longer while the pointer or focus is on it, and has
- * a close button. Hidden from screen readers on purpose: the form that raised
+ * Each stays five seconds (eight with Undo), longer while the pointer or focus
+ * is on it, shows its remaining time as a bar, and has a close button. Hidden from screen readers on purpose: the form that raised
  * it already announces the same words (components/admin/form.tsx), and saying
  * it twice is noise.
  */
@@ -31,8 +31,8 @@ export function ToastHost() {
       const { text, tone, action } = (e as CustomEvent<Omit<Toast, "id">>).detail;
       const id = ++next.current;
       setItems((list) => [...list.slice(-2), { id, text, tone, action }]);
-      /* Longer when it offers Undo: there has to be time to reach it. */
-      timers.current.set(id, window.setTimeout(() => dismiss(id), action ? 8000 : 4000));
+      /* Five seconds, eight when it offers Undo: there has to be time to reach it. */
+      timers.current.set(id, window.setTimeout(() => dismiss(id), action ? 8000 : 5000));
     };
     const all = timers.current;
     window.addEventListener(EVENT, on);
@@ -62,6 +62,7 @@ export function ToastHost() {
                onFocus={() => hold(t.id)} onBlur={() => release(t.id)}>
             <CheckCircle2 aria-hidden="true" />
             <span>{t.text}</span>
+            <i className="adToast__bar" style={{ animationDuration: "8s" }} aria-hidden="true" />
             <span className="adToast__acts">
               <button type="button" className="adToast__act" onClick={() => { t.action!.run(); dismiss(t.id); }}>{t.action!.label}</button>
               <button type="button" className="adToast__x" aria-label="Dismiss" onClick={() => dismiss(t.id)}><X aria-hidden="true" /></button>
@@ -76,6 +77,7 @@ export function ToastHost() {
              onPointerEnter={() => hold(t.id)} onPointerLeave={() => release(t.id)}>
           {t.tone === "good" ? <CheckCircle2 /> : <CircleAlert />}
           <span>{t.text}</span>
+          <i className="adToast__bar" style={{ animationDuration: "5s" }} aria-hidden="true" />
           <button type="button" tabIndex={-1} className="adToast__x" onClick={() => dismiss(t.id)}><X /></button>
         </div>
       ))}

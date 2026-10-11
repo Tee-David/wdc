@@ -15,11 +15,15 @@ import { DismissDetails } from "./dismiss-details";
  *
  * `href` builds the address for a change; the page owns its own query.
  */
-export const PER_PAGE_OPTIONS = [10, 25, 50, 100, 250] as const;
+export const PER_PAGE_OPTIONS = [5, 10, 20] as const;
+/** "View all": a page size no list reaches, so the whole list shows on one page. */
+export const VIEW_ALL = 1000;
 
-export function readPer(value: string | string[] | undefined, fallback = 25) {
-  const n = Number(Array.isArray(value) ? value[0] : value);
-  return (PER_PAGE_OPTIONS as readonly number[]).includes(n) ? n : fallback;
+export function readPer(value: string | string[] | undefined, fallback = 5) {
+  const raw = Array.isArray(value) ? value[0] : value;
+  if (raw === "all") return VIEW_ALL;
+  const n = Number(raw);
+  return n === VIEW_ALL || (PER_PAGE_OPTIONS as readonly number[]).includes(n) ? n : fallback;
 }
 
 export function Pager({
@@ -47,8 +51,8 @@ export function Pager({
       <span className="ad__pgRange ad__num">{first}–{last} of {total} {noun}</span>
       {perOptions.length ? (
         <DismissDetails className="ad__perPage">
-          <summary aria-label={`Rows per page, ${per}`}>
-            {per} per page <ChevronDown aria-hidden="true" />
+          <summary aria-label={`Rows per page, ${per >= VIEW_ALL ? "all" : per}`}>
+            {per >= VIEW_ALL ? "View all" : `${per} per page`} <ChevronDown aria-hidden="true" />
           </summary>
           <div className="ad__perMenu">
             {perOptions.map((n) => (
@@ -56,6 +60,9 @@ export function Pager({
                 {n} per page
               </Link>
             ))}
+            {perOptions === PER_PAGE_OPTIONS ? (
+              <Link href={href({ per: VIEW_ALL, page: 1 })} aria-current={per >= VIEW_ALL ? "true" : undefined}>View all</Link>
+            ) : null}
           </div>
         </DismissDetails>
       ) : <span />}
