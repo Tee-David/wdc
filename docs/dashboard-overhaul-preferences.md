@@ -74,6 +74,8 @@ Related: `docs/audits/dashboard-overhaul-ui-audit.md`, `docs/audits/dashboard-ov
 - Sensitive actions confirm, with nuance: some confirm, some get an Undo window, some neither. Irreversible ones also need "I understand". Approving a post confirms.
 - Files open with a real preview inside the app (PDF and image), with download and print.
 - Posts can be previewed and acted on individually: comment, request changes, approve.
+- A small confirmation opened from a sheet (approve one post, ask a question) returns to that sheet when it is done. A confirmation that finishes the task closes the whole stack.
+- A toast never covers an open sheet's buttons: beside a side sheet it centres in the space left; above a bottom sheet it moves to the top.
 
 ## Motion
 
@@ -89,7 +91,7 @@ Related: `docs/audits/dashboard-overhaul-ui-audit.md`, `docs/audits/dashboard-ov
 - "Tour this page" opens a chooser: tour this page or full walkthrough.
 - Model the behaviour on React Joyride as used in litchconsulting: scroll to target, scroll offset, spotlight on the target, placement that adapts, block interaction outside the target, the tooltip follows the page as it scrolls so target and card stay visible together.
 - Spotlight: a white, subtly flowing shimmer ring traces the target's edges; no orange outline. Blur and dim everything else.
-- The tour card never overlaps or crowds the target, and nothing touches the edges awkwardly.
+- The tour card never overlaps or crowds the target, and nothing touches the edges awkwardly. A target taller than the screen is spotlit only where it is visible.
 - The tour card can use animated SVG illustrations instead of plain step counts.
 - Keyboard: arrows and Esc. Persist completion per user and tour version.
 
@@ -102,5 +104,11 @@ Related: `docs/audits/dashboard-overhaul-ui-audit.md`, `docs/audits/dashboard-ov
 
 - Every action has its follow-through. "Draft quote" opens the real quote flow (or saves a draft and says where to find it); "Set follow up" asks when and how and creates it. Think through the tens of nuances and make everything connect.
 - Toasts confirm what happened and where to find it. External messages send after a short countdown with Undo.
+- Something already confirmed in a sheet (a quote sent, a reminder sent) does not offer Undo afterwards; the confirmation was the safeguard. Undo is for quick actions taken without one. Undo toasts stay 8 seconds, plain toasts 5, both with a visible timer.
+- Payments: Paystack or Flutterwave, chosen in the sheet. Initialising shows its steps; success rolls out the receipt and plays the confetti; a decline says nothing was taken and offers the other provider or help. Closing mid-payment keeps checking and emails the result. A paid invoice cannot be paid twice.
 - Notifications: email matters most because many clients never sign in; PWA push and in-app as well, all switchable by the recipient.
 - Gates: Core Web Vitals, accessibility, SEO, agentic browsing.
+
+## Prototype source
+
+- The boards are built from one shared kit in `docs/dashboard-overhaul/kit/` (styles, shell, sheets, behaviour) plus a module per page, assembled by `build.py`. A correction goes into the kit once and lands on every page. The implementation follows the kit's patterns, not its prototype data.

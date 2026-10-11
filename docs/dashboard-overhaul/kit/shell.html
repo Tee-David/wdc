@@ -1,0 +1,220 @@
+<div class="{{rootCls}}" onClick="{{rootClick}}">
+  <div class="pvbar" role="toolbar" aria-label="Preview controls">
+    <span>Preview</span>
+    <div class="seg" role="group" aria-label="Screen size" style="--n: 3; --i: {{devI}}">
+      <span class="pill" aria-hidden="true"></span>
+      <sc-for list="{{devs}}" as="d" hint-placeholder-count="3"><button class="{{d.cls}}" aria-pressed="{{d.pressed}}" onClick="{{d.pick}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="{{d.d}}"></path></svg><span class="hideS">{{d.label}}</span></button></sc-for>
+    </div>
+    <div class="seg" role="group" aria-label="Role" style="--n: 3; --i: %%ROLEI%%">
+      <span class="pill" aria-hidden="true"></span>
+      <a href="%%HOME_ADMIN%%" class="%%ON_ADMIN%%">Owner</a>
+      <a href="%%HOME_STAFF%%" class="%%ON_STAFF%%">Staff</a>
+      <a href="%%HOME_CLIENT%%" class="%%ON_CLIENT%%">Client</a>
+    </div>
+    <button class="btn2" style="min-height: 38px" onClick="{{replaySkeleton}}">Show loading state</button>
+    <span class="num">{{devNote}}</span>
+  </div>
+
+  <div class="device {{deviceCls}}" style="width: {{devW}}; height: {{devH}}; max-width: 100%; --devH: {{devH}}">
+    <div class="scroller" id="scroller">
+      <div class="shell">
+        <aside class="side {{miniCls}}" aria-label="Main" data-tour="nav">
+          <div class="sideIn">
+            <div style="display: flex; align-items: center; gap: 10px; padding: 2px 4px; justify-content: center">
+              <img src="/_blob/8d65e7a72e711a196a8037a890959edf" width="40" height="40" alt="WDC" style="border-radius: 50%; border: 1px solid var(--line); flex: none">
+              <span class="lbl" style="display: flex; flex-direction: column; min-width: 0; flex: 1"><span class="disp" style="font-size: 16px; font-weight: 700">{{brand.name}}</span><span style="font-size: 12px; color: var(--dim)">{{brand.sub}}</span></span>
+            </div>
+            <div class="sideScroll">
+              <nav class="nav" aria-label="Pages" style="display: flex; flex-direction: column; gap: 2px">
+                <sc-for list="{{nav}}" as="n" hint-placeholder-count="6">
+                  <a href="{{n.href}}" class="tip {{n.cls}}" data-tip="{{n.label}}" aria-current="{{n.current}}" aria-label="{{n.aria}}" onClick="{{n.go}}">
+                    <span style="position: relative; display: inline-flex"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path pathLength="1" d="{{n.d}}"></path></svg><sc-if value="{{n.hasCount}}" hint-placeholder-val="{{ false }}"><span class="tag num navCount" style="background: {{n.tone}}">{{n.count}}</span></sc-if></span>
+                    <span class="lbl" style="flex: 1">{{n.label}}</span>
+                  </a>
+                </sc-for>
+              </nav>
+              %%SIDECARD%%
+            </div>
+            <div class="sideFoot" data-tour="foot">
+              <sc-if value="{{showInstall}}" hint-placeholder-val="{{ true }}">
+                <div class="installC lbl">
+                  <button class="xmini" aria-label="Hide the install card" onClick="{{hideInstall}}"><svg class="ic" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+                  <span style="display: flex; gap: 10px; align-items: center; padding-right: 26px"><span style="width: 34px; height: 34px; border-radius: 10px; background: var(--brand); color: #fff; display: flex; align-items: center; justify-content: center; flex: none"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 2h8a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM11 18h2"></path></svg></span><strong style="font-size: 13px; line-height: 1.3">{{installTitle}}</strong></span>
+                  <sc-if value="{{installing}}" hint-placeholder-val="{{ false }}"><span style="font-size: 12px; color: var(--dim)">Adding WDC to this device…</span><span class="instBar"><span></span></span></sc-if>
+                  <sc-if value="{{installIdle}}" hint-placeholder-val="{{ true }}"><span style="font-size: 12px; color: var(--dim)">{{installBody}}</span><button class="btn2" style="min-height: 40px" onClick="{{installApp}}">Install app</button></sc-if>
+                </div>
+                <button class="ibtn railOnly tip" data-tip="Install app" aria-label="Install app" onClick="{{installApp}}" style="align-self: center"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 2h8a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM11 18h2"></path></svg></button>
+              </sc-if>
+              <div class="footRow">
+                <button class="footBtn tip" data-tip="Tour this page" aria-label="Tour this page" onClick="{{startTour}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM16.24 7.76l-2.12 6.36-6.36 2.12 2.12-6.36z"></path></svg><span class="lbl">Tour</span></button>
+                <button class="footBtn tip" data-tip="{{themeLabel}}" aria-label="{{themeLabel}}" onClick="{{toggleTheme}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="{{themeIcon}}"></path></svg><span class="lbl">{{themeShort}}</span></button>
+                <button class="footBtn collapseB lbl tip" data-tip="Collapse menu" aria-label="Collapse menu" onClick="{{toggleMini}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M3 5h18v14H3zM9 5v14M15 10l-2 2 2 2"></path></svg></button>
+                <button class="footBtn railOnly tip" data-tip="Expand menu" aria-label="Expand menu" onClick="{{expandSide}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M3 5h18v14H3zM9 5v14M13 10l2 2-2 2"></path></svg></button>
+              </div>
+              <div class="profile">
+                <span class="av0" style="background: {{me.tone}}">{{me.i}}</span>
+                <span class="lbl" style="display: flex; flex-direction: column; min-width: 0; flex: 1"><strong style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{me.name}}</strong><span style="font-size: 12px; color: var(--dim)">{{me.role}}</span></span>
+                <button class="ibtn tip signOut" data-tip="Sign out" aria-label="Sign out" onClick="{{signOut}}" style="width: 40px; height: 40px; color: var(--badInk)"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"></path></svg></button>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+          <header class="topbar">
+            <button class="ibtn menuBtn" aria-label="Open the menu" data-tour="menu" onClick="{{openDrawer}}"><svg class="hotdog" viewBox="0 0 49 36" width="22" height="16" fill="currentColor" aria-hidden="true" focusable="false"><path class="bun bunT" d="M9 7V5.5A5.5 5.5 0 0 1 14.5 0h19A5.5 5.5 0 0 1 39 5.5V7z"></path><rect class="dog" x="0" y="14" width="49" height="8" rx="4"></rect><path class="bun bunB" d="M9 29v1.5a5.5 5.5 0 0 0 5.5 5.5h19a5.5 5.5 0 0 0 5.5-5.5V29z"></path></svg></button>
+            <span class="showS disp pgTitle">{{pageTitle}}</span>
+            <button class="btn2 hideS searchBtn" data-tour="search" onClick="{{openPal}}" aria-label="Search. Shortcut Ctrl K">
+              <svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"></path></svg>
+              <span style="flex: 1; overflow: hidden; text-overflow: ellipsis">{{searchHint}}</span>
+              <span class="tag" style="background: var(--flat); color: var(--onflat)">Ctrl K</span>
+            </button>
+            <span style="flex: 1"></span>
+            <button class="ibtn showS" aria-label="Search" data-tour="searchS" onClick="{{openPal}}"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"></path></svg></button>
+            <button class="ibtn bell" data-tour="bell" aria-label="{{bellLabel}}" aria-expanded="{{bellExp}}" onClick="{{toggleBell}}">
+              <svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
+              <sc-if value="{{hasUnread}}" hint-placeholder-val="{{ true }}"><span class="tag num" style="position: absolute; top: -6px; right: -6px; height: 20px; min-width: 20px; padding: 0 6px; justify-content: center; background: var(--bad); color: #fff">{{unread}}</span></sc-if>
+            </button>
+            %%HEADACT%%
+          </header>
+
+          <main id="main" class="mainPad">
+            %%MAIN%%
+          </main>
+        </div>
+      </div>
+    </div>
+
+    <sc-if value="{{popOpen}}" hint-placeholder-val="{{ false }}">
+      <sc-if value="{{popAsMenu}}" hint-placeholder-val="{{ true }}">
+        <div class="menuF" data-menu="pop" role="menu" aria-label="{{pop.label}}" style="left: {{pop.x}}px; top: {{pop.y}}px; width: {{pop.w}}px; transform-origin: {{pop.origin}}">
+          %%POPBODY%%
+        </div>
+      </sc-if>
+      <sc-if value="{{popAsSheet}}" hint-placeholder-val="{{ false }}">
+        <div class="scrim" onClick="{{closePop}}"></div>
+        <div class="mSheet" data-menu="pop" role="menu" aria-label="{{pop.label}}">
+          <span class="grabZone" style="display: block" onPointerDown="{{grabPop}}"><span class="grab"></span></span>
+          <span class="mHead">{{pop.label}}</span>
+          <div class="mBody">%%POPBODY%%</div>
+        </div>
+      </sc-if>
+    </sc-if>
+
+    <sc-if value="{{drawer}}" hint-placeholder-val="{{ false }}">
+      <div class="scrim" onClick="{{closeDrawer}}"></div>
+      <aside class="drawerP" aria-label="Menu">
+        <div class="drawHead">
+          <img src="/_blob/8d65e7a72e711a196a8037a890959edf" width="38" height="38" alt="WDC" style="border-radius: 50%; border: 1px solid var(--line)">
+          <span class="disp" style="font-weight: 700; flex: 1">{{brand.name}}</span>
+          <button class="ibtn xBtn" aria-label="Close the menu" onClick="{{closeDrawer}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+        </div>
+        <div class="drawScroll">
+          <nav class="nav" aria-label="Pages" style="display: flex; flex-direction: column; gap: 2px">
+            <sc-for list="{{nav}}" as="n" hint-placeholder-count="6"><a href="{{n.href}}" class="{{n.cls}}" aria-current="{{n.current}}" onClick="{{n.go}}"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path pathLength="1" d="{{n.d}}"></path></svg><span style="flex: 1">{{n.label}}</span><sc-if value="{{n.hasCount}}" hint-placeholder-val="{{ false }}"><span class="tag num" style="background: {{n.tone}}; color: #fff">{{n.count}}</span></sc-if></a></sc-for>
+          </nav>
+        </div>
+        <div class="drawFoot">
+          <sc-if value="{{showInstall}}" hint-placeholder-val="{{ true }}"><div style="display: flex; gap: 6px"><button class="btn2" style="flex: 1; justify-content: flex-start" onClick="{{installApp}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 2h8a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM11 18h2"></path></svg>Install the app</button><button class="ibtn xBtn" aria-label="Hide the install prompt" onClick="{{hideInstall}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></div></sc-if>
+          <div class="footRow">
+            <button class="footBtn" onClick="{{startTour}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM16.24 7.76l-2.12 6.36-6.36 2.12 2.12-6.36z"></path></svg>Tour this page</button>
+            <button class="footBtn" aria-label="{{themeLabel}}" onClick="{{toggleTheme}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="{{themeIcon}}"></path></svg>{{themeLong}}</button>
+          </div>
+          <div class="profile">
+            <span class="av0" style="background: {{me.tone}}">{{me.i}}</span>
+            <span style="display: flex; flex-direction: column; min-width: 0; flex: 1"><strong>{{me.name}}</strong><span style="font-size: 12px; color: var(--dim)">{{me.role}}</span></span>
+            <button class="ibtn signOut" aria-label="Sign out" onClick="{{signOut}}" style="width: 40px; height: 40px; color: var(--badInk)"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"></path></svg></button>
+          </div>
+        </div>
+      </aside>
+    </sc-if>
+
+    %%SHEET%%
+
+    <sc-if value="{{bellOpen}}" hint-placeholder-val="{{ false }}">
+      <div class="scrim" style="background: transparent" onClick="{{toggleBell}}"></div>
+      <section class="popP" role="dialog" aria-label="Notifications">
+        <span class="grabZone"><span class="grab"></span></span>
+        <div style="display: flex; align-items: center; gap: 10px; padding: 14px 16px 8px"><h2 style="font-size: 17px; font-weight: 700; flex: 1">Notifications</h2><button class="lnk" onClick="{{markAll}}">Mark all read</button></div>
+        <div style="padding: 0 16px 8px"><div class="seg" role="group" aria-label="Show" style="--n: 2; --i: {{bellI}}"><span class="pill" aria-hidden="true"></span><button class="{{bAll}}" aria-pressed="{{bAllP}}" onClick="{{tabAll}}">All</button><button class="{{bUn}}" aria-pressed="{{bUnP}}" onClick="{{tabUnread}}">Unread <span class="num">{{unread}}</span></button></div></div>
+        <div style="overflow-y: auto; overscroll-behavior: contain; padding: 0 8px 8px">
+          <sc-for list="{{notes}}" as="n" hint-placeholder-count="5">
+            <button class="rowh rowIn" onClick="{{n.open}}" style="display: flex; gap: 10px; width: 100%; padding: 10px; border-radius: 14px; text-align: left; align-items: flex-start; animation-name: {{n.anim}}; animation-delay: {{n.delay}}">
+              <span style="width: 8px; height: 8px; border-radius: 50%; background: {{n.dotBg}}; margin-top: 12px; flex: none; transition: background .3s"></span>
+              <span class="av0" style="width: 34px; height: 34px; font-size: 11px; background: {{n.tone}}">{{n.i}}</span>
+              <span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><span style="font-weight: {{n.weight}}">{{n.t}}</span><span style="color: var(--dim); font-size: 12px">{{n.when}}</span></span>
+            </button>
+          </sc-for>
+          <sc-if value="{{notesEmpty}}" hint-placeholder-val="{{ false }}"><div style="padding: 26px 12px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; color: var(--dim)"><svg class="ic" viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg><strong style="color: var(--ink)">You have read everything.</strong><span>New alerts land here. The important ones are emailed too.</span></div></sc-if>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-top: 1px solid var(--line); font-size: 13px"><span style="flex: 1; color: var(--dim)">{{pushText}}</span><button class="btn2" style="min-height: 38px" onClick="{{togglePush}}">{{pushBtn}}</button></div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{palOpen}}" hint-placeholder-val="{{ false }}">
+      <div class="scrim blur" onClick="{{closePal}}"></div>
+      <div class="palP" role="dialog" aria-modal="true" aria-label="Search">
+        <label style="display: flex; align-items: center; gap: 10px; padding: 6px 16px; border-bottom: 1px solid var(--line)">
+          <svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" style="color: var(--dim)"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"></path></svg>
+          <span class="sr">Search</span>
+          <input id="palIn" role="combobox" aria-expanded="true" aria-controls="palList" aria-activedescendant="{{palActive}}" value="{{q}}" onChange="{{onQ}}" onKeyDown="{{onPalKey}}" placeholder="{{palHint}}" style="flex: 1; min-width: 0; min-height: 52px; border: 0; background: transparent; font-size: 16px">
+          <button class="tag" style="background: var(--flat); color: var(--onflat)" onClick="{{closePal}}">Esc</button>
+        </label>
+        <div id="palList" role="listbox" aria-label="Results" style="overflow-y: auto; overscroll-behavior: contain; padding: 8px">
+          <sc-for list="{{palGroups}}" as="g" hint-placeholder-count="3">
+            <div role="group" aria-label="{{g.name}}" style="display: flex; flex-direction: column; gap: 2px; margin-bottom: 6px">
+              <span style="font-size: 12px; font-weight: 600; color: var(--dim); padding: 6px 12px 2px">{{g.name}}</span>
+              <sc-for list="{{g.items}}" as="it" hint-placeholder-count="3">
+                <button id="{{it.id}}" role="option" aria-selected="{{it.sel}}" class="palItem rowIn {{it.cls}}" onClick="{{it.pick}}" onMouseMove="{{it.hover}}" style="animation-name: {{it.anim}}; animation-delay: {{it.delay}}">
+                  <span class="av0" style="width: 32px; height: 32px; border-radius: 10px; font-size: 11px; background: {{it.tone}}">{{it.ini}}</span>
+                  <span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><span style="font-weight: 600">{{it.label}}</span><span style="color: var(--dim); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{it.sub}}</span></span>
+                  <svg class="ic go" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="color: var(--dim)"><path d="m9 18 6-6-6-6"></path></svg>
+                </button>
+              </sc-for>
+            </div>
+          </sc-for>
+          <sc-if value="{{palEmpty}}" hint-placeholder-val="{{ false }}"><p class="rowIn" style="padding: 24px 12px; color: var(--dim); animation-name: rinA">Nothing matches "{{q}}". {{palEmptyHint}}</p></sc-if>
+        </div>
+        <div class="hideS" style="display: flex; gap: 16px; padding: 10px 16px; border-top: 1px solid var(--line); color: var(--dim); font-size: 12px"><span>Up and down to move</span><span>Enter to open</span><span>Esc to close</span></div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{tourOn}}" hint-placeholder-val="{{ false }}">
+      <div class="tourMask" aria-hidden="true">
+        <span class="tmP" id="tmT" onClick="{{tourBlock}}"></span><span class="tmP" id="tmB" onClick="{{tourBlock}}"></span><span class="tmP" id="tmL" onClick="{{tourBlock}}"></span><span class="tmP" id="tmR" onClick="{{tourBlock}}"></span>
+      </div>
+      <div class="tourRing" id="tRing" aria-hidden="true"></div>
+      <div class="tourC" id="tCard" tabindex="-1" role="dialog" aria-label="{{tour.kind}}" aria-live="polite" onKeyDown="{{tourKey}}">
+        <div class="tprog"><span style="width: {{tour.pct}}%"></span></div>
+        <div style="padding: 16px; display: flex; flex-direction: column; gap: 10px">
+          <div style="display: flex; align-items: flex-start; gap: 12px">
+            <span class="tIcon rowIn" style="animation-name: {{tour.anim}}"><svg class="ic" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path pathLength="1" d="{{tour.icon}}"></path></svg></span>
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+              <strong class="disp rowIn" style="font-size: 16px; animation-name: {{tour.anim}}">{{tour.title}}</strong>
+              <span class="num" style="font-size: 12px; color: var(--dim)">{{tour.kind}} · Step {{tour.n}} of {{tour.of}}</span>
+            </span>
+            <button class="ibtn ghostB xBtn" style="width: 36px; height: 36px" onClick="{{tourSkip}}" aria-label="Close the tour"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+          </div>
+          <p class="rowIn" style="font-size: 14px; color: var(--dim); animation-name: {{tour.anim}}">{{tour.body}}</p>
+          <sc-if value="{{tour.hasHint}}" hint-placeholder-val="{{ false }}"><span style="display: flex; gap: 8px; align-items: center; font-size: 13px; font-weight: 600; padding: 8px 10px; border-radius: 12px; background: var(--navon)"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M9 9l5 12 1.8-5.2L21 14 9 9zM7.2 2.2 8 5.1M5.1 8 2.2 7.2M14 4.1 12 6.2M6.2 12l-2.1 2"></path></svg>{{tour.hint}}</span></sc-if>
+          <div style="display: flex; gap: 8px; align-items: center">
+            <span class="hideS" style="font-size: 12px; color: var(--dim)">Arrow keys move, Esc closes</span>
+            <span style="flex: 1"></span>
+            <sc-if value="{{tour.hasBack}}" hint-placeholder-val="{{ false }}"><button class="btn2" style="min-height: 40px" onClick="{{tourBack}}">Back</button></sc-if>
+            <button class="btn" style="min-height: 40px" onClick="{{tourNext}}">{{tour.next}}</button>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{hasToast}}" hint-placeholder-val="{{ false }}">
+      <div class="toastP" role="status" aria-live="polite">
+        <span style="font-weight: 500; padding-right: 4px">{{toastMsg}}</span>
+        <sc-if value="{{hasUndo}}" hint-placeholder-val="{{ false }}"><button onClick="{{undo}}" style="text-decoration: underline; text-underline-offset: 3px">Undo</button></sc-if>
+        <button onClick="{{closeToast}}" aria-label="Dismiss" style="width: 40px; padding: 0; display: flex; align-items: center; justify-content: center"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+        <sc-if value="{{toastAuto}}" hint-placeholder-val="{{ false }}"><span class="tbarL" aria-hidden="true" style="animation-name: {{tbarAnim}}; animation-duration: {{toastDur}}"></span></sc-if>
+      </div>
+    </sc-if>
+    <div class="confL" id="confL" aria-hidden="true"></div>
+  </div>
+</div>

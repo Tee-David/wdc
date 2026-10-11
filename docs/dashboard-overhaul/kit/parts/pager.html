@@ -1,0 +1,11 @@
+<div class="pgFoot">
+                    <span class="pgInfo num">{{KEY.range}}</span>
+                    <nav class="pager" aria-label="LABEL pages">
+                      <button class="pgb" onClick="{{KEY.prev}}" disabled="{{KEY.prevDis}}" aria-label="Previous page"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></button>
+                      <sc-for list="{{KEY.pages}}" as="pg" hint-placeholder-count="3"><sc-if value="{{pg.gap}}" hint-placeholder-val="{{ false }}"><span class="pgGap" aria-hidden="true">…</span></sc-if><sc-if value="{{pg.isNum}}" hint-placeholder-val="{{ true }}"><button class="pgb pgNum {{pg.cls}}" aria-current="{{pg.cur}}" aria-label="{{pg.aria}}" onClick="{{pg.go}}">{{pg.n}}</button></sc-if></sc-for>
+                      <span class="pgCompact num">{{KEY.compact}}</span>
+                      <button class="pgb" onClick="{{KEY.next}}" disabled="{{KEY.nextDis}}" aria-label="Next page"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></button>
+                    </nav>
+                    <span class="pgEnd"><button class="perBtn" data-menu="per" onClick="{{KEY.openPer}}" aria-haspopup="menu">{{KEY.perLabel}}<svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
+                    <button class="lnk viewAll" onClick="{{KEY.all}}">View all<svg class="ic arr" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"></path></svg></button></span>
+                  </div>
