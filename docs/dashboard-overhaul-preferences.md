@@ -12,7 +12,7 @@ Related: `docs/audits/dashboard-overhaul-ui-audit.md`, `docs/audits/dashboard-ov
 4. Design the full prototype artifact (Opus 5.5): every page of every role. Admin first, then staff, then client. Each page intentional. Surgical changes only, nothing done for its own sake.
 5. Implement with two Sonnet agents, carefully, everything wired to real data. Gated on tsc, eslint, build, targeted tests and responsive checks.
 
-Model rule, binding: every agent that designs screens runs on Opus, set explicitly on each agent (never left to the session default). Implementation uses at most two Sonnet agents at a time, also set explicitly.
+Model rule, binding: no agents for design. The main session builds every screen and artifact itself. Never launch parallel agents. If agents are ever approved again: at most 1 Opus agent, at most 2 Sonnet agents, model set explicitly on each. Spend usage carefully; the owner manages session limits.
 
 ## Roles and pages
 
