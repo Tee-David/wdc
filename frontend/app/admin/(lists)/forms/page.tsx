@@ -10,7 +10,10 @@ import { availability, type Availability } from "@/lib/forms/settings-db";
 import { AdminState } from "@/components/admin/admin-state";
 import { Empty, Panel, Tile, when } from "@/components/admin/bits";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
+import { Deck, type DeckItem } from "@/components/admin/deck";
+import { listAll } from "@/lib/forms/all-entries";
 import "@/components/admin/forms/forms.css";
+import "@/components/admin/dashboard.css";
 
 export const metadata = { title: "Forms" };
 
@@ -133,6 +136,26 @@ export default async function FormsPage() {
   const newsletter = FORMS.find((f) => f.source === "newsletter");
   const subs = newsletter ? summaryOf(all, newsletter.key) : null;
   const failed = FORMS.reduce((n, f) => n + summaryOf(all, f.key).noticeProblems, 0);
+  /* WHAT NEEDS YOU: the newest unread entries, oldest of those first, so the
+     one that has waited longest is the card on top. */
+  const recent = state === "ok" ? await listAll({ per: "20" }).then((r) => r.rows).catch(() => []) : [];
+  const deckItems: DeckItem[] = recent.filter((r) => !r.read && !r.draft).slice(0, 8).reverse().map((r) => ({
+    id: `${r.form.key}-${r.id}`,
+    kind: "Entry",
+    tone: "live",
+    urgency: `Received ${when(r.at)}`,
+    label: r.form.title,
+    title: r.name ? `${r.name} sent ${r.form.title.toLowerCase()}` : `New ${r.form.title.toLowerCase()} entry`,
+    body: (r.message || r.topic || "Not read yet.").slice(0, 160),
+    facts: [
+      ...(r.email ? [{ k: "Email", v: r.email }] : []),
+      ...(r.linkedClient ? [{ k: "Client", v: r.linkedClient }] : []),
+    ],
+    why: r.linkedClient ? "Already assigned to a client." : "Nobody has opened it yet.",
+    primary: { label: "Open the entry", href: `/admin/forms/${r.form.key}/entries/${r.id}` },
+    ...(r.email ? { secondary: { label: "Reply by email", href: `mailto:${r.email}` } } : {}),
+    open: `/admin/forms/${r.form.key}/entries/${r.id}`,
+  }));
 
   return (
     <>
@@ -158,17 +181,12 @@ export default async function FormsPage() {
           action={<Link className="ad__btn ad__btn--primary" href="/admin/forms">Try again</Link>}
           secondaryAction={<Link className="ad__btn" href="/admin/settings/system">Check system health</Link>} />
       ) : (
-        <div className="ad__stack">
-          <dl className="ad__tiles ad__tiles--4" style={{ margin: 0 }}>
-            <Tile label="Unread entries" value={String(unread)} icon={Inbox} iconTone="live"
-              note={withUnread ? `Across ${withUnread} form${withUnread === 1 ? "" : "s"}` : "Nothing waiting"} />
-            <Tile label="Entries" value={String(entries)} icon={ClipboardList} href="/admin/forms/all" tour="forms-all-link"
-              note={drafts ? `${drafts} onboarding draft${drafts === 1 ? "" : "s"} in progress` : "No drafts in progress"} />
-            <Tile label="Newsletter" href="/admin/forms/newsletter" value={String(subs?.total ?? 0)} icon={Newspaper} iconTone="good"
-              note={subs?.recent ? `+${subs.recent} in the last 30 days` : "Subscribed"} />
-            <Tile label="Notices that failed" value={String(failed)} icon={MailWarning} iconTone={failed ? "bad" : "good"}
-              note={failed ? "Retry them from the email log" : "Every studio notice went"} />
-          </dl>
+        <div className="adFlow__grid">
+        <div className="adFlow__main">
+          <Deck id="forms" title="Entries waiting" items={deckItems}
+            emptyTitle="Every entry has been read."
+            emptyBody="New entries land here the moment someone sends a form."
+            emptyNext={{ label: "Open all entries", href: "/admin/forms/all" }} />
           <section className="ad__panel"><ListSearch target="forms-lists" placeholder="Search forms" noun="forms" /></section>
           <div className="ad__stack" id="forms-lists">
           <Panel title="Onboarding" dataTour="forms-live">
@@ -191,6 +209,20 @@ export default async function FormsPage() {
           <p className="ad__dim" style={{ margin: 0, fontSize: ".85rem" }}>
             These forms are defined in the site&apos;s code. This is where their entries, and the emails they send, are looked after.
           </p>
+        </div>
+        <aside className="adFlow__rail" aria-label="Form pulse">
+          <div className="adFlow__railHead"><h2>Form pulse</h2></div>
+          <dl className="adFlow__tiles">
+            <Tile label="Unread entries" value={String(unread)} icon={Inbox} iconTone="live"
+              note={withUnread ? `Across ${withUnread} form${withUnread === 1 ? "" : "s"}` : "Nothing waiting"} />
+            <Tile label="Entries" value={String(entries)} icon={ClipboardList} href="/admin/forms/all" tour="forms-all-link"
+              note={drafts ? `${drafts} onboarding draft${drafts === 1 ? "" : "s"} in progress` : "No drafts in progress"} />
+            <Tile label="Newsletter" href="/admin/forms/newsletter" value={String(subs?.total ?? 0)} icon={Newspaper} iconTone="good"
+              note={subs?.recent ? `+${subs.recent} in the last 30 days` : "Subscribed"} />
+            <Tile label="Notices that failed" value={String(failed)} icon={MailWarning} iconTone={failed ? "bad" : "good"}
+              note={failed ? "Retry them from the email log" : "Every studio notice went"} />
+          </dl>
+        </aside>
         </div>
       )}
     </>
