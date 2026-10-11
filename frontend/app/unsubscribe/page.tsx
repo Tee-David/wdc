@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Header } from "@/components/layout/header";
-import { SiteFooter } from "@/components/layout/site-footer";
+import { BarePage, StateCard } from "@/components/layout/bare-page";
 import { unsubscribeTokenValid } from "@/lib/newsletter";
 import { CONTACT_EMAIL } from "@/lib/site";
-import "@/components/preview/preview.css";
-import "@/components/work/work.css";
 
 export const metadata: Metadata = {
   title: "Unsubscribe",
@@ -39,37 +36,32 @@ export default async function UnsubscribePage({ searchParams }: Props) {
   const lede = done
     ? "Nothing else will arrive. If you change your mind, the sign-up box is at the bottom of every page."
     : valid
-      ? `We will stop sending the newsletter to ${email}.`
+      ? `${email} stops getting the studio newsletter. Invoices, receipts and project emails are not part of it and keep coming.`
       : failed
         ? "Something went wrong taking you off the list. Please try the link again in a minute."
         : `The link may be incomplete. Reply to any of our emails, or write to ${CONTACT_EMAIL}, and we will take you off by hand.`;
 
   return (
-    <>
-      <Header overHero />
-      <main id="main" tabIndex={-1} className="flex-1 pv">
-        <section className="wk-hero">
-          <div className="pv-wrap wk-hero__in">
-            <span className="pv-eyebrow">Newsletter</span>
-            <h1 className="pv-mix">{heading}</h1>
-            <p className="pv-lede">{lede}</p>
-          </div>
-        </section>
-        <section className="pv-sec">
-          <div className="pv-wrap">
-            {valid && !done ? (
-              <form method="post" action="/api/newsletter/unsubscribe">
-                <input type="hidden" name="e" value={email} />
-                <input type="hidden" name="t" value={token} />
-                <button className="pv-btn" type="submit">Unsubscribe</button>
-              </form>
-            ) : (
-              <Link className="pv-btn" href="/">Back to the site</Link>
-            )}
-          </div>
-        </section>
-      </main>
-      <SiteFooter />
-    </>
+    <BarePage>
+      <StateCard
+        tone={done ? "good" : valid ? "neutral" : "warn"}
+        icon={done ? "check" : valid ? "mail" : "alert"}
+        title={heading}
+        body={lede}
+      >
+        {valid && !done ? (
+          <>
+            <form method="post" action="/api/newsletter/unsubscribe" className="bareForm">
+              <input type="hidden" name="e" value={email} />
+              <input type="hidden" name="t" value={token} />
+              <button className="bareBtn" type="submit">Unsubscribe</button>
+            </form>
+            <Link className="bareBtn is-2" href="/">Stay subscribed</Link>
+          </>
+        ) : (
+          <Link className="bareBtn" href="/">Back to the site</Link>
+        )}
+      </StateCard>
+    </BarePage>
   );
 }

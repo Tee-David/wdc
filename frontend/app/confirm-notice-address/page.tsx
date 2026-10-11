@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Header } from "@/components/layout/header";
-import { SiteFooter } from "@/components/layout/site-footer";
+import { BarePage, StateCard } from "@/components/layout/bare-page";
 import { pendingNotice } from "@/lib/notice-address";
-import "@/components/preview/preview.css";
-import "@/components/work/work.css";
 
 export const metadata: Metadata = {
   title: "Confirm an address",
@@ -44,30 +41,22 @@ export default async function ConfirmNoticeAddress({ searchParams }: Props) {
           : "It may have expired (links last a day), been replaced by a newer one, or already been used. Ask for a new one from Settings, Email.";
 
   return (
-    <>
-      <Header overHero />
-      <main id="main" tabIndex={-1} className="flex-1 pv">
-        <section className="wk-hero">
-          <div className="pv-wrap wk-hero__in">
-            <span className="pv-eyebrow">Studio email</span>
-            <h1 className="pv-mix">{heading}</h1>
-            <p className="pv-lede">{lede}</p>
-          </div>
-        </section>
-        <section className="pv-sec">
-          <div className="pv-wrap">
-            {waiting ? (
-              <form method="post" action="/api/notice-address/confirm">
-                <input type="hidden" name="t" value={token} />
-                <button className="pv-btn" type="submit">Confirm this address</button>
-              </form>
-            ) : (
-              <Link className="pv-btn" href="/">Back to the site</Link>
-            )}
-          </div>
-        </section>
-      </main>
-      <SiteFooter />
-    </>
+    <BarePage>
+      <StateCard
+        tone={done ? "good" : waiting ? "brand" : "warn"}
+        icon={done ? "check" : waiting ? "mail" : "alert"}
+        title={heading}
+        body={lede}
+      >
+        {waiting ? (
+          <form method="post" action="/api/notice-address/confirm" className="bareForm">
+            <input type="hidden" name="t" value={token} />
+            <button className="bareBtn" type="submit">Confirm this address</button>
+          </form>
+        ) : (
+          <Link className="bareBtn" href="/">Back to the site</Link>
+        )}
+      </StateCard>
+    </BarePage>
   );
 }
