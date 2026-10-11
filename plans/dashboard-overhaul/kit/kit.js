@@ -504,7 +504,7 @@
   roleNav() {
     var I = this.icons(), c = this.navCounts ? this.navCounts() : {};
     var R = {
-      admin: [['Today', I.home, 'D-Admin.dc.html'], ['Clients', I.users, 'A-Clients.dc.html'], ['Projects', I.folder, 'A-Projects.dc.html'], ['Money', I.wallet, 'A-Money.dc.html'], ['Messages', I.msg, 'A-Messages.dc.html'], ['Blog', I.pen, 'A-Blog.dc.html'], ['Settings', I.gear, 'A-Settings.dc.html'], ['Support', I.life, 'A-Support.dc.html', 1]],
+      admin: [['Today', I.home, 'D-Admin.dc.html'], ['Clients', I.users, 'A-Clients.dc.html'], ['Projects', I.folder, 'A-Projects.dc.html'], ['Money', I.wallet, 'A-Money.dc.html'], ['Messages', I.msg, 'A-Messages.dc.html'], ['Marketing', I.mail, 'A-Email.dc.html'], ['Forms', I.inbox, 'A-Forms.dc.html'], ['Blog', I.pen, 'A-Blog.dc.html'], ['Settings', I.gear, 'A-Settings.dc.html'], ['Support', I.life, 'A-Support.dc.html', 1]],
       staff: [['My Day', I.home, 'D-Staff.dc.html'], ['Projects', I.folder, 'S-Projects.dc.html'], ['Clients', I.users, 'S-Clients.dc.html'], ['Messages', I.msg, 'S-Messages.dc.html'], ['Settings', I.gear, 'S-Settings.dc.html'], ['Support', I.life, 'S-Support.dc.html', 1]],
       client: [['Home', I.home, 'D-Client.dc.html'], ['Projects', I.folder, 'C-Projects.dc.html'], ['Billing', I.card, 'C-Billing.dc.html'], ['Messages', I.msg, 'C-Messages.dc.html'], ['Settings', I.gear, 'C-Settings.dc.html'], ['Support', I.life, 'C-Support.dc.html', 1]]
     }[this.role()];

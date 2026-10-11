@@ -21,7 +21,9 @@
     var tag = function (t, rows) { return rows.map(function (x) { return Object.assign({}, x, { tab: t, sched: ['Milestone 2', 'Deposit', 'Retainer'].indexOf(x.status) >= 0 }); }); };
     var over = tag('over', M.over), due = tag('due', M.due), paid = tag('paid', M.paid);
     if (s.gone.match) { var i = due.map(function (r) { return r.no; }).indexOf('INV-26-7HB2QA'); if (i >= 0) { var r = due.splice(i, 1)[0]; paid.unshift(Object.assign({}, r, { tab: 'paid', status: 'Paid', tone: G, date: '9 Oct', method: 'Bank transfer' })); } }
-    return s.newInv.concat(over, due, paid);
+    var self = this, docs = this.sharedDocs(), mine = Object.keys(docs).map(function (k) { return docs[k]; }).filter(function (d) { return d.kind === 'invoice'; }).map(function (d) { return self.docRow(d); }), seen = {}; mine.forEach(function (r) { seen[r.no] = 1; });
+    var rest = over.concat(due, paid).filter(function (r) { return !seen[r.no]; });
+    return mine.concat(s.newInv, rest);
   }
   rcpt(r) {
     var K = { 'INV-26-4WE9KS': 'RCT-2026-041', 'INV-26-1QP7ZM': 'RCT-2026-040', 'INV-26-6NB3XR': 'RCT-2026-039', 'INV-26-7DM1XS': 'RCT-2026-038', 'INV-26-5TY4WC': 'RCT-2026-037', 'INV-26-3MS8QA': 'RCT-2026-036', 'INV-26-2FT7RB': 'RCT-2026-035', 'INV-26-9KD2PL': 'RCT-2026-034', 'INV-26-2GH5TY': 'RCT-2026-033', 'INV-26-8HG1VE': 'RCT-2026-F000123', 'INV-26-6CK8NB': 'RCT-2026-F000118', 'INV-26-7HB2QA': 'RCT-2026-042' };
@@ -38,7 +40,9 @@
       { no: 'EST-2026-010', client: 'Oak and Ivy Interiors', title: 'Website', value: 2600000, sent: '2 May', valid: 'Accepted 12 May', st: 'Accepted', to: 'Temi A.', invoiced: true },
       { no: 'EST-2026-009', client: 'Tunde Okafor Law', title: 'Firm flyers', value: 150000, sent: '24 Sep', valid: 'Accepted 28 Sep', st: 'Accepted', to: 'Tunde O.', invoiced: true }
     ];
-    return s.newQ.concat(B).map(function (q) { return s.qst[q.no] ? Object.assign({}, q, s.qst[q.no]) : q; }).filter(function (q) { return q.st !== 'Withdrawn' || true; });
+    var self = this, docs = this.sharedDocs(), mineQ = Object.keys(docs).map(function (k) { return docs[k]; }).filter(function (d) { return d.kind === 'quote'; }).map(function (d) { return self.docRow(d); }), seenQ = {}; mineQ.forEach(function (r) { seenQ[r.no] = 1; });
+    B = B.filter(function (q) { return !seenQ[q.no]; });
+    return mineQ.concat(s.newQ, B).map(function (q) { return s.qst[q.no] ? Object.assign({}, q, s.qst[q.no]) : q; }).filter(function (q) { return q.st !== 'Withdrawn' || true; });
   }
   paymentsAll() {
     var self = this, s = this.state, G = 'var(--ad-tone-good)';
@@ -78,7 +82,7 @@
         match: function (r) { return (r.no + ' ' + r.client).toLowerCase(); },
         cols: [{ t: 'Invoice' }, { t: 'Amount', cls: 'r' }, { t: 'Due or paid' }, { t: 'Status' }, { t: 'Method' }],
         cells: function (r) { return [two(r.no, r.client, { tcls: 'num' }), one(r.amount, { cls: 'r', tcls: 'num', fw: 600 }), one(r.date), tg(r.status, r.tone), one(r.method, { col: 'var(--ad-dim)' })]; },
-        id: function (r) { return r.no; }, open: function (r) { self.open(self.invSheet(r)); }, menu: function (r) { return self.rowActions(r, r.tab); }, aria: function (r) { return r.no + ', ' + r.client + ', ' + r.amount + ', ' + r.status; },
+        id: function (r) { return r.no; }, open: function (r) { self.goDoc(r.no); }, menu: function (r) { return self.rowActions(r, r.tab); }, aria: function (r) { return r.no + ', ' + r.client + ', ' + r.amount + ', ' + r.status; },
         emptyTitle: 'No invoices here.', emptyBody: 'Nothing matches this filter. Bill a client with New invoice.' };
     }
     if (s.tab === 'quotes') {
@@ -88,7 +92,7 @@
         match: function (r) { return (r.no + ' ' + r.client + ' ' + r.title).toLowerCase(); },
         cols: [{ t: 'Quote' }, { t: 'Value', cls: 'r' }, { t: 'Sent' }, { t: 'Status' }, { t: 'Valid until' }],
         cells: function (r) { var tone = r.st === 'Accepted' ? G : (r.st === 'Opened' ? W : (r.st === 'Withdrawn' ? 'var(--ad-tone-flat)' : F)); return [two(r.no, r.client + ' · ' + r.title, { tcls: 'num' }), one(self.ngn(r.value), { cls: 'r', tcls: 'num', fw: 600 }), one(r.sent), tg(r.st === 'Opened' ? 'Opened 3 times' : r.st, tone), one(r.valid, { col: 'var(--ad-dim)' })]; },
-        id: function (r) { return r.no; }, open: function (r) { self.open(self.quoteSheet(r)); }, menu: function (r) { return self.quoteActions(r); }, aria: function (r) { return r.no + ', ' + r.client + ', ' + self.ngn(r.value) + ', ' + r.st; },
+        id: function (r) { return r.no; }, open: function (r) { self.goDoc(r.no); }, menu: function (r) { return self.quoteActions(r); }, aria: function (r) { return r.no + ', ' + r.client + ', ' + self.ngn(r.value) + ', ' + r.st; },
         emptyTitle: 'No quotes here.', emptyBody: 'Build one from the price list with New quote.' };
     }
     if (s.tab === 'payments') {
@@ -98,7 +102,7 @@
         match: function (r) { return (r.ref + ' ' + r.client).toLowerCase(); },
         cols: [{ t: 'Payment' }, { t: 'Amount', cls: 'r' }, { t: 'Received' }, { t: 'Status' }, { t: 'Paid with' }],
         cells: function (r) { return [two(r.ref, r.client, { tcls: 'num' }), one(r.amount, { cls: 'r', tcls: 'num', fw: 600 }), one(r.date), tg(r.status, r.tone), one(r.via, { col: 'var(--ad-dim)' })]; },
-        id: function (r) { return r.id; }, open: function (r) { if (r.unmatched) self.open(self.sheets().match); else self.open(self.invSheet(r.inv)); }, menu: function (r) { return self.paymentActions(r); }, aria: function (r) { return r.ref + ', ' + r.client + ', ' + r.amount + ', ' + r.status; },
+        id: function (r) { return r.id; }, open: function (r) { if (r.unmatched) self.open(self.sheets().match); else self.goDoc(r.inv.no); }, menu: function (r) { return self.paymentActions(r); }, aria: function (r) { return r.ref + ', ' + r.client + ', ' + r.amount + ', ' + r.status; },
         emptyTitle: 'No payments here.', emptyBody: 'Payments from Paystack, Flutterwave and the bank land here.' };
     }
     if (s.tab === 'payouts') {
@@ -199,7 +203,7 @@
   }
   quoteActions(q) {
     var self = this, I = this.icons(), it = this.menuItem.bind(this), out = [];
-    out.push(it('Open quote', I.open, function () { self.open(self.quoteSheet(q)); }));
+    out.push(it('Open quote', I.open, function () { self.goDoc(q.no); }));
     if (q.st === 'Draft') { out.push(it('Edit and send', I.quote, function () { self.editQuote(q); })); out.push(this.menuSep()); out.push(it('Delete draft…', I.trash, function () { self.dropQuote(q); }, { danger: true })); return out; }
     if (q.st === 'Sent' || q.st === 'Opened') {
       out.push(it('Send a reminder', I.mail, function () { self.say('Reminder sent to ' + q.to + '.', { delay: 8, pending: function (n) { return 'Sending a reminder in ' + n + 's'; } }); }));
@@ -211,38 +215,9 @@
     if (q.st === 'Accepted') { if (!(self.state.qst[q.no] && self.state.qst[q.no].invoiced) && !q.invoiced) out.push(it('Create deposit invoice', I.file, function () { self.depositInvoice(q); })); out.push(it('Preview the PDF', I.eye, function () { self.openFile({ name: q.no + '.pdf', project: q.client, view: 'doc', ref: q.no, docTitle: 'Quote · ' + self.ngn(q.value), when: q.sent, size: '210 KB', tone: 'var(--ad-tone-bad)' }); })); }
     return out;
   }
-  editQuote(q) {
-    var self = this, base = this.quote();
-    this.openQuote({ client: q.client, contact: q.to.split(' ')[0], to: q.to, title: q.title, budget: q.client === 'Zara Events' ? base.budget : null, lines: base.lines }, function (T) {
-      var m = Object.assign({}, self.state.qst); m[q.no] = { st: 'Sent', sent: 'Today', valid: '24 Oct', value: T.total }; self.setState({ qst: m, tab: 'quotes', chip: 'all', mpage: 0, ra: self.state.ra + 1 });
-      self.say(q.no + ' for ' + self.ngn(T.total) + ' sent to ' + q.to + '. We tell you when it is opened.');
-    });
-  }
-  newQuote() {
-    var self = this, I = this.icons(), cs = this.clientsData().filter(function (c) { return c.status !== 'past'; });
-    this.open(this.sh({ eyebrow: 'New quote', title: 'Who is it for?', icon: I.quote, body: 'Pick the client or lead. The quote builder opens next, with the price list.', listTitle: 'Clients and leads', select: true, searchPh: 'Search clients and leads', create: this.clientCreate('Add a new client'), list: cs.map(function (c) { return { t: c.name, s: c.contact + (c.status === 'lead' ? ' · lead' : ' · client'), ini: c.ini, av: c.tone, ref: c, k: c.email + ' ' + c.phone }; }), selectWhy: 'Choose who the quote is for.',
-      primary: function (ctx) { return ctx.item ? 'Build the quote for ' + ctx.item.ref.name : 'Build the quote'; }, secondary: 'Cancel',
-      onPrimary: function (ctx) { var c = ctx.item.ref, n = 'EST-2026-0' + (15 + self.state.newQ.length), base = self.quote();
-        setTimeout(function () { self.landClient(c); self.openQuote({ client: c.name, contact: c.contact.split(' ')[0], to: c.contact + ' · ' + c.email, title: c.services[0] || 'Project', budget: null, lines: base.lines.map(function (l) { return Object.assign({}, l, { on: false }); }) }, function (T) {
-          var row = { no: n, client: c.name, title: c.services[0] || 'Project', value: T.total, sent: 'Today', valid: '24 Oct', st: 'Sent', to: c.contact };
-          self.setState({ newQ: [row].concat(self.state.newQ), tab: 'quotes', chip: 'all', mpage: 0, ra: self.state.ra + 1 }); self.say(n + ' for ' + self.ngn(T.total) + ' sent to ' + c.contact + '.'); }); }, 60); } }));
-  }
-  newInvoice() {
-    var self = this, I = this.icons(), cs = this.clientsData().filter(function (c) { return c.status === 'active'; });
-    var DUE = { 'On receipt': ['10 Oct', 'Due today', 'var(--ad-tone-warn)'], 'In 7 days': ['17 Oct', 'Due in 7 days', 'var(--ad-tone-warn)'], 'In 14 days': ['24 Oct', 'Due in 14 days', 'var(--ad-tone-neutral)'], 'In 30 days': ['9 Nov', 'Due in 30 days', 'var(--ad-tone-neutral)'] };
-    var ok = function (v) { return /^\d[\d,]*$/.test((v || '').trim()); };
-    this.open(this.sh({ eyebrow: 'New invoice', title: 'Bill a client', icon: I.file, keepOpen: true, body: 'You see the email before anything is sent. The client pays with Paystack or Flutterwave and a receipt follows by itself.',
-      listTitle: 'Client', select: true, searchPh: 'Search clients by name, contact or email', create: this.clientCreate('Add a new client'), list: cs.map(function (c) { return { t: c.name, s: c.contact + ' · ' + c.email, ini: c.ini, av: c.tone, ref: c, k: c.phone }; }), selectWhy: 'Choose the client.',
-      fields: [{ key: 'amt', label: 'Amount', ph: '450000', mode: 'numeric', hint: 'Numbers only. VAT is added if you tick it below.', check: function (v) { return v.trim() && !ok(v) ? 'Use numbers only, for example 450000.' : ''; } }, { key: 'for', label: 'What is it for', ph: 'For example: Social media, November', wide: true }],
-      chipSets: [{ key: 'cur', label: 'Currency', opts: ['Naira', 'US dollars'], hint: 'Naira pays by Paystack or Flutterwave. Dollars go to the USD account.' }, { key: 'due', label: 'Due', opts: Object.keys(DUE) }],
-      primary: 'Review and send', secondary: 'Cancel',
-      primaryDis: function (ctx) { var f = ctx.form; if (ctx.pick < 0) return 'Choose the client.'; if (!ok(f.amt)) return 'Add the amount, numbers only.'; if (!(f.for || '').trim()) return 'Say what it is for.'; if (!f.cur) return 'Choose the currency.'; if (!f.due) return 'Choose when it is due.'; return ''; },
-      onPrimary: function (ctx) {
-        var c = ctx.item.ref, f = ctx.form, n = parseInt(f.amt.replace(/,/g, ''), 10), usd = f.cur === 'US dollars', d = DUE[f.due], no = 'INV-26-' + self.gen6(), shown = (usd ? '$' : '₦') + n.toLocaleString('en-NG');
-        self.ask({ eyebrow: 'Send invoice', title: 'Send ' + shown + ' to ' + c.name + '?', body: 'It is due ' + f.due.toLowerCase() + '. ' + (usd ? 'They pay into the USD account.' : 'They can pay with Paystack or Flutterwave.'), to: c.contact + ' · ' + c.email, subject: 'Invoice ' + no + ': ' + f.for.trim(), preview: 'Hello ' + c.contact.split(' ')[0] + ',\n' + f.for.trim() + ': ' + shown + '.\nDue ' + d[0] + '. Pay in one tap from the link below.', ok: 'Send invoice', icon: I.send,
-          onOk: function () { self.landClient(c); self.setState({ sheet: null, stack: [] }); var row = { no: no, client: c.name, amount: shown, date: d[0], status: d[1], tone: d[2], method: usd ? 'USD account' : 'Paystack or Flutterwave', tab: 'due' }; self.setState({ newInv: [row].concat(self.state.newInv), tab: 'inv', chip: 'all', mq: '', mpage: 0, ra: self.state.ra + 1 }); self.say(no + ' sent to ' + c.contact.split(' ')[0] + '. It is at the top of Invoices.', { undo: function () { self.setState({ newInv: self.state.newInv.filter(function (r) { return r.no !== no; }), ra: self.state.ra + 1 }); } }); } }, true);
-      } }));
-  }
+  editQuote(q) { this.goDoc(q.no); }
+  newQuote() { window.location.href = 'A-Invoice.dc.html?new=quote'; }
+  newInvoice() { window.location.href = 'A-Invoice.dc.html?new=invoice'; }
   remindLate() {
     var self = this, I = this.icons(), late = this.invAll().filter(function (r) { return r.tab === 'over'; });
     if (!late.length) { this.say('Nothing is overdue, so there is nobody to remind.'); return; }
@@ -250,10 +225,11 @@
     this.ask({ eyebrow: 'Reminders', title: 'Remind ' + late.length + ' clients about late invoices?', body: late.map(function (r) { return r.client + ' ' + r.amount; }).join(', ') + '. ' + this.ngn(total) + ' in all. Each gets the polite reminder, not the final notice.', to: late.map(function (r) { return r.client; }).join(', '), subject: 'A reminder about your invoice', preview: 'Hello,\nThis is a friendly reminder that your invoice is overdue. You can pay in one tap with Paystack or Flutterwave from the link below.', ok: 'Send ' + late.length + ' reminders', icon: I.mail, tone: 'var(--ad-tone-warn)',
       onOk: function () { self.say('Sending ' + late.length + ' reminders in 8s', { delay: 8, pending: function (n) { return 'Sending ' + late.length + ' reminders in ' + n + 's'; }, cancel: function () {}, cancelled: 'Cancelled. Nothing was sent.' }); } });
   }
+  /* Which invoice was paid: five at a time, searchable by number, client or amount. The payment itself is recorded on the invoice page. */
   recordPick() {
-    var self = this, I = this.icons(), rows = this.invAll().filter(function (r) { return r.tab !== 'paid'; });
-    this.open(this.sh({ eyebrow: 'Record a payment', title: 'Which invoice was paid?', icon: I.cash, iconTone: 'var(--ad-tone-good)', body: 'Use this for money that came in outside Paystack and Flutterwave. A receipt goes to the client.', listTitle: 'Open invoices', select: true, list: rows.map(function (r) { return { t: r.no + ' · ' + r.client, s: r.amount + ' · ' + r.status }; }), selectWhy: 'Choose the invoice.', primary: function (ctx) { return ctx.pick >= 0 ? 'Next: how was it paid' : 'Next'; }, secondary: 'Cancel',
-      onPrimary: function (ctx) { var r = rows[ctx.pick]; setTimeout(function () { self.recordSheet(r); }, 60); } }));
+    var self = this, I = this.icons(), rows = this.invAll().filter(function (r) { return r.tab !== 'paid' && r.status !== 'Cancelled' && r.status !== 'Draft'; });
+    this.open(this.sh({ eyebrow: 'Record a payment', title: 'Which invoice was paid?', icon: I.cash, iconTone: 'var(--ad-tone-good)', body: 'Use this for money that came in outside Paystack and Flutterwave. Five at a time. Search by number, client or amount.', listTitle: 'Open invoices', select: true, searchPh: 'Search invoices', list: rows.map(function (r) { return { t: r.no + ' · ' + r.client, s: r.amount + ' · ' + r.status, k: r.amount + ' ' + r.client + ' ' + r.no }; }), selectWhy: 'Choose the invoice.', primary: function (ctx) { return ctx.pick >= 0 ? 'Next: how was it paid' : 'Next'; }, secondary: 'Cancel',
+      onPrimary: function (ctx) { var r = rows[ctx.pick]; self.goDoc(r.no, '&pay=1'); } }));
   }
   payoutSheet(r) {
     var self = this, I = this.icons();
