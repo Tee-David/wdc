@@ -46,9 +46,15 @@
     var pages = [['Today', 'The deck, money moving and the studio pulse', 'D-Admin.dc.html'], ['Clients', 'Every client and lead', 'A-Clients.dc.html'], ['Projects', 'Work by service', 'A-Projects.dc.html'], ['Money', 'Invoices, quotes, payments and payouts', 'A-Money.dc.html'], ['Messages', 'Team, clients and support', 'A-Messages.dc.html'], ['Settings', 'Team, money, notifications and system', 'A-Settings.dc.html'], ['Support', 'Tickets and the knowledge base', 'A-Support.dc.html']].map(function (p) { return { kind: 'Page', label: p[0], sub: p[1], ini: p[0].charAt(0), tone: 'var(--ad-tone-neutral)', href: p[2] }; });
     var clients = this.clientsData().map(function (c) { return { kind: 'Client', label: c.name, sub: c.contact + ' · ' + c.services.join(', '), ini: c.ini, tone: c.tone, href: c.id === 'mira' ? 'A-Client.dc.html' : '', sheet: c.id === 'mira' ? null : self.clientSheet(c) }; });
     return pages.concat(clients, [
-      { kind: 'Project', label: 'Social media management', sub: 'Mira Skincare · Setup', ini: 'S', tone: 'var(--ad-tone-live)', href: 'A-Project.dc.html' },
+      { kind: 'Project', label: 'Social media management', sub: 'Mira Skincare · Setup', ini: 'S', tone: 'var(--ad-tone-live)', href: 'A-Project.dc.html?p=mira-so' },
+      { kind: 'Project', label: 'Brand identity', sub: 'Mira Skincare · Review', ini: 'B', tone: 'var(--ad-tone-warn)', href: 'A-Project.dc.html?p=mira-br' },
+      { kind: 'Project', label: 'SEO retainer', sub: 'Bloom Pharmacy · Report', ini: 'S', tone: 'var(--ad-tone-good)', href: 'A-Project.dc.html?p=bloom-seo' },
+      { kind: 'Project', label: 'Website', sub: 'Oak and Ivy Interiors · Handover', ini: 'W', tone: 'var(--ad-tone-good)', href: 'A-Project.dc.html?p=oak-web' },
+      { kind: 'Project', label: 'Driver app', sub: 'Kora Logistics · Paused', ini: 'D', tone: 'var(--ad-tone-bad)', href: 'A-Project.dc.html?p=kora-app' },
+      { kind: 'Project', label: 'Booking assistant', sub: 'Halo Clinics · Build', ini: 'B', tone: 'var(--ad-tone-brand)', href: 'A-Project.dc.html?p=halo-ai' },
+      { kind: 'Project', label: 'Instagram ads', sub: 'Lumen Fitness · Review', ini: 'I', tone: 'var(--ad-tone-warn)', href: 'A-Project.dc.html?p=lumen-ads' },
       { kind: 'Invoice', label: 'INV-26-4KQ8ZD', sub: 'Kora Logistics · ₦850,000 · 12 days late', ini: 'IN', tone: 'var(--ad-tone-bad)', href: 'A-Money.dc.html' },
-      { kind: 'Invoice', label: 'INV-26-9QX4LM', sub: 'Mira Skincare · ₦450,000 · due Tue 14 Oct', ini: 'IN', tone: 'var(--ad-tone-warn)', href: 'A-Money.dc.html' }
+      { kind: 'Invoice', label: 'INV-26-9QX4LM', sub: 'Mira Skincare · ₦450,000 · due Wed 14 Oct', ini: 'IN', tone: 'var(--ad-tone-warn)', href: 'A-Money.dc.html' }
     ]);
   }
   notesData() {
@@ -84,25 +90,37 @@
   }
 
   /* The studio's projects: 14 live (Branding 4, Social 3, Web 3, SEO 2, Apps 1, Software & AI 1), 2 waiting on clients, as on Today. */
+  bookSheet(client, push, onBooked) {
+    var self = this, I = this.icons(), slots = [['Wed 14 Oct, 11:00', 'Daniel is free · 60 min'], ['Thu 15 Oct, 15:00', 'Daniel is free · 60 min'], ['Fri 16 Oct, 14:00', 'Daniel and you are free · 60 min']];
+    this.open(this.sh({ eyebrow: 'Handover meeting · ' + client, title: 'Pick a time to offer', icon: I.cal, iconTone: 'var(--ad-tone-brand)', body: 'We send ' + client + ' a booking link with these times. The Google Meet is recorded and the handover document goes out after it.', listTitle: 'Times that suit the team', select: true, pick: 2, list: slots.map(function (x) { return { t: x[0], s: x[1] }; }),
+      primary: function (ctx) { return ctx.pick >= 0 ? 'Offer ' + slots[ctx.pick][0] : 'Offer this time'; }, selectWhy: 'Choose a time to offer.', secondary: 'Let them choose any time', sToast: 'Booking link sent with all open times.',
+      onPrimary: function (ctx) { var sl = slots[ctx.pick]; if (onBooked) onBooked(sl[0]); } }), push);
+  }
+  clearId(id, how, label, msg, opt) { var it = this.deck().filter(function (d) { return d.id === id; })[0]; if (it && !this.state.gone[id] && !this.state.snoozed[id]) this.clear(it, how, label, msg, opt); else if (msg) this.say(msg); }
+  hideMoney() { return false; }
+  projScope(p) { return true; }
+  payChip(p) { var t = p.pay || ''; return /Retainer/.test(t) ? 'Retainer' : (/late|Deposit due|Deposit and/.test(t) ? 'Awaiting payment' : (/Paid in full|^Paid$/.test(t) ? 'Paid in full' : 'Deposit paid')); }
+  projPageKeys() { return ['mira-so', 'mira-br', 'bloom-seo', 'oak-web', 'kora-app', 'halo-ai', 'lumen-ads', 'ade-oct']; }
+  projPageHref(id) { return 'A-Project.dc.html?p=' + id; }
   projectsData() {
     var T = { IN: ['Ifeanyi N.', 'IN', '#000065'], CA: ['Chiamaka A.', 'CA', '#b84a00'], DE: ['Daniel E.', 'DE', '#5c5c7a'], BO: ['Bisi O.', 'BO', '#15803d'], TA: ['Tolu A.', 'TA', '#23239b'] };
     var p = function (id, name, client, cid, svc, stages, cur, lead, due, dueHot, value, pay, payTone, status, flag, next) { var L = T[lead]; return { id: id, name: name, client: client, cid: cid, svc: svc, stages: stages, cur: cur, stage: stages[cur] || 'Done', lead: L[0], leadI: L[1], leadTone: L[2], due: due, dueHot: dueHot, value: value, pay: pay, payTone: payTone, status: status, flag: flag || '', next: next }; };
     var BR = ['Discovery', 'Concepts', 'Review', 'Final files', 'Handover'], SO = ['Setup', 'Plan', 'Approve', 'Publish', 'Report'], WB = ['Discovery', 'Design', 'Build', 'Launch', 'Handover'], SE = ['Audit', 'Fix', 'Content', 'Report'], AP = ['Discovery', 'Design', 'Build', 'Test', 'Release'];
     return [
-      p('mira-br', 'Brand identity', 'Mira Skincare', 'mira', 'Branding & Design', BR, 2, 'IN', 'Fri 17 Oct', false, '₦1,200,000', '50% paid', 'var(--ad-tone-good)', 'waiting', 'Waiting 9 days', 'Adaeze to choose a logo route'),
+      p('mira-br', 'Brand identity', 'Mira Skincare', 'mira', 'Branding & Design', BR, 2, 'IN', 'Sat 17 Oct', false, '₦1,200,000', '50% paid', 'var(--ad-tone-good)', 'waiting', 'Waiting 9 days', 'Adaeze to choose a logo route'),
       p('mira-so', 'Social media management', 'Mira Skincare', 'mira', 'Social & Ads', SO, 0, 'CA', 'Starts 1 Nov', false, '₦300,000 a month', 'Deposit due Tue', 'var(--ad-tone-warn)', 'live', 'Blocked', 'Deposit and Instagram access'),
-      p('okafor-fl', 'Firm flyers', 'Tunde Okafor Law', 'okafor', 'Branding & Design', BR, 2, 'IN', 'Wed 15 Oct', true, '₦180,000', 'Paid', 'var(--ad-tone-good)', 'live', '', 'Revision 1 in progress'),
-      p('ade-menu', 'Menu redesign', "Ade's Kitchen", 'ade', 'Branding & Design', BR, 1, 'IN', 'Fri 24 Oct', false, '₦250,000', 'Deposit paid', 'var(--ad-tone-good)', 'live', '', 'Two directions on Wednesday'),
-      p('lumen-tt', 'Class timetable design', 'Lumen Fitness', 'lumen', 'Branding & Design', BR, 3, 'IN', 'Mon 13 Oct', true, '₦90,000', 'Paid', 'var(--ad-tone-good)', 'live', '', 'Print files on Monday'),
-      p('ade-oct', 'October content', "Ade's Kitchen", 'ade', 'Social & Ads', SO, 1, 'CA', 'Fri 31 Oct', false, '₦350,000 a month', 'Retainer', 'var(--ad-tone-brand)', 'live', '', '18 of 24 posts approved'),
-      p('lumen-ads', 'Instagram ads', 'Lumen Fitness', 'lumen', 'Social & Ads', ['Brief', 'Creatives', 'Review', 'Live', 'Report'], 2, 'CA', 'Thu 16 Oct', false, '₦150,000 plus spend', '₦75,000 late', 'var(--ad-bad-ink)', 'waiting', 'With client', 'Daniel to agree the budget'),
-      p('oak-web', 'Website', 'Oak and Ivy Interiors', 'oak', 'Web & Apps', WB, 4, 'DE', 'Thu 16 Oct', false, '₦2,600,000', 'Final 20% after handover', 'var(--ad-tone-warn)', 'live', '', 'Book the recorded handover'),
+      p('okafor-fl', 'Firm flyers', 'Tunde Okafor Law', 'okafor', 'Branding & Design', BR, 2, 'IN', 'Thu 15 Oct', true, '₦180,000', 'Paid', 'var(--ad-tone-good)', 'live', '', 'Revision 1 in progress'),
+      p('ade-menu', 'Menu redesign', "Ade's Kitchen", 'ade', 'Branding & Design', BR, 1, 'IN', 'Sat 24 Oct', false, '₦250,000', 'Deposit paid', 'var(--ad-tone-good)', 'live', '', 'Two directions on Wednesday'),
+      p('lumen-tt', 'Class timetable design', 'Lumen Fitness', 'lumen', 'Branding & Design', BR, 3, 'IN', 'Tue 13 Oct', true, '₦90,000', 'Paid', 'var(--ad-tone-good)', 'live', '', 'Print files on Monday'),
+      p('ade-oct', 'October content', "Ade's Kitchen", 'ade', 'Social & Ads', SO, 1, 'CA', 'Sat 31 Oct', false, '₦350,000 a month', 'Retainer', 'var(--ad-tone-brand)', 'live', '', '18 of 24 posts approved'),
+      p('lumen-ads', 'Instagram ads', 'Lumen Fitness', 'lumen', 'Social & Ads', ['Brief', 'Creatives', 'Review', 'Live', 'Report'], 2, 'CA', 'Fri 16 Oct', false, '₦150,000 plus spend', '₦75,000 late', 'var(--ad-bad-ink)', 'waiting', 'With client', 'Daniel to agree the budget'),
+      p('oak-web', 'Website', 'Oak and Ivy Interiors', 'oak', 'Web & Apps', WB, 4, 'DE', 'Fri 16 Oct', false, '₦2,600,000', 'Final 20% after handover', 'var(--ad-tone-warn)', 'live', '', 'Book the recorded handover'),
       p('okafor-web', 'Website care plan', 'Tunde Okafor Law', 'okafor', 'Web & Apps', ['Monthly'], 0, 'DE', 'Monthly', false, '₦40,000 a month', '₦90,000 late', 'var(--ad-bad-ink)', 'live', '', 'Domain renews 24 Oct'),
-      p('halo-pages', 'Patient portal pages', 'Halo Clinics', 'halo', 'Web & Apps', WB, 2, 'DE', 'Wed 29 Oct', false, '₦600,000', 'Deposit paid', 'var(--ad-tone-good)', 'live', '', 'Booking pages in build'),
+      p('halo-pages', 'Patient portal pages', 'Halo Clinics', 'halo', 'Web & Apps', WB, 2, 'DE', 'Thu 29 Oct', false, '₦600,000', 'Deposit paid', 'var(--ad-tone-good)', 'live', '', 'Booking pages in build'),
       p('bloom-seo', 'SEO retainer', 'Bloom Pharmacy', 'bloom', 'SEO', SE, 3, 'BO', 'Monthly', false, '₦300,000 a month', 'Retainer', 'var(--ad-tone-brand)', 'live', '', 'September report sent'),
-      p('halo-seo', 'SEO setup', 'Halo Clinics', 'halo', 'SEO', SE, 0, 'BO', 'Fri 31 Oct', false, '₦220,000', 'Deposit paid', 'var(--ad-tone-good)', 'live', '', 'Technical audit this week'),
+      p('halo-seo', 'SEO setup', 'Halo Clinics', 'halo', 'SEO', SE, 0, 'BO', 'Sat 31 Oct', false, '₦220,000', 'Deposit paid', 'var(--ad-tone-good)', 'live', '', 'Technical audit this week'),
       p('kora-app', 'Driver app', 'Kora Logistics', 'kora', 'Apps', AP, 2, 'DE', 'Paused', true, '₦3,400,000', '₦850,000 late', 'var(--ad-bad-ink)', 'live', 'Paused', 'Build paused until milestone 2 is paid'),
-      p('halo-ai', 'Booking assistant', 'Halo Clinics', 'halo', 'Software & AI', AP, 2, 'DE', 'Mon 20 Oct', false, '₦4,800,000', 'Milestone 2 on 20 Oct', 'var(--ad-tone-neutral)', 'live', '', 'Milestone 2 demo tomorrow'),
+      p('halo-ai', 'Booking assistant', 'Halo Clinics', 'halo', 'Software & AI', AP, 2, 'DE', 'Tue 20 Oct', false, '₦4,800,000', 'Milestone 2 on 20 Oct', 'var(--ad-tone-neutral)', 'live', '', 'Milestone 2 demo tomorrow'),
       p('pine-br', 'Brand identity', 'Pinewood Bakery', 'pine', 'Branding & Design', BR, 5, 'IN', 'Done Jul 2026', false, '₦950,000', 'Paid in full', 'var(--ad-tone-good)', 'done', '', 'Handover recorded'),
       p('bloom-web', 'Website', 'Bloom Pharmacy', 'bloom', 'Web & Apps', WB, 5, 'DE', 'Done Mar 2026', false, '₦1,800,000', 'Paid in full', 'var(--ad-tone-good)', 'done', '', 'Handover recorded'),
       p('ade-sep', 'September content', "Ade's Kitchen", 'ade', 'Social & Ads', SO, 5, 'CA', 'Done 30 Sep', false, '₦350,000', 'Paid', 'var(--ad-tone-good)', 'done', '', 'Report sent 1 Oct')
@@ -111,11 +129,11 @@
   projectSheet(pj) {
     var self = this, I = this.icons(), done = pj.status === 'done';
     return this.sh({ eyebrow: 'Project · ' + pj.client, title: pj.name, chip: pj.flag || (done ? 'Done' : pj.stage), tone: pj.flag ? (pj.flag === 'Paused' || pj.flag === 'Blocked' ? 'var(--ad-tone-bad)' : 'var(--ad-tone-warn)') : (done ? 'var(--ad-tone-good)' : 'var(--ad-tone-live)'), icon: I.folder,
-      rows: [{ k: 'Service', v: pj.svc }, { k: 'Stage', v: done ? 'Done' : pj.stage + (pj.stages.length > 1 ? ', ' + (pj.cur + 1) + ' of ' + pj.stages.length : '') }, { k: 'Lead', v: pj.lead }, { k: 'Due', v: pj.due }, { k: 'Value', v: pj.value }, { k: 'Payment', v: pj.pay }],
+      rows: [{ k: 'Service', v: pj.svc }, { k: 'Stage', v: done ? 'Done' : pj.stage + (pj.stages.length > 1 ? ', ' + (pj.cur + 1) + ' of ' + pj.stages.length : '') }, { k: 'Lead', v: pj.lead }, { k: 'Due', v: pj.due }, ].concat(this.hideMoney() ? [{ k: 'Billing', v: this.payChip(pj) }] : [{ k: 'Value', v: pj.value }, { k: 'Payment', v: pj.pay }]),
       body: 'Next: ' + pj.next + '.',
       primary: pj.id === 'mira-so' ? 'Open project' : (done ? 'Close' : 'Message ' + pj.lead.split(' ')[0]), secondary: done ? '' : (pj.cid === 'mira' ? 'Open Mira Skincare' : 'Add a task'),
       onPrimary: function () {
-        if (pj.id === 'mira-so') { window.location.href = 'A-Project.dc.html'; return; }
+        if (self.projPageKeys().indexOf(pj.id) >= 0) { window.location.href = self.projPageHref(pj.id); return; }
         if (done) return;
         setTimeout(function () { self.open(self.sh({ eyebrow: pj.name + ' · ' + pj.client, title: 'Message ' + pj.lead, icon: I.msg, compose: true, composeLabel: 'Message', required: true, primary: 'Send', onPrimary: function () { self.say('Sent to ' + pj.lead.split(' ')[0] + ' in the project thread.'); } })); }, 30);
       },
@@ -128,8 +146,8 @@
     var self = this, I = this.icons();
     return this.sh({ eyebrow: pj.name + ' · ' + pj.client, title: 'Add a task', icon: I.task,
       fields: [{ key: 't', label: 'Task', ph: 'For example: Resize the carousel for Stories', wide: true }, { key: 'note', label: 'Notes (optional)', type: 'area', wide: true, ph: 'What done looks like' }],
-      chipSets: [{ key: 'who', label: 'Who does it', opts: this.teamData().map(function (m) { return m.name; }) }, { key: 'due', label: 'Due', opts: ['Today', 'Tomorrow', 'Fri 17 Oct', 'Mon 20 Oct'] }],
-      form: { who: pj.lead, due: 'Fri 17 Oct' },
+      chipSets: [{ key: 'who', label: 'Who does it', opts: this.teamData().map(function (m) { return m.name; }) }, { key: 'due', label: 'Due', opts: ['Today', 'Tomorrow', 'Sat 17 Oct', 'Tue 20 Oct'] }],
+      form: { who: pj.lead, due: 'Sat 17 Oct' },
       primary: 'Add task', secondary: 'Cancel', primaryDis: function (ctx) { return (ctx.form.t || '').trim() ? '' : 'Name the task.'; },
       onPrimary: function (ctx) { if (onAdd) onAdd(ctx.form); self.say('Task added. It is on ' + ctx.form.who.split(' ')[0] + '’s My Day, due ' + ctx.form.due.toLowerCase() + '.'); } });
   }

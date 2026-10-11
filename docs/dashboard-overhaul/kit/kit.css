@@ -721,3 +721,20 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .lrTile.round{border-radius:50%}
 .gridSw{margin:0 auto;display:block}
 .setRow textarea::placeholder{color:var(--ad-dim)}
+
+/* Project page: the service tab's rows and checklists */
+.wRow{display:flex;align-items:center;gap:12px;width:100%;padding:10px 8px;border-radius:14px;min-height:60px;text-align:left}
+.ckBox{width:24px;height:24px;border-radius:8px;border:2px solid var(--ad-line-2);display:grid;place-items:center;flex:none;color:transparent;background:var(--ad-panel);transition:background .2s,border-color .2s,color .2s}
+.ckBox.on{background:var(--ad-tone-good);border-color:var(--ad-tone-good);color:#fff}
+.projSwitch button{min-height:44px}
+
+/* Billing: the pay card and its provider strip */
+.payOpts{display:flex;gap:10px;flex-wrap:wrap}
+.payOpt{display:inline-flex;align-items:center;gap:10px;min-height:44px;padding:0 14px;border-radius:14px;background:#fff;color:#0e0e2c;font-size:13px}
+.payRow{display:flex;align-items:center;gap:12px;padding:8px;border-radius:12px;min-height:56px}
+.payLogo{width:84px;height:40px;border-radius:10px;background:#fff;border:1px solid var(--ad-line);display:grid;place-items:center;flex:none;padding:0 8px}
+.paidCard{padding:18px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+
+/* Touch: segmented buttons and chart bars reach 44px on narrow screens and touch devices */
+@container app (max-width:900px){.seg button,.seg a{min-height:44px}.plot{gap:0}}
+@media (pointer:coarse){.seg button,.seg a{min-height:44px}}
