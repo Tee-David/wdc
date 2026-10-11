@@ -2148,3 +2148,8 @@ td:has(> .adRowPick) , .ad__pickCell { white-space: nowrap; }
 .adToast:hover .adToast__bar, .adToast:focus-within .adToast__bar { animation-play-state: paused; }
 @keyframes adToastDrain { to { transform: scaleX(0); } }
 @media (prefers-reduced-motion: reduce) { .adToast__bar { animation: none; transform: scaleX(.5); } }
+
+/* TABLES STAY TABLES: the first column pins while the table scrolls sideways inside its own box. */
+.ad__scroll > .ad__t :is(th, td):first-child { position: sticky; left: 0; z-index: 1; background: var(--ad-panel); box-shadow: 1px 0 0 var(--ad-line); }
+.ad__scroll > .ad__t thead th:first-child { background: var(--ad-panel-2); z-index: 2; }
+.ad__scroll > .ad__t tbody tr:hover > td:first-child { background: var(--ad-hover); }

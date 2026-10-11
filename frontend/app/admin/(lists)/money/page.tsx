@@ -21,17 +21,19 @@ import {
 } from "@/components/admin/row-actions";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
 import { CashflowChart } from "@/components/admin/cashflow-chart";
-import { AlertTriangle, BarChart3, Clock, CreditCard, TrendingUp, Wallet } from "lucide-react";
+import { AlertTriangle, Clock, CreditCard, TrendingUp, Wallet } from "lucide-react";
 import "@/components/admin/dashboard.css";
 import { Pager, readPer } from "@/components/admin/pager";
+import { ExampleNote } from "@/components/admin/example-note";
+import { Deck, type DeckItem } from "@/components/admin/deck";
+import { Tabs } from "@/components/admin/tabs";
 import { DateRange } from "@/components/admin/date-range";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
-import { ExampleNote } from "@/components/admin/example-note";
 
 export const metadata = { title: "Money" };
 
 /* `from` and `to` are the invoice's issue date, as Lagos calendar days. */
-type MoneyQuery = { q?: string; status?: string; sort?: string; dir?: string; page?: string; per?: string; from?: string; to?: string };
+type MoneyQuery = { tab?: string; q?: string; status?: string; sort?: string; dir?: string; page?: string; per?: string; from?: string; to?: string };
 
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 const INVOICE_SORTS = ["number", "client", "due", "total", "owed"] as const;
@@ -96,6 +98,25 @@ export default async function MoneyPage({
   const overdueCount = onBooks.filter((i) => invoiceStatus(i) === "Overdue").length;
   const rebillable = expenses.filter((e) => e.rebillable).reduce((n, e) => n + e.amount, 0);
   const today = lagosToday();
+  const tab = ["invoices", "quotes", "payments", "expenses"].includes(String(query.tab)) ? String(query.tab) : "invoices";
+  /* THE DECK: late invoices, money the bank holds that no invoice claims, mail that did not go, and quotes waiting on an answer. */
+  const moneyDeck: DeckItem[] = [
+    ...onBooks.filter((i) => invoiceStatus(i) === "Overdue").map((i) => ({
+      id: `late-${i.id}`, kind: "Money", urgency: "Late", tone: "bad" as const, label: i.number,
+      title: `${getClient(i.clientId)?.company ?? "A client"} owes ${naira(invoiceTotals(i).due)}`,
+      body: `${i.number} was due ${when(i.due)}. A reminder with the Paystack and Flutterwave link is one step away.`,
+      facts: [{ k: "Client", v: getClient(i.clientId)?.company ?? "Unknown" }, { k: "Due", v: when(i.due) }],
+      primary: { label: "Open the invoice", href: `/admin/money/${i.id}` }, open: `/admin/money/${i.id}`,
+    })),
+    ...(unreconciled ? [{ id: "recon", kind: "Money", urgency: "Does not match", tone: "warn" as const, title: `${unreconciled} payment event${unreconciled === 1 ? "" : "s"} the books and the bank do not agree on`, body: "Money the provider reported that no invoice claims, or an event that failed its checks. Collected is wrong until they are matched.", primary: { label: "Open reconciliation", href: "/admin/money/reconciliation" } }] : []),
+    ...(failedMail ? [{ id: "mail", kind: "Email", urgency: "Did not go", tone: "warn" as const, title: `${failedMail} message${failedMail === 1 ? "" : "s"} did not go`, body: "Emails the mail server refused or that could not be sent. The client has not seen them.", primary: { label: "Open the message log", href: "/admin/money/reconciliation" } }] : []),
+    ...estimates.filter((e) => estimateState(e) === "Sent").map((e) => ({
+      id: `est-${e.id}`, kind: "Quote", urgency: "Waiting", tone: "warn" as const, label: e.number,
+      title: `${getClient(e.clientId)?.company ?? "A client"} has not answered ${e.number}`,
+      body: `Sent ${when(e.issued)}, valid until ${when(e.expires)}. A nudge now is better than a late quote.`,
+      primary: { label: "Open the quote", href: `/admin/money?tab=quotes` },
+    })),
+  ];
 
   const search = query.q?.trim().toLocaleLowerCase() ?? "";
   const statusFilter = query.status ?? "";
@@ -145,16 +166,14 @@ export default async function MoneyPage({
 
   return (
     <>
+      <div className="adFlow">
       <div className="ad__head">
         <div>
           <h1>Money</h1>
-          <p>In, out, and what is still owed.</p>
+          <p>In, out, and <b>what is still owed</b>.</p>
         </div>
         <div className="ad__row">
           <PageTourButton />
-          <Link className="ad__btn" href="/admin/reports"><BarChart3 aria-hidden="true" /> Reports</Link>
-          <AddExpense />
-          <EstimateBuilder defaultVatRate={finance.vatRate} noEmail={noEmail} />
           <InvoiceBuilder
             dataTour="money-add"
             defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays}
@@ -187,89 +206,25 @@ export default async function MoneyPage({
         </p>
       ) : null}
 
-      <CurrencyBalances invoices={getInvoices()}/>
-      <dl className="ad__tiles ad__tiles--5" data-tour="money-tiles">
-        {/* HOW MUCH OF WHAT WE BILLED ACTUALLY ARRIVED rides on Collected:
-            null rather than 0% when nothing has been invoiced, because a red
-            0% for a studio that has simply not billed yet is not a problem. */}
-        <Tile label="Collected (NGN)" href="/admin/money?status=Paid" value={nairaShort(s.collected)} tone="good" icon={Wallet} iconTone="good"
-              note={rate === null ? "Nothing invoiced yet" : `${Math.round(rate * 100)}% of ${nairaShort(s.invoiced)} billed`} />
-        <Tile label="Outstanding (NGN)" href="/admin/money?status=Sent" value={nairaShort(s.outstanding)} icon={Clock} iconTone="live"
-              note={`${openCount} invoice${openCount === 1 ? "" : "s"} open`} />
-        <Tile label="Overdue (NGN)" href="/admin/money?status=Overdue" value={nairaShort(s.overdue)} tone={s.overdue ? "bad" : "good"} icon={AlertTriangle} iconTone={s.overdue ? "bad" : "good"}
-              note={overdueCount ? `${overdueCount} invoice${overdueCount === 1 ? "" : "s"} late` : "Nothing late"} />
-        <Tile label="Spend (NGN)" value={nairaShort(s.spend)} icon={CreditCard}
-              note={rebillable ? `${nairaShort(rebillable)} can be billed back` : "Nothing to bill back"} />
-        <Tile label="Net (NGN)" value={nairaShort(s.profit)} tone={s.profit >= 0 ? "good" : "bad"} icon={TrendingUp} iconTone={s.profit >= 0 ? "good" : "bad"}
-              note="Collected less spend" />
-      </dl>
-
-      <div className="adDash__row">
-        <Panel title="Last six months (NGN)" action={<span className="ad__dim ad__num">Peak {nairaShort(peak)}</span>}>
-          <p className="adDash__sub">Collected each month against what was spent.</p>
-          <CashflowChart months={months} totals={[
-            { label: "Collected", value: months.reduce((n, m) => n + m.in, 0), key: "in" },
-            { label: "Spend", value: months.reduce((n, m) => n + m.out, 0), key: "out" },
-          ]} />
-        </Panel>
-
-        {/* HOW OLD THE MONEY IS, which "outstanding" cannot say.
-
-            One outstanding figure treats an invoice sent last Tuesday and one
-            sent in March as the same thing. They are not: the first is a
-            cashflow line, the second is a conversation somebody has to have.
-            The buckets are the conventional 30-day steps so they mean to an
-            accountant what they mean here, and every row drills into the
-            invoices behind it rather than asking anybody to trust a total. */}
-        <Panel title="Who owes what (NGN)" action={owed ? <span className="ad__dim ad__num">{nairaShort(owed)}</span> : undefined}>
-          {owed ? (
-            <div className="ad__aging">
-              <div className="ad__agingBar" role="img" aria-label={aging.map((b) => `${b.label} ${naira(b.amount)}`).join(", ")}>
-                {aging.map((b, n) => b.amount ? <span key={b.label} className={`ad__agingSeg ad__agingSeg--${n}`} style={{ flexGrow: b.amount }} /> : null)}
-              </div>
-              <ul className="ad__agingList">
-                {aging.map((b, n) => (
-                  <li key={b.label}>
-                    <i className={`ad__agingSeg--${n}`} aria-hidden="true" />
-                    <span>{b.label}</span>
-                    <b className="ad__num">{b.amount ? naira(b.amount) : <span className="ad__dim">Nil</span>}</b>
-                  </li>
-                ))}
-              </ul>
-              {/* WHO, not just how much: the three biggest balances, oldest
-                  bucket first, each a link to the invoice behind it. */}
-              <ul className="ad__agingWho">
-                {aging.flatMap((b) => b.invoices).map((i) => ({ i, due: invoiceTotals(i).due }))
-                  .sort((x, y) => y.due - x.due).slice(0, 3).map(({ i, due }) => {
-                    const c = getClient(i.clientId);
-                    const late = Math.floor((Date.parse(today) - Date.parse(i.due.slice(0, 10))) / 86_400_000);
-                    return (
-                      <li key={i.id}>
-                        <Link href={`/admin/money/${i.id}`} className="ad__who">
-                          <span className="ad__av" aria-hidden="true">{(c?.company ?? "?").split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase()}</span>
-                          <span><b>{c?.company ?? "Unknown"}</b><small>{i.number} · {late > 0 ? `${late} day${late === 1 ? "" : "s"} late` : `due ${when(i.due)}`}</small></span>
-                        </Link>
-                        <b className="ad__num">{nairaShort(due)}</b>
-                      </li>
-                    );
-                  })}
-              </ul>
-            </div>
-          ) : (
-            onBooks.length ? (
-              <Empty title="Nothing outstanding">
-                Every invoice that has been sent is paid.
-              </Empty>
-            ) : (
-              <Empty title="No invoices sent yet" action={<InvoiceBuilder defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays} credits={credits} noEmail={noEmail} />}>
-                What clients owe shows here once the first invoice goes out.
-              </Empty>
-            )
-          )}
-        </Panel>
-      </div>
-
-      <div className="ad__stack">
+      <div className="adFlow__grid">
+        <div className="adFlow__main">
+      <Deck
+        id="money"
+        title="Money needing you"
+        items={moneyDeck}
+        emptyTitle="The money is looked after."
+        emptyBody="Nothing needs you on invoices, quotes or reconciliation."
+        emptyNext={{ label: "New invoice", href: "/admin/money?tab=invoices" }}
+      />
+      <Tabs label="Money" current={tab} items={[
+        { key: "invoices", label: "Invoices", href: "/admin/money?tab=invoices", count: allInvoices.length, tone: overdueCount ? "bad" : undefined },
+        { key: "quotes", label: "Quotes", href: "/admin/money?tab=quotes", count: estimates.length },
+        { key: "payments", label: "Payments", href: "/admin/money?tab=payments", count: payments.length, tone: unreconciled ? "warn" : undefined },
+        { key: "expenses", label: "Expenses", href: "/admin/money?tab=expenses", count: expenses.length },
+        { key: "reports", label: "Reports", href: "/admin/reports" },
+      ]} />
+          <div className="ad__stack">
+            {tab === "invoices" ? (
         <Panel title="Invoices">
           <div className="ad__filterBar" data-tour="money-invoice-filters">
           <form className="ad__filterForm" method="get" action="/admin/money#invoice-list" aria-label="Filter invoices">
@@ -386,10 +341,9 @@ export default async function MoneyPage({
             />
           ) : null}
         </Panel>
-
-        {/* The order of the mockup: what is owed, then where money went,
-            then what is quoted beside what came in. */}
-        <div className="ad__grid2 ad__grid2--side">
+            ) : null}
+            {tab === "expenses" ? (
+              <>
           <Panel title="Where the spend goes (NGN)">
             <div style={{ padding: ".8rem 1rem" }}>
               {categories.map(([cat, amount]) => (
@@ -459,10 +413,9 @@ export default async function MoneyPage({
               </Empty>
             )}
           </Panel>
-        </div>
-
-        <div className="ad__grid2 ad__grid2--even">
-          {/* A quote is not money and is not added to any total on the page. */}
+              </>
+            ) : null}
+            {tab === "quotes" ? (
           <Panel
             title="Estimates"
             action={<EstimateBuilder trigger="New estimate" defaultVatRate={finance.vatRate} noEmail={noEmail} />}
@@ -539,6 +492,8 @@ export default async function MoneyPage({
               </Empty>
             )}
           </Panel>
+            ) : null}
+            {tab === "payments" ? (
           <Panel title="Payments received">
             {payments.length ? (
               <div className="ad__scroll">
@@ -571,8 +526,94 @@ export default async function MoneyPage({
               </Empty>
             )}
           </Panel>
-
+            ) : null}
+          </div>
         </div>
+        <aside className="adFlow__rail" aria-label="Where the money stands">
+      <CurrencyBalances invoices={getInvoices()}/>
+      <dl className="adFlow__tiles" data-tour="money-tiles">
+        {/* HOW MUCH OF WHAT WE BILLED ACTUALLY ARRIVED rides on Collected:
+            null rather than 0% when nothing has been invoiced, because a red
+            0% for a studio that has simply not billed yet is not a problem. */}
+        <Tile label="Collected (NGN)" href="/admin/money?status=Paid" value={nairaShort(s.collected)} tone="good" icon={Wallet} iconTone="good"
+              note={rate === null ? "Nothing invoiced yet" : `${Math.round(rate * 100)}% of ${nairaShort(s.invoiced)} billed`} />
+        <Tile label="Outstanding (NGN)" href="/admin/money?status=Sent" value={nairaShort(s.outstanding)} icon={Clock} iconTone="live"
+              note={`${openCount} invoice${openCount === 1 ? "" : "s"} open`} />
+        <Tile label="Overdue (NGN)" href="/admin/money?status=Overdue" value={nairaShort(s.overdue)} tone={s.overdue ? "bad" : "good"} icon={AlertTriangle} iconTone={s.overdue ? "bad" : "good"}
+              note={overdueCount ? `${overdueCount} invoice${overdueCount === 1 ? "" : "s"} late` : "Nothing late"} />
+        <Tile label="Spend (NGN)" value={nairaShort(s.spend)} icon={CreditCard}
+              note={rebillable ? `${nairaShort(rebillable)} can be billed back` : "Nothing to bill back"} />
+        <Tile label="Net (NGN)" value={nairaShort(s.profit)} tone={s.profit >= 0 ? "good" : "bad"} icon={TrendingUp} iconTone={s.profit >= 0 ? "good" : "bad"}
+              note="Collected less spend" />
+      </dl>
+
+      <div className="adFlow__stack">
+        <Panel title="Last six months (NGN)" action={<span className="ad__dim ad__num">Peak {nairaShort(peak)}</span>}>
+          <p className="adDash__sub">Collected each month against what was spent.</p>
+          <CashflowChart months={months} totals={[
+            { label: "Collected", value: months.reduce((n, m) => n + m.in, 0), key: "in" },
+            { label: "Spend", value: months.reduce((n, m) => n + m.out, 0), key: "out" },
+          ]} />
+        </Panel>
+
+        {/* HOW OLD THE MONEY IS, which "outstanding" cannot say.
+
+            One outstanding figure treats an invoice sent last Tuesday and one
+            sent in March as the same thing. They are not: the first is a
+            cashflow line, the second is a conversation somebody has to have.
+            The buckets are the conventional 30-day steps so they mean to an
+            accountant what they mean here, and every row drills into the
+            invoices behind it rather than asking anybody to trust a total. */}
+        <Panel title="Who owes what (NGN)" action={owed ? <span className="ad__dim ad__num">{nairaShort(owed)}</span> : undefined}>
+          {owed ? (
+            <div className="ad__aging">
+              <div className="ad__agingBar" role="img" aria-label={aging.map((b) => `${b.label} ${naira(b.amount)}`).join(", ")}>
+                {aging.map((b, n) => b.amount ? <span key={b.label} className={`ad__agingSeg ad__agingSeg--${n}`} style={{ flexGrow: b.amount }} /> : null)}
+              </div>
+              <ul className="ad__agingList">
+                {aging.map((b, n) => (
+                  <li key={b.label}>
+                    <i className={`ad__agingSeg--${n}`} aria-hidden="true" />
+                    <span>{b.label}</span>
+                    <b className="ad__num">{b.amount ? naira(b.amount) : <span className="ad__dim">Nil</span>}</b>
+                  </li>
+                ))}
+              </ul>
+              {/* WHO, not just how much: the three biggest balances, oldest
+                  bucket first, each a link to the invoice behind it. */}
+              <ul className="ad__agingWho">
+                {aging.flatMap((b) => b.invoices).map((i) => ({ i, due: invoiceTotals(i).due }))
+                  .sort((x, y) => y.due - x.due).slice(0, 3).map(({ i, due }) => {
+                    const c = getClient(i.clientId);
+                    const late = Math.floor((Date.parse(today) - Date.parse(i.due.slice(0, 10))) / 86_400_000);
+                    return (
+                      <li key={i.id}>
+                        <Link href={`/admin/money/${i.id}`} className="ad__who">
+                          <span className="ad__av" aria-hidden="true">{(c?.company ?? "?").split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase()}</span>
+                          <span><b>{c?.company ?? "Unknown"}</b><small>{i.number} · {late > 0 ? `${late} day${late === 1 ? "" : "s"} late` : `due ${when(i.due)}`}</small></span>
+                        </Link>
+                        <b className="ad__num">{nairaShort(due)}</b>
+                      </li>
+                    );
+                  })}
+              </ul>
+            </div>
+          ) : (
+            onBooks.length ? (
+              <Empty title="Nothing outstanding">
+                Every invoice that has been sent is paid.
+              </Empty>
+            ) : (
+              <Empty title="No invoices sent yet" action={<InvoiceBuilder defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays} credits={credits} noEmail={noEmail} />}>
+                What clients owe shows here once the first invoice goes out.
+              </Empty>
+            )
+          )}
+        </Panel>
+      </div>
+
+        </aside>
+      </div>
       </div>
     </>
   );
