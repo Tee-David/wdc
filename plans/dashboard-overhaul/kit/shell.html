@@ -141,7 +141,7 @@
       <div class="scrim" style="background: transparent" onClick="{{toggleBell}}"></div>
       <section class="popP" role="dialog" aria-label="Notifications">
         <span class="grabZone"><span class="grab"></span></span>
-        <div style="display: flex; align-items: center; gap: 10px; padding: 14px 16px 8px"><h2 style="font-size: 17px; font-weight: 700; flex: 1">Notifications</h2><button class="lnk" onClick="{{markAll}}">Mark all read</button></div>
+        <div style="display: flex; align-items: center; gap: 10px; padding: 14px 16px 8px"><h2 style="font-size: 17px; font-weight: 700; flex: 1">Notifications</h2><button class="lnk" onClick="{{markAll}}">Mark all read</button><sc-if value="{{hasAllNotes}}" hint-placeholder-val="{{ false }}"><a class="lnk" href="{{allNotesHref}}">See all</a></sc-if></div>
         <div style="padding: 0 16px 8px"><div class="seg" role="group" aria-label="Show" style="--n: 2; --i: {{bellI}}"><span class="pill" aria-hidden="true"></span><button class="{{bAll}}" aria-pressed="{{bAllP}}" onClick="{{tabAll}}">All</button><button class="{{bUn}}" aria-pressed="{{bUnP}}" onClick="{{tabUnread}}">Unread <span class="num">{{unread}}</span></button></div></div>
         <div style="overflow-y: auto; overscroll-behavior: contain; padding: 0 8px 8px">
           <sc-for list="{{notes}}" as="n" hint-placeholder-count="5">

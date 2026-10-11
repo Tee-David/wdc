@@ -136,3 +136,15 @@ Model rule, binding (updated 2026-10-11): the remaining prototype pages, for eve
 - One set of money figures across every page. Outstanding is overdue plus issued invoices not yet paid; scheduled invoices (a milestone, a retainer, a dollar deposit) are not counted until they go out. October collected is the sum of the paid invoices and matches the by-service breakdown. A matched bank transfer moves the invoice to Paid everywhere.
 - Projects differ by service, so the project page has a service tab with its own content: Branding has rounds and what the client provides, SEO has rankings and reports, Websites have pages and launch checks, Apps have builds and the store release, Software has milestones and demos, Ads have the campaign. Social projects use the content calendar. Staff and clients see the same page with the owner's money removed or reworded.
 - Staff see no amounts, only chips (Deposit paid, Awaiting payment, Retainer). Ad spend and cost per lead are campaign data, not invoice amounts, so staff may see them.
+
+## Tools, lists and settings rules (added 2026-10-11)
+
+- Searchable select everywhere a list is chosen from: five at a time, live search that matches words, and an inline "Add a new client" that checks for an existing email or phone before it creates one. One record and one portal per person.
+- Every table and list has Filters, Export (CSV or Excel, all, filtered or selected), bulk select with a bar of actions, and Import where records can be brought in. Import is always a review step: matched, repeated and invalid rows are shown before anything is saved. A sample file can be downloaded.
+- Sheets can be resized from the edge on desktop and dragged down to close on phones. Footers wrap; a disabled primary says why beside it. Closing a sheet with unsaved text asks first.
+- Dates, times and date with time use the site's own pickers. Media fields take pictures and video with a real preview.
+- Projects can be paused and resumed with a reason. A paused project shows a banner everywhere, hides its tasks from staff and is flagged in lists.
+- Settings: every tab has its own Save bar and a dot on the tab when something is unsaved. Rows that need checking (a bank account, a domain, a sender) have a Verify step. Bank accounts verify the account number, resolve the name from the bank and use per-currency fields.
+- Help centre categories and articles are managed in Settings and shared by the admin, staff and client help pages.
+- Messages: reply by swipe or the reply button, tag, star, search inside a thread, a per-client gallery of pictures, files and links, a clearer attachment strip and multi-recipient new messages.
+- Hub pages (Email, Enquiries, Meetings, Reconciliation, Notifications) share one layout: the deck, a tabbed table with filters, export and bulk actions, and a rail. They sit under the parent they belong to in the nav (Email under Messages, Enquiries under Clients, Meetings under Projects, Reconciliation under Money, Notifications from the bell).

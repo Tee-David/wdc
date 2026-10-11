@@ -301,6 +301,7 @@
     var self = this, I = this.icons(), it = this.menuItem.bind(this);
     if (pop.kind === 'row') { var T = this.tabData(), r = T.all.filter(function (x) { return String(T.id(x)) === pop.id; })[0]; return r ? T.menu(r) : []; }
     if (pop.kind === 'chores') return [
+      it('Reconciliation', I.link, function () { window.location.href = 'A-Reconcile.dc.html'; }, { hint: 'Import a bank statement' }),
       it('New quote', I.quote, function () { self.newQuote(); }),
       it('Record a payment', I.cash, function () { self.recordPick(); }),
       it('Match bank transfers', I.link, function () { self.open(self.sheets().match); }),

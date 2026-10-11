@@ -95,6 +95,7 @@
     var self = this, I = this.icons(), it = this.menuItem.bind(this);
     if (pop.kind === 'row') { var c = this.allClients().filter(function (x) { return x.id === pop.id; })[0]; return c ? this.rowMenu(c) : []; }
     if (pop.kind === 'chores') return [
+      it('Enquiries and forms', I.inbox, function () { window.location.href = 'A-Forms.dc.html'; }, { hint: 'Entries, forms, links' }),
       it('Export clients', I.down, function () { self.exportClients([], self.allClients()); }, { hint: 'CSV or Excel' }),
       it('Import from a spreadsheet', I.upload, function () { self.importClients(); }, { hint: 'CSV or Excel' }),
       this.menuSep(),

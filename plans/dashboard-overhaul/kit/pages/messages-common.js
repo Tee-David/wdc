@@ -187,7 +187,7 @@
       it('Search all messages', I.search, function () { self.setState({ pal: true, q: '' }); }, { hint: 'Ctrl K' }),
       this.menuSep(),
       it('Message notifications', I.bell, function () { window.location.href = M.settingsHref; }, { hint: 'Settings' })
-    ];
+    ].concat(M.role === 'admin' ? [this.menuSep(), it('Email marketing', I.mail, function () { window.location.href = 'A-Email.dc.html'; }, { hint: 'Campaigns and contacts' })] : []);
     return [];
   }
   renderVals() {
