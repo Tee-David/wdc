@@ -4,9 +4,10 @@ import { adminRole } from "@/lib/admin/guard";
 import { can } from "@/lib/admin/permissions";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 
-export const metadata = { title: "Dashboard" };
+export const metadata = { title: "Today" };
 
-export default async function AdminHome() {
+export default async function AdminHome({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const params = await searchParams;
   await syncStore();
   persistSoon();
   const { session } = await getAdminRequest();
@@ -14,6 +15,6 @@ export default async function AdminHome() {
   const money = can(await adminRole(), "money");
 
   return (
-    <AdminDashboardView firstName={firstName} money={money} me={session?.user ? { id: session.user.id, name: session.user.name ?? "" } : undefined} />
+    <AdminDashboardView firstName={firstName} money={money} params={params} me={session?.user ? { id: session.user.id, name: session.user.name ?? "" } : undefined} />
   );
 }

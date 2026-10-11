@@ -7,6 +7,7 @@ import { failedLoggedCount } from "@/lib/message-log";
 import { noticeBlock, noticeBlocks } from "@/lib/admin/money-rules";
 import { reviewCount } from "@/lib/blog-db";
 import { invoiceStatus, invoiceTotals, naira, paymentNet, nairaShort, projectAttention, STAGES } from "@/lib/admin/types";
+import { currencyOf, money as currencyMoney } from "@/lib/money/currency";
 
 /* Worst first. The attention queue is read top-down in the morning, so the
    order has to be the order somebody should act in rather than the order the
@@ -18,8 +19,10 @@ const TONE_RANK = { bad: 0, warn: 1, info: 2 } as const;
 const ROW_RANK: Record<string, number> = { bad: 0, warn: 1, neutral: 2 };
 import { AddClient } from "./client-form";
 import { MyWork } from "./my-work";
+import { Deck, type DeckItem } from "./deck";
+import { Tabs } from "./tabs";
+import { Pager, readPer } from "./pager";
 import { FirstWeek } from "./first-week";
-import { TodayStrip } from "./today-strip";
 import { CustomiseDashboard } from "./customise-dashboard";
 import { HIDEABLE } from "@/lib/admin/dashboard-panels";
 import { getSetting } from "@/lib/admin/store";
@@ -27,7 +30,7 @@ import { unreadTotal } from "@/lib/forms/entries";
 import { AddExpense, InvoiceBuilder, RecordAnyPayment } from "./money-forms";
 import { AddProject } from "./project-forms";
 import { InvoiceMenu, ProjectMenu, SubmissionMenu } from "./row-actions";
-import { Empty, Panel, Tile, when } from "./bits";
+import { Empty, InvoicePill, Panel, Tile, when } from "./bits";
 import { RecentLeads, RecentLeadsSkeleton } from "./recent-leads";
 import PageTourButton from "./tour/page-tour-button";
 import { CashflowChart } from "./cashflow-chart";
@@ -45,7 +48,7 @@ function greeting() {
  * their dashboard at all -- no figures, no invoice rows in the queue, no
  * money quick actions -- rather than shown and then refused.
  */
-export async function AdminDashboardView({ firstName, money = true, me }: { firstName?: string; money?: boolean; me?: { id: string; name: string } }) {
+export async function AdminDashboardView({ firstName, money = true, me, params }: { firstName?: string; money?: boolean; me?: { id: string; name: string }; params?: Record<string, string | string[] | undefined> }) {
   const hidden = (me ? getSetting(`dash.hide.${me.id}`) ?? "" : "").split(",").filter((id) => HIDEABLE.some(([h]) => h === id));
   const failedMail = money ? await failedLoggedCount() : 0;
   /* The owner is the one who publishes, so the queue is theirs. */
@@ -226,14 +229,65 @@ export async function AdminDashboardView({ firstName, money = true, me }: { firs
   const peakStage = stageCounts.filter((x) => x.stage !== "Delivered").sort((a, b) => b.n - a.n)[0]?.stage;
   const pipelineTop = Math.max(1, ...stageCounts.map((x) => x.n));
 
+  /* THE DECK: the worst thing first. Built from the same queue the panel used
+     to list, so nothing that needed attention stops being shown; a card says
+     what kind of thing it is, how urgent, and where it is dealt with. */
+  const deckItems: DeckItem[] = attention.slice(0, 12).map((item, i) => ({
+    id: `${item.href}#${i}`,
+    kind: kindFor(item.icon),
+    urgency: item.tone === "bad" ? "Needs you now" : item.tone === "warn" ? "Waiting" : "Open",
+    tone: item.tone === "bad" ? "bad" : item.tone === "warn" ? "warn" : "neutral",
+    label: item.meta,
+    title: item.title,
+    body: item.detail,
+    primary: { label: ctaFor(item.icon), href: item.href },
+    open: item.href,
+  }));
+
+  /* LATER TODAY: the day's meetings, what falls due and what is due, in time order. */
+  const todayIso = lagosDay(0);
+  const later: { key: string; when: string; title: string; sub: string; tag: string; href: string }[] = [
+    ...(money ? invoices.filter((i) => i.status !== "Draft" && !i.voided && invoiceTotals(i).due > 0 && i.due.slice(0, 10) <= lagosDay(3)).map((i) => ({
+      key: `i${i.id}`, when: i.due.slice(0, 10), title: `${i.number} ${i.due.slice(0, 10) < todayIso ? "is overdue" : "falls due"}`,
+      sub: `${getClient(i.clientId)?.company ?? "A client"} · ${naira(invoiceTotals(i).due)}`, tag: "Money", href: `/admin/money/${i.id}`,
+    })) : []),
+    ...projects.filter((p) => p.stage !== "Delivered" && p.due && p.due.slice(0, 10) <= lagosDay(7)).map((p) => ({
+      key: `p${p.id}`, when: String(p.due).slice(0, 10), title: p.title, sub: `${getClient(p.clientId)?.company ?? "A client"} · due ${when(p.due)}`, tag: "Deadline", href: `/admin/projects/${p.id}`,
+    })),
+    ...tasks.filter((t) => !t.done && t.due && t.due.slice(0, 10) <= lagosDay(3)).map((t) => ({
+      key: `t${t.id}`, when: String(t.due).slice(0, 10), title: t.title, sub: `${t.assignee} · due ${when(t.due)}`, tag: "Task", href: `/admin/projects/${t.projectId}`,
+    })),
+  ].sort((x, y) => x.when.localeCompare(y.when));
+  const laterPage = Math.max(1, Number(params?.lp) || 1);
+  const laterPer = readPer(params?.lper);
+  const laterRows = later.slice((laterPage - 1) * laterPer, laterPage * laterPer);
+
+  /* MONEY MOVING: three tabs over the invoices, each a real filter of the same list. */
+  const open = invoices.filter((i) => i.status !== "Draft" && !i.voided && invoiceTotals(i).due > 0);
+  const overdue = open.filter((i) => invoiceStatus(i) === "Overdue");
+  const soon = open.filter((i) => invoiceStatus(i) !== "Overdue");
+  const monthStart = lagosDay(0).slice(0, 7);
+  const paidThisMonth = payments.filter((p) => p.at.slice(0, 7) === monthStart);
+  const tab = ["overdue", "soon", "paid"].includes(String(params?.m)) ? String(params?.m) : overdue.length ? "overdue" : soon.length ? "soon" : "paid";
+  const moneyPage = Math.max(1, Number(params?.mp) || 1);
+  const moneyPer = readPer(params?.mper);
+  const tabHref = (m: string) => `/admin?m=${m}#money-moving`;
+  const moneyHref = (patch: { page?: number; per?: number }) => `/admin?m=${tab}&mp=${patch.page ?? moneyPage}&mper=${patch.per ?? moneyPer}#money-moving`;
+  const laterHref = (patch: { page?: number; per?: number }) => `/admin?lp=${patch.page ?? laterPage}&lper=${patch.per ?? laterPer}#later`;
+  const moneyList = tab === "overdue" ? overdue : tab === "soon" ? soon : [];
+
+  const headline = attention.length ? `${greeting()}${firstName ? `, ${firstName}` : ""}. ${attention.length} thing${attention.length === 1 ? "" : "s"} need${attention.length === 1 ? "s" : ""} you.` : `${greeting()}${firstName ? `, ${firstName}` : ""}. You are caught up.`;
+  const dateLine = new Intl.DateTimeFormat("en-NG", { weekday: "long", day: "numeric", month: "long", timeZone: "Africa/Lagos" }).format(new Date());
+
   return (
-    <div className="adDash">
+    <div className="adDash adFlow">
       {hidden.length ? <style>{hidden.map((id) => `[data-tour="${id}"]{display:none}`).join("")}</style> : null}
-      <header className="adDash__head">
+      <header className="adFlow__head">
         <div>
-          <span className="adDash__eyebrow">{new Intl.DateTimeFormat("en-NG", { weekday: "long", day: "numeric", month: "long", timeZone: "Africa/Lagos" }).format(new Date())}</span>
-          <h1>{greeting()}{firstName ? `, ${firstName}` : ""}</h1>
-          <p>{hourNow() >= 16 ? `That is the day. ${dueTomorrow ? `${dueTomorrow} project${dueTomorrow === 1 ? " is" : "s are"} due tomorrow.` : "Nothing is due tomorrow."}` : money ? "Start with what needs a decision, a reply, or a payment follow-up." : "Start with what needs a decision or a reply."}</p>
+          <h1>{headline}</h1>
+          <p className="adFlow__lede">
+            {dateLine}. <b>{hourNow() >= 16 ? (dueTomorrow ? `${dueTomorrow} project${dueTomorrow === 1 ? " is" : "s are"} due tomorrow.` : "Nothing is due tomorrow.") : money ? "Money first, then clients waiting, then the team." : "Your tasks first, then what is waiting on you."}</b>
+          </p>
         </div>
         <div className="ad__row">
           <PageTourButton />
@@ -243,124 +297,174 @@ export async function AdminDashboardView({ firstName, money = true, me }: { firs
       </header>
 
       <ExampleNote />
-
       {me && !money ? <FirstWeek userId={me.id} /> : null}
 
-      <TodayStrip owner={money} />
+      <div className="adFlow__grid">
+        <div className="adFlow__main">
+          {me ? <MyWork me={me} quietWhenEmpty={money} unread={await unreadTotal().catch(() => 0)} /> : null}
 
-      {me ? <MyWork me={me} quietWhenEmpty={money} unread={await unreadTotal().catch(() => 0)} /> : null}
+          <Deck
+            id="today"
+            title="Up next"
+            items={deckItems}
+            emptyTitle={clients.length ? "You are caught up." : "Start with your first client."}
+            emptyBody={clients.length ? "Nothing is overdue, stuck or waiting on a reply." : "Add a client, then open a project and raise an invoice. This deck fills as work comes in."}
+            emptyNext={later[0] ? { label: later[0].title, href: later[0].href } : { label: "Open Projects", href: "/admin/projects" }}
+          />
 
-      <dl className="adDash__kpis" data-tour="dash-kpis">
-        {money ? <>
-        <Tile label="Collected" href="/admin/money?status=Paid" value={nairaShort(summary.collected)} tone="good" icon={Wallet} iconTone="good" badge={weekBadge} note={`${collectionRate}% of everything billed`} />
-        <Tile label="Outstanding" href="/admin/money?status=Sent" value={nairaShort(summary.outstanding)} icon={Clock} iconTone="live"
-          badge={overdueCount ? { label: `${overdueCount} overdue`, tone: "bad" } : undefined}
-          note={`Across ${openInvoices} open invoice${openInvoices === 1 ? "" : "s"}`} />
-        </> : <>
-        <Tile label="Clients" href="/admin/clients" value={String(clients.length)} icon={Users} note="Active records" />
-        <Tile label="Open tickets" href="/admin/clients/support?status=Open" value={String(getTickets().filter((t) => t.status === "Open").length)} icon={LifeBuoy} iconTone="live" note="Waiting on a reply" />
-        </>}
-        <Tile label="Live projects" href="/admin/projects" value={String(summary.liveProjects)} icon={FolderKanban}
-          badge={summary.needsUs ? { label: `${summary.needsUs} need attention`, tone: "warn" } : undefined}
-          note={`${board.get("Review")?.length ?? 0} in review · ${board.get("Revisions")?.length ?? 0} in revisions`} />
-        {money ? (
-          <Tile label="Cash position" href="/admin/money" value={nairaShort(summary.profit)} tone={summary.profit >= 0 ? "good" : "bad"} icon={TrendingUp} iconTone={summary.profit >= 0 ? "good" : "bad"} note={`Collected less ${nairaShort(summary.spend)} recorded spend`} />
-        ) : (
-          <Tile label="Open forms" value={String(getSubmissions().filter((x) => x.status === "In progress").length)} icon={ClipboardList} note="Onboarding not finished" />
-        )}
-      </dl>
-
-      {money ? (
-        <dl className="ad__tiles ad__tiles--4" data-tour="dash-forecast" style={{ marginBottom: "1rem" }}>
-          <Tile label="Due in 30 days" href="/admin/money?status=Sent" value={nairaShort(dueSoon)} icon={CalendarClock} iconTone="live" note="Owed, and falling due or already late" />
-          <Tile label="Typical month's spend" href="/admin/money" value={nairaShort(typicalSpend)} icon={CircleDollarSign} iconTone="warn" note="Average of the last three months" />
-          <Tile label="Covers spend by" value={nairaShort(dueSoon - typicalSpend)} tone={dueSoon - typicalSpend >= 0 ? "good" : "bad"} icon={TrendingUp} iconTone={dueSoon - typicalSpend >= 0 ? "good" : "bad"} note={dueSoon - typicalSpend >= 0 ? "If it is all paid on time" : "Chase what is owed"} />
-        </dl>
-      ) : null}
-
-      {money ? (
-        <div className="adDash__row">
-          <Panel title="Cashflow, last six months" dataTour="dash-cashflow" action={<Link href="/admin/money">Open Money <ArrowRight aria-hidden="true" /></Link>}>
-            <p className="adDash__sub">Money collected against money spent, by month.</p>
-            {/* Six empty columns on a ₦0 axis say nothing; say why instead. */}
-            {monthly.some((m) => m.in || m.out) ? (
-              <CashflowChart months={monthly} totals={[
-                { label: "Collected", value: summary.collected, key: "in" },
-                { label: "Spend", value: summary.spend, key: "out" },
-                { label: "Billed", value: summary.invoiced },
-              ]} />
+          <Panel title="Later" id="later" dataTour="dash-today" action={<Link href="/admin/meetings">Calendar <ArrowRight aria-hidden="true" /></Link>}>
+            {laterRows.length ? (
+              <>
+                <ul className="adFlow__later">
+                  {laterRows.map((r) => (
+                    <li key={r.key}>
+                      <Link href={r.href}>
+                        <span className="adFlow__time ad__num">{r.when === todayIso ? "Today" : when(r.when)}</span>
+                        <span className="adFlow__laterCopy"><b>{r.title}</b><small>{r.sub}</small></span>
+                        <span className="ad__pill ad__pill--flat">{r.tag}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+                <Pager label="Pages of what is coming" total={later.length} page={laterPage} per={laterPer} noun="items" href={laterHref} />
+              </>
             ) : (
-              <Empty kind="first-use" title="No money in or out yet" icon={TrendingUp} action={<AddExpense />}>
-                The chart draws once a payment or an expense is recorded.
-              </Empty>
+              <Empty kind="cleared" title="Nothing is booked in the next few days" icon={CalendarClock}>Meetings, due dates and invoices falling due show here as they come up.</Empty>
             )}
           </Panel>
 
-          <Panel title="Collected of billed">
-            {/* A 0% gauge on a new install reads as a collection problem. */}
-            {!summary.invoiced ? (
-              <Empty kind="first-use" title="Nothing billed yet" icon={CircleDollarSign} action={<InvoiceBuilder credits={creditBalances()} noEmail={noticeBlocks(getClients())} />}>
-                Your collection rate appears after the first invoice is sent.
-              </Empty>
-            ) : <>
-            <div className="adDash__gauge">
-              <Gauge percent={collectionRate} />
-              <div className="adDash__gaugeText">
-                <b><CountUp value={`${collectionRate}%`} /></b>
-                <small>{nairaShort(summary.collected)} of {nairaShort(summary.invoiced)} billed</small>
-              </div>
-            </div>
-            <dl className="adDash__facts">
-              <div><dt>Paid on time</dt><dd>{settled.length ? `${onTime} of ${settled.length}` : "None paid yet"}</dd></div>
-              <div><dt>Average days to pay</dt><dd>{avgDays === null ? "Not yet" : `${avgDays} day${avgDays === 1 ? "" : "s"}`}</dd></div>
-            </dl>
-            <div className="adDash__panelFoot"><Link className="ad__btn" href="/admin/money">Open Money <ArrowRight aria-hidden="true" /></Link></div>
-            </>}
-          </Panel>
-        </div>
-      ) : null}
-
-      <div className="adDash__row">
-        <Panel
-          title="Attention needed"
-          dataTour="dash-attention"
-          action={attention.length ? <span className="ad__count" aria-label={`${attention.length} waiting`}>{attention.length}</span> : undefined}
-        >
-          {attention.length ? (
-            <div className="adDash__attention">
-              {attention.slice(0, 6).map((item) => {
-                const Icon = item.icon;
-                return (
-                  <div className="adDash__attentionItem" key={`${item.href}-${item.title}`}>
-                    <span className={`adDash__attentionIcon adDash__attentionIcon--${item.tone}`}><Icon aria-hidden="true" /></span>
-                    <span className="adDash__attentionCopy"><Link href={item.href}><b>{item.title}</b></Link><small>{item.detail}</small></span>
-                    <span className="adDash__attentionMeta">{item.meta}</span>
-                    <span className="adDash__attentionActions"><Link className="ad__btn" href={item.href}>{ctaFor(item.icon)}</Link>{item.menu}</span>
+          {money ? (
+            <Panel title="Money moving" id="money-moving" dataTour="dash-payments" action={<Link href="/admin/money">Open Money <ArrowRight aria-hidden="true" /></Link>}>
+              <Tabs label="Money moving" current={tab} items={[
+                { key: "overdue", label: "Overdue", href: tabHref("overdue"), count: overdue.length, tone: overdue.length ? "bad" : undefined },
+                { key: "soon", label: "Due soon", href: tabHref("soon"), count: soon.length },
+                { key: "paid", label: "Paid this month", href: tabHref("paid"), count: paidThisMonth.length },
+              ]} />
+              {tab === "paid" ? (
+                paidThisMonth.length ? (
+                  <>
+                    <div className="ad__scroll">
+                      <table className="ad__t">
+                        <thead><tr><th>Client</th><th>Invoice</th><th>Method</th><th>When</th><th className="num">Amount</th></tr></thead>
+                        <tbody>
+                          {paidThisMonth.slice((moneyPage - 1) * moneyPer, moneyPage * moneyPer).map((payment) => {
+                            const invoice = invoices.find((item) => item.id === payment.invoiceId);
+                            const client = invoice ? getClient(invoice.clientId) : undefined;
+                            return (
+                              <tr key={payment.id}>
+                                <td><span className="adDash__who"><span className="adDash__av" aria-hidden="true">{initials(client?.company ?? "?")}</span><span><b>{client?.company ?? "Unknown client"}</b>{invoice?.projectId ? <small>{projects.find((p) => p.id === invoice.projectId)?.title}</small> : null}</span></span></td>
+                                <td>{invoice ? <Link href={`/admin/money/${invoice.id}`}>{invoice.number}</Link> : "Unknown"}</td>
+                                <td><span className="ad__pill ad__pill--flat">{payment.method}</span></td>
+                                <td className="ad__dim">{when(payment.at)}</td>
+                                <td className="num">{naira(payment.amount)}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                    <Pager label="Pages of payments" total={paidThisMonth.length} page={moneyPage} per={moneyPer} noun="payments" href={moneyHref} />
+                  </>
+                ) : (
+                  <Empty title="No payments yet this month" icon={CircleDollarSign} action={<Link className="ad__btn" href="/admin/money">Open Money</Link>}>
+                    Online payments land here by themselves. Money that arrived another way can be recorded on the invoice.
+                  </Empty>
+                )
+              ) : moneyList.length ? (
+                <>
+                  <div className="ad__scroll">
+                    <table className="ad__t">
+                      <thead><tr><th>Invoice</th><th className="num">Owed</th><th>Due</th><th>Status</th><th><span className="ad__srOnly">Actions</span></th></tr></thead>
+                      <tbody>
+                        {moneyList.slice((moneyPage - 1) * moneyPer, moneyPage * moneyPer).map((invoice) => (
+                          <tr key={invoice.id}>
+                            <td><Link href={`/admin/money/${invoice.id}`}><b>{invoice.number}</b></Link><small className="adFlow__sub">{getClient(invoice.clientId)?.company ?? "Unknown client"}</small></td>
+                            <td className="num">{money_(invoice)}</td>
+                            <td className="ad__dim">{when(invoice.due)}</td>
+                            <td><InvoicePill status={invoiceStatus(invoice)} /></td>
+                            <td className="ad__rowEnd"><InvoiceMenu invoice={invoice} noReceipt={noticeBlock(getClient(invoice.clientId))} edit={{ clientName: getClient(invoice.clientId)?.company ?? "Client", projectTitle: projects.find((p) => p.id === invoice.projectId)?.title }} /></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
-                );
-              })}
-              {attention.length > 6 ? (
-                /* SAID, NOT HIDDEN. The panel shows the six worst; a queue
-                   that silently drops the rest reads as "that is all". */
-                <p className="adDash__more" role="status">
-                  {attention.length - 6} more not shown. They are on the Money, Projects, Clients and Blog screens.
-                </p>
-              ) : null}
-            </div>
+                  <Pager label="Pages of invoices" total={moneyList.length} page={moneyPage} per={moneyPer} noun="invoices" href={moneyHref} />
+                </>
+              ) : (
+                <Empty kind="cleared" title={tab === "overdue" ? "Nothing is overdue" : "Nothing is falling due"} icon={CircleDollarSign}>
+                  {tab === "overdue" ? "Every open invoice is inside its due date." : "No open invoice is waiting on a date."}
+                </Empty>
+              )}
+            </Panel>
           ) : (
-            /* A new install and a cleared queue are different moments: the
-               first needs a way in, the second only needs to be said. */
-            clients.length ? (
-              <Empty kind="cleared" title="You’re caught up" icon={ClipboardList}>Nothing is overdue, stuck or waiting on a reply.</Empty>
-            ) : (
-              <Empty kind="first-use" title="Start with your first client" icon={Users} action={<AddClient />}>
-                Add a client, then open a project and raise an invoice. This queue fills as work comes in.
-              </Empty>
-            )
+            <Suspense fallback={<RecentLeadsSkeleton />}>
+              <RecentLeads />
+            </Suspense>
           )}
-        </Panel>
+        </div>
 
-        <div className="adDash__rail">
+        <aside className="adFlow__rail" aria-label="Studio pulse">
+          <div className="adFlow__railHead"><h2>Studio pulse</h2><CustomiseHint hasMe={!!me} /></div>
+          <dl className="adFlow__tiles" data-tour="dash-kpis">
+            {money ? <>
+            <Tile label="Collected" href="/admin/money?status=Paid" value={nairaShort(summary.collected)} tone="good" icon={Wallet} iconTone="good" badge={weekBadge} note={`${collectionRate}% of everything billed`} />
+            <Tile label="Outstanding" href="/admin/money?status=Sent" value={nairaShort(summary.outstanding)} icon={Clock} iconTone="live"
+              badge={overdueCount ? { label: `${overdueCount} overdue`, tone: "bad" } : undefined}
+              note={`Across ${openInvoices} open invoice${openInvoices === 1 ? "" : "s"}`} />
+            </> : <>
+            <Tile label="Clients" href="/admin/clients" value={String(clients.length)} icon={Users} note="Active records" />
+            <Tile label="Open tickets" href="/admin/clients/support?status=Open" value={String(getTickets().filter((t) => t.status === "Open").length)} icon={LifeBuoy} iconTone="live" note="Waiting for a reply" />
+            </>}
+            <Tile label="Live projects" href="/admin/projects" value={String(summary.liveProjects)} icon={FolderKanban}
+              badge={summary.needsUs ? { label: `${summary.needsUs} need attention`, tone: "warn" } : undefined}
+              note={`${board.get("Review")?.length ?? 0} in review · ${board.get("Revisions")?.length ?? 0} in revisions`} />
+            {money ? (
+              <Tile label="Cash position" href="/admin/money" value={nairaShort(summary.profit)} tone={summary.profit >= 0 ? "good" : "bad"} icon={TrendingUp} iconTone={summary.profit >= 0 ? "good" : "bad"} note={`Collected less ${nairaShort(summary.spend)} recorded spend`} />
+            ) : (
+              <Tile label="Open forms" value={String(getSubmissions().filter((x) => x.status === "In progress").length)} icon={ClipboardList} note="Onboarding not finished" />
+            )}
+          </dl>
+
+          {money ? (
+            <Panel title="Cash in" dataTour="dash-cashflow" action={<Link href="/admin/money?tab=reports">Full report <ArrowRight aria-hidden="true" /></Link>}>
+              {monthly.some((m) => m.in || m.out) ? (
+                <CashflowChart months={monthly} totals={[
+                  { label: "Collected", value: summary.collected, key: "in" },
+                  { label: "Spend", value: summary.spend, key: "out" },
+                  { label: "Billed", value: summary.invoiced },
+                ]} />
+              ) : (
+                <Empty kind="first-use" title="No money in or out yet" icon={TrendingUp} action={<AddExpense />}>
+                  The chart draws once a payment or an expense is recorded.
+                </Empty>
+              )}
+            </Panel>
+          ) : null}
+
+          {money ? (
+            <dl className="adFlow__tiles" data-tour="dash-forecast">
+              <Tile label="Due in 30 days" href="/admin/money?status=Sent" value={nairaShort(dueSoon)} icon={CalendarClock} iconTone="live" note="Owed, falling due or already late" />
+              <Tile label="Typical month's spend" href="/admin/money" value={nairaShort(typicalSpend)} icon={CircleDollarSign} iconTone="warn" note="Average of the last three months" />
+              <Tile label="Covers spend by" value={nairaShort(dueSoon - typicalSpend)} tone={dueSoon - typicalSpend >= 0 ? "good" : "bad"} icon={TrendingUp} iconTone={dueSoon - typicalSpend >= 0 ? "good" : "bad"} note="If it is all paid on time" />
+            </dl>
+          ) : null}
+
+          {money && summary.invoiced ? (
+            <Panel title="Collected of billed">
+              <div className="adDash__gauge">
+                <Gauge percent={collectionRate} />
+                <div className="adDash__gaugeText">
+                  <b><CountUp value={`${collectionRate}%`} /></b>
+                  <small>{nairaShort(summary.collected)} of {nairaShort(summary.invoiced)} billed</small>
+                </div>
+              </div>
+              <dl className="adDash__facts">
+                <div><dt>Paid on time</dt><dd>{settled.length ? `${onTime} of ${settled.length}` : "None paid yet"}</dd></div>
+                <div><dt>Average days to pay</dt><dd>{avgDays === null ? "Not yet" : `${avgDays} day${avgDays === 1 ? "" : "s"}`}</dd></div>
+              </dl>
+            </Panel>
+          ) : null}
+
           <Panel title="Project pipeline" dataTour="dash-pipeline" action={<Link href="/admin/projects?view=board">Board <ArrowRight aria-hidden="true" /></Link>}>
             <div className="adDash__pipeline" role="list">
               {stageCounts.map(({ stage, n }) => (
@@ -408,49 +512,7 @@ export async function AdminDashboardView({ firstName, money = true, me }: { firs
               )
             )}
           </Panel>
-        </div>
-      </div>
 
-      <div className="adDash__row">
-        {money ? <Panel title="Recent payments" dataTour="dash-payments" action={<Link href="/admin/money">View all <ArrowRight aria-hidden="true" /></Link>}>
-          {payments.length ? (
-            <div className="ad__scroll">
-              <table className="ad__t">
-                <thead><tr><th>Client</th><th>Invoice</th><th>Method</th><th>When</th><th className="num">Amount</th></tr></thead>
-                <tbody>
-                  {payments.slice(0, 5).map((payment) => {
-                    const invoice = invoices.find((item) => item.id === payment.invoiceId);
-                    const client = invoice ? getClient(invoice.clientId) : undefined;
-                    return (
-                      <tr key={payment.id}>
-                        <td>
-                          <span className="adDash__who">
-                            <span className="adDash__av" aria-hidden="true">{initials(client?.company ?? "?")}</span>
-                            <span><b>{client?.company ?? "Unknown client"}</b>{invoice?.projectId ? <small>{projects.find((p) => p.id === invoice.projectId)?.title}</small> : null}</span>
-                          </span>
-                        </td>
-                        <td>{invoice ? <Link href={`/admin/money/${invoice.id}`}>{invoice.number}</Link> : "Unknown"}</td>
-                        <td><span className="ad__pill ad__pill--flat">{payment.method}</span></td>
-                        <td className="ad__dim">{when(payment.at)}</td>
-                        <td className="num">{naira(payment.amount)}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <Empty title="No payments yet" icon={CircleDollarSign} action={<Link className="ad__btn" href="/admin/money">Open Money</Link>}>
-              Online payments land here by themselves. Money that arrived another way can be recorded on the invoice.
-            </Empty>
-          )}
-        </Panel> : (
-          <Suspense fallback={<RecentLeadsSkeleton />}>
-            <RecentLeads />
-          </Suspense>
-        )}
-
-        <div className="adDash__rail">
           <Panel title="Quick actions" dataTour="dash-quick-actions">
             <div className="adDash__actions">
               <AddClient />
@@ -470,10 +532,31 @@ export async function AdminDashboardView({ firstName, money = true, me }: { firs
               <RecentLeads />
             </Suspense>
           ) : null}
-        </div>
+        </aside>
       </div>
     </div>
   );
+}
+
+/** What kind of thing a deck card is, from the icon the queue gave it. */
+function kindFor(icon: unknown) {
+  if (icon === LifeBuoy) return "Support";
+  if (icon === FolderClock) return "Project";
+  if (icon === MailWarning) return "Email";
+  if (icon === FileClock) return "Blog";
+  if (icon === MessageSquareWarning) return "Approval";
+  if (icon === ClipboardList) return "Lead";
+  return "Money";
+}
+
+/** An invoice's amount owed, in its own currency. */
+function money_(invoice: Parameters<typeof invoiceTotals>[0]) {
+  return currencyMoney(invoiceTotals(invoice).due, currencyOf(invoice));
+}
+
+/** Customise lives in the page menu on a phone; this is only the label on a wide screen. */
+function CustomiseHint({ hasMe }: { hasMe: boolean }) {
+  return hasMe ? <Link href="/admin/settings/general" className="adFlow__more">View all <ArrowRight aria-hidden="true" /></Link> : null;
 }
 
 /** The visible action on an attention row, by what the row is about. The menu beside it holds the rest. */

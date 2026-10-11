@@ -95,7 +95,7 @@ test("the paper comes out bottom-first", async ({ page }) => {
   /* Finished: the whole slip, head included. */
   const done = await replayThen(page, 3.3);
   expect(done).toContain("Payment receipt");
-  expect(done).toContain("₦300,000.00");
+  expect(done).toContain("₦300,000");
   expect(done).toContain("Thank you for your payment.");
 });
 

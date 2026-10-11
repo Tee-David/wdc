@@ -39,7 +39,7 @@ test.describe("a struck invoice", () => {
        having made it disappear. */
     expect(res?.status()).toBe(200);
     await expect(page.locator(".doc__void")).toContainText("cancelled");
-    await expect(page.locator(".doc__owed b")).toHaveText("₦0.00");
+    await expect(page.locator(".doc__owed b")).toHaveText("₦0");
   });
 
   test("offers no way to pay it", async ({ page }) => {
@@ -67,7 +67,7 @@ test.describe("a struck invoice", () => {
        about the balance, not an erasure of what the document said. */
     await page.goto(`/i/${VOIDED}`);
     await expect(page.locator(".doc__lines tbody")).toContainText("Packaging artwork");
-    await expect(page.locator(".doc__lines tfoot")).toContainText("₦548,250.00");
+    await expect(page.locator(".doc__lines tfoot")).toContainText("₦548,250");
   });
 });
 
@@ -94,7 +94,7 @@ test.describe("a refunded payment", () => {
        document with that number on it; a books entry that edits itself cannot
        be reconciled against a printed one. */
     await page.goto(`/r/${REFUNDED}`);
-    await expect(page.locator(".doc__owed b")).toHaveText("₦150,000.00");
+    await expect(page.locator(".doc__owed b")).toHaveText("₦150,000");
   });
 
   test("and the arithmetic still closes", async ({ page }) => {
@@ -120,10 +120,10 @@ test.describe("the books", () => {
   test("a part-refunded payment says so on Money and on its invoice, from the refund rows", async ({ page }) => {
     await page.goto("/admin/money", { waitUntil: "networkidle" });
     const row = page.locator("tr", { hasText: "TRF_0104" });
-    await expect(row).toContainText("Part refunded, ₦75,000.00 back");
-    await expect(row).toContainText("₦150,000.00");
+    await expect(row).toContainText("Part refunded, ₦75,000 back");
+    await expect(row).toContainText("₦150,000");
     await page.goto("/admin/money/i2", { waitUntil: "networkidle" });
-    await expect(page.locator("tr", { hasText: "RCT-2026-004" })).toContainText("Part refunded, ₦75,000.00 back");
+    await expect(page.locator("tr", { hasText: "RCT-2026-004" })).toContainText("Part refunded, ₦75,000 back");
   });
 
   test("a struck invoice owes nothing and is out of the aging", async ({ page }) => {
@@ -132,7 +132,7 @@ test.describe("the books", () => {
     await expect(row).toContainText("Void");
     /* Its total is still shown -- it is a real document -- and the owed column
        reads nil rather than its total. */
-    await expect(row).toContainText("₦548,250.00");
+    await expect(row).toContainText("₦548,250");
     await expect(row).toContainText("Nil");
   });
 
@@ -158,12 +158,12 @@ test.describe("the books", () => {
     await page.goto("/admin/money/i2", { waitUntil: "load" });
     const tiles = page.locator("dl.ad__tiles");
     /* ₦150,000 arrived, ₦75,000 went back, so the invoice has ₦75,000. */
-    await expect(tiles).toContainText("₦75,000.00");
+    await expect(tiles).toContainText("₦75,000");
     const payments = page.locator(".ad__panel", {
       has: page.getByRole("heading", { name: "Payments", exact: true }),
     });
     /* And the row still shows what actually arrived. */
-    await expect(payments).toContainText("₦150,000.00");
+    await expect(payments).toContainText("₦150,000");
   });
 
   test("the client's balance carries the half that was held", async ({ page }) => {
@@ -171,7 +171,7 @@ test.describe("the books", () => {
     const panel = page.locator(".ad__panel", {
       has: page.getByRole("heading", { name: "Their balance with us" }),
     });
-    await expect(panel).toContainText("₦75,000.00");
+    await expect(panel).toContainText("₦75,000");
     await expect(panel).toContainText("Available");
   });
 
