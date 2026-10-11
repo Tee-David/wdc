@@ -146,6 +146,16 @@
   }
 
   /* ---------- menus: a popover on wide screens, a bottom sheet on phones ---------- */
+  /* aria-expanded for the ⋮ that opened the current menu, so it stays pressed while its options show */
+  /* Figure cards carry a solid icon tile, white icon on a tone fill, chosen by what the figure is. */
+  statDeco(k) {
+    var I = this.icons();
+    var rep = 'M17 1l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3', hour = 'M5 22h14M5 2h14M17 22v-4.17a2 2 0 0 0-.59-1.42L12 12l-4.41 4.41A2 2 0 0 0 7 17.83V22M7 2v4.17a2 2 0 0 0 .59 1.42L12 12l4.41-4.41A2 2 0 0 0 17 6.17V2', inn = 'M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3';
+    var ic = ({ 'Collected, October': I.cash, 'Outstanding': I.wallet, 'Live projects': I.folder, 'Recurring a month': rep, 'Retainers a month': rep, 'Due today': I.clock, 'With clients': I.users, 'Replies waiting': I.msg, 'Done this week': I.check, 'Waiting on clients': hour, 'Due this week': I.cal, 'Active clients': I.users, 'Using the portal': inn })[k.label] || k.ic || I.chart;
+    var tile = ({ 'var(--ad-tone-good)': 'var(--ad-tone-good)', 'var(--ad-tone-bad)': 'var(--ad-tone-bad)', 'var(--ad-series-1)': 'var(--ad-tone-brand)', 'var(--ad-series-2)': 'var(--ad-tone-live)', 'var(--ad-tone-live)': 'var(--ad-tone-live)', 'var(--ad-tone-warn)': 'var(--ad-tone-warn)' })[k.dot] || 'var(--ad-tone-brand)';
+    return { ic: ic, tile: tile };
+  }
+  popOn(kind, id) { var p = this.state.pop; return p && p.kind === kind && p.id === id ? 'true' : 'false'; }
   openPop(e, kind, id, w, h, label, extra) {
     var asSheet = this.isPhone();
     if (this.state.pop && this.state.pop.id === id && this.state.pop.kind === kind) { this.setState({ pop: null }); return; }

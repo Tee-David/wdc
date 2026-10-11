@@ -249,8 +249,16 @@ body{margin:0}
 .tbl td{padding:10px 14px;border-bottom:1px solid var(--ad-line);white-space:nowrap;background:var(--ad-panel);transition:background .15s}
 .tbl th:first-child,.tbl td:first-child{position:sticky;left:0;z-index:1;min-width:200px;box-shadow:1px 0 0 var(--ad-line)}
 .tbl tbody tr{cursor:pointer}
-.tbl tbody tr:hover td{background:var(--ad-hover)}
+/* The row and its ⋮ are two separate touch areas. Pressing the ⋮ must not light the row, a phone must not keep the row "hovered" after a tap, and the ⋮ shows its own press. */
+.tbl tbody tr{-webkit-tap-highlight-color:transparent}
+@media (hover:hover){.tbl tbody tr:hover td{background:var(--ad-hover)}}
 .tbl tbody tr:active td{background:var(--ad-panel-2)}
+.tbl tbody tr:has([data-menu]:hover) td,.tbl tbody tr:has([data-menu]:active) td,.tbl tbody tr:has([data-menu][aria-expanded="true"]) td{background:var(--ad-panel)}
+.tbl td:has(> [data-menu]){padding-left:4px;padding-right:6px;width:52px}
+.tbl [data-menu]{width:44px;height:44px;-webkit-tap-highlight-color:transparent;transition:background .15s,transform .08s}
+.tbl [data-menu]:hover{background:var(--ad-hover)}
+.tbl [data-menu]:active,.tbl [data-menu][aria-expanded="true"]{background:var(--ad-line-2);transform:scale(.92)}
+.tbl [data-menu][aria-expanded="true"]{transform:none}
 .tbl .r{text-align:right}
 .pgFoot{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:10px 12px;padding:12px 16px 14px;border-top:1px solid var(--ad-line)}
 .pgInfo{justify-self:start;color:var(--ad-dim);font-size:13px;white-space:nowrap}
@@ -479,7 +487,13 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .postPill{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;padding:6px 10px 6px 6px;border-radius:12px;border:1px solid var(--ad-line);background:var(--ad-panel);text-align:left;transition:border-color .18s,transform .2s var(--ease),box-shadow .2s}
 .postPill:hover{border-color:var(--ad-ink);transform:translateX(2px);box-shadow:var(--ad-sh-1)}
 .fRow{display:flex;align-items:center;gap:12px;padding:6px 12px;border-radius:12px;transition:background .15s;cursor:pointer}
-.fRow:hover{background:var(--ad-hover)}
+@media (hover:hover){.fRow:hover{background:var(--ad-hover)}}
+.fRow{-webkit-tap-highlight-color:transparent}
+.fRow:active{background:var(--ad-panel-2)}
+.fRow:has([data-menu]:hover),.fRow:has([data-menu]:active),.fRow:has([data-menu][aria-expanded="true"]){background:transparent}
+.fRow [data-menu]{-webkit-tap-highlight-color:transparent;transition:background .15s,transform .08s}
+.fRow [data-menu]:active,.fRow [data-menu][aria-expanded="true"]{background:var(--ad-line-2)}
+.fRow [data-menu]:active{transform:scale(.92)}
 .extTile{width:40px;height:40px;border-radius:10px;color:#fff;display:flex;align-items:center;justify-content:center;font:700 11px 'Space Grotesk',system-ui,sans-serif;flex:none}
 .item.off{opacity:.62}
 .item.off:hover{opacity:1}
@@ -566,7 +580,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .noticeIc{width:34px;height:34px;border-radius:10px;background:var(--nt);color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:12px}
 @container app (max-width:640px){.formGrid{grid-template-columns:minmax(0,1fr)}}
-@container app (max-width:640px){.tiles{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.tiles .stat{padding:12px !important;min-height:92px !important}.tiles .stat .num{font-size:19px !important}.tiles .stat > span:first-child{font-size:12px !important;align-items:flex-start !important;line-height:1.25}.tiles .stat > span:last-child{font-size:11px !important}}
+@container app (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.tiles .stat:last-child:nth-child(odd){grid-column:1 / -1}.tiles .stat{padding:12px !important;min-height:92px !important}.tiles .stat .num{font-size:19px !important}.tiles .stat > span:first-child{font-size:12px !important;line-height:1.25}.tiles .stat > span:last-child{font-size:11px !important}}
 /* ---- detail pages ---- */
 .pageTabs{padding:0;border-bottom:1px solid var(--ad-line);-webkit-mask-image:none;mask-image:none;margin-top:-6px}
 .tabIn{animation:kidIn .35s var(--ease) backwards}
@@ -590,3 +604,28 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .bCard:hover{border-color:var(--ad-line-2)}
 .bEmpty{font-size:13px;color:var(--ad-dim);padding:10px 4px}
 @container card (max-width:700px){.board{grid-template-columns:repeat(4,minmax(240px,82%))}}
+/* ---- project page ---- */
+.blocker{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 14px;border-radius:14px;border:1px solid var(--ad-line);background:var(--ad-panel)}
+.blockActs{display:flex;gap:8px;flex-wrap:wrap}
+@container card (max-width:520px){.blockActs{flex:1 1 100%}.blockActs > *{flex:1 1 0}}
+.projSwitch{align-self:flex-start;max-width:100%}
+.monthGrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.mgHead{font-size:12px;font-weight:600;color:var(--ad-dim);text-align:center;padding:4px 0}
+.mgCell{min-height:68px;border-radius:12px;border:1px solid var(--ad-line);background:var(--ad-panel);display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:6px 8px;text-align:left;transition:border-color .15s,background .15s}
+.mgCell:hover:not([disabled]){border-color:var(--ad-line-2);background:var(--ad-hover)}
+.mgCell[disabled]{background:transparent;border-color:transparent;cursor:default}
+.mgCell.today{border-color:var(--ad-ink)}
+.mgN{font-size:13px;font-weight:600}
+.mgCell.out .mgN{color:var(--ad-dim);opacity:.6}
+.mgDots{display:flex;gap:3px;flex-wrap:wrap}
+.mgDot{width:8px;height:8px;border-radius:50%}
+.mgMore{font-size:11px;color:var(--ad-dim)}
+@container card (max-width:520px){.mgCell{min-height:48px;padding:4px 5px}.mgMore{display:none}}
+@container app (max-width:640px){.pgTitle.showS{display:block !important;flex:0 1 auto}}
+
+/* Figure cards: a solid icon tile with a white icon beside the label (no dots). Phones show at most two cards a row. */
+.statHd{display:flex;align-items:center;gap:10px;color:var(--ad-dim);font-size:13px;min-width:0}
+.statIc{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;color:#fff;flex:none}
+.statLbl{min-width:0;line-height:1.25}
+.stat{gap:10px !important}
+@container app (max-width:640px){.bento{grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:10px}.bento .stat:last-child:nth-child(odd){grid-column:1 / -1}.stat .statIc{width:30px;height:30px;border-radius:9px}}
