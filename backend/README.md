@@ -16,7 +16,7 @@ All paths below are relative to the repository root.
 | Admin state and persistence | `frontend/lib/admin/store.ts`, `persist.ts` |
 | Forms and onboarding | `frontend/lib/forms/` and onboarding API routes |
 | Storage signing and validation | `frontend/lib/r2.ts` and upload routes |
-| Payments | `frontend/lib/paystack.ts` and payment/webhook routes |
+| Payments | `frontend/lib/paystack.ts`, `frontend/lib/flutterwave.ts` and payment/webhook routes |
 | Email delivery and outcomes | Email modules, `message-log.ts`, `money-mail.ts` |
 | Scheduled work | `frontend/lib/jobs/`, `app/api/cron/daily/route.ts` |
 
