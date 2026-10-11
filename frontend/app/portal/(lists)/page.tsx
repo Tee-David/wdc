@@ -2,7 +2,7 @@ import {moneySummary} from "@/lib/money/summary";
 import {currencyOf,money} from "@/lib/money/currency";
 import Link from "next/link";
 import {
-  Banknote, Bell, ChevronRight, CircleCheck, FileCheck2, FolderKanban, LifeBuoy, MessageSquare, ReceiptText, Wallet,
+  Banknote, Bell, ChevronRight, FileCheck2, FolderKanban, LifeBuoy, MessageSquare, ReceiptText, Wallet,
 } from "lucide-react";
 import { getPortalRequest } from "@/lib/portal/session";
 import {
@@ -13,9 +13,11 @@ import { SERVICE_BY_SLUG } from "@/lib/services";
 import { projectGlyph, projectTileStyle } from "@/components/client/service-glyph";
 import { Empty, Panel, Tile, when } from "@/components/admin/bits";
 import "@/components/client/portal.css";
+import "@/components/admin/dashboard.css";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 import { PortalExampleNote } from "@/components/admin/example-note";
 import { MeetingsPanel } from "@/components/client/meetings-panel";
+import { Deck, type DeckItem } from "@/components/admin/deck";
 
 export const metadata = { title: "Overview" };
 
@@ -82,16 +84,6 @@ export default async function PortalOverview({ searchParams }: { searchParams: P
   const openTickets = tickets.filter((t) => t.status !== "Closed");
   const attentionCount = awaitingApproval.length + outstandingInvoices.length + answeredTickets.length;
 
-  /* ONE NEXT STEP, the most useful thing to do right now: something to review,
-     else something to pay (overdue first), else a reply to read. */
-  const overdueFirst = [...outstandingInvoices].sort((a, b) => Number(invoiceStatus(b) === "Overdue") - Number(invoiceStatus(a) === "Overdue"))[0];
-  const nextStep = awaitingApproval[0]
-    ? { tone: "live", title: `${awaitingApproval[0].deliverable.name} is ready for your review`, line: `${awaitingApproval[0].project.title}. Your approval keeps the project moving.`, href: `/portal/projects/${awaitingApproval[0].project.id}`, label: "Review now", external: false }
-    : overdueFirst
-      ? { tone: invoiceStatus(overdueFirst) === "Overdue" ? "bad" : "warn", title: `${money(invoiceTotals(overdueFirst).due,currencyOf(overdueFirst))} to pay on ${overdueFirst.number}`, line: `${invoiceStatus(overdueFirst) === "Overdue" ? "This was due" : "Due"} ${when(overdueFirst.due)}. Pay by card or transfer on the invoice page.`, href: `/i/${overdueFirst.token}`, label: "Pay now", external: true }
-      : answeredTickets[0]
-        ? { tone: "neutral", title: `We replied to "${answeredTickets[0].subject}"`, line: `Replied ${when(answeredTickets[0].updatedAt)}.`, href: `/portal/support/${answeredTickets[0].id}`, label: "Read the reply", external: false }
-        : null;
   const waitingProjects = new Set(awaitingApproval.map((x) => x.project.id));
 
   const balance = outstandingInvoices.reduce((n, inv) => n + invoiceTotals(inv).due, 0);
@@ -104,19 +96,53 @@ export default async function PortalOverview({ searchParams }: { searchParams: P
     .sort((a, b) => b.update.at.localeCompare(a.update.at));
   const nextFor = (projectId: string) => updates.find((x) => x.project.id === projectId)?.update.next || null;
 
+  /* WAITING ON YOU, as a deck: one card at a time, the thing that unblocks the
+     studio first, then money, then replies. Same records as the list it replaced. */
+  const deckItems: DeckItem[] = [
+    ...awaitingApproval.map(({ deliverable, project }): DeckItem => {
+      const latest = deliverable.versions[deliverable.versions.length - 1];
+      return {
+        id: `rev-${deliverable.id}`, kind: "Review", tone: "live", urgency: "Ready for you", label: project.title,
+        title: `${deliverable.name} is ready for your review`,
+        body: "Open it, then approve it or ask for changes. Your answer keeps the project moving.",
+        facts: latest ? [{ k: "Version", v: String(latest.v) }, { k: "Sent", v: when(latest.at) }] : [],
+        why: "The next step on this project waits for your answer.",
+        primary: { label: "Review now", href: `/portal/projects/${project.id}` },
+        open: `/portal/projects/${project.id}`,
+      };
+    }),
+    ...outstandingInvoices.map((inv): DeckItem => {
+      const overdue = invoiceStatus(inv) === "Overdue";
+      return {
+        id: `inv-${inv.id}`, kind: "Billing", tone: overdue ? "bad" : "warn", urgency: overdue ? "Overdue" : `Due ${when(inv.due)}`, label: inv.number,
+        title: `${money(invoiceTotals(inv).due, currencyOf(inv))} to pay on ${inv.number}`,
+        body: "Pay by card or bank transfer on the invoice page. You get a receipt straight away.",
+        facts: [{ k: "Due", v: when(inv.due) }],
+        primary: { label: "Pay now", href: `/i/${inv.token}` },
+        open: `/i/${inv.token}`,
+      };
+    }),
+    ...answeredTickets.map((t): DeckItem => ({
+      id: `tk-${t.id}`, kind: "Reply", tone: "brand", urgency: `Replied ${when(t.updatedAt)}`, label: "Support",
+      title: t.subject, body: "The studio has answered your question.",
+      primary: { label: "Read the reply", href: `/portal/support/${t.id}` },
+      open: `/portal/support/${t.id}`,
+    })),
+  ];
+
   return (
-    <div className="adDash">
+    <div className="adFlow">
       {/* Sent here from a studio link (a CC'd email, a forwarded address). */}
       {fromStudioLink ? (
         <p className="ad__banner" role="status">
           That link is for the studio team. You&rsquo;re signed in as {session?.user?.email ?? client.email}, a client, so here is your own portal instead.
         </p>
       ) : null}
-      <header className="adDash__head">
+      <header className="ad__head">
         <div>
-          <span className="adDash__eyebrow">{date}</span>
-          <h1>{greeting}, {firstName}</h1>
-          <p>Here is where things stand on your projects with us today.</p>
+          <p className="ad__dim">{date}</p>
+          <h1>{attentionCount ? `${greeting}, ${firstName}. ${attentionCount} ${attentionCount === 1 ? "thing is" : "things are"} waiting on you.` : `${greeting}, ${firstName}.`}</h1>
+          <p>{attentionCount ? "Here is what to look at first, then where your projects stand." : "Nothing is waiting on you. Here is where your projects stand."}</p>
         </div>
         <div className="ad__row">
           <Link className="ad__btn" href="/portal/billing"><Wallet aria-hidden="true" /> View billing</Link>
@@ -126,78 +152,16 @@ export default async function PortalOverview({ searchParams }: { searchParams: P
 
       {isPrimaryContact ? <PortalExampleNote clientId={client.id} /> : null}
 
-      {nextStep ? (
-        <section className={`cpStep cpStep--${nextStep.tone}`} aria-label="Your next step" data-tour="portal-next">
-          <div>
-            <span className="cpStep__eyebrow">Your next step</span>
-            <h2>{nextStep.title}</h2>
-            <p>{nextStep.line}</p>
+
+
+      <div className="adFlow__grid">
+        <div className="adFlow__main">
+          <div data-tour="portal-attention">
+            <Deck id="portal" title="Waiting on you" items={deckItems}
+              emptyTitle="You are all caught up."
+              emptyBody="Deliverables to review, invoices due and replies to your questions will appear here."
+              emptyNext={{ label: "Open your projects", href: "/portal/projects" }} />
           </div>
-          {nextStep.external
-            ? <a className="ad__btn ad__btn--primary" href={nextStep.href} target="_blank" rel="noopener noreferrer">{nextStep.label}</a>
-            : <Link className="ad__btn ad__btn--primary" href={nextStep.href}>{nextStep.label}</Link>}
-        </section>
-      ) : null}
-
-      <dl className="adDash__kpis" data-tour="portal-kpis">
-        <Tile label="Active projects" href="/portal/projects" value={String(live.length)} icon={FolderKanban}
-          note={byStage.length ? byStage.map(([s, n]) => `${n} ${s.toLowerCase()}`).join(", ") : `${projects.length} delivered`} />
-        <Tile label="Awaiting your review" href="/portal/projects" value={String(awaitingApproval.length)} icon={FileCheck2} iconTone="live"
-          note={awaitingApproval.length ? `${awaitingApproval[0].deliverable.name}${awaitingApproval.length > 1 ? ` and ${awaitingApproval.length - 1} more` : ""}` : "Nothing to look at yet"} />
-        {isPrimaryContact || billingProjectIds.length ? <Tile label="Balance owed" href="/portal/billing" value={nairaShort(balance)} icon={Banknote} iconTone="warn"
-          note={balance ? `${moneySummary(outstandingInvoices,inv=>invoiceTotals(inv).due)}${nextDue ? `, due ${when(nextDue)}` : " across your invoices"}` : "Nothing outstanding"} /> : null}
-        {isPrimaryContact ? <Tile label="Support" href="/portal/support" value={`${openTickets.length} open`} icon={LifeBuoy} iconTone="neutral"
-          note={answeredTickets.length ? `Reply from the studio ${when(answeredTickets[0].updatedAt)}` : openTickets.length ? "Waiting on the studio" : "No open questions"} /> : null}
-      </dl>
-
-      <div className="adDash__row">
-        <div className="adDash__rail">
-          <Panel title="Needs your attention" dataTour="portal-attention">
-            <p className="adDash__sub">The quickest way to keep your projects moving.</p>
-            {attentionCount ? (
-              <div className="adDash__attention">
-                {awaitingApproval.map(({ deliverable, project }) => {
-                  const latest = deliverable.versions[deliverable.versions.length - 1];
-                  return (
-                    <div className="adDash__attentionItem" key={deliverable.id}>
-                      <span className="adDash__attentionIcon adDash__attentionIcon--live"><FileCheck2 aria-hidden="true" /></span>
-                      <span className="adDash__attentionCopy">
-                        <b>{deliverable.name} is ready for your review</b>
-                        <small>{project.title}{latest ? ` · version ${latest.v}, sent ${when(latest.at)}` : ""}</small>
-                      </span>
-                      <span className="adDash__attentionActions"><Link className="ad__btn ad__btn--primary" href={`/portal/projects/${project.id}`}>Review now</Link></span>
-                    </div>
-                  );
-                })}
-                {outstandingInvoices.map((inv) => {
-                  const overdue = invoiceStatus(inv) === "Overdue";
-                  return (
-                    <div className="adDash__attentionItem" key={inv.id}>
-                      <span className={`adDash__attentionIcon adDash__attentionIcon--${overdue ? "bad" : "warn"}`}><ReceiptText aria-hidden="true" /></span>
-                      <span className="adDash__attentionCopy">
-                        <b>{money(invoiceTotals(inv).due,currencyOf(inv))} left on {inv.number}</b>
-                        <small>{overdue ? "Overdue" : "Due"} {when(inv.due)} · pay by card or bank transfer</small>
-                      </span>
-                      <span className="adDash__attentionActions"><a className="ad__btn" href={`/i/${inv.token}`} target="_blank" rel="noopener noreferrer">Pay now</a></span>
-                    </div>
-                  );
-                })}
-                {answeredTickets.map((t) => (
-                  <div className="adDash__attentionItem" key={t.id}>
-                    <span className="adDash__attentionIcon"><MessageSquare aria-hidden="true" /></span>
-                    <span className="adDash__attentionCopy">
-                      <b>{t.subject}</b>
-                      <small>We replied · {when(t.updatedAt)}</small>
-                    </span>
-                    <span className="adDash__attentionActions"><Link className="ad__btn" href={`/portal/support/${t.id}`}>Read</Link></span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <Empty title="You're all caught up" icon={CircleCheck}>Deliverables to review, invoices due, and replies to your questions will appear here.</Empty>
-            )}
-          </Panel>
-
           <Panel title="Your projects" action={<Link href="/portal/projects">View all projects <ChevronRight aria-hidden="true" /></Link>}>
             {projects.length ? (
               <div className="cpProjects">
@@ -235,7 +199,17 @@ export default async function PortalOverview({ searchParams }: { searchParams: P
           </Panel>
         </div>
 
-        <aside className="adDash__rail">
+        <aside className="adFlow__rail" aria-label="Your account at a glance">
+      <dl className="adFlow__tiles" data-tour="portal-kpis">
+        <Tile label="Active projects" href="/portal/projects" value={String(live.length)} icon={FolderKanban}
+          note={byStage.length ? byStage.map(([s, n]) => `${n} ${s.toLowerCase()}`).join(", ") : `${projects.length} delivered`} />
+        <Tile label="Awaiting your review" href="/portal/projects" value={String(awaitingApproval.length)} icon={FileCheck2} iconTone="live"
+          note={awaitingApproval.length ? `${awaitingApproval[0].deliverable.name}${awaitingApproval.length > 1 ? ` and ${awaitingApproval.length - 1} more` : ""}` : "Nothing to look at yet"} />
+        {isPrimaryContact || billingProjectIds.length ? <Tile label="Balance owed" href="/portal/billing" value={nairaShort(balance)} icon={Banknote} iconTone="warn"
+          note={balance ? `${moneySummary(outstandingInvoices,inv=>invoiceTotals(inv).due)}${nextDue ? `, due ${when(nextDue)}` : " across your invoices"}` : "Nothing outstanding"} /> : null}
+        {isPrimaryContact ? <Tile label="Support" href="/portal/support" value={`${openTickets.length} open`} icon={LifeBuoy} iconTone="neutral"
+          note={answeredTickets.length ? `Reply from the studio ${when(answeredTickets[0].updatedAt)}` : openTickets.length ? "Waiting on the studio" : "No open questions"} /> : null}
+      </dl>
           <Panel title="Recent updates">
             {updates.length ? (
               <ol className="cpFeed">
