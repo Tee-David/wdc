@@ -10,7 +10,7 @@ import { safeDestination } from "@/lib/roles";
    notched phone and pad themselves with the safe-area insets instead. */
 export const authViewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover" };
 
-export type AuthQuery = { redirect?: string | string[]; error?: string | string[]; done?: string | string[] };
+export type AuthQuery = { redirect?: string | string[]; error?: string | string[]; done?: string | string[]; reauthenticate?: string | string[] };
 
 const first = (value: string | string[] | undefined) => (Array.isArray(value) ? value[0] : value) ?? "";
 
@@ -25,6 +25,7 @@ const first = (value: string | string[] | undefined) => (Array.isArray(value) ? 
 export async function LoginRoute({ query, initialStep }: { query: Promise<AuthQuery>; initialStep: "identify" | "reset" }) {
   const [session, params] = await Promise.all([auth.api.getSession({ headers: await headers() }), query]);
   const requested = first(params.redirect);
+  const reauthenticate = first(params.reauthenticate) === "1";
   let completed: { destination: string; name: string | null } | null = null;
 
   if (session?.user) {
@@ -38,7 +39,7 @@ export async function LoginRoute({ query, initialStep }: { query: Promise<AuthQu
         destination: requested ? `/signed-in?redirect=${encodeURIComponent(requested)}` : "/signed-in",
         name: session.user.name?.trim().split(/\s+/)[0] || null,
       };
-    } else if (initialStep === "identify") {
+    } else if (initialStep === "identify" && !reauthenticate) {
       redirect(safeDestination(requested, role));
     }
   }
@@ -55,6 +56,7 @@ export async function LoginRoute({ query, initialStep }: { query: Promise<AuthQu
         initialStep={initialStep}
         sender={process.env.SMTP_FROM_EMAIL?.trim() || "no-reply@wedigcreativity.com.ng"}
         completed={completed}
+        previousSessionId={reauthenticate ? session?.session.id : undefined}
       />
     </AuthShell>
   );

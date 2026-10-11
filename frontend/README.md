@@ -13,7 +13,7 @@ npm run dev
 
 Development defaults to port 3000. Use `npm run dev -- --port 3100` for the default test URL, or set `WDC_E2E_BASE_URL` to an existing instance. For production, run `npm run build`, then `npm start`. The lockfile determines installed dependency versions; `package.json` defines supported scripts.
 
-The stack includes Next.js, React, TypeScript, Tailwind CSS, Better Auth, PostgreSQL-compatible CockroachDB, R2, SMTP and Paystack. Lucide supplies existing icons. Motion, GSAP and Lenis are available for appropriate use; keep optional effects off the critical rendering path.
+The stack includes Next.js, React, TypeScript, Tailwind CSS, Better Auth, PostgreSQL-compatible CockroachDB, R2, SMTP, Paystack and Flutterwave v3 hosted checkout. NGN invoices offer either configured provider; USD invoices use Flutterwave. Test payments do not settle real invoices. Lucide supplies existing icons. Motion, GSAP and Lenis are available for appropriate use; keep optional effects off the critical rendering path.
 
 ## Infrastructure map
 
