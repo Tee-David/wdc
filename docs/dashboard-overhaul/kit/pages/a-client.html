@@ -1,0 +1,135 @@
+<nav class="crumbs rise" aria-label="Breadcrumb"><a href="A-Clients.dc.html">Clients</a><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg><span aria-current="page">Mira Skincare</span></nav>
+            <div class="pageHead rise" style="align-items: center">
+              <div style="flex-direction: row; align-items: center; gap: 14px">
+                <span class="av0" style="width: 56px; height: 56px; border-radius: 16px; font-size: 17px; background: #1f4d3a; flex: none">MS</span>
+                <span style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+                  <h1 class="h1">Mira Skincare</h1>
+                  <span class="lede" style="font-size: 14px">{{headLine}}</span>
+                </span>
+              </div>
+              <div class="headActs">
+                <button class="btn" onClick="{{messageMain}}" data-tour="msg"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></svg>Message Adaeze</button>
+                <button class="ibtn" data-menu="chores" aria-label="More for Mira Skincare" aria-haspopup="menu" onClick="{{openChores}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg></button>
+              </div>
+            </div>
+            <div role="tablist" aria-label="Client sections" class="tabs pageTabs rise d1" data-tour="tabs">
+              <sc-for list="{{ptabs}}" as="tb" hint-placeholder-count="5"><button role="tab" class="tab {{tb.cls}}" aria-selected="{{tb.sel}}" onClick="{{tb.pick}}">{{tb.label}}<sc-if value="{{tb.hasN}}" hint-placeholder-val="{{ false }}"><span class="tag num" style="background: var(--ad-tone-flat); color: var(--ad-on-flat); height: 20px; padding: 0 7px">{{tb.n}}</span></sc-if></button></sc-for>
+            </div>
+
+            <sc-if value="{{loading}}" hint-placeholder-val="{{ false }}">
+              <div class="layout skWrap" role="status" aria-label="Loading">
+                <div class="col"><div class="skCard" style="gap: 14px"><span class="skel" style="height: 18px; width: 130px"></span><span class="skel" style="height: 96px"></span><span class="skel" style="height: 96px"></span></div><div class="skCard" style="gap: 12px"><span class="skel" style="height: 18px; width: 150px"></span><span class="skel" style="height: 48px"></span><span class="skel" style="height: 48px"></span><span class="skel" style="height: 48px"></span></div></div>
+                <div class="railCards"><div class="skCard" style="height: 230px"><span class="skel" style="height: 16px; width: 90px"></span><span class="skel" style="height: 76px; width: 76px; border-radius: 50%"></span><span class="skel" style="height: 52px"></span></div><div class="skCard" style="height: 200px"><span class="skel" style="height: 16px; width: 120px"></span><span class="skel" style="flex: 1"></span></div></div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ready}}" hint-placeholder-val="{{ true }}">
+            <sc-if value="{{isOverview}}" hint-placeholder-val="{{ true }}">
+            <div class="layout tabIn" style="animation-name: {{tabAnim}}">
+              <div class="col">
+                <section class="card cq" aria-label="Projects" data-tour="projects" style="padding: 16px 20px; display: flex; flex-direction: column; gap: 12px">
+                  <div style="display: flex; align-items: center; gap: 10px"><h2 style="font-size: 17px; font-weight: 700; flex: 1">Projects</h2><button class="lnk viewAll" onClick="{{newProject}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>New project</button></div>
+                  <sc-for list="{{projects}}" as="pj" hint-placeholder-count="2">
+                    <button class="lift projCard" onClick="{{pj.open}}">
+                      <span style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap"><strong style="flex: 1; min-width: 0; font-size: 15px">{{pj.name}}</strong><span class="tag" style="background: {{pj.tone}}; color: #fff">{{pj.status}}</span></span>
+                      <span style="font-size: 13px; color: var(--ad-dim)">{{pj.meta}}</span>
+                      <div class="cq" style="width: 100%"><div class="steps" role="img" aria-label="{{pj.stepAria}}"><sc-for list="{{pj.track}}" as="st" hint-placeholder-count="5"><span class="stp {{st.cls}}" title="{{st.l}}" style="animation-delay: {{st.delay}}"><span class="stpN"><sc-if value="{{st.isDone}}" hint-placeholder-val="{{ false }}"><svg class="ic draw" viewBox="0 0 24 24" width="11" height="11" aria-hidden="true" style="stroke-width: 3"><path pathLength="1" d="M20 6 9 17l-5-5"></path></svg></sc-if><sc-if value="{{st.notDone}}" hint-placeholder-val="{{ true }}">{{st.n}}</sc-if></span><span class="stpL">{{st.l}}</span></span></sc-for></div></div>
+                      <span style="display: flex; align-items: center; gap: 10px; font-size: 13px"><span class="avStack" style="padding-left: 7px"><sc-for list="{{pj.team}}" as="tm" hint-placeholder-count="2"><span class="av" style="width: 28px; height: 28px; margin-left: -7px; font-size: 10px; background: {{tm.c}}">{{tm.i}}</span></sc-for></span><span style="flex: 1; min-width: 0; color: var(--ad-dim)">{{pj.next}}</span><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="color: var(--ad-dim)"><path d="m9 18 6-6-6-6"></path></svg></span>
+                    </button>
+                  </sc-for>
+                </section>
+
+                <section class="card cq" aria-label="Recent activity" style="overflow: hidden">
+                  <div style="display: flex; align-items: center; gap: 10px; padding: 16px 20px 6px"><h2 style="font-size: 17px; font-weight: 700; flex: 1">Recent activity</h2><button class="lnk viewAll" onClick="{{toActivity}}">All activity<svg class="ic arr" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"></path></svg></button></div>
+                  <ol style="list-style: none; margin: 0; padding: 4px 20px 12px">
+                    <sc-for list="{{recent}}" as="l" hint-placeholder-count="4">
+                      <li class="tlRow"><span class="tlRail" aria-hidden="true"><span class="tlDot {{l.dotCls}}"></span></span><button class="tlBtn" onClick="{{l.open}}"><span class="av0" style="width: 30px; height: 30px; font-size: 10px; background: {{l.tone}}">{{l.i}}</span><span style="flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column"><span><strong>{{l.who}}</strong> {{l.what}}</span><span style="color: var(--ad-dim); font-size: 13px">{{l.where}}</span></span><span class="num tlTime">{{l.when}}</span></button></li>
+                    </sc-for>
+                  </ol>
+                </section>
+              </div>
+
+              <aside class="railCards" aria-label="Money and meetings" data-tour="rail">
+                <section class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 12px" aria-label="Money">
+                  <div style="display: flex; align-items: center"><h2 style="font-size: 16px; font-weight: 700; flex: 1">Money</h2><button class="lnk viewAll" onClick="{{toMoney}}">Invoices<svg class="ic arr" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"></path></svg></button></div>
+                  <div class="billTop">
+                    <span class="ringW" role="img" aria-label="{{billAria}}"><svg viewBox="0 0 76 76" width="76" height="76"><circle class="rTrack" cx="38" cy="38" r="32"></circle><circle class="rVal" cx="38" cy="38" r="32" pathLength="100" style="stroke-dasharray: 100; stroke-dashoffset: {{ringOff}}"></circle></svg><span class="rTxt"><strong class="num" style="font-size: 17px">{{paidPct}}%</strong><span style="font-size: 10px; color: var(--ad-dim)">paid</span></span></span>
+                    <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font-size: 13px; color: var(--ad-dim)">Paid so far</span><strong class="num" style="font-size: 22px; line-height: 1.15">{{paidShort}}</strong><span style="font-size: 13px; color: var(--ad-dim)">of {{invoicedTxt}} invoiced</span></span>
+                  </div>
+                  <sc-if value="{{hasDue}}" hint-placeholder-val="{{ true }}"><div class="payNext"><span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><strong class="num">₦450,000 due Tue 14 Oct</strong><span style="font-size: 12px; color: var(--ad-dim)">Social media deposit · INV-26-9QX4LM</span></span><button class="btn2" style="min-height: 44px; padding: 0 12px" onClick="{{remind}}">Remind</button></div></sc-if>
+                  <sc-if value="{{noDue}}" hint-placeholder-val="{{ false }}"><div class="payNext"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" style="color: var(--ad-tone-good)"><path d="M20 6 9 17l-5-5"></path></svg><span style="flex: 1; font-size: 13px"><strong>Nothing due.</strong> The brand identity balance goes with the final files on Fri 17 Oct.</span></div></sc-if>
+                </section>
+
+                <section class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 12px" aria-label="Next meeting">
+                  <div style="display: flex; align-items: center; gap: 8px"><h2 style="font-size: 16px; font-weight: 700; flex: 1">Next meeting</h2><span class="cdown"><span class="live"></span>{{meetIn}}</span></div>
+                  <div style="display: flex; gap: 12px; align-items: center"><span class="meetDate"><span class="mm">Oct</span><span class="dd num">{{meetDay}}</span></span><span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><strong class="disp" style="font-size: 17px">{{meetTime}}</strong><span style="font-size: 13px">Logo review with Adaeze</span><span style="font-size: 12px; color: var(--ad-dim)">Google Meet · Ifeanyi leads · review 1 of 2</span></span></div>
+                  <span style="display: flex; gap: 8px; flex-wrap: wrap"><button class="btn2" style="flex: 1 1 130px" onClick="{{agenda}}">Agenda</button><button class="btn2" style="flex: 1 1 110px" onClick="{{moveMeeting}}">Move it</button></span>
+                </section>
+
+                <section class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 8px" aria-label="People">
+                  <div style="display: flex; align-items: center"><h2 style="font-size: 16px; font-weight: 700; flex: 1">People</h2><button class="lnk viewAll" onClick="{{toPeople}}">All 3<svg class="ic arr" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"></path></svg></button></div>
+                  <sc-for list="{{peopleShort}}" as="pp" hint-placeholder-count="2"><button class="rowh" onClick="{{pp.open}}" style="display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 12px; width: 100%; text-align: left"><span class="av0" style="width: 34px; height: 34px; font-size: 11px; background: {{pp.tone}}">{{pp.i}}</span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 13px"><strong>{{pp.name}}</strong><span style="color: var(--ad-dim)">{{pp.role}}</span></span><span class="tag" style="background: {{pp.ptone}}; color: #fff">{{pp.portalShort}}</span></button></sc-for>
+                </section>
+              </aside>
+            </div>
+            </sc-if>
+
+            <sc-if value="{{isMoney}}" hint-placeholder-val="{{ false }}">
+              <section class="card cq tabIn" aria-label="Invoices, quotes and receipts" style="overflow: hidden; animation-name: {{tabAnim}}">
+                <div style="display: flex; align-items: center; gap: 10px; padding: 16px 20px 12px; flex-wrap: wrap"><h2 style="font-size: 17px; font-weight: 700; flex: 1">Money with Mira Skincare</h2><a class="btn2" href="A-Money.dc.html" style="min-height: 40px">Open Money</a></div>
+                <div role="tablist" aria-label="Kind" class="tabs"><sc-for list="{{mtabs}}" as="tb" hint-placeholder-count="3"><button role="tab" class="tab {{tb.cls}}" aria-selected="{{tb.sel}}" onClick="{{tb.pick}}">{{tb.label}}<span class="tag num" style="background: var(--ad-tone-flat); color: var(--ad-on-flat); height: 20px; padding: 0 7px">{{tb.n}}</span></button></sc-for></div>
+                <div class="tblWrap" tabindex="0" aria-label="Documents table, scrolls sideways">
+                  <table class="tbl">
+                    <thead><tr><th scope="col">Number</th><th scope="col">For</th><th scope="col" class="r">Amount</th><th scope="col">{{mDateHead}}</th><th scope="col">Status</th><th scope="col"><span class="sr">Actions</span></th></tr></thead>
+                    <tbody><sc-for list="{{mrows}}" as="r" hint-placeholder-count="3"><tr class="rowIn" tabindex="0" aria-label="{{r.aria}}" onClick="{{r.open}}" onKeyDown="{{r.key}}" style="animation-name: {{r.anim}}"><td><strong class="num">{{r.no}}</strong></td><td style="white-space: normal; min-width: 200px">{{r.for}}</td><td class="r num" style="font-weight: 600">{{r.amount}}</td><td>{{r.date}}</td><td><span class="tag" style="background: {{r.tone}}; color: #fff">{{r.status}}</span></td><td style="text-align: right"><button class="ibtn ghostB" data-menu="row" aria-label="{{r.menuAria}}" aria-haspopup="menu" onClick="{{r.menu}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg></button></td></tr></sc-for></tbody>
+                  </table>
+                </div>
+                %%PAGER:MP:Document%%
+              </section>
+            </sc-if>
+
+            <sc-if value="{{isFiles}}" hint-placeholder-val="{{ false }}">
+              <section class="card cq tabIn" aria-label="Files" style="overflow: hidden; animation-name: {{tabAnim}}">
+                <div style="display: flex; align-items: center; gap: 10px; padding: 16px 20px 12px; flex-wrap: wrap"><h2 style="font-size: 17px; font-weight: 700">Files</h2><span style="flex: 1"></span>
+                  <label class="sfield"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="color: var(--ad-dim)"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"></path></svg><span class="sr">Search files</span><input id="fq" value="{{fq}}" onChange="{{onFq}}" placeholder="File name"><sc-if value="{{hasFq}}" hint-placeholder-val="{{ false }}"><button class="clr" aria-label="Clear search" onClick="{{clearFq}}"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></sc-if></label>
+                  <button class="btn2" onClick="{{upload}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"></path></svg>Upload</button>
+                </div>
+                <div role="tablist" aria-label="Project" class="tabs"><sc-for list="{{ftabs}}" as="tb" hint-placeholder-count="4"><button role="tab" class="tab {{tb.cls}}" aria-selected="{{tb.sel}}" onClick="{{tb.pick}}">{{tb.label}}<span class="tag num" style="background: var(--ad-tone-flat); color: var(--ad-on-flat); height: 20px; padding: 0 7px">{{tb.n}}</span></button></sc-for></div>
+                <ul style="list-style: none; margin: 0; padding: 8px">
+                  <sc-for list="{{frows}}" as="f" hint-placeholder-count="5">
+                    <li class="fRow rowIn" tabindex="0" aria-label="{{f.aria}}" onClick="{{f.preview}}" onKeyDown="{{f.key}}" style="animation-name: {{f.anim}}; animation-delay: {{f.delay}}">
+                      <span class="extTile" style="background: {{f.tone}}">{{f.ext}}</span>
+                      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; min-height: 44px; justify-content: center"><strong style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{f.name}}</strong><span style="color: var(--ad-dim); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{f.meta}}</span></span>
+                      <sc-if value="{{f.shared}}" hint-placeholder-val="{{ false }}"><span class="tag hideS" style="background: var(--ad-tone-brand); color: #fff">Client sees it</span></sc-if>
+                      <button class="ibtn ghostB" data-menu="dl" aria-label="{{f.dlAria}}" onClick="{{f.get}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg></button>
+                    </li>
+                  </sc-for>
+                </ul>
+                <sc-if value="{{fEmpty}}" hint-placeholder-val="{{ false }}"><div class="emptyRow rowIn" style="animation-name: rinA"><strong>No file matches "{{fq}}".</strong><span style="color: var(--ad-dim)">Try part of the name, or look in another tab.</span><button class="btn2" onClick="{{clearFq}}">Clear search</button></div></sc-if>
+                %%PAGER:FP:File%%
+              </section>
+            </sc-if>
+
+            <sc-if value="{{isPeople}}" hint-placeholder-val="{{ false }}">
+              <section class="card cq tabIn" aria-label="People at Mira Skincare" style="overflow: hidden; animation-name: {{tabAnim}}">
+                <div style="display: flex; align-items: center; gap: 10px; padding: 16px 20px 12px; flex-wrap: wrap"><span style="flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 2px"><h2 style="font-size: 17px; font-weight: 700">People at Mira Skincare</h2><span style="font-size: 13px; color: var(--ad-dim)">Who gets the portal, who gets invoices, and who we talk to.</span></span><button class="btn2" onClick="{{addPerson}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Add a person</button></div>
+                <div class="tblWrap" tabindex="0" aria-label="People table, scrolls sideways">
+                  <table class="tbl"><thead><tr><th scope="col">Person</th><th scope="col">Role</th><th scope="col">Gets</th><th scope="col">Portal</th><th scope="col"><span class="sr">Actions</span></th></tr></thead>
+                    <tbody><sc-for list="{{people}}" as="pp" hint-placeholder-count="3"><tr class="rowIn" tabindex="0" aria-label="{{pp.aria}}" onClick="{{pp.open}}" onKeyDown="{{pp.key}}" style="animation-name: {{pp.anim}}"><td><span style="display: flex; align-items: center; gap: 10px; min-height: 44px"><span class="av0" style="width: 34px; height: 34px; font-size: 11px; background: {{pp.tone}}">{{pp.i}}</span><span style="display: flex; flex-direction: column"><strong style="font-weight: 600">{{pp.name}}</strong><span style="font-size: 12px; color: var(--ad-dim)">{{pp.email}}</span></span></span></td><td>{{pp.role}}</td><td style="color: var(--ad-dim)">{{pp.gets}}</td><td><span class="tag" style="background: {{pp.ptone}}; color: #fff">{{pp.portal}}</span></td><td style="text-align: right"><button class="ibtn ghostB" data-menu="row" aria-label="{{pp.menuAria}}" aria-haspopup="menu" onClick="{{pp.menu}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg></button></td></tr></sc-for></tbody>
+                  </table>
+                </div>
+              </section>
+            </sc-if>
+
+            <sc-if value="{{isActivity}}" hint-placeholder-val="{{ false }}">
+              <section class="card cq tabIn" aria-label="Activity" style="overflow: hidden; animation-name: {{tabAnim}}">
+                <div style="display: flex; align-items: center; gap: 10px; padding: 16px 20px 6px; flex-wrap: wrap"><h2 style="font-size: 17px; font-weight: 700; flex: 1">Activity</h2><div class="seg" role="group" aria-label="Show" style="--n: 3; --i: {{actI}}"><span class="pill" aria-hidden="true"></span><sc-for list="{{actFilters}}" as="af" hint-placeholder-count="3"><button class="{{af.cls}}" aria-pressed="{{af.pressed}}" onClick="{{af.pick}}">{{af.t}}</button></sc-for></div></div>
+                <ol style="list-style: none; margin: 0; padding: 4px 20px 8px">
+                  <sc-for list="{{acts}}" as="l" hint-placeholder-count="5">
+                    <li class="tlRow rowIn" style="animation-name: {{l.anim}}; animation-delay: {{l.delay}}"><span class="tlRail" aria-hidden="true"><span class="tlDot {{l.dotCls}}"></span></span><button class="tlBtn" onClick="{{l.open}}"><span class="av0" style="width: 30px; height: 30px; font-size: 10px; background: {{l.tone}}">{{l.i}}</span><span style="flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column"><span><strong>{{l.who}}</strong> {{l.what}}</span><span style="color: var(--ad-dim); font-size: 13px">{{l.where}}</span></span><span class="tag" style="background: {{l.ktone}}; color: #fff">{{l.kind}}</span><span class="num tlTime">{{l.when}}</span></button></li>
+                  </sc-for>
+                </ol>
+                %%PAGER:AP:Activity%%
+              </section>
+            </sc-if>
+            </sc-if>
