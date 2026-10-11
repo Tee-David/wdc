@@ -953,3 +953,8 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .svX{position:relative;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;color:var(--ad-dim)}
 .svX::after{content:'';position:absolute;inset:-6px}
 @container card (max-width:520px){.repLbl{flex-basis:100%;padding-top:0}.repWrap{padding:4px 14px 16px}}
+/* Message actions: 40px on touch screens, with the 6px hit halo making 52 */
+@media (hover:none),(pointer:coarse){.msgAct{gap:8px}.msgAct .actB{width:40px;height:40px}}
+/* Avatar stacks: 34px tiles get a 44px hit area */
+.avStack>button{position:relative}
+.avStack>button::after{content:"";position:absolute;inset:-5px}
