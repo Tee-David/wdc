@@ -1013,6 +1013,10 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .vidFig{margin:0;display:flex;flex-direction:column;gap:6px}
 .vidBox{display:grid;place-items:center;aspect-ratio:16/9;border-radius:12px;background:var(--ad-tone-neutral);color:#fff}
 .lcard{max-width:440px}
+/* Bank logos: the site's favicon over a white disc. If it does not load, the initials show. */
+.imgHost{position:relative;overflow:hidden}
+.imgHost.hasImg{background:#fff !important;color:var(--ad-ink);box-shadow:inset 0 0 0 1px var(--ad-line-2)}
+.logoImg{position:absolute;inset:15%;width:70%;height:70%;object-fit:contain}
 
 </style>
 </helmet>
@@ -1602,7 +1606,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
                 <div class="item {{li.cls}}" role="{{li.role}}" aria-checked="{{li.checked}}" tabindex="{{li.tab}}" onClick="{{li.pick}}" style="cursor: {{li.cursor}}">
                   <sc-if value="{{li.radio}}" hint-placeholder-val="{{ false }}"><span class="radio"></span></sc-if><sc-if value="{{li.square}}" hint-placeholder-val="{{ false }}"><span class="sqbox"><svg class="ic" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span></sc-if>
                   <sc-if value="{{li.hasLogo}}" hint-placeholder-val="{{ false }}"><span class="platform" style="background: {{li.lc}}"><svg class="logo" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="{{li.ld}}"></path></svg></span></sc-if>
-                  <sc-if value="{{li.hasAv}}" hint-placeholder-val="{{ false }}"><span class="av0" style="width: 32px; height: 32px; font-size: 11px; background: {{li.av}}">{{li.ini}}</span></sc-if>
+                  <sc-if value="{{li.hasAv}}" hint-placeholder-val="{{ false }}"><span class="av0 imgHost{{li.imgCls}}" style="width: 32px; height: 32px; font-size: 11px; background: {{li.av}}">{{li.ini}}<sc-if value="{{li.hasImg}}" hint-placeholder-val="{{ false }}"><img class="logoImg" src="{{li.img}}" alt=""></sc-if></span></sc-if>
                   <span class="t"><strong>{{li.t}}</strong><span>{{li.s}}</span></span>
                   <sc-if value="{{li.hasTag}}" hint-placeholder-val="{{ true }}"><span class="tag" style="background: {{li.tone}}; color: #fff">{{li.tag}}</span></sc-if>
                   <sc-if value="{{li.hasAct}}" hint-placeholder-val="{{ false }}"><button class="{{li.actCls}}" style="min-height: 38px; padding: 0 12px" onClick="{{li.act}}">{{li.actLabel}}</button></sc-if>
@@ -1690,8 +1694,8 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
               </sc-if>
               <sc-if value="{{fd.isBank}}" hint-placeholder-val="{{ false }}">
                 <div class="field wideF"><span>{{fd.label}}</span>
-                  <button type="button" class="bankRow" onClick="{{fd.onOpen}}" aria-haspopup="dialog"><sc-if value="{{fd.hasLogo}}" hint-placeholder-val="{{ false }}"><span class="bnkLogo" style="background: {{fd.tone}}">{{fd.ini}}</span></sc-if><sc-if value="{{fd.noLogo}}" hint-placeholder-val="{{ true }}"><span class="bnkLogo" style="background: var(--ad-tone-neutral)"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M3 21h18M5 21V10M19 21V10M9 21V10M15 21V10M2 10l10-6 10 6"></path></svg></span></sc-if><span class="bnkName {{fd.nameCls}}">{{fd.name}}</span><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg></button>
-                  <sc-if value="{{fd.hasSuggest}}" hint-placeholder-val="{{ false }}"><div class="bnkSug" role="group" aria-label="Banks that fit this number"><sc-for list="{{fd.suggest}}" as="sg" hint-placeholder-count="2"><button type="button" class="chip {{sg.cls}}" aria-pressed="{{sg.pressed}}" onClick="{{sg.pick}}"><span class="bnkLogo sm" style="background: {{sg.tone}}">{{sg.ini}}</span>{{sg.t}}</button></sc-for></div></sc-if>
+                  <button type="button" class="bankRow" onClick="{{fd.onOpen}}" aria-haspopup="dialog"><sc-if value="{{fd.hasLogo}}" hint-placeholder-val="{{ false }}"><span class="bnkLogo imgHost{{fd.imgCls}}" style="background: {{fd.tone}}">{{fd.ini}}<sc-if value="{{fd.hasImg}}" hint-placeholder-val="{{ false }}"><img class="logoImg" src="{{fd.img}}" alt=""></sc-if></span></sc-if><sc-if value="{{fd.noLogo}}" hint-placeholder-val="{{ true }}"><span class="bnkLogo" style="background: var(--ad-tone-neutral)"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M3 21h18M5 21V10M19 21V10M9 21V10M15 21V10M2 10l10-6 10 6"></path></svg></span></sc-if><span class="bnkName {{fd.nameCls}}">{{fd.name}}</span><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg></button>
+                  <sc-if value="{{fd.hasSuggest}}" hint-placeholder-val="{{ false }}"><div class="bnkSug" role="group" aria-label="Banks that fit this number"><sc-for list="{{fd.suggest}}" as="sg" hint-placeholder-count="2"><button type="button" class="chip {{sg.cls}}" aria-pressed="{{sg.pressed}}" onClick="{{sg.pick}}"><span class="bnkLogo sm imgHost{{sg.imgCls}}" style="background: {{sg.tone}}">{{sg.ini}}<sc-if value="{{sg.hasImg}}" hint-placeholder-val="{{ false }}"><img class="logoImg" src="{{sg.img}}" alt=""></sc-if></span>{{sg.t}}</button></sc-for></div></sc-if>
                   <sc-if value="{{fd.hasStatus}}" hint-placeholder-val="{{ false }}"><div class="{{fd.statCls}}" role="status" aria-live="polite"><sc-if value="{{fd.isLoad}}" hint-placeholder-val="{{ false }}"><span class="bnkSpin" aria-hidden="true"></span></sc-if><sc-if value="{{fd.isOk}}" hint-placeholder-val="{{ false }}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></sc-if><sc-if value="{{fd.isNone}}" hint-placeholder-val="{{ false }}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"></path></svg></sc-if><sc-if value="{{fd.isBad}}" hint-placeholder-val="{{ false }}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path></svg></sc-if><span>{{fd.statText}}</span></div></sc-if>
                 </div>
               </sc-if>
@@ -2583,7 +2587,7 @@ class Component extends DCLogic {
     var list = vis.map(function (k) {
       var l = full[k], on = listSel && isOn(k), act = l.act || null;
       return { t: l.t, s: l.s || '', tag: l.tag || '', tone: l.tone || 'var(--ad-tone-neutral)', hasTag: !!l.tag, radio: listSel && !multi, square: listSel && multi, cls: on ? 'on' : '', role: listSel ? (multi ? 'checkbox' : 'radio') : 'listitem', checked: on ? 'true' : 'false', tab: listSel || l.open ? '0' : '-1', cursor: listSel || l.open ? 'pointer' : 'default',
-        hasLogo: !!l.logo, ld: l.logo ? l.logo.d : '', lc: l.logo ? l.logo.c : '', hasAv: !!l.ini, av: l.av || 'var(--ad-tone-brand)', ini: l.ini || '',
+        hasLogo: !!l.logo, ld: l.logo ? l.logo.d : '', lc: l.logo ? l.logo.c : '', hasAv: !!l.ini, av: l.av || 'var(--ad-tone-brand)', ini: l.ini || '', hasImg: !!l.img, img: l.img || '', imgCls: l.img ? ' hasImg' : '',
         hasAct: !!act, actLabel: act ? act.label : '', actCls: act && act.primary ? 'btn' : 'btn2',
         act: function (e) { if (e && e.stopPropagation) e.stopPropagation(); if (act) act.fn(); },
         pick: function () { if (listSel) toggle(k); else if (l.open) self.open(l.open, true); } };
