@@ -33,6 +33,15 @@ def expand(html):
 def build(b):
     pop = read('popbody.html')
     shell = read('shell.html')
+    if b.get('bare'):
+        L = shell.split('\n')
+        a = next(i for i, l in enumerate(L) if '<div class="shell">' in l)
+        m = next(i for i, l in enumerate(L) if '</main>' in l)
+        bare = read('shell-bare.html').rstrip('\n').split('\n')
+        L = L[:a] + bare + L[m + 3:]
+        j = [i for i, l in enumerate(L) if 'aria-label="Role"' in l][0]
+        L[j:j + 6] = ['    <span class="num" style="font-weight: 600">Public page</span>']
+        shell = '\n'.join(L)
     shell = shell.replace('%%ROLEI%%', str(b['role']))
     for i, k in enumerate(['ADMIN', 'STAFF', 'CLIENT']):
         shell = shell.replace(f'%%HOME_{k}%%', HOMES[i]).replace(f'%%ON_{k}%%', 'on' if i == b['role'] else '')

@@ -1,0 +1,11 @@
+<div class="bareCard rise" aria-live="polite" style="align-items: stretch">
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center">
+                <sc-if value="{{big}}" hint-placeholder-val="{{ false }}"><span class="bigNum" aria-hidden="true">{{bigText}}</span></sc-if>
+                <span class="tickBig" style="background: {{tone}}"><svg class="ic" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="{{ic}}"></path></svg></span>
+                <div><h1>{{h}}</h1><p class="sub" style="margin-top: 8px">{{p}}</p></div>
+              </div>
+              <sc-if value="{{hasRef}}" hint-placeholder-val="{{ false }}"><dl class="dl" style="margin: 0"><div><dt>Reference</dt><dd class="num">{{refId}}</dd></div><div><dt>What we kept</dt><dd>Nothing you typed is lost. Drafts are saved on this device.</dd></div></dl></sc-if>
+              <sc-if value="{{hasField}}" hint-placeholder-val="{{ false }}"><div class="field"><span>{{fieldLabel}}</span><label class="input"><input value="{{fieldVal}}" onChange="{{onField}}"></label></div></sc-if>
+              <button class="btn bareBtn" onClick="{{a1}}">{{a1l}}</button>
+              <sc-if value="{{hasA2}}" hint-placeholder-val="{{ false }}"><button class="btn2 bareBtn" onClick="{{a2}}">{{a2l}}</button></sc-if>
+            </div>

@@ -1,0 +1,33 @@
+<div class="bareCard wide rise" aria-live="polite">
+              <sc-if value="{{isPick}}" hint-placeholder-val="{{ true }}">
+                <div><h1>Book a meeting with the studio</h1><p class="sub">Pick what it is for, then a day and a time. It lands in Google Calendar with a Meet link, and we email you a link to change or cancel it.</p></div>
+                <div class="field"><span>What is it for</span><div class="chips" role="radiogroup" aria-label="Meeting type"><sc-for list="{{types}}" as="o" hint-placeholder-count="4"><button class="chip {{o.cls}}" role="radio" aria-checked="{{o.pressed}}" onClick="{{o.pick}}">{{o.t}}</button></sc-for></div><span class="hint">{{typeNote}}</span></div>
+                <div class="calHead" style="padding: 0"><button class="ibtn" aria-label="Earlier" onClick="{{prev}}" disabled="{{prevDis}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="m15 6-6 6 6 6"></path></svg></button><h3 class="calTitle">{{monthLabel}}</h3><button class="ibtn" aria-label="Later" onClick="{{next}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg></button></div>
+                <div class="monthGrid" role="grid" aria-label="{{monthLabel}}"><sc-for list="{{wk}}" as="w" hint-placeholder-count="7"><span class="mgHead" role="columnheader">{{w}}</span></sc-for><sc-for list="{{cells}}" as="c" hint-placeholder-count="35"><button class="mgCell {{c.cls}}" role="gridcell" aria-label="{{c.aria}}" aria-pressed="{{c.pressed}}" onClick="{{c.pick}}" disabled="{{c.dis}}"><span class="num mgN">{{c.n}}</span><span class="mgMore">{{c.note}}</span></button></sc-for></div>
+                <sc-if value="{{hasDay}}" hint-placeholder-val="{{ false }}"><div><h3 style="font-size: 15px; font-weight: 700; margin-bottom: 8px">{{dayLabel}}, Lagos time</h3><div class="slotGrid" role="radiogroup" aria-label="Times"><sc-for list="{{slots}}" as="t" hint-placeholder-count="6"><button class="slot {{t.cls}}" role="radio" aria-checked="{{t.checked}}" disabled="{{t.dis}}" onClick="{{t.pick}}">{{t.t}}</button></sc-for></div></div></sc-if>
+                <button class="btn bareBtn" onClick="{{toDetails}}">Next: your details</button>
+              </sc-if>
+              <sc-if value="{{isDetails}}" hint-placeholder-val="{{ false }}">
+                <div><h1>Your details</h1><p class="sub">{{summary}}</p></div>
+                <div class="docGrid"><div class="field"><span>Name</span><label class="input"><input id="mn" value="{{name}}" autocomplete="name" onChange="{{onName}}"></label></div><div class="field"><span>Email</span><label class="input"><input id="me" type="email" value="{{email}}" autocomplete="email" onChange="{{onEmail}}"></label></div></div>
+                <div class="field"><span>Anything we should know</span><label class="input" style="padding: 8px 14px"><textarea id="mw" rows="3" style="flex: 1; border: 0; outline: 0; background: transparent; font: inherit; color: inherit; width: 100%" onChange="{{onWhy}}" placeholder="Optional. A link, a deadline, a question.">{{why}}</textarea></label></div>
+                <sc-if value="{{hasErr}}" hint-placeholder-val="{{ false }}"><span class="hint err" role="alert">{{err}}</span></sc-if>
+                <div class="bareRow"><button class="btn2" style="min-height: 48px" onClick="{{backPick}}">Back</button><button class="btn" style="flex: 1; min-height: 48px; justify-content: center" onClick="{{book}}">Confirm the booking</button></div>
+              </sc-if>
+              <sc-if value="{{isBooked}}" hint-placeholder-val="{{ false }}">
+                <span class="tickBig"><svg class="ic" viewBox="0 0 24 24" width="32" height="32" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>
+                <div style="text-align: center"><h1>You are booked</h1><p class="sub" style="margin-top: 8px">{{summary}}</p></div>
+                <dl class="dl" style="margin: 0"><div><dt>Where</dt><dd>Google Meet, link in the invite</dd></div><div><dt>Calendar</dt><dd>An invite is on its way to {{email}}</dd></div></dl>
+                <div class="bareRow"><button class="btn2" style="flex: 1; min-height: 48px; justify-content: center" onClick="{{addCal}}">Add to my calendar</button><button class="btn2" style="flex: 1; min-height: 48px; justify-content: center" onClick="{{manage}}">Change or cancel</button></div>
+              </sc-if>
+              <sc-if value="{{isManage}}" hint-placeholder-val="{{ false }}">
+                <div><h1>Your meeting</h1><p class="sub">{{summary}}</p></div>
+                <dl class="dl" style="margin: 0"><div><dt>Booked by</dt><dd>{{name}}</dd></div><div><dt>Status</dt><dd><span class="tag" style="background: var(--ad-tone-good); color: #fff">Confirmed</span></dd></div></dl>
+                <div class="bareRow"><button class="btn" style="flex: 1; min-height: 48px; justify-content: center" onClick="{{resched}}">Pick another time</button><button class="btn2" style="flex: 1; min-height: 48px; justify-content: center" onClick="{{cancel}}">Cancel the meeting</button></div>
+              </sc-if>
+              <sc-if value="{{isCancelled}}" hint-placeholder-val="{{ false }}">
+                <span class="tickBig" style="background: var(--ad-tone-neutral)"><svg class="ic" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></span>
+                <div style="text-align: center"><h1>Meeting cancelled</h1><p class="sub" style="margin-top: 8px">The studio was told and the calendar invite is gone. You can book again any time.</p></div>
+                <button class="btn bareBtn" onClick="{{again}}">Book another time</button>
+              </sc-if>
+            </div>

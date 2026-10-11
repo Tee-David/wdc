@@ -87,6 +87,16 @@
       primaryDis: function (ctx) { return (ctx.form.moved || '').trim().length < 8 ? 'Say what moved.' : (!(ctx.form.next || '').trim() ? 'Say what happens next.' : ''); },
       onPrimary: function (ctx) { var f = ctx.form; self.projAct('posted an update: ' + f.how.toLowerCase(), f.moved.trim().slice(0, 80) + ((f.who || []).length ? ' · client told' : ' · team only')); self.setState({ sheet: null, stack: [], ptab: 'activity', ta: self.state.ta + 1 }); self.say((f.who || []).length ? 'Posted. The client sees it in their portal and by email.' : 'Saved as a team note.'); } }));
   }
+  /* What proves the work was delivered: kept with the project so a handover, a dispute or a review can point at it. */
+  projEvidence(pj) {
+    var self = this, I = this.icons();
+    this.open(this.sh({ eyebrow: pj.name, title: 'Delivery evidence', icon: I.check, keepOpen: true, body: 'Keep proof of what was delivered, and when. It stays on the project, and the client sees the items marked shared.',
+      checksTitle: 'Before it is marked done', checks: [{ t: 'Recorded handover meeting attached' }, { t: 'Handover document sent' }, { t: 'Final files or live link delivered' }, { t: 'Client signed off in writing' }],
+      form: { link: '', note: '', files: [] }, fields: [{ key: 'link', label: 'Live link or store listing', ph: 'https://', wide: true, hint: 'Optional for design work.' }, { key: 'note', type: 'area', label: 'What was delivered', ph: 'Final files in the shared folder, site live on the client domain', wide: true }, { key: 'files', type: 'media', label: 'Screenshots, recordings, signed documents', max: 8, hint: 'Pictures, PDFs or the Meet recording.' }],
+      chipSets: [{ key: 'share', label: 'Who sees it', opts: ['Team only', 'Team and client'] }], primary: 'Save the evidence', secondary: 'Cancel',
+      primaryDis: function (ctx) { var f = ctx.form; return !((f.note || '').trim() || (f.link || '').trim() || (f.files || []).length) ? 'Add a note, a link or a file.' : ''; },
+      onPrimary: function (ctx) { var f = ctx.form; self.projAct('saved delivery evidence', ((f.note || '').trim() || (f.link || '').trim() || (f.files || []).length + ' files') + ' · ' + (f.share || 'Team only')); self.say('Saved on the project. ' + ((f.share || '') === 'Team and client' ? 'The client can see it in their portal.' : 'Only the team can see it.')); } }));
+  }
   projHandover(pj) {
     var self = this, I = this.icons(), team = this.teamData().map(function (m) { return m.name; });
     this.open(this.sh({ wide: true, eyebrow: 'Hand work over', title: 'Hand ' + pj.name + ' to a department', icon: I.hand, keepOpen: true, body: 'The receiving lead has to accept it first. Nothing moves until they do.', form: { title: '', lead: team[1] || team[0], ctx: '', done: '', open: '', nextA: '', by: '2026-10-16' },
