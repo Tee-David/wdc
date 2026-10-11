@@ -1,0 +1,20 @@
+<div class="tbTools" role="group" aria-label="LABEL tools">
+                    <sc-if value="{{KEY.bulk}}" hint-placeholder-val="{{ false }}">
+                      <div class="bulkBar" role="region" aria-label="Bulk actions" aria-live="polite">
+                        <span class="bkCount num">{{KEY.count}}</span>
+                        <span class="bkActs"><sc-for list="{{KEY.acts}}" as="ba" hint-placeholder-count="2"><button class="btn2 bkBtn {{ba.cls}}" onClick="{{ba.fn}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="{{ba.d}}"></path></svg>{{ba.label}}</button></sc-for><button class="btn2 bkBtn" onClick="{{KEY.exportSel}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>Export</button></span>
+                        <sc-if value="{{KEY.allMore}}" hint-placeholder-val="{{ false }}"><button class="lnk" onClick="{{KEY.selectAll}}">{{KEY.allLabel}}</button></sc-if>
+                        <button class="lnk" onClick="{{KEY.clear}}">Clear</button>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{KEY.idle}}" hint-placeholder-val="{{ true }}">
+                      <div class="tbRow">
+                        <sc-if value="{{KEY.hasFilters}}" hint-placeholder-val="{{ true }}"><button class="btn2 tbBtn" onClick="{{KEY.openFilters}}" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M22 3H2l8 9.46V19l4 2v-8.54z"></path></svg>Filters<sc-if value="{{KEY.hasFn}}" hint-placeholder-val="{{ false }}"><span class="tag num" style="background: var(--ad-fill); color: var(--ad-on-fill); height: 20px; padding: 0 7px">{{KEY.fn}}</span></sc-if></button></sc-if>
+                        <sc-for list="{{KEY.chips}}" as="fc" hint-placeholder-count="0"><button class="fChip" aria-label="{{fc.aria}}" onClick="{{fc.remove}}">{{fc.t}}<svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></sc-for>
+                        <sc-if value="{{KEY.hasChips}}" hint-placeholder-val="{{ false }}"><button class="lnk" onClick="{{KEY.clearFilters}}">Clear all</button></sc-if>
+                        <span class="tbGrow"></span>
+                        <sc-if value="{{KEY.canImport}}" hint-placeholder-val="{{ false }}"><button class="btn2 tbBtn" onClick="{{KEY.importFn}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"></path></svg>Import</button></sc-if>
+                        <sc-if value="{{KEY.canExport}}" hint-placeholder-val="{{ true }}"><button class="btn2 tbBtn" onClick="{{KEY.exportFn}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>Export</button></sc-if>
+                      </div>
+                    </sc-if>
+                  </div>
