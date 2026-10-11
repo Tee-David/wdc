@@ -1,0 +1,11 @@
+<!-- @dsCard group="Navigation" height=70 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Tabs</title></head>
+<body style="margin:0">
+<div class="wdc pv">
+<div role="tablist" class="tabs" style="background:var(--ad-panel);border-radius:12px"><button role="tab" class="tab on" aria-selected="true">Overdue<span class="tag num" style="background:var(--ad-tone-bad);color:#fff;height:20px;padding:0 7px">3</span></button><button role="tab" class="tab" aria-selected="false">Due soon<span class="tag num" style="background:var(--ad-tone-flat);color:var(--ad-on-flat);height:20px;padding:0 7px">7</span></button><button role="tab" class="tab" aria-selected="false">Paid this month<span class="tag num" style="background:var(--ad-tone-flat);color:var(--ad-on-flat);height:20px;padding:0 7px">8</span></button></div>
+</div>
+<script>document.querySelectorAll('.tab').forEach(function(t){t.addEventListener('click',function(){document.querySelectorAll('.tab').forEach(function(x){x.classList.toggle('on',x===t);x.setAttribute('aria-selected',x===t)})})});</script>
+</body>
+</html>
