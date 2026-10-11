@@ -894,7 +894,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .mgTile{position:relative;aspect-ratio:1;background:var(--ad-panel-2);overflow:hidden;min-height:0}
 .mg1 .mgTile{aspect-ratio:4/3}.mg3 .mgTile:first-child{grid-row:span 2;aspect-ratio:auto}
 .mgTile img,.mgTile video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.mgMore{position:absolute;inset:0;background:rgba(14,14,44,.62);color:#fff;display:grid;place-items:center;font:700 22px 'Space Grotesk',sans-serif}
+.mgTile .mgMore{position:absolute;inset:0;background:rgba(14,14,44,.62);color:#fff;display:grid;place-items:center;font:700 22px 'Space Grotesk',sans-serif}
 .tagRow{display:flex;flex-wrap:wrap;gap:4px}
 .thSearch{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--ad-line)}
 .replyBar{display:flex;align-items:center;gap:10px;padding:8px 8px 8px 12px;border-radius:12px;background:var(--ad-panel-2);border:1px solid var(--ad-line)}
@@ -1080,6 +1080,46 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 /* Support view bar: read-only view of another account */
 .svBar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 16px;background:var(--ad-tone-warn);color:#fff;font-size:14px}
 .svBar .svExit{min-height:44px}
+/* Invoice and quote documents */
+.docH{display:flex;align-items:center;gap:10px;padding:16px 20px 8px;flex-wrap:wrap}.docH h2{font-size:17px;font-weight:700}
+.docTot{display:flex;flex-direction:column;gap:6px;padding:12px 20px 16px;margin-left:auto;max-width:360px}
+.docTot>div,.dpTot>div{display:flex;justify-content:space-between;gap:12px;font-size:14px}
+.docTot .tot,.dpTot .tot{font-weight:700;font-size:16px;border-top:1px solid var(--ad-line);padding-top:8px;margin-top:2px}
+.docGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@container app (max-width:640px){.docGrid{grid-template-columns:1fr}}
+.dateBtn{text-align:left;cursor:pointer;display:flex;align-items:center;min-height:44px}
+.docLines{display:flex;flex-direction:column;gap:8px;padding:8px 16px 16px}
+.docLine{display:grid;grid-template-columns:minmax(0,1fr) 72px 120px 110px 44px;gap:8px;align-items:center}
+.dlA{text-align:right;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis}
+@container app (max-width:760px){.docLine{grid-template-columns:minmax(0,1fr) 72px 44px;grid-template-areas:"d d m" "q u a"}.docLine .dlD{grid-area:d}.docLine .ibtn{grid-area:m}.docLine .dlQ{grid-area:q}.docLine .dlU{grid-area:u;grid-column:2/3}.docLine .dlA{grid-area:a;grid-column:3/4;text-align:left}}
+.docPrev{border:1px solid var(--ad-line);border-radius:12px;padding:14px;background:#fff;color:#0e0e2c;display:flex;flex-direction:column;gap:8px;font-size:13px;min-width:0}
+.docPrev .dpHead{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.docPrev .dpMeta{display:flex;flex-direction:column;gap:2px;color:#5c5c7a}
+.docPrev .dpLine{display:flex;justify-content:space-between;gap:10px;border-top:1px solid #e4e6f0;padding-top:6px}.docPrev .dpLine span:first-child{min-width:0;overflow-wrap:anywhere}
+.docPrev .dpFoot{color:#5c5c7a;font-size:12px}
+.docPrev .dpTot .tot{border-top-color:#c9ccdc}
+
+/* project board: drag between stages */
+.board{grid-template-columns:repeat(5,minmax(220px,1fr))}
+@container card (max-width:700px){.board{grid-template-columns:repeat(5,minmax(240px,82%))}}
+.bCardW{position:relative;cursor:grab;border-radius:14px}
+.bCardW .bMove{position:absolute;top:4px;right:4px}
+.bCardW.dragging{opacity:.45}
+.bCardW:active{cursor:grabbing}
+.bCol{transition:background .15s,border-color .15s,box-shadow .15s}
+.bCol.over{border-color:var(--ad-ink);background:var(--ad-hover);box-shadow:0 0 0 4px var(--ad-ring)}
+.bCol{min-height:140px}
+.bCol{align-self:stretch}
+
+.bento>.card.stat:last-child:nth-child(odd){grid-column:1/-1}
+.pageHead .headActs{flex-wrap:wrap}
+@container app (max-width:760px){.docLine{grid-template-columns:72px minmax(0,1fr) minmax(86px,auto);grid-template-areas:"d d m" "q u a"}.docLine .dlU{grid-column:auto}.docLine .dlA{grid-column:auto;text-align:right;overflow:visible;text-overflow:clip;white-space:nowrap}.docLine .ibtn{justify-self:end}}
+/* marketing calendar */
+.calHead{display:flex;align-items:center;gap:8px;padding:4px 20px 8px;flex-wrap:wrap}.calTitle{font-size:17px;font-weight:700;min-width:130px;text-align:center}.calSum{font-size:13px;color:var(--ad-dim)}
+.mgCell.sel{background:var(--ad-nav-on);color:var(--ad-nav-on-ink);border-color:var(--ad-nav-on)}
+.mgCell.sel .mgMore{color:var(--ad-nav-on-ink)}
+.agenda{padding:8px 20px 20px;display:flex;flex-direction:column;gap:6px}.agTitle{font-size:15px;font-weight:700}
+.agRow{display:flex;align-items:center;gap:10px;padding:8px;border-radius:12px;width:100%;min-height:52px;border:1px solid var(--ad-line)}
 
 </style>
 </helmet>
@@ -2494,7 +2534,7 @@ class Component extends DCLogic {
   roleNav() {
     var I = this.icons(), c = this.navCounts ? this.navCounts() : {};
     var R = {
-      admin: [['Today', I.home, 'D-Admin.dc.html'], ['Clients', I.users, 'A-Clients.dc.html'], ['Projects', I.folder, 'A-Projects.dc.html'], ['Money', I.wallet, 'A-Money.dc.html'], ['Messages', I.msg, 'A-Messages.dc.html'], ['Blog', I.pen, 'A-Blog.dc.html'], ['Settings', I.gear, 'A-Settings.dc.html'], ['Support', I.life, 'A-Support.dc.html', 1]],
+      admin: [['Today', I.home, 'D-Admin.dc.html'], ['Clients', I.users, 'A-Clients.dc.html'], ['Projects', I.folder, 'A-Projects.dc.html'], ['Money', I.wallet, 'A-Money.dc.html'], ['Messages', I.msg, 'A-Messages.dc.html'], ['Marketing', I.mail, 'A-Email.dc.html'], ['Forms', I.inbox, 'A-Forms.dc.html'], ['Blog', I.pen, 'A-Blog.dc.html'], ['Settings', I.gear, 'A-Settings.dc.html'], ['Support', I.life, 'A-Support.dc.html', 1]],
       staff: [['My Day', I.home, 'D-Staff.dc.html'], ['Projects', I.folder, 'S-Projects.dc.html'], ['Clients', I.users, 'S-Clients.dc.html'], ['Messages', I.msg, 'S-Messages.dc.html'], ['Settings', I.gear, 'S-Settings.dc.html'], ['Support', I.life, 'S-Support.dc.html', 1]],
       client: [['Home', I.home, 'D-Client.dc.html'], ['Projects', I.folder, 'C-Projects.dc.html'], ['Billing', I.card, 'C-Billing.dc.html'], ['Messages', I.msg, 'C-Messages.dc.html'], ['Settings', I.gear, 'C-Settings.dc.html'], ['Support', I.life, 'C-Support.dc.html', 1]]
     }[this.role()];
@@ -3352,13 +3392,14 @@ class Component extends DCLogic {
   invSheet(r) {
     var self = this, I = this.icons(), paid = r.status === 'Paid' || r.status === 'Refunded';
     return this.sh({ eyebrow: paid ? 'Receipt' : 'Invoice', title: r.no + ' · ' + r.client, chip: r.status, tone: r.tone, icon: I.file, iconTone: r.tone, rows: [{ k: 'Amount', v: r.amount }, { k: paid ? 'Paid on' : 'Due', v: r.date }, { k: 'Method', v: r.method }, { k: 'Currency', v: r.amount.charAt(0) === '$' ? 'USD' : 'NGN' }], feed: paid ? [{ t: 'Receipt emailed to ' + r.client, when: r.date }, { t: 'Paid by ' + r.method, when: r.date }, { t: 'Invoice issued', when: 'by you' }] : [{ t: 'Viewed by the client', when: '2 days ago' }, { t: 'Invoice issued', when: 'by you' }],
-      primary: paid ? 'Preview the receipt' : 'Preview the invoice', secondary: paid ? 'Resend receipt' : 'Copy payment link', sToast: paid ? 'Receipt sent to ' + r.client + '.' : 'Payment link copied.',
-      onPrimary: function () { self.openFile({ name: r.no + '.pdf', project: r.client, view: 'doc', ref: r.no, docTitle: (paid ? 'Receipt · ' : 'Invoice · ') + r.amount, when: r.date, size: '190 KB', tone: 'var(--ad-tone-bad)' }); } });
+      primary: 'Open the invoice', secondary: paid ? 'Resend receipt' : 'Copy payment link', sToast: paid ? 'Receipt sent to ' + r.client + '.' : 'Payment link copied.',
+      onPrimary: function () { if (r.no) { self.goDoc(r.no); return; } self.openFile({ name: r.no + '.pdf', project: r.client, view: 'doc', ref: r.no, docTitle: (paid ? 'Receipt · ' : 'Invoice · ') + r.amount, when: r.date, size: '190 KB', tone: 'var(--ad-tone-bad)' }); } });
   }
+  goDoc(no, extra) { window.location.href = 'A-Invoice.dc.html?no=' + encodeURIComponent(no) + (extra || ''); }
   rowActions(row, tab) {
     var self = this, I = this.icons(), it = this.menuItem.bind(this), sep = this.menuSep();
     if (tab === 'paid') return [
-      it('View receipt', I.eye, function () { self.open(self.invSheet(row)); }),
+      it('Open invoice', I.open, function () { self.goDoc(row.no); }),
       it('Download receipt', I.down, function () { self.say('Receipt PDF downloaded'); }),
       it('Resend receipt', I.mail, function () { self.say('Receipt sent to ' + row.client, { delay: 8, pending: function (n) { return 'Resending to ' + row.client + ' in ' + n + 's'; } }); }),
       sep,
@@ -3366,9 +3407,9 @@ class Component extends DCLogic {
     ];
     var acts = [
       it('Send a reminder', I.mail, function () { self.say('Reminder sent to ' + row.client, { delay: 8, pending: function (n) { return 'Sending a reminder to ' + row.client + ' in ' + n + 's'; } }); }),
-      it('Record a payment', I.cash, function () { self.recordSheet(row); }),
-      it('Copy payment link', I.link, function () { self.say('Payment link copied. It opens Paystack or Flutterwave.'); }),
-      it('Preview PDF', I.eye, function () { self.open(self.invSheet(row)); })
+      it('Open invoice', I.open, function () { self.goDoc(row.no); }),
+      it('Record a payment', I.cash, function () { self.goDoc(row.no, '&pay=1'); }),
+      it('Copy payment link', I.link, function () { self.say('Payment link copied. It opens Paystack or Flutterwave.'); })
     ];
     if (tab === 'over') acts.unshift(it('Send final notice', I.alert, function () { self.ask({ eyebrow: 'Final notice', title: 'Send a final notice to ' + row.client + '?', body: 'This is the firmest message we send. It says work pauses until payment.', to: row.client + ' · billing contact', subject: 'Final notice: ' + row.no + ' is overdue', preview: row.no + ' for ' + row.amount + ' was due on ' + row.date + '.\nPlease pay today to keep work moving.', ok: 'Send final notice', okToast: 'Final notice sent to ' + row.client + '.', tone: 'var(--ad-tone-warn)', icon: I.alert }); }));
     acts.push(sep);

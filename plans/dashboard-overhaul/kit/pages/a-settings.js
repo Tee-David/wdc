@@ -151,6 +151,7 @@
       ] }
     ];
     sections = self.moreSettings ? self.moreSettings(sections, { S: S, L: L, F: F, G: G, W: W, B: B }) : sections;
+    sections = self.svcSettings ? self.svcSettings(sections, { S: S, L: L, F: F, G: G, W: W, B: B }) : sections;
     return { role: 'admin', sections: sections, navBase: { Clients: { n: 5 }, Money: { n: 3, tone: 'var(--ad-tone-bad)' }, Messages: { n: 6 } }, lede: 'The studio, the team, money and the system. Changes wait for Save.', tourNav: 'General, the team, money, notifications, integrations, Trash and System. System shows a count when a database migration is waiting.',
       chores: function (s, it, I2) { return [it('View change history', I2.clock, function () { s.open(s.sh({ eyebrow: 'Settings', title: 'Recent changes', icon: I2.clock, listTitle: 'Newest first', list: [{ t: 'Payment terms set to 7 days', s: 'You · 3 Oct' }, { t: 'Funmi K. made Finance', s: 'You · 29 Sep' }, { t: 'Meta Business disconnected', s: 'You · 21 Sep' }], primary: 'Close' })); }), it('Export settings', I2.down, function () { s.say('wdc-settings.json downloaded.'); }, { hint: 'JSON' }), s.menuSep(), it('Reset unsaved changes', I2.undo, function () { s.setState({ sv: {} }); s.say('Unsaved changes discarded.'); })]; }
     };

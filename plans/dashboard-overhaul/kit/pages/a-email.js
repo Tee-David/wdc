@@ -1,5 +1,5 @@
   /* ======================= Owner · Email marketing ======================= */
-  pageName() { return 'Messages'; }
+  pageName() { return 'Marketing'; }
   tourSteps() {
     var I = this.icons();
     return [
@@ -162,13 +162,31 @@
       primary: 'Send an email', secondary: 'Close', primaryDis: ok ? '' : 'They cannot get marketing email. Ask them to join again.',
       onPrimary: function () { self.closeSheet(true); setTimeout(function () { self.campaignEditor({ id: null, name: '', subject: '', inc: (p.tags || []).slice(0, 1).length ? p.tags.slice(0, 1) : ['newsletter'], exc: [], status: 'draft', track: 'Per person' }); }, 80); } });
   }
+  /* Everything marketing has booked, on one calendar: sends, automation runs, blog posts and social posts. */
+  emEvents() {
+    var self = this, mo = { Jan: 1, Feb: 2, Mar: 3, Apr: 4, May: 5, Jun: 6, Jul: 7, Aug: 8, Sep: 9, Oct: 10, Nov: 11, Dec: 12 }, iso = function (t) { var m = /(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)/.exec(t || ''); return m ? '2026-' + ('0' + mo[m[2]]).slice(-2) + '-' + ('0' + m[1]).slice(-2) : ''; };
+    var K = { email: ['Email', 'var(--ad-tone-brand)'], auto: ['Automation', 'var(--ad-tone-live)'], blog: ['Blog', 'var(--ad-tone-good)'], social: ['Social', 'var(--ad-tone-neutral)'] };
+    var out = [], push = function (k, id, name, sub, date, time, ref) { out.push({ id: id, kind: k, kindLabel: K[k][0], tone: K[k][1], ink: '#fff', name: name, sub: sub, date: date, time: time, ref: ref, hay: name + ' ' + sub + ' ' + K[k][0], cells: [] }); };
+    this.emCampaigns().forEach(function (c) { var d = iso(c.date); if (d && c.status !== 'draft') push('email', 'ev-' + c.id, c.name, (c.status === 'sent' ? 'Sent to ' : 'Goes to ') + c.n + ' people · ' + (c.inc || []).join(', '), d, (/(\d\d:\d\d)/.exec(c.date) || [])[1] || '', { t: 'camp', c: c }); });
+    [['a1', '2026-10-12', 'Welcome series, next person joins'], ['a2', '2026-10-11', 'Invoice reminders go out'], ['a2', '2026-10-14', 'Invoice reminders go out'], ['a3', '2026-10-23', 'Handover thank you for Oak and Ivy'], ['a5', '2026-10-13', 'Enquiry follow up runs on new entries']].forEach(function (e, i) { var a = self.emAutos().filter(function (x) { return x.id === e[0]; })[0]; if (a && a.on) push('auto', 'ev-a' + i, a.name, e[2], e[1], '08:00', { t: 'auto', a: a }); });
+    [['Why your business needs three logo versions', '2026-10-14', '09:00', 'Branding'], ['Local search basics for clinics', '2026-10-21', '09:00', 'SEO'], ['Paystack or Flutterwave for your shop', '2026-10-28', '09:00', 'Web']].forEach(function (b, i) { push('blog', 'ev-b' + i, b[0], 'Blog post · ' + b[3], b[1], b[2], { t: 'blog' }); });
+    [['Mira Skincare', 'Serum launch, Instagram', '2026-10-13', '12:30'], ['Mira Skincare', 'Skin tip carousel, Instagram', '2026-10-14', '18:00'], ['Ade’s Kitchen', 'Menu special, Instagram', '2026-10-15', '12:30'], ['Lumen Fitness', 'Class timetable post, Facebook', '2026-10-16', '07:00'], ['Mira Skincare', 'Weekend offer, Instagram', '2026-10-17', '12:30'], ['Ade’s Kitchen', 'Chef story reel, TikTok', '2026-10-20', '18:00']].forEach(function (p, i) { push('social', 'ev-s' + i, p[1], p[0] + ' · content calendar', p[2], p[3], { t: 'social', client: p[0] }); });
+    return out;
+  }
+  eventSheet(x) {
+    var self = this, I = this.icons(), r = x.ref;
+    if (r.t === 'camp') return this.campaignSheet(r.c);
+    if (r.t === 'auto') return this.autoSheet(r.a);
+    var blog = r.t === 'blog';
+    return this.sh({ eyebrow: blog ? 'Blog post' : 'Social post · ' + r.client, title: x.name, chip: x.kindLabel, tone: x.tone, icon: blog ? I.pen : I.cal, rows: [{ k: 'When', v: this.fmtDate(x.date) + (x.time ? ', ' + x.time : '') }, { k: blog ? 'Where' : 'Client', v: blog ? 'The studio blog' : r.client }], body: blog ? 'Scheduled posts publish by themselves. Edit one from the Blog page.' : 'It sits in the client’s content calendar. Approvals and edits happen on the project page.', primary: blog ? 'Open the blog' : 'Open the project', secondary: 'Close', onPrimary: function () { window.location.href = blog ? 'A-Blog.dc.html' : 'A-Projects.dc.html'; } });
+  }
   hubCfg() {
     var self = this, I = this.icons(), G = 'var(--ad-tone-good)', W = 'var(--ad-tone-warn)', Bn = 'var(--ad-tone-brand)', Fl = 'var(--ad-tone-flat)';
     var camps = function () { return self.emCampaigns(); };
     var rep = function (nm, v) { return nm; };
     var pill = function (t, tone, ink) { return { tag: true, t: t, tone: tone, ink: ink }; };
     return {
-      title: 'Email', statsTitle: 'Email pulse', deckTitle: 'Email this week', newLabel: 'New campaign', newFn: function () { self.campaignEditor(); },
+      title: 'Marketing', statsTitle: 'Email pulse', deckTitle: 'Email this week', newLabel: 'New campaign', newFn: function () { self.campaignEditor(); },
       ledeA: function () { var c = camps(); return c.filter(function (x) { return x.status === 'sent'; }).length + ' sent this quarter, ' + c.filter(function (x) { return x.status === 'scheduled'; }).length + ' scheduled, ' + c.filter(function (x) { return x.status === 'draft'; }).length + ' in draft.'; },
       ledeB: function () { return 'Open rate is 56%.'; }, emptyTitle: 'Email is on track.', emptyNext: 'The next campaign goes out Wed 14 Oct.',
       chores: function (it, I2) { return [it('New campaign', I2.mail, function () { self.campaignEditor(); }), it('Add a contact', I2.plus, function () { self.contactAdd(); }), it('Import contacts', I2.upload, function () { self.importSheet(self.emImport()); }, { hint: 'CSV, up to 5,000 rows' }), it('Email builder', I2.layers, function () { window.location.href = 'A-EmailBuilder.dc.html'; }), it('Email settings', I2.gear, function () { window.location.href = 'A-Settings.dc.html'; }, { hint: 'Sender and signature' })]; },
@@ -181,6 +199,11 @@
           sheet: function (c) { return self.campaignSheet(c); },
           actions: function (c, it, I2) { var o = [it('Open campaign', I2.open, function () { self.open(self.campaignSheet(c)); })]; if (c.status !== 'sent') o.push(it('Edit campaign', I2.edit, function () { self.campaignEditor(c); })); o.push(it('Duplicate', I2.file, function () { self.campaignEditor(Object.assign({}, c, { id: null, name: c.name + ' (copy)', status: 'draft' })); })); o.push(self.menuSep()); o.push(it('Move to Trash…', I2.trash, function () { self.ask({ eyebrow: 'Trash', title: 'Move “' + c.name + '” to Trash?', body: 'Sent campaigns keep their numbers in reports. You can restore it from Settings, Trash, for 30 days.', ok: 'Move to Trash', danger: true, icon: I2.trash, tone: 'var(--ad-tone-bad)', onOk: function () { self.hubGone([c.id], '“' + c.name + '” moved to Trash.'); } }); }, { danger: true })); return o; },
           bulk: function () { return [{ label: 'Move to Trash', icon: I.trash, danger: true, fn: function (sel, done) { self.ask({ eyebrow: 'Trash', title: 'Move ' + sel.length + ' campaigns to Trash?', body: 'You can restore them from Settings, Trash, for 30 days.', ok: 'Move to Trash', danger: true, icon: I.trash, tone: 'var(--ad-tone-bad)', onOk: function () { self.hubGone(sel.map(function (x) { return x.id; }), sel.length + ' campaigns moved to Trash.'); done(); } }); } }]; } },
+        { key: 'cal', cal: true, label: 'Calendar', title: 'Calendar', noun: 'scheduled items', one: 'item', ph: 'Search the calendar', file: 'wdc-marketing-calendar', actLabel: 'New campaign', actD: I.plus, act: function () { self.campaignEditor(); }, emptyT: 'Nothing is scheduled.', emptyB: 'Campaigns, automations, blog posts and social posts show here once they have a date.',
+          cols: [{ t: 'What' }, { t: 'Kind' }, { t: 'Date' }], items: function () { return self.emEvents(); },
+          chips: [['all', 'All', function () { return true; }], ['email', 'Email', function (x) { return x.kind === 'email'; }], ['auto', 'Automations', function (x) { return x.kind === 'auto'; }], ['blog', 'Blog', function (x) { return x.kind === 'blog'; }], ['social', 'Social', function (x) { return x.kind === 'social'; }]],
+          exportCols: [{ t: 'What', v: function (x) { return x.name; } }, { t: 'Kind', v: function (x) { return x.kindLabel; } }, { t: 'Date', v: function (x) { return x.date; } }, { t: 'Time', v: function (x) { return x.time; } }],
+          sheet: function (x) { return self.eventSheet(x); }, actions: function (x, it, I2) { return [it('Open', I2.open, function () { self.open(self.eventSheet(x)); })]; } },
         { key: 'auto', label: 'Automations', title: 'Automations', noun: 'automations', one: 'automation', ph: 'Name or trigger', file: 'wdc-automations', actLabel: 'New automation', actD: I.plus, act: function () { window.location.href = 'A-Automation.dc.html'; }, emptyT: 'No automations yet.', emptyB: 'Start from a welcome series.', warn: function () { return self.emAutos().some(function (a) { return !a.on; }); },
           cols: [{ t: 'Automation' }, { t: 'Starts when' }, { t: 'State' }, { t: 'Sent, 30 days', cls: 'r' }, { t: 'Opened', cls: 'r' }],
           items: function () { return self.emAutos().map(function (a) { return Object.assign({}, a, { hay: a.name + ' ' + a.trig, cells: [{ t: a.trig }, pill(a.on ? 'On' : 'Paused', a.on ? G : Fl, a.on ? '#fff' : 'var(--ad-on-flat)'), { t: String(a.sent), cls: 'r num' }, { t: a.sent ? a.open + '%' : 'None yet', cls: 'r num' }] }); }); },

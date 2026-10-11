@@ -63,18 +63,21 @@
               <sc-if value="{{isBoard}}" hint-placeholder-val="{{ false }}">
                 <div class="board tabIn" style="animation-name: {{viewAnim}}">
                   <sc-for list="{{cols}}" as="col" hint-placeholder-count="4">
-                    <div class="bCol" aria-label="{{col.t}}">
+                    <div class="bCol {{col.cls}}" aria-label="{{col.t}}. {{col.hint}}" onDragOver="{{col.over}}" onDragLeave="{{col.leave}}" onDrop="{{col.drop}}">
                       <div class="bHead"><span class="bDot" style="background: {{col.tone}}"></span><strong>{{col.t}}</strong><span class="tag num" style="background: var(--ad-tone-flat); color: var(--ad-on-flat)">{{col.n}}</span></div>
                       <sc-for list="{{col.cards}}" as="c" hint-placeholder-count="2">
-                        <button class="bCard lift" onClick="{{c.open}}" aria-label="{{c.aria}}">
-                          <span style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap"><span class="tag" style="background: var(--ad-tone-flat); color: var(--ad-on-flat)">{{c.svc}}</span><sc-if value="{{c.hasFlag}}" hint-placeholder-val="{{ false }}"><span class="tag" style="background: {{c.flagTone}}; color: #fff">{{c.flag}}</span></sc-if></span>
-                          <strong style="font-size: 14px">{{c.name}}</strong>
-                          <span style="font-size: 12px; color: var(--ad-dim)">{{c.client}}</span>
-                          <span class="miniBar" aria-hidden="true"><span style="width: {{c.pct}}%"></span></span>
-                          <span style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ad-dim)"><span class="av0" style="width: 24px; height: 24px; font-size: 9px; background: {{c.leadTone}}">{{c.leadI}}</span><span style="flex: 1">{{c.stage}}</span><span class="num" style="color: {{c.dueCol}}; font-weight: 600">{{c.due}}</span></span>
-                        </button>
+                        <div class="bCardW {{c.dragging}}" draggable="true" onDragStart="{{c.dragStart}}" onDragEnd="{{c.dragEnd}}">
+                          <button class="bCard lift" onClick="{{c.open}}" aria-label="{{c.aria}}">
+                            <span style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding-right: 34px"><span class="tag" style="background: var(--ad-tone-flat); color: var(--ad-on-flat)">{{c.svc}}</span><sc-if value="{{c.hasFlag}}" hint-placeholder-val="{{ false }}"><span class="tag" style="background: {{c.flagTone}}; color: #fff">{{c.flag}}</span></sc-if></span>
+                            <strong style="font-size: 14px">{{c.name}}</strong>
+                            <span style="font-size: 12px; color: var(--ad-dim)">{{c.client}}</span>
+                            <span class="miniBar" aria-hidden="true"><span style="width: {{c.pct}}%"></span></span>
+                            <span style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ad-dim)"><span class="av0" style="width: 24px; height: 24px; font-size: 9px; background: {{c.leadTone}}">{{c.leadI}}</span><span style="flex: 1">{{c.stage}}</span><span class="num" style="color: {{c.dueCol}}; font-weight: 600">{{c.due}}</span></span>
+                          </button>
+                          <button class="ibtn ghostB bMove" data-menu="move" aria-label="{{c.moveAria}}" aria-haspopup="menu" aria-expanded="{{c.moveX}}" onClick="{{c.moveMenu}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg></button>
+                        </div>
                       </sc-for>
-                      <sc-if value="{{col.empty}}" hint-placeholder-val="{{ false }}"><span class="bEmpty">Nothing here</span></sc-if>
+                      <sc-if value="{{col.empty}}" hint-placeholder-val="{{ false }}"><span class="bEmpty">Nothing here. Drag a project in.</span></sc-if>
                     </div>
                   </sc-for>
                 </div>

@@ -1,9 +1,9 @@
   /* ======================= Projects by service =======================
      Every service has its own stages, deliverables, approvals and a service tab.
      A spec is written once from the owner's side. adapt() turns it into the staff or client view. */
-  projKeys() { return ({ admin: ['mira-so', 'mira-br', 'bloom-seo', 'oak-web', 'kora-app', 'halo-ai', 'lumen-ads', 'ade-oct'], staff: ['ade-oct', 'lumen-ads', 'mira-so'], client: ['mira-br', 'mira-so'] })[this.projRole()]; }
+  projKeys() { var ids = this.projectsData().map(function (p) { return p.id; }), first = ({ admin: ['mira-so', 'mira-br', 'bloom-seo', 'oak-web', 'kora-app', 'halo-ai', 'lumen-ads', 'ade-oct'], staff: ['ade-oct', 'lumen-ads', 'mira-so'], client: ['mira-br', 'mira-so'] })[this.projRole()]; if (this.projRole() === 'client') return first; var self = this, rest = this.projectsData().filter(function (p) { return first.indexOf(p.id) < 0 && self.projScope(p); }).map(function (p) { return p.id; }); return first.concat(rest); }
   modelState() { var m = /[?&]p=([\w-]+)/.exec((typeof window !== 'undefined' && window.location.search) || ''), i = m ? this.projKeys().indexOf(m[1]) : -1; return { sw: i < 0 ? 0 : i }; }
-  projectModel() { var key = this.projKeys()[Math.min(this.state.sw, this.projKeys().length - 1)]; return this.withPause(this.adapt(this.spec(key), key), key); }
+  projectModel() { var key = this.projKeys()[Math.min(this.state.sw, this.projKeys().length - 1)], m = this.spec(key); this.patchRename(); return this.withPause(this.adapt(m, key), key); }
   /* a paused project reads as paused everywhere: flag, banner, the head button, and what each role can do about it */
   withPause(m, key) {
     var ps = this.state.paused[key], role = this.projRole(), I = this.icons(), self = this, o = Object.assign({}, m), pj = m.pj;
@@ -16,7 +16,47 @@
     else { ban.body = 'Work is on hold, and nothing is lost. We tell you by email the moment it restarts.'; ban.act = 'Message the team'; ban.fn = function () { window.location.href = 'C-Messages.dc.html'; }; }
     o.pauseBanner = ban; return o;
   }
-  spec(key) { var m = { 'mira-so': 'socialSpec', 'mira-br': 'brandSpec', 'bloom-seo': 'seoSpec', 'oak-web': 'webSpec', 'kora-app': 'appSpec', 'halo-ai': 'softSpec', 'lumen-ads': 'adsSpec', 'ade-oct': 'adeSpec' }; return this[m[key]](); }
+  spec(key) { var m = { 'mira-so': 'socialSpec', 'mira-br': 'brandSpec', 'bloom-seo': 'seoSpec', 'oak-web': 'webSpec', 'kora-app': 'appSpec', 'halo-ai': 'softSpec', 'lumen-ads': 'adsSpec', 'ade-oct': 'adeSpec' }; return m[key] ? this[m[key]]() : this.genericSpec(key); }
+  /* Every other project borrows the structure of the spec for its own service (stages, tabs, approvals, work tab), then takes on its own client, name, lead and numbers. */
+  genericSpec(key) {
+    var self = this, row = this.projectsData().filter(function (p) { return p.id === key; })[0], cl = this.clientsData().filter(function (c) { return c.id === row.cid; })[0] || { name: row.client, contact: 'the client', email: '' };
+    var T = { 'Branding & Design': ['brandSpec', 'mira', 'Brand identity', 'Ifeanyi N.'], 'Social & Ads': /ads/i.test(row.name) ? ['adsSpec', 'lumen', 'Instagram ads', 'Chiamaka A.'] : ['adeSpec', 'ade', 'October content', 'Chiamaka A.'], 'Web & Apps': ['webSpec', 'oak', 'Website', 'Daniel E.'], 'SEO': ['seoSpec', 'bloom', 'SEO retainer', 'Bisi O.'], 'Apps': ['appSpec', 'kora', 'Driver app', 'Daniel E.'], 'Software & AI': ['softSpec', 'halo', 'Booking assistant', 'Daniel E.'] }[row.svc] || ['webSpec', 'oak', 'Website', 'Daniel E.'];
+    var all = this.clientsData(), tc = all.filter(function (c) { return c.id === T[1]; })[0], m = this[T[0]](), pj = m.pj, first = function (n) { return (n || '').split(' ')[0]; };
+    var pairs = [[tc.name, cl.name], [tc.contact, cl.contact], [first(tc.contact), first(cl.contact)], ['@' + tc.name.toLowerCase().replace(/[^a-z0-9]/g, ''), '@' + cl.name.toLowerCase().replace(/[^a-z0-9]/g, '')], [T[3], row.lead], [first(T[3]), first(row.lead)]];
+    if (T[2] !== row.name) pairs.push([T[2], row.name]);
+    pairs = pairs.filter(function (x) { return x[0] && x[1] && x[0] !== x[1]; }).sort(function (a, b) { return b[0].length - a[0].length; });
+    this._rmap = pairs;
+    var done = row.status === 'done', cur = done ? row.stages.length : row.cur;
+    var o = Object.assign({}, this.renameDeep(m, pairs));
+    o.pj = Object.assign({}, o.pj, { name: row.name, client: cl.name, svc: row.svc, leadName: row.lead, stages: row.stages, cur: cur, flag: done ? 'Done' : row.flag, flagTone: done ? 'var(--ad-tone-good)' : (row.flag === 'Paused' || row.flag === 'Blocked' ? 'var(--ad-tone-bad)' : 'var(--ad-tone-warn)'), lede: cl.name + ' · led by ' + row.lead + ' · due ' + row.due + ' · ' + (this.hideMoney() ? '' : row.value + ' · ') + row.next, stageNote: (done ? 'Finished. ' : (row.stages[cur] || '') + ': ') + row.next + '.' });
+    o.pj.lede = o.pj.lede.replace(/\s·\s·/g, ' ·');
+    if (done) { o.blockers = []; o.approvals = []; o.next = []; o.tasks = (o.tasks || []).map(function (t) { return Object.assign({}, t, { st: 'done' }); }); }
+    /* what is specific to the template project goes; what the row knows takes its place */
+    var L = [row.lead, row.leadI, row.leadTone], ink = function (t) { return t; };
+    o.files = []; o.posts = []; o.activity = [{ i: row.leadI, tone: row.leadTone, who: row.lead.split(' ')[0], what: done ? 'handed the project over' : 'moved the project to ' + (row.stages[cur] || 'the next stage'), where: row.next, when: 'This week' }];
+    o.blockers = !done && row.flag && /Blocked|Paused|Waiting|late/i.test(row.flag + row.pay) ? [{ id: 'b-flag', t: row.flag === 'Paused' ? 'Work is paused' : 'Waiting on ' + cl.contact.split(' ')[0], s: row.next + '. ' + (/late/.test(row.pay) ? 'Payment: ' + row.pay + '.' : ''), tone: 'var(--ad-tone-warn)', d: this.icons().alert, actLabel: 'Message ' + cl.contact.split(' ')[0], act: function () { window.location.href = 'A-Messages.dc.html'; } }] : [];
+    o.approvals = [];
+    o.next = done ? [] : [{ t: row.next, s: row.svc + ' · ' + (row.stages[cur] || ''), when: row.due, who: row.leadI, whoTone: row.leadTone, whoName: row.lead }].concat(row.stages.slice(cur + 1, cur + 3).map(function (st) { return { t: st, s: 'Next stage', when: 'After ' + (row.stages[cur] || 'this stage'), who: row.leadI, whoTone: row.leadTone, whoName: row.lead }; }));
+    o.tasks = row.stages.map(function (st, i) { return { id: 'g' + i, t: st, s: i < cur ? 'Finished' : (i === cur ? row.next : 'Starts after ' + (row.stages[i - 1] || 'setup')), who: row.lead, i: row.leadI, tone: row.leadTone, due: i < cur || done ? 'Done' : (i === cur ? row.due : 'Later'), hot: i === cur && row.dueHot, st: i < cur || done ? 'done' : (i === cur ? 'doing' : 'todo') }; });
+    o.progress = [{ t: 'Stages finished', v: Math.min(cur, row.stages.length) + ' of ' + row.stages.length, pct: Math.round(Math.min(cur, row.stages.length) / row.stages.length * 100), tone: 'var(--ad-series-1)' }];
+    o.team = [{ name: row.lead, i: row.leadI, tone: row.leadTone, role: 'Lead · ' + row.svc }];
+    o.facts = (o.facts || []).filter(function (f) { return ['Quote', 'Value', 'Then', 'Payment', 'Billing'].indexOf(f.k) < 0; });
+    o.facts.splice(1, 0, { k: 'Value', v: row.value, money: true, chip: this.payChip(row) }, { k: 'Payment', v: row.pay, money: true, chip: this.payChip(row) });
+    o.money = { rows: this.docsFor(cl.name), schedule: [], note: 'Invoices and quotes for this project appear here as they are raised. Open Money to bill or record a payment.' };
+    return o;
+  }
+  docsFor(client) { var self = this, d = this.sharedDocs ? this.sharedDocs() : this.shared('docs', {}); return Object.keys(d).map(function (k) { return d[k]; }).filter(function (x) { return x.client && x.client.name === client; }).map(function (x) { var T = self.docTotals(x), st = self.docStatus(x); return { no: x.no, for: x.title || (x.lines[0] && x.lines[0].d) || 'Document', amount: self.docMoney(x, T.total), date: x.due || x.valid || '', status: st.t, tone: st.tone }; }); }
+  renameStr(t) { var m = this._rmap; if (!m || typeof t !== 'string') return t; for (var i = 0; i < m.length; i++) t = t.split(m[i][0]).join(m[i][1]); return t; }
+  renameDeep(o, pairs, d) {
+    var self = this, prev = this._rmap; this._rmap = pairs || prev; d = d || 0;
+    var go = function (v, d) { if (typeof v === 'string') return self.renameStr(v); if (d > 7 || !v) return v; if (Array.isArray(v)) return v.map(function (x) { return go(x, d + 1); }); if (typeof v === 'object' && Object.getPrototypeOf(v) === Object.prototype) { var r = {}; Object.keys(v).forEach(function (k) { r[k] = go(v[k], d + 1); }); return r; } return v; };
+    var out = go(o, d); if (!pairs) this._rmap = prev; return out;
+  }
+  /* A generic project page renames what its borrowed spec says at the moment a sheet, dialog or toast is built. */
+  patchRename() {
+    if (this._rp || !this._rmap) return; this._rp = true; var self = this;
+    ['sh', 'ask', 'say', 'openFile'].forEach(function (k) { var orig = self[k]; self[k] = function () { var a = Array.prototype.slice.call(arguments).map(function (x) { return self.renameDeep(x, null, 5); }); return orig.apply(self, a); }; });
+  }
   projHref(key) { return ({ admin: 'A-Project.dc.html', staff: 'S-Project.dc.html', client: 'C-Projects.dc.html' })[this.projRole()] + '?p=' + key; }
   navSection() { return 'Projects'; }
   /* generic helpers used by every spec */

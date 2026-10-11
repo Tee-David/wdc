@@ -1,5 +1,5 @@
   /* ======================= Owner · Email builder ======================= */
-  pageName() { return 'Messages'; }
+  pageName() { return 'Marketing'; }
   pageState() { return { ra: 0, sel: -1, panel: 0, wide: 'desk', blocks: this.ebSeed(), subject: 'Three launches and an offer for returning clients', pre: 'What we shipped in September, and one thing for you.', saved: '', on: true, ver: 4 }; }
   tourSteps() {
     var I = this.icons();

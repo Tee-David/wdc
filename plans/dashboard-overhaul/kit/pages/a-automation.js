@@ -1,5 +1,5 @@
   /* ======================= Owner · Automation flow ======================= */
-  pageName() { return 'Messages'; }
+  pageName() { return 'Marketing'; }
   hubApply(key, base) { return base; }
   pageState() { return { ra: 0, flow: this.afSeed(), name: 'Welcome series', status: 'on', kind: 'Marketing', tab: 0, zoom: 1, sel: '', dirty: false }; }
   tourSteps() {

@@ -22,9 +22,37 @@
       { name: 'Tolu A.', i: 'TA', dept: 'Social & Ads', load: '2 open', tone: '#23239b' }
     ];
   }
-  walk() { return { nav: 'Today is what needs you. Clients holds every record, Projects runs work by service, Money covers invoices, payments and payouts, Messages has every conversation, Blog is the studio journal, and Settings has the team and permissions. Support is just below.', bell: 'Payments, approvals and replies land here. Install the app to get them as push alerts. The important ones are emailed too.' }; }
+  walk() { return { nav: 'Today is what needs you. Clients holds every record, Projects runs work by service, Money covers invoices, payments and payouts, Messages has every conversation, Marketing runs email campaigns, automations and the calendar, Forms collects enquiries and entries, Blog is the studio journal, and Settings has the team and permissions. Support is just below.', bell: 'Payments, approvals and replies land here. Install the app to get them as push alerts. The important ones are emailed too.' }; }
 
   /* The studio's clients. Outstanding sums to ₦2,315,000 and overdue to ₦1,015,000, as on Today. */
+  /* ----- Money documents (invoice and quote), shared by the Money list and the document page ----- */
+  docTotals(d) {
+    var sub = 0; (d.lines || []).forEach(function (l) { if (l.d !== '' || l.u) sub += (+l.q || 0) * (+l.u || 0); });
+    var disc = d.disc && d.disc.type === 'pct' ? Math.round(sub * (+d.disc.v || 0) / 100) : (d.disc && d.disc.type === 'amt' ? Math.min(sub, +d.disc.v || 0) : 0);
+    var net = sub - disc, vat = d.vat ? Math.round(net * 0.075) : 0, total = net + vat;
+    var paid = (d.payments || []).reduce(function (t, p) { return t + p.amt; }, 0);
+    return { sub: sub, disc: disc, vat: vat, total: total, paid: paid, owed: Math.max(0, total - paid), dep: d.kind === 'quote' && d.deposit ? Math.round(total * (+String(d.deposit).replace('%', '') || 0) / 100) : 0 };
+  }
+  docMoney(d, n) { return (d.cur === 'USD' ? '$' : '₦') + Math.round(n).toLocaleString('en-NG'); }
+  docDays(iso, from) { return Math.round((new Date(iso + 'T00:00:00Z') - new Date(from + 'T00:00:00Z')) / 86400000); }
+  docStatus(d) {
+    var T = this.docTotals(d), G = 'var(--ad-tone-good)', today = '2026-10-10';
+    if (d.kind === 'quote') { var qs = d.qstatus || 'Draft'; return { t: qs, tone: { Draft: 'var(--ad-tone-flat)', Sent: 'var(--ad-tone-brand)', Opened: 'var(--ad-tone-live)', Accepted: G, Declined: 'var(--ad-tone-bad)', Expired: 'var(--ad-tone-neutral)' }[qs] || 'var(--ad-tone-flat)' }; }
+    if (d.cancelled) return { t: 'Cancelled', tone: 'var(--ad-tone-neutral)' };
+    if (!d.sent) return { t: 'Draft', tone: 'var(--ad-tone-flat)' };
+    if (T.total > 0 && T.owed <= 0) return { t: (d.payments || []).some(function (p) { return p.amt < 0; }) && T.paid <= 0 ? 'Refunded' : 'Paid', tone: G };
+    if (T.paid > 0) return { t: 'Part paid', tone: 'var(--ad-tone-warn)' };
+    var n = this.docDays(d.due, today);
+    if (n < 0) return { t: Math.abs(n) + (Math.abs(n) === 1 ? ' day late' : ' days late'), tone: 'var(--ad-tone-bad)' };
+    return { t: n === 0 ? 'Due today' : 'Due in ' + n + (n === 1 ? ' day' : ' days'), tone: n <= 7 ? 'var(--ad-tone-warn)' : 'var(--ad-tone-neutral)' };
+  }
+  docRow(d) {
+    var T = this.docTotals(d), st = this.docStatus(d), mo = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], f = function (iso) { var p = iso.split('-'); return +p[2] + ' ' + mo[+p[1] - 1]; };
+    if (d.kind === 'quote') return { no: d.no, client: d.client ? d.client.name : '', title: d.title || 'Quote', value: T.total, sent: d.sent ? 'Today' : 'Not sent', valid: d.valid ? f(d.valid) : '—', st: st.t, to: d.client ? d.client.contact : '' };
+    var paid = st.t === 'Paid' || st.t === 'Refunded';
+    return { no: d.no, client: d.client ? d.client.name : '', amount: this.docMoney(d, T.total), date: paid ? f((d.payments[d.payments.length - 1] || {}).iso || d.due) : f(d.due), status: st.t, tone: st.tone, method: d.cur === 'USD' ? 'USD account' : 'Paystack or Flutterwave', tab: paid ? 'paid' : (this.docDays(d.due, '2026-10-10') < 0 && d.sent ? 'over' : 'due'), doc: true };
+  }
+  sharedDocs() { return this.shared('docs', {}); }
   clientsData() {
     var c = function (id, name, ini, tone, contact, email, phone, services, live, owed, late, retainer, since, last, lastWhen, status, portal) { return { id: id, name: name, ini: ini, tone: tone, contact: contact, email: email, phone: phone, services: services, live: live, owed: owed, late: late, retainer: retainer, since: since, last: last, lastWhen: lastWhen, status: status, portal: portal }; };
     return [
@@ -43,7 +71,7 @@
   }
   records() {
     var self = this;
-    var pages = [['Today', 'The deck, money moving and the studio pulse', 'D-Admin.dc.html'], ['Clients', 'Every client and lead', 'A-Clients.dc.html'], ['Projects', 'Work by service', 'A-Projects.dc.html'], ['Money', 'Invoices, quotes, payments and payouts', 'A-Money.dc.html'], ['Messages', 'Team, clients and support', 'A-Messages.dc.html'], ['Settings', 'Team, money, notifications and system', 'A-Settings.dc.html'], ['Support', 'Tickets and the knowledge base', 'A-Support.dc.html']].map(function (p) { return { kind: 'Page', label: p[0], sub: p[1], ini: p[0].charAt(0), tone: 'var(--ad-tone-neutral)', href: p[2] }; });
+    var pages = [['Today', 'The deck, money moving and the studio pulse', 'D-Admin.dc.html'], ['Clients', 'Every client and lead', 'A-Clients.dc.html'], ['Projects', 'Work by service', 'A-Projects.dc.html'], ['Money', 'Invoices, quotes, payments and payouts', 'A-Money.dc.html'], ['Messages', 'Team, clients and support', 'A-Messages.dc.html'], ['Marketing', 'Campaigns, automations, contacts and the calendar', 'A-Email.dc.html'], ['Forms', 'Enquiries, entries, subscribers and form builder', 'A-Forms.dc.html'], ['Settings', 'Team, money, notifications and system', 'A-Settings.dc.html'], ['Support', 'Tickets and the knowledge base', 'A-Support.dc.html']].map(function (p) { return { kind: 'Page', label: p[0], sub: p[1], ini: p[0].charAt(0), tone: 'var(--ad-tone-neutral)', href: p[2] }; });
     var clients = this.clientsData().map(function (c) { return { kind: 'Client', label: c.name, sub: c.contact + ' · ' + c.services.join(', '), ini: c.ini, tone: c.tone, href: c.id === 'mira' ? 'A-Client.dc.html' : '', sheet: c.id === 'mira' ? null : self.clientSheet(c) }; });
     return pages.concat(clients, [
       { kind: 'Project', label: 'Social media management', sub: 'Mira Skincare · Setup', ini: 'S', tone: 'var(--ad-tone-live)', href: 'A-Project.dc.html?p=mira-so' },
@@ -100,7 +128,7 @@
   hideMoney() { return false; }
   projScope(p) { return true; }
   payChip(p) { var t = p.pay || ''; return /Retainer/.test(t) ? 'Retainer' : (/late|Deposit due|Deposit and/.test(t) ? 'Awaiting payment' : (/Paid in full|^Paid$/.test(t) ? 'Paid in full' : 'Deposit paid')); }
-  projPageKeys() { return ['mira-so', 'mira-br', 'bloom-seo', 'oak-web', 'kora-app', 'halo-ai', 'lumen-ads', 'ade-oct']; }
+  projPageKeys() { return this.projectsData().map(function (p) { return p.id; }); }
   projPageHref(id) { return 'A-Project.dc.html?p=' + id; }
   projectsData() {
     var T = { IN: ['Ifeanyi N.', 'IN', '#000065'], CA: ['Chiamaka A.', 'CA', '#b84a00'], DE: ['Daniel E.', 'DE', '#5c5c7a'], BO: ['Bisi O.', 'BO', '#15803d'], TA: ['Tolu A.', 'TA', '#23239b'] };
