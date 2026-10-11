@@ -304,3 +304,6 @@ button.adDash__chartMonth:focus-visible { outline: 2px solid var(--ad-accent); o
   .adFlow__rail { grid-template-columns: 1fr; }
   .adFlow__time { width: 3.6rem; }
 }
+
+.adFlow__stack { display: grid; gap: 1rem; min-width: 0; }
+.adFlow__rail .ad__panel { min-width: 0; }
