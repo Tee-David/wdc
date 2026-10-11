@@ -612,10 +612,13 @@ export function invoiceTotals(inv: Invoice, payments?: Payment[]) {
 
 /** Kobo to "₦1,250,000.00". */
 export function naira(kobo: number) {
+  /* ₦850,000, not ₦850,000.00: kobo only show when there are some. */
+  const whole = Math.round(kobo) % 100 === 0;
   return new Intl.NumberFormat("en-NG", {
     style: "currency",
     currency: "NGN",
-    minimumFractionDigits: 2,
+    minimumFractionDigits: whole ? 0 : 2,
+    maximumFractionDigits: whole ? 0 : 2,
   }).format(kobo / 100);
 }
 

@@ -271,3 +271,36 @@ button.adDash__chartMonth:focus-visible { outline: 2px solid var(--ad-accent); o
 .adToday li { display: inline-flex; align-items: center; gap: .45rem; min-height: 2.75rem; min-width: 0; }
 .adToday li svg { width: 1rem; height: 1rem; flex: none; color: var(--ad-dim); }
 .adToday a { overflow-wrap: anywhere; }
+
+/* ------------------------------------------------------------------ Today, the Flow home
+   A head, then the deck and the work in one column and a 356px rail of figures beside it. Below 1180px the rail drops under the work as a two column grid. */
+.adFlow__head { display: flex; justify-content: space-between; align-items: flex-start; gap: .75rem 1rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+.adFlow__head h1 { font-size: clamp(1.4rem, 2.6vw, 1.95rem); line-height: 1.15; letter-spacing: -.02em; }
+.adFlow__lede { margin: .35rem 0 0; color: var(--ad-dim); font-size: .95rem; }
+.adFlow__lede b { color: var(--ad-ink); font-weight: 600; }
+.adFlow__grid { display: grid; grid-template-columns: minmax(0, 1fr) 356px; gap: 1.25rem; align-items: start; }
+.adFlow__main, .adFlow__rail { display: grid; gap: 1rem; min-width: 0; align-content: start; }
+.adFlow__railHead { display: flex; align-items: center; gap: .5rem; }
+.adFlow__railHead h2 { flex: 1; font-size: 1rem; font-weight: 700; }
+.adFlow__more { display: inline-flex; align-items: center; gap: .3rem; min-height: 2.75rem; color: var(--ad-accent-ink); font-weight: 600; font-size: .85rem; }
+.adFlow__more svg { width: .95rem; height: .95rem; }
+.adFlow__tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; margin: 0; }
+.adFlow__tiles > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+.adFlow__sub { display: block; color: var(--ad-dim); font-size: .78rem; font-weight: 400; }
+.adFlow__later { list-style: none; margin: 0; padding: 0 .5rem .25rem; }
+.adFlow__later a { display: flex; align-items: center; gap: 1rem; min-height: 3.5rem; padding: .5rem .75rem; border-radius: 12px; }
+.adFlow__later a:hover { background: var(--ad-hover); }
+.adFlow__time { flex: none; width: 5rem; color: var(--ad-dim); font-size: .85rem; font-weight: 600; }
+.adFlow__laterCopy { flex: 1; min-width: 0; display: grid; }
+.adFlow__laterCopy b { font-weight: 600; overflow-wrap: anywhere; }
+.adFlow__laterCopy small { color: var(--ad-dim); font-size: .8rem; overflow-wrap: anywhere; }
+.adFlow .adTabs { margin: 0 1rem; }
+@media (max-width: 1180px) {
+  .adFlow__grid { grid-template-columns: 1fr; }
+  .adFlow__rail { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+  .adFlow__rail > .adFlow__railHead, .adFlow__rail > .adFlow__tiles:first-of-type { grid-column: 1 / -1; }
+}
+@media (max-width: 760px) {
+  .adFlow__rail { grid-template-columns: 1fr; }
+  .adFlow__time { width: 3.6rem; }
+}
