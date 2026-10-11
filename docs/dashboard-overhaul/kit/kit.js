@@ -9,7 +9,7 @@
       pal: false, q: '', hi: 0, pa: 0, tour: -1, tourKind: 'page', toast: null, ta: 0, menu: null, pop: null, dq: '',
       draft: '', reason: '', ack: false, spick: -1, ck: {}, vis: 'team', zoom: 1, cmt: '', comments: {},
       gone: {}, snoozed: {}, leaving: null, leaveKind: 'done', stampAt: null, enterN: 0, segPop: -1,
-      installing: false, installHidden: !!pref.installHidden, celebrated: false
+      installing: false, installHidden: !!pref.installHidden, celebrated: false, form: {}
     }, this.extraState ? this.extraState() : {}, this.pageState ? this.pageState() : {});
     this._per = {};
   }
@@ -94,14 +94,14 @@
   sh(o) { return Object.assign({ kind: '', eyebrow: '', title: '', chip: '', tone: 'var(--ad-tone-neutral)', rows: [], body: '', list: [], listTitle: '', checks: [], checksTitle: '', feed: [], primary: 'Done', pToast: '', secondary: '', sToast: '', compose: false, composeLabel: 'Message', composePh: 'Write here', draft: '', note: '' }, o); }
   open(sh, push) {
     var s = this.state;
-    var stack = push && s.sheet ? s.stack.concat([{ sheet: s.sheet, draft: s.draft, reason: s.reason, ack: s.ack, spick: s.spick, ck: s.ck, zoom: s.zoom }]) : [];
-    this.setState({ sheet: sh, stack: stack, sheetFull: false, bell: false, pal: false, drawer: false, menu: null, pop: null, tour: -1, draft: sh.draft || '', reason: '', ack: false, ck: {}, spick: sh.pick != null ? sh.pick : -1, vis: sh.vis || 'team', zoom: 1, cmt: '' });
+    var stack = push && s.sheet ? s.stack.concat([{ sheet: s.sheet, draft: s.draft, reason: s.reason, ack: s.ack, spick: s.spick, ck: s.ck, zoom: s.zoom, form: s.form }]) : [];
+    this.setState({ sheet: sh, stack: stack, sheetFull: false, bell: false, pal: false, drawer: false, menu: null, pop: null, tour: -1, draft: sh.draft || '', reason: '', ack: false, ck: {}, spick: sh.pick != null ? sh.pick : -1, vis: sh.vis || 'team', zoom: 1, cmt: '', form: Object.assign({}, sh.form || {}) });
   }
   closeSheet() { var self = this; this.exitThen('.sheetP, .sheetP ~ .scrim, .scrim', function () { self.setState({ sheet: null, stack: [], sheetFull: false }); }); }
   sheetBack() {
     var s = this.state; if (!s.stack.length) { this.closeSheet(); return; }
     var prev = s.stack[s.stack.length - 1];
-    this.setState({ sheet: prev.sheet, stack: s.stack.slice(0, -1), draft: prev.draft || '', reason: prev.reason || '', ack: !!prev.ack, spick: prev.spick == null ? -1 : prev.spick, ck: prev.ck || {}, zoom: prev.zoom || 1 });
+    this.setState({ sheet: prev.sheet, stack: s.stack.slice(0, -1), draft: prev.draft || '', reason: prev.reason || '', ack: !!prev.ack, spick: prev.spick == null ? -1 : prev.spick, ck: prev.ck || {}, zoom: prev.zoom || 1, form: prev.form || {} });
   }
   ask(cf, push) {
     var self = this, I = this.icons();
@@ -114,7 +114,7 @@
       onSecondary: function () { if (self.state.stack.length) self.sheetBack(); else self.closeSheet(); return 'stay'; }
     }), push !== false && !!this.state.sheet);
   }
-  sheetCtx() { var s = this.state; return { draft: (s.draft || '').trim(), reason: (s.reason || '').trim(), pick: s.spick, ack: s.ack, checks: s.ck, vis: s.vis }; }
+  sheetCtx() { var s = this.state; return { draft: (s.draft || '').trim(), reason: (s.reason || '').trim(), pick: s.spick, ack: s.ack, checks: s.ck, vis: s.vis, form: s.form || {} }; }
   runSheet(which) {
     var self = this, cur = this.state.sheet; if (!cur) return;
     var fn = which === 'p' ? cur.onPrimary : cur.onSecondary, toast = which === 'p' ? cur.pToast : cur.sToast, ctx = this.sheetCtx();
@@ -397,6 +397,20 @@
       return { t: c.t, s: c.s || '', on: on, cls: on ? 'on' : '', checked: on ? 'true' : 'false', aria: c.t, hasAct: !!c.act && !on, actLabel: c.act ? c.act.label : '', act: function () { if (c.act) c.act.fn(); },
         toggle: function () { var ck = Object.assign({}, self.state.ck); ck[i] = !on; if (!on && c.confirm) { self.ask(Object.assign({}, c.confirm, { onOk: function () { var c2 = Object.assign({}, self.state.ck); c2[i] = true; self.setState({ ck: c2 }); if (c.onDone) c.onDone(); } })); return; } self.setState({ ck: ck }); if (!on && c.onDone) c.onDone(); } };
     });
+    /* Forms inside a sheet: text fields, chip sets (single or multi) and a notice. Values live in state.form by field key. */
+    var F = s.form || {}, setF = function (key, v) { var f = Object.assign({}, self.state.form); f[key] = v; self.setState({ form: f }); };
+    var fields = (typeof raw.fields === 'function' ? raw.fields(s) : (raw.fields || [])).map(function (fd) {
+      var err = fd.check ? fd.check(F[fd.key] || '', F) : '';
+      return { key: fd.key, id: 'f-' + fd.key, label: fd.label, ph: fd.ph || '', value: F[fd.key] != null ? F[fd.key] : '', mode: fd.mode || 'text', type: fd.type || 'text', hint: err || fd.hint || '', hasHint: !!(err || fd.hint), hintCls: err ? 'hint err' : 'hint', cls: fd.wide ? 'wideF' : '', isArea: fd.type === 'area', isInput: fd.type !== 'area', on: function (e) { setF(fd.key, e.target.value); } };
+    });
+    var chipSets = (typeof raw.chipSets === 'function' ? raw.chipSets(s) : (raw.chipSets || [])).map(function (cs) {
+      var cur = F[cs.key] != null ? F[cs.key] : (cs.multi ? [] : '');
+      return { label: cs.label, hint: cs.hint || '', hasHint: !!cs.hint, role: cs.multi ? 'group' : 'radiogroup', opts: cs.opts.map(function (o) {
+        var on = cs.multi ? cur.indexOf(o) >= 0 : cur === o;
+        return { t: o, cls: on ? 'on' : '', checked: on ? 'true' : 'false', role: cs.multi ? 'checkbox' : 'radio', pick: function () { var c = self.state.form[cs.key] != null ? self.state.form[cs.key] : (cs.multi ? [] : ''); if (cs.multi) { c = c.indexOf(o) >= 0 ? c.filter(function (x) { return x !== o; }) : c.concat([o]); } else c = o; setF(cs.key, c); } };
+      }) };
+    });
+    var notice = typeof raw.notice === 'function' ? raw.notice(ctx, s) : raw.notice;
     var plabel = typeof raw.primary === 'function' ? raw.primary(ctx, s) : raw.primary;
     var dis = '', reqText = '';
     if (raw.required && !ctx.draft) { dis = 'y'; reqText = raw.requiredWhy || 'Write a message to send it.'; }
@@ -408,7 +422,7 @@
       back: s.stack.length > 0, hasChip: !!raw.chip, hasIcon: !!raw.icon, icon: raw.icon || '', iconTone: raw.iconTone || 'var(--ad-tone-brand)', hasRows: raw.rows.length > 0, hasBody: !!raw.body, hasPreview: !!raw.preview, preview: raw.preview || {},
       hasList: list.length > 0, list: list, listRole: listSel ? 'radiogroup' : 'list', hasChecks: checks.length > 0, checks: checks, checksTitle: raw.checksTitle || 'Checklist', checksDone: ckDone + ' of ' + checks.length, checksPct: checks.length ? Math.round(ckDone / checks.length * 100) : 0,
       hasFeed: raw.feed.length > 0, hasNote: !!raw.note, reason: !!raw.reason, reasonLabel: raw.reason ? raw.reason.label : '', reasonPh: raw.reason ? raw.reason.ph : '', ack: !!raw.ack, ackText: raw.ack || '',
-      primaryLabel: plabel, primaryCls: raw.danger ? 'btnD' : (raw.green ? 'btnG' : 'btn'), primaryDis: !!dis, why: reqText, hasSecondary: !!raw.secondary, secondaryLabel: typeof raw.secondary === 'function' ? raw.secondary(ctx, s) : raw.secondary, chip: typeof raw.chip === 'function' ? raw.chip(ctx, s) : raw.chip, tone: typeof raw.tone === 'function' ? raw.tone(ctx, s) : raw.tone, hasFoot: !raw.noFoot, busy: !!raw.busy
+      hasFields: fields.length > 0, fields: fields, hasChipSets: chipSets.length > 0, chipSets: chipSets, hasNotice: !!notice, notice: notice || {}, primaryLabel: plabel, primaryCls: raw.danger ? 'btnD' : (raw.green ? 'btnG' : 'btn'), primaryDis: !!dis, why: reqText, hasSecondary: !!raw.secondary, secondaryLabel: typeof raw.secondary === 'function' ? raw.secondary(ctx, s) : raw.secondary, chip: typeof raw.chip === 'function' ? raw.chip(ctx, s) : raw.chip, tone: typeof raw.tone === 'function' ? raw.tone(ctx, s) : raw.tone, hasFoot: !raw.noFoot, busy: !!raw.busy
     });
     var popItems = [];
     if (s.pop) {
