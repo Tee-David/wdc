@@ -151,6 +151,105 @@ Short on purpose. Each line is a decision already made; do not re-ask it.
 - Policies live in `frontend/lib/legal.ts` and are drafts for a Nigerian lawyer, not legal advice. Facts the owner has given: domains are registered in the client's name and details by default; hosting is either the client's own account or ours on the terms in the Client Engagement Policy (there is no separate hosting agreement), with regular backups up to one week old; app store developer accounts are in the studio's name by default and can move to the client on request; up to three business mailboxes are free with a website we build; a project has up to two review meetings and a recorded Google Meet handover meeting followed by a handover document; the client indemnifies the studio; the studio is not responsible for lost domains, banned accounts or payment provider decisions; for payments the studio walks the client through the provider's setup and keys but never holds the money. The onboarding engagement section stays off until a lawyer approves it (`LAWYER_APPROVED`).
 - Working rules for this repo: push to `main` and the working branch as you go, gated on `tsc` and eslint; run one Playwright run at a time against the dev server on port 3100, because overlapping runs clobber `test-results`; never `pkill -f` or `pgrep -f` a pattern that also appears in your own command line (it kills the shell); keep long runs in the background with `setsid`.
 
+## Dashboard design system (Admin, staff and client)
+
+The admin (owner), staff and client dashboards are three views of one studio. They share one shell, one component set and one vocabulary. This section is the binding summary. The full reference is `docs/dashboard-overhaul/design-system/project/` (README, Writing, Patterns, Money, Settings, States, Motion, Pages, `tokens.json`, `components/`), published as the Design System artifact (https://claude.ai/artifact/XRhmw3yngg9bTxBzim5zLr). The approved page prototypes live in the canvas artifact (https://claude.ai/artifact/1HG99eCtChsHCLyTnh7iEQ, row "Overhaul pages"). Every decision the owner gave is logged in `docs/dashboard-overhaul-preferences.md`, and a newer line there wins. Do not deviate from any of these. If a screen needs something the system lacks, add it to the system first, then use it.
+
+### The standard every page meets
+
+- The approved home ("Flow": the Focus deck plus the Workbench sidebar) is the benchmark. Every other page uses the same idea, colours, fields, buttons, pagination and components. Nothing generic. A page that is only tiles and a table is not finished.
+- A page answers "what needs me here" first (a deck or its equivalent), then the work (tables, lists, calendars), with a rail of figures and context beside it.
+- Plan each page before building it: anticipate the next step, think through every nuance, and leave no dead ends. Every button has real follow-through that changes what the page shows.
+- Projects differ by service. Branding and design, social media, SEO, websites, apps and custom software each have their own stages, deliverables, approvals and project page sections. Never model one service and reuse it for the rest. Branding nuance: flyers get one revision or two editions, brand guides start with a discovery call, motion is priced by seconds, clients provide assets. The content calendar belongs to social projects.
+
+### Tokens
+
+All colour comes from the `--ad-*` tokens shared with `components/admin/admin.css`.
+
+| Token | Light | Dark |
+| --- | --- | --- |
+| `ad-bg` page ground | `#f6f7fb` | `#06061c` |
+| `ad-panel` cards, sheets | `#fff` | `#0e0e2e` |
+| `ad-panel-2` insets, table heads | `#f2f3f9` | `#121238` |
+| `ad-ink` text | `#0e0e2c` | `#eef0fb` |
+| `ad-dim` secondary text | `#5c5c7a` | `#9b9dc4` |
+| `ad-line` / `ad-line-2` borders | `#e4e6f0` / `#c9ccdc` | `#1e2046` / `#33366a` |
+| `ad-hover` | `#eceefa` | `#1b1b4a` |
+| `ad-fill` primary button (white label) | `#000065` | `#b84a00` |
+| `ad-accent-ink` orange text | `#b84a00` | `#ff6500` |
+| `ad-focus` focus ring | `#0e0e2c` | `#eef0fb` |
+| `ad-tone-good` / `warn` / `bad` (status only) | `#15803d` / `#a16207` / `#c62828` | same |
+| `ad-tone-live` orange that carries words | `#b84a00` | `#b84a00` |
+| `ad-tone-brand` / `neutral` | `#000065` / `#5c5c7a` | `#23239b` / `#3a3c6e` |
+| `ad-tone-flat` routine tag (label `ad-on-flat`) | `#e4e6f0` | `#2a2c56` |
+| `ad-hero` deck card | `#000065` | `#121238` |
+| `ad-series-1` / `ad-series-2` charts | `#000065` / `#ff6500` | `#7377ff` / `#b84a00` |
+| `ad-nav-on` / `ad-nav-on-ink` active nav | `#000065` / `#fff` | `#fff` / `#000065` |
+| `ad-act` deck primary, hover `ad-act-hover` | `#b84a00`, hover `#15803d` | same |
+
+- Easing: `ease` `cubic-bezier(.16,1,.3,1)` for arrivals, `spring` (a `linear()` spring) for things that land, `out` `cubic-bezier(.4,0,1,1)` for exits. Shadows `ad-sh-1` to `ad-sh-3`.
+- Type: Space Grotesk for headings, figures and document numbers (tabular numerals). Outfit for body, labels and controls. Titles use the full width they have, never `text-wrap: balance`.
+- Spacing 4, 8, 12, 16, 20, 24, 32. Radius: cards 20, the deck card 24, controls 12, tags and chips pills, phone sheets 26 at the top. Touch targets 44px; a smaller visual gets an invisible hit area.
+
+### Colour and control rules
+
+- Bright orange `#ff6500` never carries words. Words on orange use `#b84a00` with white. Green, amber and red mean status only; routine states are flat (`ad-tone-flat`), only exceptions take a colour.
+- Tags, chips, badges and icon tiles are solid fills with a white (or ink on flat) label. No tints, no alpha.
+- No orange outline on any input, ever, in either theme. Inputs show focus on the container: border `ad-ink` plus a 4px `ad-ring` halo. Keyboard focus elsewhere is a 2px `ad-focus` ring offset 2px.
+- The active nav item is a solid fill (`ad-nav-on`), never a line or outline.
+- Every control has designed hover, active, focus-visible and disabled states. Close crosses and Sign out turn red with white on hover. A disabled control is solid and flat with the reason beside it.
+- Contrast is measured: text 4.5:1, non-text UI 3:1, in both themes.
+
+### Layout and the shell
+
+- Shell: Sidebar (logo, primary nav, a second group with Support, a footer pinned to the bottom with the dismissible install card, Tour, theme switch, collapse, profile with Sign out) and a TopBar (hamburger and page title on phones, search `Ctrl K`, bell, the page's one action).
+- Rail mode at 900px and below (icons with tooltips). Below 640px the sidebar is a drawer from the site hamburger. No bottom tab bar.
+- A page is a head (h1, a one-line lede that can stress one phrase in bold, the one action in the right slot, chores in its ⋮) then a two-column layout: the work column and a 356px rail. Below 1180px the rail drops under the work as a two-column grid.
+- Figure cards (StatTile): a solid icon tile with a white icon beside the label, the figure counting up, one note line. At most two cards a row on phones; an odd last card spans the row.
+- Verify every page at 320, 390, 834 and 1440 in both themes by measuring overflow and target sizes, not by looking.
+
+### Patterns
+
+- **Deck.** One card at a time: kind and urgency tags, a title, one sentence, two or three facts, a "why" line. One primary (`ad-act`, green on hover), one secondary, then Snooze, Hand over and Open details in one row on desktop. Each action stamps the card from the pressed button and sends it away in a meaningful direction; the next card rises. Clearing the deck plays the site's confetti, then an empty state with the next calendar item. Keyboard: D done, S snooze.
+- **Sheets, never centred dialogs.** Side sheet on desktop (480px, 720px wide), bottom sheet with a drag handle on phones. Header and footer stay put, the body scrolls without chaining. Sheets stack; a small confirmation returns to its sheet, one that finishes the task closes the stack. Confirmations are sheets too, with the email preview when something is sent. Irreversible actions need "I understand".
+- **Menus.** Popover anchored to its button on wide screens, bottom sheet on phones, searchable when long, close on outside click and Esc.
+- **Tables and lists.** Tables stay tables on every screen: first column pinned, sideways scroll inside the box. Tapping a row opens the item. The row's ⋮ is a separate touch area: it opens the options, never lights the row, shows its own press and stays pressed while open (`aria-expanded`). Row hover only on devices that can hover. Every list pages at 5 with 5, 10 or 20 per page and View all; the pager is centred in its card.
+- **Tabs** draw their own underline and switch with their content. **Search** animates its results; filtered-no-results is its own state with Clear.
+- **Toasts** bottom centre with a visible timer: 5 seconds, 8 with Undo. External sends count down 8 seconds with Undo. Anything already confirmed in a sheet gets no Undo. A toast never covers a sheet's buttons.
+- **Tour.** "Tour this page" offers this page or the full walkthrough; spotlight with a white flowing ring, dim and blur the rest, the card follows the page and never covers the target, arrows and Esc, completion kept per person and version.
+- **Previews.** Files and posts open in a real in-app preview with their own actions (download, print, comment, request changes, approve).
+- **Platforms and payments** use their real marks: social on a solid tile of the platform colour, Paystack and Flutterwave logos on white.
+
+### States and motion
+
+- Every page has a skeleton matching its final geometry, in both themes, with no invented figures. Every true empty state has a short reason, a drawn icon and one next action. Empty, filtered, loading, error and no permission are distinct.
+- Motion is transform and opacity, interruptible, off under reduced motion. Arrival: head, then blocks a beat apart; figures count up; bars grow from the baseline; steppers and timelines draw on. Sheets slide in on the spring (460ms, bottom sheets 420ms); exits 200ms. Line icons draw once with `pathLength="1"` where it means something.
+
+### Money
+
+- Invoices `INV-26-XXXXXX`, quotes `EST-2026-NNN` (called Quote), receipts `RCT-2026-NNN` (Flutterwave `RCT-2026-FNNNNNN`). Naira as `₦850,000`; short form only in tiles and charts.
+- Clients pay with Paystack or Flutterwave only. Initialising shows its steps, success plays confetti and rolls out the receipt, a decline says nothing was taken and offers the other provider or help, closing mid-payment keeps checking and emails the result, a paid invoice cannot be paid twice.
+- Staff never see amounts, only chips (Deposit paid, Awaiting deposit, Retainer, Not billed). Every figure is calculated from persisted truth and adds up.
+
+### Writing
+
+- Calm and specific: what happened, what happens next, where to find it. Sentence case, no exclamation marks, no emoji, no dashes in copy, no city names.
+- Buttons name the action and its object ("Send final reminder"), never "Submit" or "OK". A confirmation's title is the question, its body the consequence, its button the verb.
+- Staff and client copy says "Admin", never "the owner". Words: Quote, Hand over, Snooze, Approve, Request changes, Move to Trash, Saved (new) and Updated (live).
+- Dates `Tue 14 Oct`, `14 Oct 2026` on documents, 24-hour time, relative only under a day.
+
+### Pages per role
+
+- **Admin:** Today, Clients, Projects, Money, Messages, Blog, Settings, plus Support.
+- **Staff:** My Day, Projects (their departments, no amounts), Clients (assigned to them), Messages, Settings, plus Support.
+- **Client:** Home, Projects, Billing, Messages, Settings, plus Support.
+
+### How the prototypes are made
+
+- Source: `docs/dashboard-overhaul/kit/` holds the shared styles, shell, sheet, behaviour and a module per page, assembled by `build.py` into `.dc.html` boards. A correction goes into the kit once and lands on every page. The implementation follows the kit's patterns, not its prototype data.
+- Each finished page is verified (desktop, phone, dark tablet; overflow, target sizes; an end to end interaction run), published to the canvas artifact, and committed. Show the owner the artifact, not screenshots.
+- The design work is done by the main session alone. No agents for design. If agents are ever approved for implementation: at most 2 Sonnet agents, model set explicitly.
+
 ## Commit attribution
 
 - Never add AI attribution to a commit or a pull request. No `Co-Authored-By` or
