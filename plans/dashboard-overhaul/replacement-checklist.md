@@ -80,9 +80,11 @@ Every step ends with: `tsc`, eslint, the targeted Playwright specs, overflow and
 - A schema change anywhere in this list ships as a migration, applied from Settings, System by the owner.
 - Verify the deployed commit and the canonical domain, not the source.
 
-## Not designed yet (own tasks when approved)
+## Designed since the first checklist
 
-1. Form builder, email template editor, automation step editor.
-2. Case studies tab in the Blog.
-3. Welcome screens for the three roles.
-4. A full-page notifications inbox in the client portal.
+Form builder (`A-FormBuilder`), email template editor and automation step editor (in `A-Email`), case studies (`A-Cases`), welcome screens (`A-Welcome`, `S-Welcome`, `C-Welcome`) and the staff and client notification inboxes (`S-Notifications`, `C-Notifications`) are in the prototypes. The bank account flow in `A-Settings` now suggests the bank from the account number, then verifies the name.
+
+## Still open
+
+1. The form builder edits the Contact form only; the other forms use the same page with their own questions.
+2. Messaging upgrade (presence, typing, reactions, mentions, info panel, profiles): in progress.

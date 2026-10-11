@@ -1,1 +1,1 @@
-{"file": "A-Settings.dc.html", "title": "Settings, Owner", "role": 0, "html": "settings.html", "js": ["kb-data.js", "admin.js", "ra-common.js", "settings-common.js", "a-settings.js", "a-settings-banks.js", "a-settings-more.js"]}
+{"file": "A-Settings.dc.html", "title": "Settings, Owner", "role": 0, "html": "settings.html", "js": ["kb-data.js", "admin.js", "ra-common.js", "settings-common.js", "a-settings.js", "ng-banks.js", "a-settings-banks.js", "a-settings-more.js"]}

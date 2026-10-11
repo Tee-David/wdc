@@ -1,1 +1,1 @@
-{"file": "S-Messages.dc.html", "title": "Messages, Staff", "role": 1, "html": "messages.html", "js": ["ra-common.js", "rs-common.js", "messages-common.js", "s-messages.js"]}
+{"file": "S-Messages.dc.html", "title": "Messages, Staff", "role": 1, "html": "messages.html", "js": ["ra-common.js", "rs-common.js", "messages-common.js", "messages-extra.js", "s-messages.js"], "css": ["messages.css"], "overlay": "messages-overlay.html"}

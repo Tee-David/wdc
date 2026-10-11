@@ -39,7 +39,7 @@
     var list = vis.map(function (k) {
       var l = full[k], on = listSel && isOn(k), act = l.act || null;
       return { t: l.t, s: l.s || '', tag: l.tag || '', tone: l.tone || 'var(--ad-tone-neutral)', hasTag: !!l.tag, radio: listSel && !multi, square: listSel && multi, cls: on ? 'on' : '', role: listSel ? (multi ? 'checkbox' : 'radio') : 'listitem', checked: on ? 'true' : 'false', tab: listSel || l.open ? '0' : '-1', cursor: listSel || l.open ? 'pointer' : 'default',
-        hasLogo: !!l.logo, ld: l.logo ? l.logo.d : '', lc: l.logo ? l.logo.c : '', hasAv: !!l.ini, av: l.av || 'var(--ad-tone-brand)', ini: l.ini || '',
+        hasLogo: !!l.logo, ld: l.logo ? l.logo.d : '', lc: l.logo ? l.logo.c : '', hasAv: !!l.ini, av: l.av || 'var(--ad-tone-brand)', ini: l.ini || '', hasImg: !!l.img, img: l.img || '', imgCls: l.img ? ' hasImg' : '',
         hasAct: !!act, actLabel: act ? act.label : '', actCls: act && act.primary ? 'btn' : 'btn2',
         act: function (e) { if (e && e.stopPropagation) e.stopPropagation(); if (act) act.fn(); },
         pick: function () { if (listSel) toggle(k); else if (l.open) self.open(l.open, true); } };
@@ -132,6 +132,8 @@
         if (ui && ui.key === fd.key && ui.kind === 'time') out.push(self.timePanel(fd.key, F[fd.key] || '', function (v) { setF(fd.key, v); self.setState({ ui: null }); }));
         return;
       }
+      if (t === 'preview' && self.previewField) { out.push(self.previewField(fd, F)); return; }
+      if (t === 'bank' && self.bankField) { out.push(self.bankField(fd, F, setF)); return; }
       if (t === 'editor') { out.push(self.editorField(fd, F, setF)); return; }
       if (t === 'file') {
         var cur = F[fd.key] || null;
@@ -145,7 +147,7 @@
       var err = fd.check ? fd.check(F[fd.key] || '', F) : '';
       out.push({ isPlain: true, isTrig: false, key: fd.key, id: 'f-' + fd.key, label: fd.label, ph: fd.ph || '', value: F[fd.key] != null ? F[fd.key] : '', mode: fd.mode || 'text', type: fd.type || 'text', hint: err || fd.hint || '', hasHint: !!(err || fd.hint), hintCls: err ? 'hint err' : 'hint', cls: fd.wide ? 'wideF' : '', isArea: t === 'area', isInput: t !== 'area', on: function (e) { setF(fd.key, e.target.value); } });
     });
-    return out.map(function (o) { return Object.assign({ isTrig: false, isPlain: false, isPanelDate: false, isPanelTime: false, isMedia: false, isFile: false, isEditor: false, hasHint: !!o.hint, hintCls: 'hint', cls: '' }, o); });
+    return out.map(function (o) { return Object.assign({ isTrig: false, isPlain: false, isPanelDate: false, isPanelTime: false, isMedia: false, isFile: false, isEditor: false, isBank: false, isPreview: false, isNone: false, isBad: false, isLoad: false, isOk: false, hasHint: !!o.hint, hintCls: 'hint', cls: '' }, o); });
   }
   /* The calendar, as the site draws it: days, then months, then years, with Today and Clear. */
   calPanel(key, value, min, clearable, pick, max) {
@@ -236,6 +238,7 @@
       if (!t) { flush(); return; }
       if ((m = /^(#{1,3})\s+(.+)$/.exec(t))) { flush(); blocks.push(m[1].length === 3 ? { isH3: true, runs: self.mdRuns(m[2]) } : { isH2: true, runs: self.mdRuns(m[2]) }); return; }
       if ((m = /^>\s?(.*)$/.exec(t))) { flush(); blocks.push({ isQuote: true, runs: self.mdRuns(m[1]) }); return; }
+      if ((m = /^@\[video\]\((\S+)\)$/.exec(t))) { flush(); blocks.push({ isVideo: true, src: m[1] }); return; }
       if ((m = /^!\[([^\]]*)\]\((\S+)\)$/.exec(t))) { flush(); blocks.push({ isImg: true, alt: m[1], src: m[2] }); return; }
       if ((m = /^[-*]\s+(.+)$/.exec(t))) { if (!list || !list.isUl) { flush(); list = { isUl: true, items: [] }; } list.items.push({ runs: self.mdRuns(m[1]) }); return; }
       if ((m = /^\d+\.\s+(.+)$/.exec(t))) { if (!list || !list.isOl) { flush(); list = { isOl: true, items: [] }; } list.items.push({ runs: self.mdRuns(m[1]) }); return; }
@@ -243,7 +246,7 @@
       para.push(t);
     });
     flush();
-    return blocks.map(function (b) { return Object.assign({ isH2: false, isH3: false, isP: false, isQuote: false, isUl: false, isOl: false, isImg: false, runs: [], items: [], src: '', alt: '' }, b); });
+    return blocks.map(function (b) { return Object.assign({ isH2: false, isH3: false, isP: false, isQuote: false, isUl: false, isOl: false, isImg: false, isVideo: false, runs: [], items: [], src: '', alt: '' }, b); });
   }
   edApply(key, kind) {
     var ta = document.getElementById('f-' + key); if (!ta) return;
@@ -258,12 +261,13 @@
     else if (kind === 'ol') { var n = 0; lines(function (l) { n++; return n + '. ' + l.replace(/^\d+\.\s+/, ''); }); }
     else if (kind === 'quote') lines(function (l) { return '> ' + l.replace(/^>\s?/, ''); });
     else if (kind === 'link') { wrap('[', '](https://)', 'link text'); ne = ns + (sel || 'link text').length; }
+    else if (kind === 'video') { var vp = (a > 0 && !/\n$/.test(v.slice(0, a)) ? '\n\n' : ''); out = v.slice(0, a) + vp + '@[video](https://www.youtube.com/watch?v=)\n\n' + v.slice(b); ns = a + vp.length + 9; ne = ns + 34; }
     var f = Object.assign({}, this.state.form); f[key] = out; this.setState({ form: f });
     setTimeout(function () { var t2 = document.getElementById('f-' + key); if (t2) { t2.focus(); try { t2.setSelectionRange(ns, ne); } catch (e) { /* fine */ } } }, 30);
   }
   editorField(fd, F, setF) {
     var self = this, val = F[fd.key] || '', mode = this.state.edMode || 'write', words = (val.trim().match(/\S+/g) || []).length, I = this.icons();
-    var T = [['Heading', 'h2', 'M6 4v16M18 4v16M6 12h12'], ['Subheading', 'h3', 'M4 6v12M14 6v12M4 12h10M18 10c2 0 3 1 3 2.5S19.5 15 18 15M18 15c2 0 3 1 3 2.5S19.5 20 18 20'], ['Bold', 'bold', 'M6 4h8a4 4 0 0 1 0 8H6zM6 12h9a4 4 0 0 1 0 8H6z'], ['Italic', 'italic', 'M19 4h-9M14 20H5M15 4 9 20'], ['Bulleted list', 'ul', 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01'], ['Numbered list', 'ol', 'M10 6h11M10 12h11M10 18h11M4 6h1v4M4 10h2M6 18H4c0-1 2-2 2-3s-1-1.5-2-1'], ['Quote', 'quote', 'M3 21c3 0 7-1 7-8V5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h4M15 21c3 0 7-1 7-8V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h4'], ['Link', 'link', 'M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71']];
+    var T = [['Heading', 'h2', 'M6 4v16M18 4v16M6 12h12'], ['Subheading', 'h3', 'M4 6v12M14 6v12M4 12h10M18 10c2 0 3 1 3 2.5S19.5 15 18 15M18 15c2 0 3 1 3 2.5S19.5 20 18 20'], ['Bold', 'bold', 'M6 4h8a4 4 0 0 1 0 8H6zM6 12h9a4 4 0 0 1 0 8H6z'], ['Italic', 'italic', 'M19 4h-9M14 20H5M15 4 9 20'], ['Bulleted list', 'ul', 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01'], ['Numbered list', 'ol', 'M10 6h11M10 12h11M10 18h11M4 6h1v4M4 10h2M6 18H4c0-1 2-2 2-3s-1-1.5-2-1'], ['Video', 'video', 'M4 8h16v12H4zM4 8l3-4h4l-3 4M11 8l3-4h4l-3 4'], ['Quote', 'quote', 'M3 21c3 0 7-1 7-8V5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h4M15 21c3 0 7-1 7-8V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h4'], ['Link', 'link', 'M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71']];
     var cover = (F[fd.coverKey || 'cover'] || [])[0];
     return { isEditor: true, isTrig: false, isPlain: false, key: fd.key, id: 'f-' + fd.key, label: fd.label, cls: 'wideF', ph: fd.ph || '', value: val, hint: fd.hint || '', hasHint: !!fd.hint, stats: words + (words === 1 ? ' word' : ' words') + ' · ' + Math.max(1, Math.round(words / 200)) + ' min read',
       isWrite: mode === 'write', isPrev: mode === 'preview', modeI: mode === 'write' ? 0 : 1, wCls: mode === 'write' ? 'on' : '', pCls: mode === 'preview' ? 'on' : '', wPress: mode === 'write' ? 'true' : 'false', pPress: mode === 'preview' ? 'true' : 'false',

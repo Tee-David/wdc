@@ -971,6 +971,52 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 /* Avatar stacks: 34px tiles get a 44px hit area */
 .avStack>button{position:relative}
 .avStack>button::after{content:"";position:absolute;inset:-5px}
+/* Bank picker row, suggested banks and lookup status (add a bank account) */
+.bankRow{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:6px 14px 6px 8px;border-radius:12px;border:1px solid var(--ad-line-2);background:var(--ad-panel);color:var(--ad-ink);text-align:left;font:inherit;cursor:pointer}
+.bankRow:hover{background:var(--ad-hover)}
+.bankRow:focus-visible{outline:2px solid var(--ad-focus);outline-offset:2px}
+.bankRow .bnkName{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bankRow .bnkName.ph{font-weight:400;color:var(--ad-dim)}
+.bnkLogo{display:inline-grid;place-items:center;flex:none;width:36px;height:36px;border-radius:50%;color:#fff;font:700 12px/1 'Space Grotesk',sans-serif;letter-spacing:.02em}
+.bnkLogo.sm{width:24px;height:24px;font-size:9px}
+.bnkSug{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.bnkSug .chip{display:inline-flex;align-items:center;gap:8px;padding-left:6px}
+.bnkStat{display:flex;align-items:center;gap:10px;margin-top:10px;padding:12px 14px;border-radius:12px;font-weight:600;font-size:14px;background:var(--ad-panel-2);color:var(--ad-ink);min-width:0}
+.bnkStat span{min-width:0;overflow-wrap:anywhere}
+.bnkStat.ok{background:var(--ad-tone-good);color:#fff}
+.bnkStat.bad,.bnkStat.none{background:var(--ad-panel-2);color:var(--ad-ink)}
+.bnkStat.bad{background:var(--ad-tone-bad);color:#fff}
+.bnkStat .ic{flex:none}
+.bnkSpin{flex:none;width:18px;height:18px;border-radius:50%;border:2px solid var(--ad-line-2);border-top-color:var(--ad-ink);animation:spin .8s linear infinite}
+@media (prefers-reduced-motion:reduce){.bnkSpin{animation:none;border-top-color:var(--ad-ink)}}
+/* Phones: the pinned first column leaves room to see the next one. Titles wrap to two lines. */
+@container app (max-width:640px){
+  .tbl th:first-child,.tbl td:first-child{min-width:124px;max-width:min(176px,46cqw)}
+  .tbl.hasCk th:first-child,.tbl.hasCk td:first-child{min-width:44px;width:44px;max-width:44px;padding-left:10px;padding-right:0}
+  .tbl.hasCk th:nth-child(2),.tbl.hasCk td:nth-child(2){left:44px;min-width:124px;max-width:min(176px,46cqw)}
+  .tbl td:first-child strong,.tbl.hasCk td:nth-child(2) strong{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:normal;overflow-wrap:anywhere;font-size:14px;line-height:1.25}
+  .tbl td:first-child strong+span,.tbl.hasCk td:nth-child(2) strong+span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tbl td,.tbl th{padding-left:12px;padding-right:12px}
+}
+/* Search result and link card previews (blog editor) */
+.serp{display:flex;flex-direction:column;gap:2px;padding:14px 16px;border-radius:14px;border:1px solid var(--ad-line);background:var(--ad-panel);min-width:0}
+.serpUrl{font-size:12px;color:var(--ad-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.serpTitle{font:600 18px/1.3 'Space Grotesk',sans-serif;color:var(--ad-ink);overflow-wrap:anywhere}
+.serpDesc{font-size:13px;color:var(--ad-dim);overflow-wrap:anywhere}
+.lcard{display:flex;flex-direction:column;margin-top:10px;border-radius:14px;border:1px solid var(--ad-line);background:var(--ad-panel);overflow:hidden;min-width:0}
+.lcImg{display:block;width:100%;aspect-ratio:1200/630;object-fit:cover;background:var(--ad-panel-2)}
+.lcImg.ph{display:grid;place-items:center;color:var(--ad-dim);font-size:13px}
+.lcBody{display:flex;flex-direction:column;gap:2px;padding:12px 14px;min-width:0}
+.lcHost{font-size:11px;letter-spacing:.06em;color:var(--ad-dim)}
+.lcBody strong{font-size:15px;overflow-wrap:anywhere}
+.lcBody span:last-child{font-size:13px;color:var(--ad-dim);overflow-wrap:anywhere}
+.vidFig{margin:0;display:flex;flex-direction:column;gap:6px}
+.vidBox{display:grid;place-items:center;aspect-ratio:16/9;border-radius:12px;background:var(--ad-tone-neutral);color:#fff}
+.lcard{max-width:440px}
+/* Bank logos: the site's favicon over a white disc. If it does not load, the initials show. */
+.imgHost{position:relative;overflow:hidden}
+.imgHost.hasImg{background:#fff !important;color:var(--ad-ink);box-shadow:inset 0 0 0 1px var(--ad-line-2)}
+.logoImg{position:absolute;inset:15%;width:70%;height:70%;object-fit:contain}
 
 </style>
 </helmet>
@@ -1478,7 +1524,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
                 <div class="item {{li.cls}}" role="{{li.role}}" aria-checked="{{li.checked}}" tabindex="{{li.tab}}" onClick="{{li.pick}}" style="cursor: {{li.cursor}}">
                   <sc-if value="{{li.radio}}" hint-placeholder-val="{{ false }}"><span class="radio"></span></sc-if><sc-if value="{{li.square}}" hint-placeholder-val="{{ false }}"><span class="sqbox"><svg class="ic" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span></sc-if>
                   <sc-if value="{{li.hasLogo}}" hint-placeholder-val="{{ false }}"><span class="platform" style="background: {{li.lc}}"><svg class="logo" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="{{li.ld}}"></path></svg></span></sc-if>
-                  <sc-if value="{{li.hasAv}}" hint-placeholder-val="{{ false }}"><span class="av0" style="width: 32px; height: 32px; font-size: 11px; background: {{li.av}}">{{li.ini}}</span></sc-if>
+                  <sc-if value="{{li.hasAv}}" hint-placeholder-val="{{ false }}"><span class="av0 imgHost{{li.imgCls}}" style="width: 32px; height: 32px; font-size: 11px; background: {{li.av}}">{{li.ini}}<sc-if value="{{li.hasImg}}" hint-placeholder-val="{{ false }}"><img class="logoImg" src="{{li.img}}" alt=""></sc-if></span></sc-if>
                   <span class="t"><strong>{{li.t}}</strong><span>{{li.s}}</span></span>
                   <sc-if value="{{li.hasTag}}" hint-placeholder-val="{{ true }}"><span class="tag" style="background: {{li.tone}}; color: #fff">{{li.tag}}</span></sc-if>
                   <sc-if value="{{li.hasAct}}" hint-placeholder-val="{{ false }}"><button class="{{li.actCls}}" style="min-height: 38px; padding: 0 12px" onClick="{{li.act}}">{{li.actLabel}}</button></sc-if>
@@ -1552,10 +1598,23 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
                         <sc-if value="{{bk.isQuote}}" hint-placeholder-val="{{ false }}"><blockquote><sc-for list="{{bk.runs}}" as="rn" hint-placeholder-count="2"><sc-if value="{{rn.plain}}" hint-placeholder-val="{{ true }}">{{rn.t}}</sc-if><sc-if value="{{rn.bold}}" hint-placeholder-val="{{ false }}"><strong>{{rn.t}}</strong></sc-if><sc-if value="{{rn.em}}" hint-placeholder-val="{{ false }}"><em>{{rn.t}}</em></sc-if><sc-if value="{{rn.link}}" hint-placeholder-val="{{ false }}"><a class="mdA" href="{{rn.href}}">{{rn.t}}</a></sc-if></sc-for></blockquote></sc-if>
                         <sc-if value="{{bk.isUl}}" hint-placeholder-val="{{ false }}"><ul><sc-for list="{{bk.items}}" as="li" hint-placeholder-count="2"><li><sc-for list="{{li.runs}}" as="rn" hint-placeholder-count="2"><sc-if value="{{rn.plain}}" hint-placeholder-val="{{ true }}">{{rn.t}}</sc-if><sc-if value="{{rn.bold}}" hint-placeholder-val="{{ false }}"><strong>{{rn.t}}</strong></sc-if><sc-if value="{{rn.em}}" hint-placeholder-val="{{ false }}"><em>{{rn.t}}</em></sc-if><sc-if value="{{rn.link}}" hint-placeholder-val="{{ false }}"><a class="mdA" href="{{rn.href}}">{{rn.t}}</a></sc-if></sc-for></li></sc-for></ul></sc-if>
                         <sc-if value="{{bk.isOl}}" hint-placeholder-val="{{ false }}"><ol><sc-for list="{{bk.items}}" as="li2" hint-placeholder-count="2"><li><sc-for list="{{li2.runs}}" as="rn" hint-placeholder-count="2"><sc-if value="{{rn.plain}}" hint-placeholder-val="{{ true }}">{{rn.t}}</sc-if><sc-if value="{{rn.bold}}" hint-placeholder-val="{{ false }}"><strong>{{rn.t}}</strong></sc-if><sc-if value="{{rn.em}}" hint-placeholder-val="{{ false }}"><em>{{rn.t}}</em></sc-if><sc-if value="{{rn.link}}" hint-placeholder-val="{{ false }}"><a class="mdA" href="{{rn.href}}">{{rn.t}}</a></sc-if></sc-for></li></sc-for></ol></sc-if>
-                        <sc-if value="{{bk.isImg}}" hint-placeholder-val="{{ false }}"><figure><img src="{{bk.src}}" alt="{{bk.alt}}"><figcaption>{{bk.alt}}</figcaption></figure></sc-if>
+                        <sc-if value="{{bk.isVideo}}" hint-placeholder-val="{{ false }}"><figure class="vidFig"><span class="vidBox"><svg class="ic" viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg></span><figcaption>{{bk.src}}</figcaption></figure></sc-if><sc-if value="{{bk.isImg}}" hint-placeholder-val="{{ false }}"><figure><img src="{{bk.src}}" alt="{{bk.alt}}"><figcaption>{{bk.alt}}</figcaption></figure></sc-if>
                       </sc-for></article></sc-if>
                   </div>
                   <sc-if value="{{fd.hasHint}}" hint-placeholder-val="{{ false }}"><span class="hint">{{fd.hint}}</span></sc-if>
+                </div>
+              </sc-if>
+              <sc-if value="{{fd.isPreview}}" hint-placeholder-val="{{ false }}">
+                <div class="field wideF"><span>{{fd.label}}</span>
+                  <div class="serp" role="group" aria-label="Search result preview"><span class="serpUrl">{{fd.serpUrl}}</span><span class="serpTitle">{{fd.serpTitle}}</span><span class="serpDesc">{{fd.serpDesc}}</span></div>
+                  <div class="lcard" role="group" aria-label="Link preview"><sc-if value="{{fd.hasImg}}" hint-placeholder-val="{{ false }}"><img class="lcImg" src="{{fd.img}}" alt=""></sc-if><sc-if value="{{fd.noImg}}" hint-placeholder-val="{{ true }}"><span class="lcImg ph">No picture yet</span></sc-if><span class="lcBody"><span class="lcHost">{{fd.cardHost}}</span><strong>{{fd.cardTitle}}</strong><span>{{fd.cardDesc}}</span></span></div>
+                </div>
+              </sc-if>
+              <sc-if value="{{fd.isBank}}" hint-placeholder-val="{{ false }}">
+                <div class="field wideF"><span>{{fd.label}}</span>
+                  <button type="button" class="bankRow" onClick="{{fd.onOpen}}" aria-haspopup="dialog"><sc-if value="{{fd.hasLogo}}" hint-placeholder-val="{{ false }}"><span class="bnkLogo imgHost{{fd.imgCls}}" style="background: {{fd.tone}}">{{fd.ini}}<sc-if value="{{fd.hasImg}}" hint-placeholder-val="{{ false }}"><img class="logoImg" src="{{fd.img}}" alt=""></sc-if></span></sc-if><sc-if value="{{fd.noLogo}}" hint-placeholder-val="{{ true }}"><span class="bnkLogo" style="background: var(--ad-tone-neutral)"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M3 21h18M5 21V10M19 21V10M9 21V10M15 21V10M2 10l10-6 10 6"></path></svg></span></sc-if><span class="bnkName {{fd.nameCls}}">{{fd.name}}</span><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg></button>
+                  <sc-if value="{{fd.hasSuggest}}" hint-placeholder-val="{{ false }}"><div class="bnkSug" role="group" aria-label="Banks that fit this number"><sc-for list="{{fd.suggest}}" as="sg" hint-placeholder-count="2"><button type="button" class="chip {{sg.cls}}" aria-pressed="{{sg.pressed}}" onClick="{{sg.pick}}"><span class="bnkLogo sm imgHost{{sg.imgCls}}" style="background: {{sg.tone}}">{{sg.ini}}<sc-if value="{{sg.hasImg}}" hint-placeholder-val="{{ false }}"><img class="logoImg" src="{{sg.img}}" alt=""></sc-if></span>{{sg.t}}</button></sc-for></div></sc-if>
+                  <sc-if value="{{fd.hasStatus}}" hint-placeholder-val="{{ false }}"><div class="{{fd.statCls}}" role="status" aria-live="polite"><sc-if value="{{fd.isLoad}}" hint-placeholder-val="{{ false }}"><span class="bnkSpin" aria-hidden="true"></span></sc-if><sc-if value="{{fd.isOk}}" hint-placeholder-val="{{ false }}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></sc-if><sc-if value="{{fd.isNone}}" hint-placeholder-val="{{ false }}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"></path></svg></sc-if><sc-if value="{{fd.isBad}}" hint-placeholder-val="{{ false }}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path></svg></sc-if><span>{{fd.statText}}</span></div></sc-if>
                 </div>
               </sc-if>
               <sc-if value="{{fd.isFile}}" hint-placeholder-val="{{ false }}">
@@ -1840,7 +1899,7 @@ class Component extends DCLogic {
       ack: cf.needAck ? (cf.ackText || 'This cannot be undone.') : '', reason: cf.input ? { label: cf.inputLabel || 'Reason', ph: cf.inputPh || '', required: true } : null,
       primary: cf.ok || 'Confirm', back: !!cf.back, danger: !!cf.danger, green: !!cf.green, secondary: cf.cancel || 'Cancel', note: cf.note || '',
       onPrimary: function (ctx) { if (cf.onOk) cf.onOk(ctx.reason); if (cf.okToast) self.say(cf.okToast); },
-      onSecondary: function () { if (self.state.stack.length) self.sheetBack(); else self.closeSheet(); return 'stay'; }
+      onSecondary: function () { if (cf.onCancel) { cf.onCancel(); return 'stay'; } if (self.state.stack.length) self.sheetBack(); else self.closeSheet(); return 'stay'; }
     }), push !== false && !!this.state.sheet);
   }
   sheetCtx() {
@@ -2199,7 +2258,7 @@ class Component extends DCLogic {
       notes: shown, notesEmpty: !shown.length, unread: unread, hasUnread: unread > 0, bellLabel: 'Notifications, ' + unread + ' unread', bellI: s.bellTab === 'unread' ? 1 : 0,
       bAll: s.bellTab === 'all' ? 'on' : '', bUn: s.bellTab === 'unread' ? 'on' : '', bAllP: s.bellTab === 'all' ? 'true' : 'false', bUnP: s.bellTab === 'unread' ? 'true' : 'false',
       tabAll: function () { self.setState({ bellTab: 'all' }); }, tabUnread: function () { self.setState({ bellTab: 'unread' }); },
-      allNotesHref: 'A-Notifications.dc.html', hasAllNotes: this.role() === 'admin',
+      allNotesHref: { admin: 'A-Notifications.dc.html', staff: 'S-Notifications.dc.html', client: 'C-Notifications.dc.html' }[this.role()] || '#', hasAllNotes: true,
       markAll: function () { var r = {}; notesRaw.forEach(function (n) { r[n.id] = true; }); var prev = self.state.read; self.setState({ read: r }); self.say('All marked as read', { undo: function () { self.setState({ read: prev }); } }); },
       pushText: s.push ? 'Push notifications are on for this device.' : this.installCopy()[0] + '.', pushBtn: s.push ? 'Turn off' : 'Install app',
       togglePush: function () { var on = !self.state.push; self.setState({ push: on }); self.say(on ? 'WDC installed. Push notifications are on.' : 'Push notifications are off. Email still reaches you.'); },
@@ -2446,7 +2505,7 @@ class Component extends DCLogic {
     var list = vis.map(function (k) {
       var l = full[k], on = listSel && isOn(k), act = l.act || null;
       return { t: l.t, s: l.s || '', tag: l.tag || '', tone: l.tone || 'var(--ad-tone-neutral)', hasTag: !!l.tag, radio: listSel && !multi, square: listSel && multi, cls: on ? 'on' : '', role: listSel ? (multi ? 'checkbox' : 'radio') : 'listitem', checked: on ? 'true' : 'false', tab: listSel || l.open ? '0' : '-1', cursor: listSel || l.open ? 'pointer' : 'default',
-        hasLogo: !!l.logo, ld: l.logo ? l.logo.d : '', lc: l.logo ? l.logo.c : '', hasAv: !!l.ini, av: l.av || 'var(--ad-tone-brand)', ini: l.ini || '',
+        hasLogo: !!l.logo, ld: l.logo ? l.logo.d : '', lc: l.logo ? l.logo.c : '', hasAv: !!l.ini, av: l.av || 'var(--ad-tone-brand)', ini: l.ini || '', hasImg: !!l.img, img: l.img || '', imgCls: l.img ? ' hasImg' : '',
         hasAct: !!act, actLabel: act ? act.label : '', actCls: act && act.primary ? 'btn' : 'btn2',
         act: function (e) { if (e && e.stopPropagation) e.stopPropagation(); if (act) act.fn(); },
         pick: function () { if (listSel) toggle(k); else if (l.open) self.open(l.open, true); } };
@@ -2539,6 +2598,8 @@ class Component extends DCLogic {
         if (ui && ui.key === fd.key && ui.kind === 'time') out.push(self.timePanel(fd.key, F[fd.key] || '', function (v) { setF(fd.key, v); self.setState({ ui: null }); }));
         return;
       }
+      if (t === 'preview' && self.previewField) { out.push(self.previewField(fd, F)); return; }
+      if (t === 'bank' && self.bankField) { out.push(self.bankField(fd, F, setF)); return; }
       if (t === 'editor') { out.push(self.editorField(fd, F, setF)); return; }
       if (t === 'file') {
         var cur = F[fd.key] || null;
@@ -2552,7 +2613,7 @@ class Component extends DCLogic {
       var err = fd.check ? fd.check(F[fd.key] || '', F) : '';
       out.push({ isPlain: true, isTrig: false, key: fd.key, id: 'f-' + fd.key, label: fd.label, ph: fd.ph || '', value: F[fd.key] != null ? F[fd.key] : '', mode: fd.mode || 'text', type: fd.type || 'text', hint: err || fd.hint || '', hasHint: !!(err || fd.hint), hintCls: err ? 'hint err' : 'hint', cls: fd.wide ? 'wideF' : '', isArea: t === 'area', isInput: t !== 'area', on: function (e) { setF(fd.key, e.target.value); } });
     });
-    return out.map(function (o) { return Object.assign({ isTrig: false, isPlain: false, isPanelDate: false, isPanelTime: false, isMedia: false, isFile: false, isEditor: false, hasHint: !!o.hint, hintCls: 'hint', cls: '' }, o); });
+    return out.map(function (o) { return Object.assign({ isTrig: false, isPlain: false, isPanelDate: false, isPanelTime: false, isMedia: false, isFile: false, isEditor: false, isBank: false, isPreview: false, isNone: false, isBad: false, isLoad: false, isOk: false, hasHint: !!o.hint, hintCls: 'hint', cls: '' }, o); });
   }
   /* The calendar, as the site draws it: days, then months, then years, with Today and Clear. */
   calPanel(key, value, min, clearable, pick, max) {
@@ -2643,6 +2704,7 @@ class Component extends DCLogic {
       if (!t) { flush(); return; }
       if ((m = /^(#{1,3})\s+(.+)$/.exec(t))) { flush(); blocks.push(m[1].length === 3 ? { isH3: true, runs: self.mdRuns(m[2]) } : { isH2: true, runs: self.mdRuns(m[2]) }); return; }
       if ((m = /^>\s?(.*)$/.exec(t))) { flush(); blocks.push({ isQuote: true, runs: self.mdRuns(m[1]) }); return; }
+      if ((m = /^@\[video\]\((\S+)\)$/.exec(t))) { flush(); blocks.push({ isVideo: true, src: m[1] }); return; }
       if ((m = /^!\[([^\]]*)\]\((\S+)\)$/.exec(t))) { flush(); blocks.push({ isImg: true, alt: m[1], src: m[2] }); return; }
       if ((m = /^[-*]\s+(.+)$/.exec(t))) { if (!list || !list.isUl) { flush(); list = { isUl: true, items: [] }; } list.items.push({ runs: self.mdRuns(m[1]) }); return; }
       if ((m = /^\d+\.\s+(.+)$/.exec(t))) { if (!list || !list.isOl) { flush(); list = { isOl: true, items: [] }; } list.items.push({ runs: self.mdRuns(m[1]) }); return; }
@@ -2650,7 +2712,7 @@ class Component extends DCLogic {
       para.push(t);
     });
     flush();
-    return blocks.map(function (b) { return Object.assign({ isH2: false, isH3: false, isP: false, isQuote: false, isUl: false, isOl: false, isImg: false, runs: [], items: [], src: '', alt: '' }, b); });
+    return blocks.map(function (b) { return Object.assign({ isH2: false, isH3: false, isP: false, isQuote: false, isUl: false, isOl: false, isImg: false, isVideo: false, runs: [], items: [], src: '', alt: '' }, b); });
   }
   edApply(key, kind) {
     var ta = document.getElementById('f-' + key); if (!ta) return;
@@ -2665,12 +2727,13 @@ class Component extends DCLogic {
     else if (kind === 'ol') { var n = 0; lines(function (l) { n++; return n + '. ' + l.replace(/^\d+\.\s+/, ''); }); }
     else if (kind === 'quote') lines(function (l) { return '> ' + l.replace(/^>\s?/, ''); });
     else if (kind === 'link') { wrap('[', '](https://)', 'link text'); ne = ns + (sel || 'link text').length; }
+    else if (kind === 'video') { var vp = (a > 0 && !/\n$/.test(v.slice(0, a)) ? '\n\n' : ''); out = v.slice(0, a) + vp + '@[video](https://www.youtube.com/watch?v=)\n\n' + v.slice(b); ns = a + vp.length + 9; ne = ns + 34; }
     var f = Object.assign({}, this.state.form); f[key] = out; this.setState({ form: f });
     setTimeout(function () { var t2 = document.getElementById('f-' + key); if (t2) { t2.focus(); try { t2.setSelectionRange(ns, ne); } catch (e) { /* fine */ } } }, 30);
   }
   editorField(fd, F, setF) {
     var self = this, val = F[fd.key] || '', mode = this.state.edMode || 'write', words = (val.trim().match(/\S+/g) || []).length, I = this.icons();
-    var T = [['Heading', 'h2', 'M6 4v16M18 4v16M6 12h12'], ['Subheading', 'h3', 'M4 6v12M14 6v12M4 12h10M18 10c2 0 3 1 3 2.5S19.5 15 18 15M18 15c2 0 3 1 3 2.5S19.5 20 18 20'], ['Bold', 'bold', 'M6 4h8a4 4 0 0 1 0 8H6zM6 12h9a4 4 0 0 1 0 8H6z'], ['Italic', 'italic', 'M19 4h-9M14 20H5M15 4 9 20'], ['Bulleted list', 'ul', 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01'], ['Numbered list', 'ol', 'M10 6h11M10 12h11M10 18h11M4 6h1v4M4 10h2M6 18H4c0-1 2-2 2-3s-1-1.5-2-1'], ['Quote', 'quote', 'M3 21c3 0 7-1 7-8V5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h4M15 21c3 0 7-1 7-8V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h4'], ['Link', 'link', 'M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71']];
+    var T = [['Heading', 'h2', 'M6 4v16M18 4v16M6 12h12'], ['Subheading', 'h3', 'M4 6v12M14 6v12M4 12h10M18 10c2 0 3 1 3 2.5S19.5 15 18 15M18 15c2 0 3 1 3 2.5S19.5 20 18 20'], ['Bold', 'bold', 'M6 4h8a4 4 0 0 1 0 8H6zM6 12h9a4 4 0 0 1 0 8H6z'], ['Italic', 'italic', 'M19 4h-9M14 20H5M15 4 9 20'], ['Bulleted list', 'ul', 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01'], ['Numbered list', 'ol', 'M10 6h11M10 12h11M10 18h11M4 6h1v4M4 10h2M6 18H4c0-1 2-2 2-3s-1-1.5-2-1'], ['Video', 'video', 'M4 8h16v12H4zM4 8l3-4h4l-3 4M11 8l3-4h4l-3 4'], ['Quote', 'quote', 'M3 21c3 0 7-1 7-8V5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h4M15 21c3 0 7-1 7-8V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h4'], ['Link', 'link', 'M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71']];
     var cover = (F[fd.coverKey || 'cover'] || [])[0];
     return { isEditor: true, isTrig: false, isPlain: false, key: fd.key, id: 'f-' + fd.key, label: fd.label, cls: 'wideF', ph: fd.ph || '', value: val, hint: fd.hint || '', hasHint: !!fd.hint, stats: words + (words === 1 ? ' word' : ' words') + ' · ' + Math.max(1, Math.round(words / 200)) + ' min read',
       isWrite: mode === 'write', isPrev: mode === 'preview', modeI: mode === 'write' ? 0 : 1, wCls: mode === 'write' ? 'on' : '', pCls: mode === 'preview' ? 'on' : '', wPress: mode === 'write' ? 'true' : 'false', pPress: mode === 'preview' ? 'true' : 'false',
@@ -3759,17 +3822,69 @@ class Component extends DCLogic {
     };
   }
 
+  /* Paystack bank list for Nigeria (public endpoint, fetched 11 Oct 2026): name, code, website for the logo. In the product the list is fetched on the server and cached. */
+  ngBankData() { return [["5TT MFB","51455",""],["78 Finance Company Ltd","40195",""],["9jaPay Microfinance Bank","090629",""],["9mobile 9Payment Service Bank","120001","9psb.com.ng"],["Abbey Mortgage Bank","404",""],["Above Only MFB","51204",""],["Abulesoro MFB","51312",""],["Access Bank","044","accessbankplc.com"],["Access Bank (Diamond)","063","accessbankplc.com"],["Accion Microfinance Bank","602",""],["Adamawa Mortgage Bank Limited","90102",""],["Advancly MFB","090759",""],["Aella MFB","50315",""],["AG Mortgage Bank","90077",""],["Ahmadu Bello University Microfinance Bank","50036",""],["Airtel Smartcash PSB","120004",""],["AKU Microfinance Bank","51336",""],["Akuchukwu Microfinance Bank Limited","090561",""],["Al-Barakah Microfinance Bank","50055",""],["ALAT by WEMA","035A","wemabank.com"],["Alert MFB","51074",""],["ALLWORKERS MFB","50059",""],["Alpha Morgan Bank","108",""],["Alternative bank","000304",""],["Amju Unique MFB","50926",""],["Aramoko MFB","50083",""],["ASO Savings and Loans","401",""],["ASSET MATRIX MFB","90287",""],["Assets Microfinance Bank","50092",""],["Astrapolaris MFB LTD","MFB50094","polarisbank.com"],["ATBU MFB","90451",""],["AVUENEGBE MICROFINANCE BANK","090478",""],["AWACASH MICROFINANCE BANK","51351",""],["AZTEC MICROFINANCE BANK LIMITED","51337",""],["Bainescredit MFB","51229",""],["Banc Corp Microfinance Bank","50117",""],["BANK OF AGRICULTURE","90367",""],["Bank78 Microfinance Bank","11072",""],["BANKIT MFB","50572",""],["BANKIT MICROFINANCE BANK LTD","50572",""],["BANKLY MFB","51341",""],["Baobab Microfinance Bank","MFB50992",""],["BC Kash Microfinance Bank","51212",""],["BellBank Microfinance Bank","51100",""],["Benysta Microfinance Bank Limited","51267",""],["Berachah Microfinance Bank Ltd.","50122",""],["Beststar Microfinance Bank","50123",""],["BLOC MFB","51411",""],["BOLD MFB","50725",""],["Boost Microfinance Bank","51449",""],["Bosak Microfinance Bank","650",""],["Bowen Microfinance Bank","50931",""],["Branch International Finance Company Limited","FC40163",""],["Brent Mortgage bank","90070",""],["BuyPower MFB","50645",""],["BWAY MFB","90774",""],["Carbon","565","getcarbon.co"],["Cashbridge Microfinance Bank Limited","51353",""],["CASHCONNECT MFB","865",""],["Cedrus MFB","51437",""],["CEMCS Microfinance Bank","50823",""],["Centrum Finance","050032",""],["CHAMS MOBILE MFB","100036",""],["Chanelle Microfinance Bank Limited","50171",""],["Chikum Microfinance bank","312",""],["Citibank Nigeria","023","citibank.com"],["CITYCODE MORTAGE BANK","070027",""],["Civic Microfinance Bank Limited","50186",""],["Consumer Microfinance Bank","50910",""],["Cool Microfinance Bank Limited","51458",""],["Cooperative Mortgage Bank","90089",""],["Corestep MFB","50204",""],["Coronation Merchant Bank","559",""],["County Finance Limited","FC40128",""],["Credit Direct Limited","40119",""],["Crescent MFB","51297",""],["Crust Microfinance Bank","090560",""],["CRUTECH MICROFINANCE BANK LTD","50216",""],["Dash Microfinance Bank","51368",""],["Davenport MICROFINANCE BANK","51334",""],["Dillon Microfinance Bank","51450",""],["Dot Microfinance Bank","50162",""],["EBSU Microfinance Bank","50922",""],["Ecobank Nigeria","050","ecobank.com"],["Ekimogun MFB","50263",""],["Ekondo Microfinance Bank","098",""],["ESO-E MICROFINANCE BANK LIMITED","50280",""],["Ethica MFB","51475",""],["EXCEL FINANCE BANK","090678",""],["Eyowo","50126",""],["Fairmoney Microfinance Bank","51318",""],["FCMB MFB","51241",""],["Fedeth MFB","50298",""],["Fewchore Finance Company Limited","050002",""],["FFS Microfinance Bank","51110",""],["Fidelity Bank","070","fidelitybank.com"],["Firmus MFB","51314",""],["First Bank of Nigeria","011","firstbankgroup.com"],["First City Monument Bank","214","fcmb.com"],["First Option MFB","50934",""],["FIRST ROYAL MICROFINANCE BANK","090164",""],["FIRSTMIDAS MFB","51333",""],["FirstTrust Mortgage Bank Nigeria","413",""],["Flutterwave MFB","090567",""],["Fortress MFB","D53",""],["FSDH Merchant Bank Limited","501",""],["FUTMINNA MICROFINANCE BANK","832",""],["Garun Mallam MFB","MFB51093",""],["Gateway Mortgage Bank LTD","812",""],["Globus Bank","00103","globusbank.com"],["GLORY MFB","90278",""],["Goldman MFB","090574",""],["GOMBE MFB","90586",""],["GoMoney","100022",""],["GOOD SHEPHERD MICROFINANCE BANK","090664",""],["Goodnews Microfinance Bank","50739",""],["GRANTS MFB","90335",""],["Greenwich Merchant Bank","562",""],["GROOMING MICROFINANCE BANK","51276",""],["GTI MFB","50368",""],["Guaranty Trust Bank","058","gtbank.com"],["Hackman Microfinance Bank","51251",""],["Haggai Mortgage Bank","90065",""],["Hasal Microfinance Bank","50383",""],["Hayat Trust MFB","51364",""],["HopePSB","120002",""],["IBANK Microfinance Bank","51211",""],["IBBU MFB","51279",""],["Ibile Microfinance Bank","51244",""],["Ibom Mortgage Bank","90012",""],["Ikoyi Osun MFB","50439",""],["Ilaro Poly Microfinance Bank","50442",""],["Imowo MFB","50453",""],["IMPERIAL HOMES MORTAGE BANK","415",""],["INEBA GOGO MFB","51462",""],["Infinity MFB","50457",""],["Infinity trust  Mortgage Bank","070016",""],["ISUA MFB","090701",""],["Jaiz Bank","301","jaizbankplc.com"],["Jubilee Life Mortgage Bank","402",""],["Kadpoly MFB","50502",""],["KANOPOLY MFB","51308",""],["KAYI MFB","90667",""],["Kayvee Microfinance Bank","5129",""],["Kebbi Homes Savings and Loans Limited","90028",""],["Keystone Bank","082","keystonebankng.com"],["Kolomoni MFB","899",""],["Kolomoni Microfinance Bank","100025",""],["KONGAPAY (Kongapay Technologies Limited)(formerly Zinternet)","100025",""],["Kredi Money MFB LTD","50200",""],["Kuda Bank","50211","kuda.com"],["Lagos Building Investment Company Plc.","90052",""],["Lemmy MFB","091003",""],["Letshego Microfinance Bank","090420",""],["Links MFB","50549",""],["Living Trust Mortgage Bank","031",""],["LOMA MFB","50491",""],["Lotus Bank","303","lotusbank.com"],["Maal MFB","51444",""],["MAHFUZ MFB","90825",""],["MAINSTREET MICROFINANCE BANK","090171",""],["Mayden Microfinance Bank","51474",""],["Mayfair MFB","50563",""],["Mayfresh Mortgage Bank","90003",""],["Mega Microfinance Bank","50570",""],["Michael Okpara UniAgric Microfinance Bank","MFB51116M",""],["Mint MFB","50304",""],["MINT-FINEX MFB","09",""],["Money Master PSB","946",""],["Moniepoint MFB","50515","moniepoint.com"],["MOVASCO MFB","90979",""],["MTN Momo PSB","120003",""],["MUTUAL BENEFITS MICROFINANCE BANK","090190",""],["NDCC MICROFINANCE BANK","090679",""],["NET MICROFINANCE BANK","51361",""],["Nigerian Navy Microfinance Bank Limited","51142",""],["NIRSAL MICROFINANCE","51304",""],["Nombank MFB","50072",""],["NOVA BANK","561",""],["Novus MFB","51371",""],["NPF MICROFINANCE BANK","50629",""],["NSUK MICROFINANACE BANK","51261",""],["NUVION MFB","51392",""],["Olabisi Onabanjo University Microfinance Bank","50689",""],["OLUCHUKWU MICROFINANCE BANK LTD","50697",""],["OPay Digital Services Limited (OPay)","999992","opayweb.com"],["Optimus Bank Limited","107","optimusbank.com"],["Pact Microfinance Bank","51477",""],["Paga","100002","paga.com"],["PalmPay","999991","palmpay.com"],["Parallex Bank","104","parallexbank.com"],["Parkway - ReadyCash","311",""],["PATHFINDER MICROFINANCE BANK LIMITED","090680",""],["PATRICKGOLD MFB","90317",""],["Paystack MFB","51457",""],["Paystack-Titan","100039","titantrustbank.com"],["Peace Microfinance Bank","50743",""],["PECANTRUST MICROFINANCE BANK LIMITED","51226",""],["Personal Trust MFB","51146",""],["Petra Mircofinance Bank Plc","50746",""],["Pettysave MFB","MFB51452",""],["PFI FINANCE COMPANY LIMITED","050021",""],["Platinum Mortgage Bank","268",""],["Pocket App","00716",""],["Polaris Bank","076","polarisbank.com"],["Polyunwana MFB","50864",""],["PremiumTrust Bank","105",""],["Prospa Capital Microfinance Bank","50739",""],["PROSPERIS FINANCE LIMITED","050023",""],["Providus Bank","101","providusbank.com"],["QuickFund MFB","51293",""],["Rand Merchant Bank","502",""],["RANDALPHA MICROFINANCE BANK","090496",""],["Rank MFB","50130",""],["Refuge Mortgage Bank","90067",""],["REHOBOTH MICROFINANCE BANK","50761",""],["RenMoney Microfinance Bank","51049",""],["Rephidim Microfinance Bank","50994",""],["Retrust Mfb","51375",""],["Rex Microfinance Bank","51108",""],["Rigo Microfinance Bank Limited","51286",""],["ROCKSHIELD MICROFINANCE BANK","50767",""],["RSU MICROFINANCE BANK","50622",""],["Rubies MFB","125","rubies.ng"],["Safe Haven MFB","51113",""],["SAGE GREY FINANCE LIMITED","40165",""],["Shield MFB","50582",""],["Signature Bank Ltd","106","signature.ng"],["Solid Allianze MFB","51062",""],["Solid Rock MFB","50800",""],["SOURCE MFB","90641",""],["Sparkle Microfinance Bank","51310",""],["SPECTRUM MFB LTD","50756",""],["Springfield Microfinance Bank","51429",""],["Stanbic IBTC Bank","221","stanbicibtcbank.com"],["Standard Chartered Bank","068","sc.com"],["STANFORD MICROFINANCE BANK","090162",""],["STATESIDE MICROFINANCE BANK","50809",""],["STB Mortgage Bank","070022",""],["Stellas MFB","51253",""],["Sterling Bank","232","sterling.ng"],["Summit Bank","00305",""],["Suntrust Bank","100","suntrustng.com"],["Supreme MFB","50968",""],["Sycamore Microfinance Bank","51056",""],["TAJ Bank","302","tajbank.com"],["Tangerine Money","51269",""],["Tatum Bank","109",""],["Tatum Bank Ltd","00109",""],["TENN","51403",""],["Think Finance Microfinance Bank","677",""],["Titan Bank","102","titantrustbank.com"],["TOPRATE MFB","90801",""],["TransPay MFB","090708",""],["TRUSTBANC J6 MICROFINANCE BANK","51118",""],["U and C MFB","50840",""],["U&C Microfinance Bank Ltd (U AND C MFB)","50840",""],["UBJ Microfinance Bank Limited","51396",""],["UCEE MFB","090706",""],["Uhuru MFB","51322",""],["Ultraviolet Microfinance Bank","51080",""],["Umunnachi Microfinance Bank Ltd","51097",""],["Unaab Microfinance Bank Limited","50870",""],["UNIABUJA MFB","51447",""],["Unical MFB","50871",""],["Unilag Microfinance Bank","51316",""],["UNIMAID MICROFINANCE BANK","50875",""],["Union Bank of Nigeria","032","unionbankng.com"],["United Bank For Africa","033","ubagroup.com"],["Unity Bank","215",""],["UNIUYO Microfinance Bank Ltd","50880",""],["Uzondu Microfinance Bank Awka Anambra State","50894",""],["Vale Finance Limited","050020",""],["VFD Microfinance Bank Limited","566","vbank.ng"],["Victory MFB","51085",""],["VISTA MFB","90787",""],["Visual ICT Limited (TagPay)","100023",""],["VTNetworks","C08",""],["Waya Microfinance Bank","51355",""],["Wema Bank","035","wemabank.com"],["Weston Charis MFB","51386",""],["Whitecrust Finance Company","402001",""],["Xpress Wallet","100040",""],["YCT MFB","51253",""],["Yes MFB","594",""],["Zap","00zap",""],["Zenith Bank","057","zenithbank.com"],["Zitra MFB","51373",""]]; }
+
   /* ======================= Settings · bank accounts =======================
      Naira accounts are checked the way a payment provider checks them: the account number, then the bank, then the name comes back by itself.
      Dollar, pound and euro accounts each ask for what that country's banks need, check the numbers that can be checked, and finish with a test deposit.
      In the live product the naira lookup runs on the server with the provider's key, so no key ever reaches the browser. */
   ngBanks() {
-    return [['Access Bank', '044'], ['Fidelity Bank', '070'], ['First Bank of Nigeria', '011'], ['FCMB', '214'], ['Globus Bank', '103'], ['Guaranty Trust Bank', '058'], ['Heritage Bank', '030'], ['Jaiz Bank', '301'], ['Keystone Bank', '082'], ['Kuda', '50211'], ['Moniepoint', '50515'], ['OPay', '999992'], ['PalmPay', '999991'], ['Polaris Bank', '076'], ['Providus Bank', '101'], ['Stanbic IBTC', '221'], ['Standard Chartered', '068'], ['Sterling Bank', '232'], ['Titan Trust Bank', '102'], ['UBA', '033'], ['Union Bank', '032'], ['Unity Bank', '215'], ['Wema Bank', '035'], ['Zenith Bank', '057'], ['Ecobank', '050']];
+    /* The Paystack list, with the tile colour used when a bank has no logo, and the banks people pick most. */
+    var PAL = ['#1d4ed8', '#166534', '#9a3412', '#6b21a8', '#0f766e', '#b91c1c', '#374151', '#0369a1', '#7c2d12', '#4338ca', '#86198f', '#155e75'], FREQ = ['044', '011', '058', '033', '057', '999992', '999991', '50211', '50515', '232', '214', '070'];
+    if (this._ngb) return this._ngb;
+    this._ngb = this.ngBankData().map(function (x) {
+      var h = 0; x[0].split('').forEach(function (ch) { h = (h * 31 + ch.charCodeAt(0)) % 997; });
+      var short = x[0].replace(/\s*\(.*\)\s*$/, '').replace(/\b(Limited|Ltd|Plc|PLC|Microfinance Bank|MFB|Bank|Nigeria|Digital Services)\b/g, '').trim() || x[0];
+      return { n: x[0], c: x[1], tone: PAL[h % PAL.length], freq: FREQ.indexOf(x[1]) >= 0, ini: short.split(/\s+/).map(function (w) { return w.charAt(0); }).join('').slice(0, 2).toUpperCase(), img: x[2] ? 'https://www.google.com/s2/favicons?domain=' + x[2] + '&sz=128' : '', kw: '' };
+    });
+    return this._ngb;
   }
-  /* sample accounts that resolve, so the lookup can be tried without a real account */
-  ngSamples() { return { '2084719356': ['058', 'WDC STUDIO LTD'], '0123456789': ['044', 'WDC STUDIO LTD'], '1012345678': ['057', 'WDC STUDIO LTD'], '3056781290': ['033', 'ADEBAYO KEHINDE OLUWASEUN'] }; }
+  bankBy(code) { return this.ngBanks().filter(function (b) { return b.c === code; })[0]; }
+  /* NUBAN: the tenth digit is a check digit of the bank code plus the nine serial digits. This is how a bank is suggested from a number alone. */
+  nubanOk(acct, code) {
+    if (!/^\d{10}$/.test(acct) || !/^\d{3}$/.test(code)) return false;
+    var d = (code + acct.slice(0, 9)).split('').map(Number), w = [3, 7, 3, 3, 7, 3, 3, 7, 3, 3, 7, 3], sum = 0, i;
+    for (i = 0; i < 12; i++) sum += d[i] * w[i];
+    return (10 - sum % 10) % 10 === +acct.charAt(9);
+  }
+  /* Same two steps as nomarc and NairaGate. Fintech wallets (OPay, PalmPay, Kuda, Moniepoint) are known by the first three digits. Every other bank is found by the NUBAN check digit, so more than one can fit and the person confirms. */
+  bankCands(acct) {
+    var self = this, all = this.ngBanks();
+    if (!/^\d{10}$/.test(acct)) return [];
+    var FIN = { '700': '999992', '701': '999992', '702': '999992', '703': '999992', '704': '999992', '705': '999992', '706': '999992', '707': '999992', '708': '999992', '900': '999992', '901': '999992', '902': '999992', '903': '999992', '904': '999992', '905': '999992', '906': '999992', '800': '999991', '801': '999991', '803': '999991', '807': '999991', '227': '50211', '814': '50515', '070': '50515' };
+    var fin = FIN[acct.slice(0, 3)];
+    if (fin) return all.filter(function (b) { return b.c === fin; });
+    return all.filter(function (b) { return b.c.length === 3 && self.nubanOk(acct, b.c); }).sort(function (a, b) { return a.n.localeCompare(b.n); }).slice(0, 4);
+  }
+  /* the Bank field of the add-account sheet: a picker row with the bank's logo, banks suggested from the number, then the status of the lookup */
+  bankField(fd, F, setF) {
+    var self = this, acct = (F.acct || '').trim(), bc = F.bankCode || '', bk = bc ? this.bankBy(bc) : null, M = this.state.bankM, V = this.state.bankV, cands = this.bankCands(acct);
+    var st = { k: '', text: '' }, ten = /^\d{10}$/.test(acct), matched = ten && M && M.acct === acct && M.status === 'done';
+    if (ten) {
+      if (M && M.acct === acct && M.status === 'loading') st = { k: 'load', text: 'Matching bank' };
+      else if (!bk) st = { k: 'none', text: cands.length ? 'These banks fit the number. Pick yours, or search the full list.' : 'No bank fits this number. Search the full list.' };
+      else if (V && V.status === 'loading') st = { k: 'load', text: 'Verifying account details' };
+      else if (V && V.status === 'fail') st = { k: 'bad', text: V.why };
+      else if (V && V.status === 'ok') st = { k: 'ok', text: V.name };
+    }
+    var suggest = matched && cands.length > 1 ? cands.map(function (c) { return { t: c.n, ini: c.ini, tone: c.tone, img: c.img, hasImg: !!c.img, imgCls: c.img ? ' hasImg' : '', cls: c.c === bc ? 'on' : '', pressed: c.c === bc ? 'true' : 'false', pick: function () { setF('bankCode', c.c); } }; }) : [];
+    return { isBank: true, isTrig: false, isPlain: false, key: fd.key, id: 'f-' + fd.key, label: fd.label, cls: 'wideF', name: bk ? bk.n : 'Select bank', nameCls: bk ? '' : 'ph', ini: bk ? bk.ini : '', tone: bk ? bk.tone : 'var(--ad-tone-neutral)', img: bk ? bk.img : '', hasImg: !!(bk && bk.img), imgCls: bk && bk.img ? ' hasImg' : '', hasLogo: !!bk, noLogo: !bk,
+      onOpen: function () { self.bankPicker(acct, bc, function (code) { setF('bankCode', code); }); },
+      hasSuggest: suggest.length > 0, suggest: suggest, hasStatus: !!st.k, statCls: 'bnkStat ' + st.k, statText: st.text, isLoad: st.k === 'load', isOk: st.k === 'ok', isBad: st.k === 'bad', isNone: st.k === 'none', hasHint: false, hint: '' };
+  }
+  bankPicker(acct, current, onPick) {
+    var self = this, I = this.icons(), cands = this.bankCands(acct), ids = cands.map(function (c) { return c.c; }), all = this.ngBanks();
+    var rank = function (b) { return ids.indexOf(b.c) >= 0 ? 0 : (b.freq ? 1 : 2); };
+    var sorted = all.slice().sort(function (a, b) { return rank(a) - rank(b) || a.n.localeCompare(b.n); });
+    var pick = sorted.map(function (b) { return b.c; }).indexOf(current);
+    this.open(this.sh({ eyebrow: 'Bank', title: 'Choose the bank', icon: I.cash, body: ids.length ? 'The bank that fits your account number comes first, then the banks used most. Search by name for the rest.' : 'The banks used most come first. Search by name for the rest.', listTitle: 'Banks', select: true, searchPh: 'Search bank name', pick: pick >= 0 ? pick : undefined, selectWhy: 'Choose the bank.',
+      list: sorted.map(function (b) { return { t: b.n, s: ids.indexOf(b.c) >= 0 ? 'Fits your number' : (b.freq ? 'Used most' : 'Bank code ' + b.c), ini: b.ini, av: b.tone, img: b.img, ref: b, k: b.c + ' ' + b.n }; }),
+      primary: 'Use this bank', secondary: 'Cancel', onPrimary: function (ctx) { if (ctx.item) onPick(ctx.item.ref.c); } }), true);
+  }
+  ngSamples() { return { '2084719354': ['058', 'WDC STUDIO LTD'], '0123456784': ['044', 'WDC STUDIO LTD'], '1012345671': ['057', 'WDC STUDIO LTD'], '3056781291': ['033', 'ADEBAYO KEHINDE OLUWASEUN'] }; }
   resolveNg(acct, code) {
-    var self = this, S = this.ngSamples(), hit = S[acct], names = ['CHIDI NWANKWO EZE', 'FUNKE ADEYEMI BALOGUN', 'TEMITOPE OKAFOR AYODELE', 'ZAINAB MUSA IBRAHIM'], bank = this.ngBanks().filter(function (b) { return b[1] === code; })[0];
+    var self = this, S = this.ngSamples(), hit = S[acct], names = ['CHIDI NWANKWO EZE', 'FUNKE ADEYEMI BALOGUN', 'TEMITOPE OKAFOR AYODELE', 'ZAINAB MUSA IBRAHIM'], bank = this.bankBy(code); if (bank) bank = [bank.n, bank.c];
     return new Promise(function (ok) {
       setTimeout(function () {
         if (/0000$/.test(acct)) ok({ ok: false, why: 'We could not find that account at ' + (bank ? bank[0] : 'that bank') + '. Check the number and the bank.' });
@@ -3781,9 +3896,9 @@ class Component extends DCLogic {
   abaOk(r) { if (!/^\d{9}$/.test(r)) return false; var d = r.split('').map(Number); return (3 * (d[0] + d[3] + d[6]) + 7 * (d[1] + d[4] + d[7]) + (d[2] + d[5] + d[8])) % 10 === 0; }
   ibanOk(v) { v = v.replace(/\s+/g, '').toUpperCase(); if (!/^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$/.test(v)) return false; var s = v.slice(4) + v.slice(0, 4), n = ''; for (var i = 0; i < s.length; i++) { var c = s.charCodeAt(i); n += c >= 65 ? (c - 55) : s.charAt(i); } var r = 0; for (var j = 0; j < n.length; j += 7) r = parseInt('' + r + n.slice(j, j + 7), 10) % 97; return r === 1; }
   openBankSheet() {
-    var self = this, I = this.icons(), banks = this.ngBanks();
+    var self = this, I = this.icons();
     var CUR = ['Naira (NGN)', 'US dollars (USD)', 'British pounds (GBP)', 'Euros (EUR)'], code = function (c) { return (/\((\w+)\)/.exec(c || '') || [])[1] || 'NGN'; };
-    this.setState({ bankV: null });
+    this.setState({ bankV: null, bankM: null }); this._bankKey = ''; this._matchKey = '';
     var V = function (st) { return st.bankV; };
     var req = function (v) { return (v || '').trim().length > 0; };
     this.open(this.sh({ eyebrow: 'Money', title: 'Add a bank account', icon: I.cash, wide: true, chipsFirst: true, focus: 'f-acct',
@@ -3798,38 +3913,42 @@ class Component extends DCLogic {
       },
       fields: function (st) {
         var f = st.form, c = code(f.cur);
-        if (c === 'NGN') return [{ key: 'acct', label: 'Account number', ph: '0123456789', mode: 'numeric', wide: true, hint: V(st) && V(st).status === 'loading' ? 'Checking the account…' : '10 digits. Then choose the bank and the name fills in by itself. To try it: 2084719356 at Guaranty Trust Bank.', check: function (v) { return v.trim() && !/^\d{0,10}$/.test(v.trim()) ? 'Numbers only.' : (v.trim().length === 10 || !v.trim() ? '' : (v.trim().length > 0 ? '' : '')); } }];
+        if (c === 'NGN') return [{ key: 'acct', label: 'Account number', ph: 'Enter 10 digit account number', mode: 'numeric', wide: true, hint: (f.acct || '').trim().length ? (f.acct || '').trim().length + ' of 10 digits.' : '10 digits. We suggest the bank, then the name fills in by itself. To try it: 2084719354.', check: function (v) { return v.trim() && !/^\d{0,10}$/.test(v.trim()) ? 'Numbers only, 10 digits.' : ''; } }, { key: 'bankCode', type: 'bank', label: 'Bank' }];
         var A = function (k, label, ph, extra) { return Object.assign({ key: k, label: label, ph: ph }, extra || {}); };
         if (c === 'USD') return [A('holder', 'Account holder', 'WDC Studio Ltd', { wide: true }), A('bank', 'Bank name', 'Chase, Wells Fargo or Mercury'), A('acct', 'Account number', '000123456789', { mode: 'numeric', check: function (v) { return v.trim() && !/^\d{4,17}$/.test(v.trim()) ? 'US account numbers are 4 to 17 digits.' : ''; } }), A('routing', 'Routing number (ABA)', '021000021', { mode: 'numeric', hint: 'Nine digits, printed on a US cheque.', check: function (v) { return v.trim() && (v.trim().length === 9 && !self.abaOk(v.trim()) ? 'That routing number does not pass the bank check digit. Look again.' : (/\D/.test(v) || v.trim().length > 9 ? 'Nine digits only.' : '')); } }), A('swift', 'SWIFT or BIC (for wires from abroad)', 'CHASUS33', { check: function (v) { return v.trim() && !/^[A-Za-z]{6}[A-Za-z0-9]{2}([A-Za-z0-9]{3})?$/.test(v.trim()) ? 'A SWIFT code has 8 or 11 characters.' : ''; }, hint: 'Optional for US transfers, needed for wires from outside the US.' }),
           A('street', 'Bank street address', '270 Park Avenue', { wide: true }), A('city', 'City', 'New York'), A('state', 'State', 'NY', { check: function (v) { return v.trim() && !/^[A-Za-z]{2}$/.test(v.trim()) ? 'Use the two letter state code.' : ''; } }), A('zip', 'ZIP code', '10017', { mode: 'numeric', check: function (v) { return v.trim() && !/^\d{5}(-\d{4})?$/.test(v.trim()) ? 'A ZIP code has 5 digits.' : ''; } }), A('bstreet', 'Studio address on the account', 'Street and number', { wide: true }), A('bcity', 'City'), A('bzip', 'Postcode')];
         if (c === 'GBP') return [A('holder', 'Account holder', 'WDC Studio Ltd', { wide: true }), A('bank', 'Bank name', 'Monzo, Barclays or Starling'), A('sort', 'Sort code', '04-00-04', { mode: 'numeric', check: function (v) { return v.trim() && !/^\d{2}-?\d{2}-?\d{2}$/.test(v.trim()) ? 'A sort code has 6 digits, like 04-00-04.' : ''; } }), A('acct', 'Account number', '12345678', { mode: 'numeric', check: function (v) { return v.trim() && !/^\d{8}$/.test(v.trim()) ? 'UK account numbers have 8 digits.' : ''; } }), A('iban', 'IBAN (optional)', 'GB29 NWBK 6016 1331 9268 19', { check: function (v) { return v.trim() && !self.ibanOk(v) ? 'That IBAN does not pass its check. Look again.' : ''; } }), A('street', 'Address on the account', 'Street and number', { wide: true }), A('city', 'City'), A('zip', 'Postcode', 'SW1A 1AA', { check: function (v) { return v.trim() && !/^[A-Za-z]{1,2}\d[A-Za-z\d]?\s?\d[A-Za-z]{2}$/.test(v.trim()) ? 'Check the postcode, like SW1A 1AA.' : ''; } })];
         return [A('holder', 'Account holder', 'WDC Studio Ltd', { wide: true }), A('bank', 'Bank name', 'AIB, Deutsche Bank or ING'), A('iban', 'IBAN', 'IE29 AIBK 9311 5212 3456 78', { wide: true, hint: 'Spaces are fine. We check the IBAN as you type.', check: function (v) { return v.trim() && !self.ibanOk(v) ? 'That IBAN does not pass its check. Look again.' : ''; } }), A('bic', 'BIC', 'AIBKIE2D', { check: function (v) { return v.trim() && !/^[A-Za-z]{6}[A-Za-z0-9]{2}([A-Za-z0-9]{3})?$/.test(v.trim()) ? 'A BIC has 8 or 11 characters.' : ''; } }), A('street', 'Address on the account', 'Street and number', { wide: true }), A('city', 'City'), A('zip', 'Postcode')];
       },
-      listTitle: 'Bank', select: true, selectRequired: false, searchPh: 'Search banks',
-      list: function (st) { return code(st.form.cur) !== 'NGN' ? [] : banks.map(function (b) { return { t: b[0], s: 'Bank code ' + b[1], ini: b[0].split(/\s+/).map(function (w) { return w.charAt(0); }).join('').slice(0, 2).toUpperCase(), av: 'var(--ad-tone-brand)', ref: b }; }); },
       watch: function (ctx, st) {
         var f = ctx.form; if (code(f.cur) !== 'NGN') return;
-        var acct = (f.acct || '').trim(), b = ctx.item && ctx.item.ref, key = acct + ':' + (b ? b[1] : '');
-        if (!/^\d{10}$/.test(acct) || !b) { if (st.bankV && st.bankV.key !== key) self.setState({ bankV: null }); self._bankKey = ''; return; }
-        if (self._bankKey === key) return; self._bankKey = key;
+        var acct = (f.acct || '').trim(), bc = f.bankCode || '';
+        if (!/^\d{10}$/.test(acct)) { if (st.bankV || st.bankM || bc) { self._bankKey = ''; self._matchKey = ''; self.setState({ bankV: null, bankM: null, form: bc ? Object.assign({}, st.form, { bankCode: '' }) : st.form }); } return; }
+        if (self._matchKey !== acct) {
+          self._matchKey = acct; self._bankKey = '';
+          self.setState({ bankM: { acct: acct, status: 'loading' }, bankV: null, form: Object.assign({}, st.form, { bankCode: '' }) });
+          setTimeout(function () { if (self._matchKey !== acct) return; var cands = self.bankCands(acct), one = cands.length === 1 ? cands[0].c : ''; self.setState({ bankM: { acct: acct, status: 'done', n: cands.length }, form: Object.assign({}, self.state.form, { bankCode: one }) }); }, self.reduce ? 100 : 700);
+          return;
+        }
+        if (!bc || !st.bankM || st.bankM.status !== 'done') return;
+        var key = acct + ':' + bc; if (self._bankKey === key) return; self._bankKey = key;
         self.setState({ bankV: { key: key, status: 'loading' } });
-        self.resolveNg(acct, b[1]).then(function (r) { if (self._bankKey !== key) return; self.setState({ bankV: Object.assign({ key: key, status: r.ok ? 'ok' : 'fail' }, r) }); });
+        self.resolveNg(acct, bc).then(function (r) { if (self._bankKey !== key) return; self.setState({ bankV: Object.assign({ key: key, status: r.ok ? 'ok' : 'fail' }, r) }); });
       },
       notice: function (ctx, st) {
         var f = ctx.form, c = code(f.cur), v = st.bankV;
         if (c === 'NGN') {
-          if (!v) return { tone: 'var(--ad-tone-neutral)', icon: I.search, title: 'The account name appears here', body: 'Type the 10 digit number, then choose the bank. We look the account up with Paystack, so the name is never typed by hand.' };
-          if (v.status === 'loading') return { tone: 'var(--ad-tone-brand)', icon: I.clock, title: 'Checking the account…', body: 'Asking the bank who owns it. This takes a second.' };
-          if (v.status === 'fail') return { tone: 'var(--ad-tone-bad)', icon: I.alert, title: 'We could not verify this account', body: v.why };
+          var bk = self.bankBy(f.bankCode);
+          if (!v || v.status !== 'ok') return { tone: 'var(--ad-tone-neutral)', icon: I.search, title: 'The account name appears here', body: 'Type the 10 digit number. We suggest the bank from the number, and the name is looked up with Paystack so it is never typed by hand.' };
           var match = /WDC STUDIO/.test(v.name);
-          return { tone: match ? 'var(--ad-tone-good)' : 'var(--ad-tone-warn)', icon: match ? I.check : I.alert, title: v.name, body: match ? 'Verified with ' + (ctx.item ? ctx.item.ref[0] : 'the bank') + '. The name matches the studio.' : 'The name does not match the studio. Only add an account in the studio’s name unless you are sure, because payouts and transfers use it.' };
+          return { tone: match ? 'var(--ad-tone-good)' : 'var(--ad-tone-warn)', icon: match ? I.check : I.alert, title: v.name, body: match ? 'Verified with ' + (bk ? bk.n : 'the bank') + '. The name matches the studio.' : 'The name does not match the studio. Only add an account in the studio’s name unless you are sure, because payouts and transfers use it.' };
         }
         return { tone: 'var(--ad-tone-neutral)', icon: I.eye, title: 'Checked, then verified with a test deposit', body: 'We check the numbers that can be checked here. A small test deposit then confirms the account is real. It shows as Needs verification until you enter the amount.' };
       },
       primary: function (ctx) { return code(ctx.form.cur) === 'NGN' ? 'Add the verified account' : 'Add the account'; }, secondary: 'Cancel',
       primaryDis: function (ctx, st) {
         var f = ctx.form, c = code(f.cur), v = st.bankV;
-        if (c === 'NGN') { if (!/^\d{10}$/.test((f.acct || '').trim())) return 'Add the 10 digit account number.'; if (!ctx.item) return 'Choose the bank.'; if (!v || v.status === 'loading') return 'Waiting for the account check.'; if (v.status === 'fail') return 'Fix the account number or the bank, so it can be verified.'; return ''; }
+        if (c === 'NGN') { if (!/^\d{10}$/.test((f.acct || '').trim())) return 'Add the 10 digit account number.'; if (!f.bankCode) return st.bankM && st.bankM.status === 'loading' ? 'Matching the bank.' : 'Choose the bank.'; if (!v || v.status === 'loading') return 'Waiting for the account check.'; if (v.status === 'fail') return 'Fix the account number or the bank, so it can be verified.'; return ''; }
         if (!req(f.holder)) return 'Add the account holder.'; if (!req(f.bank)) return 'Add the bank name.'; if (!req(f.street) || !req(f.city) || !req(f.zip)) return 'Add the address on the account.';
         if (c === 'USD') { if (!/^\d{4,17}$/.test((f.acct || '').trim())) return 'Add the account number.'; if (!self.abaOk((f.routing || '').trim())) return 'Add a valid 9 digit routing number.'; if (!/^[A-Za-z]{2}$/.test((f.state || '').trim())) return 'Add the two letter state code.'; if (!/^\d{5}(-\d{4})?$/.test((f.zip || '').trim())) return 'Add a 5 digit ZIP code.'; }
         if (c === 'GBP') { if (!/^\d{2}-?\d{2}-?\d{2}$/.test((f.sort || '').trim())) return 'Add the 6 digit sort code.'; if (!/^\d{8}$/.test((f.acct || '').trim())) return 'Add the 8 digit account number.'; if ((f.iban || '').trim() && !self.ibanOk(f.iban)) return 'The IBAN does not pass its check.'; }
@@ -3838,13 +3957,23 @@ class Component extends DCLogic {
       },
       onPrimary: function (ctx, st) {
         var f = ctx.form, c = code(f.cur), v = self.state.bankV, name, bank, last4;
-        if (c === 'NGN') { name = v.name; bank = ctx.item.ref[0]; last4 = f.acct.trim().slice(-4); } else { name = f.holder.trim(); bank = f.bank.trim(); last4 = ((f.acct || f.iban || '').replace(/\s/g, '')).slice(-4); }
-        var id = 'b' + Date.now(), entry = { id: id, t: bank + ' ' + c, s: '****' + last4 + ' · ' + name, cur: c, verified: c === 'NGN', ref: 'WDC-' + (1000 + Math.floor((Date.now() / 7) % 9000)), cents: 12 + Math.floor((Date.now() / 11) % 80) };
-        self.setL('banks', (self.state.lists.banks || []).concat([entry]));
-        if (f.def === 'Make it the default') self.setL('defBank', { id: id });
-        self.say(c === 'NGN' ? 'Saved. ' + bank + ' is verified and added.' + (f.def === 'Make it the default' ? ' It is the default for payouts.' : '') : 'Saved. ' + bank + ' is added. Enter the test deposit amount to verify it.');
+        var finish = function () {
+          if (c === 'NGN') { name = v.name; bank = self.bankBy(f.bankCode).n; last4 = f.acct.trim().slice(-4); } else { name = f.holder.trim(); bank = f.bank.trim(); last4 = ((f.acct || f.iban || '').replace(/\s/g, '')).slice(-4); }
+          var id = 'b' + Date.now(), entry = { id: id, t: bank + ' ' + c, s: '****' + last4 + ' · ' + name, cur: c, verified: c === 'NGN', ref: 'WDC-' + (1000 + Math.floor((Date.now() / 7) % 9000)), cents: 12 + Math.floor((Date.now() / 11) % 80) };
+          self.setL('banks', (self.state.lists.banks || []).concat([entry]));
+          if (f.def === 'Make it the default') self.setL('defBank', { id: id });
+          self.setState({ sheet: null, stack: [] });
+          self.say(c === 'NGN' ? 'Saved. ' + bank + ' is verified and added.' + (f.def === 'Make it the default' ? ' It is the default for payouts.' : '') : 'Saved. ' + bank + ' is added. Enter the test deposit amount to verify it.');
+        };
+        if (c !== 'NGN') { finish(); return; }
+        var bk = self.bankBy(f.bankCode), acc = f.acct.trim().replace(/(\d{3})(\d{4})(\d{3})/, '$1 $2 $3');
+        self.open(self.sh({ eyebrow: 'Check before you add', title: 'Add this account?', icon: I.check, iconTone: 'var(--ad-tone-good)',
+          rows: [{ k: 'Name', v: v.name }, { k: 'Bank', v: bk.n }, { k: 'Account number', v: acc }],
+          body: 'Check the details. Payouts and transfers use this account, and a transfer that has gone out cannot be reversed.', primary: 'Add account', secondary: 'Recheck',
+          onPrimary: function () { finish(); } }), true);
       } }));
   }
+
   /* the test deposit: the amount is in the reference of a small transfer, and typing it back proves the account is the studio's */
   verifyBankSheet(b) {
     var self = this, I = this.icons(), sym = b.cur === 'USD' ? '$' : (b.cur === 'GBP' ? '£' : '€');

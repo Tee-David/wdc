@@ -1,0 +1,43 @@
+<sc-if value="{{ovOn}}" hint-placeholder-val="{{ false }}">
+      <div class="mxScrim" onClick="{{inf.close}}"></div>
+      <aside class="mxOv {{ovCls}}" id="mxOv" role="dialog" aria-modal="true" aria-label="Conversation details" tabindex="-1" onKeyDown="{{ovKey}}">
+        <span class="mxGrab" aria-hidden="true"></span>
+<div class="mxInfoHead"><h2 class="mxInfoT">Details</h2><sc-if value="{{inf.showClose}}" hint-placeholder-val="{{ false }}"><button class="ibtn xBtn" aria-label="Close details" onClick="{{inf.close}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></sc-if></div>
+<div class="mxInfoBody" data-lenis-prevent>
+  <div class="mxInfoTop">
+    <sc-if value="{{inf.isDirect}}" hint-placeholder-val="{{ true }}"><button class="mxBigAv" style="background: {{inf.tone}}" aria-label="Open the profile of {{inf.name}}" onClick="{{inf.profile}}">{{inf.i}}<span class="pDot big {{inf.dotCls}}" role="img" aria-label="{{inf.presT}}"></span></button></sc-if>
+    <sc-if value="{{inf.isStack}}" hint-placeholder-val="{{ false }}"><span class="mxStackBig" aria-hidden="true"><sc-for list="{{inf.stack}}" as="sa" hint-placeholder-count="3"><span class="av0 stk" style="background: {{sa.tone}}">{{sa.i}}</span></sc-for></span></sc-if>
+    <h3 class="mxInfoName">{{inf.name}}</h3>
+    <span class="mxInfoSub">{{inf.sub}}</span>
+    <span class="mxPresT"><span class="pDot inl {{inf.dotCls}}" aria-hidden="true"></span>{{inf.presT}}</span>
+  </div>
+  <div class="mxActs" role="group" aria-label="Quick actions"><sc-for list="{{inf.acts}}" as="a" hint-placeholder-count="4"><button class="mxAct {{a.cls}}" aria-pressed="{{a.pressed}}" onClick="{{a.fn}}"><span class="mxActIc"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="{{a.d}}"></path></svg></span><span class="mxActL">{{a.t}}</span></button></sc-for></div>
+  <div class="mxList2">
+    <sc-if value="{{inf.isDirect}}" hint-placeholder-val="{{ true }}"><button class="mxRowBtn" onClick="{{inf.profile}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"></path></svg><span class="mxRowT">View profile</span><svg class="ic mxChev" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></button></sc-if>
+    <button class="mxRowBtn" onClick="{{inf.search}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"></path></svg><span class="mxRowT">Search in conversation</span><svg class="ic mxChev" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></button>
+    <div class="mxRowBtn mxRowSw"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg><span class="mxRowT">Notifications</span><span class="mxSwT">{{inf.notifT}}</span><button class="switch" role="switch" aria-checked="{{inf.notifOn}}" aria-label="Notifications for this conversation" onClick="{{inf.notif}}"></button></div>
+  </div>
+  <sc-if value="{{inf.hasBrief}}" hint-placeholder-val="{{ false }}">
+    <section class="mxSec" aria-label="Pinned brief"><div class="mxSecHead"><h4>Pinned brief</h4></div><button class="mxBriefCard" onClick="{{inf.brief}}"><span class="mxBriefTxt">{{inf.briefText}}</span><span class="mxBriefMore">Read the brief</span></button></section>
+  </sc-if>
+  <sc-if value="{{inf.hasMembers}}" hint-placeholder-val="{{ false }}">
+    <section class="mxSec" aria-label="Members"><div class="mxSecHead"><h4>Members</h4><span class="num mxSecN">{{inf.membersT}}</span><sc-if value="{{inf.canAdd}}" hint-placeholder-val="{{ false }}"><button class="btn2 mxSm" onClick="{{inf.addMember}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M19 8v6M22 11h-6"></path></svg>Add member</button></sc-if></div>
+      <ul class="mxMembers"><sc-for list="{{inf.members}}" as="mb" hint-placeholder-count="3"><li><button class="mxMember" aria-label="{{mb.aria}}" onClick="{{mb.open}}"><span class="mxAv"><span class="av0" style="background: {{mb.tone}}; width: 36px; height: 36px; font-size: 11px">{{mb.i}}</span><span class="pDot {{mb.dotCls}}" role="img" aria-label="{{mb.presT}}"></span></span><span class="mxMemT"><strong>{{mb.name}}</strong><span>{{mb.role}}</span></span><span class="mxMemP">{{mb.presT}}</span></button></li></sc-for></ul>
+    </section>
+  </sc-if>
+  <section class="mxSec" aria-label="Shared photos"><div class="mxSecHead"><h4>Shared photos</h4><span class="num mxSecN">{{inf.picsN}}</span></div>
+    <sc-if value="{{inf.hasPics}}" hint-placeholder-val="{{ true }}"><div class="mxPhotos"><sc-for list="{{inf.pics}}" as="pc" hint-placeholder-count="6"><button class="mxPhoto" aria-label="{{pc.aria}}" onClick="{{pc.open}}"><img src="{{pc.url}}" alt="{{pc.name}}" loading="lazy"><sc-if value="{{pc.hasMore}}" hint-placeholder-val="{{ false }}"><span class="mgMore">{{pc.more}}</span></sc-if></button></sc-for></div><button class="btn2 mxWide" onClick="{{inf.morePics}}">View more photos</button></sc-if>
+    <sc-if value="{{inf.noPics}}" hint-placeholder-val="{{ false }}"><p class="mxNone">No photos shared yet. Pictures you send show up here.</p></sc-if>
+  </section>
+  <section class="mxSec" aria-label="Files"><div class="mxSecHead"><h4>Files</h4><span class="num mxSecN">{{inf.docsN}}</span><sc-if value="{{inf.hasDocs}}" hint-placeholder-val="{{ true }}"><button class="lnk mxAll" onClick="{{inf.allDocs}}">View all</button></sc-if></div>
+    <sc-if value="{{inf.hasDocs}}" hint-placeholder-val="{{ true }}"><ul class="mxFiles"><sc-for list="{{inf.docs}}" as="dc" hint-placeholder-count="2"><li><button class="mxFile" aria-label="{{dc.aria}}" onClick="{{dc.open}}"><span class="extTile" style="background: {{dc.tone}}">{{dc.ext}}</span><span class="mxMemT"><strong>{{dc.name}}</strong><span>{{dc.sub}}</span></span></button></li></sc-for></ul></sc-if>
+    <sc-if value="{{inf.noDocs}}" hint-placeholder-val="{{ false }}"><p class="mxNone">No files yet.</p></sc-if>
+  </section>
+  <section class="mxSec" aria-label="Links"><div class="mxSecHead"><h4>Links</h4><span class="num mxSecN">{{inf.linksN}}</span><sc-if value="{{inf.hasLinks}}" hint-placeholder-val="{{ false }}"><button class="lnk mxAll" onClick="{{inf.allLinks}}">View all</button></sc-if></div>
+    <sc-if value="{{inf.hasLinks}}" hint-placeholder-val="{{ false }}"><ul class="mxFiles"><sc-for list="{{inf.links}}" as="lk" hint-placeholder-count="1"><li><button class="mxFile" aria-label="{{lk.aria}}" onClick="{{lk.open}}"><span class="extTile" style="background: var(--ad-tone-brand)"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></span><span class="mxMemT"><strong>{{lk.name}}</strong><span>{{lk.sub}}</span></span></button></li></sc-for></ul></sc-if>
+    <sc-if value="{{inf.noLinks}}" hint-placeholder-val="{{ true }}"><p class="mxNone">No links yet.</p></sc-if>
+  </section>
+  <div class="mxPrivacy"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4"></path></svg><span>{{inf.privacy}} <a class="lnk" href="{{inf.settingsHref}}">Change in Settings</a></span></div>
+</div>
+      </aside>
+    </sc-if>
