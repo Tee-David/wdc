@@ -1,0 +1,46 @@
+<div class="docSheet rise" role="article" aria-label="{{kindLabel}} {{no}}">
+              <div class="dsHead">
+                <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0"><strong class="disp" style="font-size: 18px">WDC Studio</strong><span style="font-size: 13px; color: var(--ad-dim)">hello@wdcstudio.ng · wdcstudio.ng</span></div>
+                <div style="display: flex; flex-direction: column; gap: 6px; align-items: flex-end"><span class="disp" style="font-size: 22px; font-weight: 700">{{kindLabel}} {{no}}</span><span class="tag" style="background: {{statusTone}}; color: {{statusInk}}">{{status}}</span></div>
+              </div>
+              <div class="dsBody">
+                <sc-if value="{{hasBanner}}" hint-placeholder-val="{{ false }}"><div class="{{bannerCls}}" role="status" style="margin: 14px 0 4px"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" style="flex: none; margin-top: 1px"><path d="{{bannerIc}}"></path></svg><span>{{banner}}</span></div></sc-if>
+                <dl class="dl docMetaG" style="margin: 16px 0">
+                  <div><dt>Billed to</dt><dd><strong>{{client}}</strong><br><span style="color: var(--ad-dim)">{{contact}}</span></dd></div>
+                  <div><dt>Issued</dt><dd>{{issued}}</dd></div>
+                  <div><dt>{{dueLabel}}</dt><dd><strong style="color: {{dueCol}}">{{due}}</strong></dd></div>
+                  <sc-if value="{{hasRef}}" hint-placeholder-val="{{ false }}"><div><dt>{{refLabel}}</dt><dd>{{ref}}</dd></div></sc-if>
+                </dl>
+                <div class="tblWrap" tabindex="0" aria-label="Lines, scrolls sideways"><table class="tbl"><thead><tr><th scope="col">Description</th><th scope="col" class="r">Qty</th><th scope="col" class="r">Amount</th></tr></thead><tbody><sc-for list="{{lines}}" as="l" hint-placeholder-count="3"><tr><td><sc-if value="{{l.canTick}}" hint-placeholder-val="{{ false }}"><button class="ckb {{l.cls}}" role="checkbox" aria-checked="{{l.checked}}" aria-label="Include {{l.d}}" onClick="{{l.tick}}"><span class="ckbox"><svg class="ic" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span></button></sc-if><strong>{{l.d}}</strong><sc-if value="{{l.s}}" hint-placeholder-val="{{ false }}"><br><span style="color: var(--ad-dim); font-size: 12px">{{l.s}}</span></sc-if></td><td class="r num">{{l.q}}</td><td class="r num">{{l.a}}</td></tr></sc-for></tbody></table></div>
+                <div class="docTot"><sc-for list="{{tot}}" as="t" hint-placeholder-count="4"><div class="{{t.cls}}"><span>{{t.k}}</span><span class="num">{{t.v}}</span></div></sc-for></div>
+              </div>
+              <sc-if value="{{isInv}}" hint-placeholder-val="{{ true }}">
+                <sc-if value="{{canPay}}" hint-placeholder-val="{{ true }}">
+                  <div class="dsBody" style="border-top: 1px solid var(--ad-line); display: flex; flex-direction: column; gap: 12px; padding-top: 18px">
+                    <h2 style="font-size: 17px; font-weight: 700">How to pay</h2>
+                    <sc-if value="{{payNaira}}" hint-placeholder-val="{{ true }}">
+                      <div role="radiogroup" aria-label="Pay with" style="display: grid; gap: 10px"><sc-for list="{{provs}}" as="p" hint-placeholder-count="2"><button class="payOpt {{p.cls}}" role="radio" aria-checked="{{p.checked}}" onClick="{{p.pick}}"><img src="{{p.logo}}" alt="{{p.name}}"><span style="flex: 1; min-width: 0"><strong>{{p.name}}</strong><br><span style="color: var(--ad-dim); font-size: 12px">{{p.sub}}</span></span></button></sc-for></div>
+                      <button class="btn bareBtn" onClick="{{pay}}">{{payLabel}}</button>
+                      <p style="font-size: 13px; color: var(--ad-dim)">You pay the studio, and the studio never holds your card details. A receipt is emailed the moment it clears. A paid invoice cannot be paid twice.</p>
+                    </sc-if>
+                    <sc-if value="{{payUsd}}" hint-placeholder-val="{{ false }}">
+                      <p class="sub" style="font-size: 14px">Dollar invoices are paid by transfer. Use the invoice number as the reference so we can match it.</p>
+                      <dl class="dl" style="margin: 0"><sc-for list="{{bank}}" as="b" hint-placeholder-count="4"><div><dt>{{b.k}}</dt><dd style="display: flex; gap: 8px; align-items: center; justify-content: space-between"><span style="overflow-wrap: anywhere">{{b.v}}</span><button class="btn2" style="min-height: 44px" onClick="{{b.copy}}">Copy</button></dd></div></sc-for></dl>
+                      <button class="btn bareBtn" onClick="{{iSent}}">I have sent it</button>
+                    </sc-if>
+                  </div>
+                </sc-if>
+              </sc-if>
+              <sc-if value="{{isQuote}}" hint-placeholder-val="{{ false }}">
+                <sc-if value="{{canAnswer}}" hint-placeholder-val="{{ false }}">
+                  <div class="dsBody" style="border-top: 1px solid var(--ad-line); display: flex; flex-direction: column; gap: 12px; padding-top: 18px">
+                    <h2 style="font-size: 17px; font-weight: 700">Your answer</h2>
+                    <p class="sub" style="font-size: 14px">{{answerNote}}</p>
+                    <div class="bareRow"><button class="btn" style="flex: 1; min-height: 48px; justify-content: center" onClick="{{accept}}" disabled="{{acceptDis}}">Accept this quote</button><button class="btn2" style="flex: 1; min-height: 48px; justify-content: center" onClick="{{decline}}">Decline</button></div>
+                    <button class="btn2" style="min-height: 48px; justify-content: center" onClick="{{ask}}">Ask a question first</button>
+                    <sc-if value="{{acceptDis}}" hint-placeholder-val="{{ false }}"><span class="hint">Tick at least one line to accept.</span></sc-if>
+                  </div>
+                </sc-if>
+              </sc-if>
+              <div class="dsBody" style="border-top: 1px solid var(--ad-line); padding-top: 14px"><div class="bareRow"><button class="btn2" style="min-height: 44px" onClick="{{download}}">Download PDF</button><button class="btn2" style="min-height: 44px" onClick="{{print}}">Print</button><button class="btn2" style="min-height: 44px" onClick="{{help}}">Need help?</button></div><sc-if value="{{hasNote}}" hint-placeholder-val="{{ false }}"><p style="margin-top: 12px; font-size: 13px; color: var(--ad-dim)">{{note}}</p></sc-if></div>
+            </div>

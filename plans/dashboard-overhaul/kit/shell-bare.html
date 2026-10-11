@@ -1,0 +1,12 @@
+      <div class="bare">
+        <header class="bareTop">
+          <a class="bareBrand" href="#" aria-label="WDC Studio"><img src="/_blob/8d65e7a72e711a196a8037a890959edf" width="36" height="36" alt="" style="border-radius: 50%; border: 1px solid var(--ad-line)"><span class="disp">WDC Studio</span></a>
+          <span style="flex: 1"></span>
+          <button class="ibtn" aria-label="{{themeLabel}}" onClick="{{toggleTheme}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="{{themeIcon}}"></path></svg></button>
+        </header>
+        <main id="main" class="bareMain">
+          <sc-if value="{{hasStates}}" hint-placeholder-val="{{ false }}"><div class="pvStates" role="group" aria-label="Preview this screen as"><span>Preview as</span><sc-for list="{{states}}" as="o" hint-placeholder-count="4"><button class="chip {{o.cls}}" aria-pressed="{{o.pressed}}" onClick="{{o.pick}}">{{o.t}}</button></sc-for></div></sc-if>
+          %%MAIN%%
+        </main>
+        <footer class="bareFoot"><span>WDC Studio</span><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Help</a></footer>
+      </div>

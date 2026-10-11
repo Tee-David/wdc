@@ -1120,6 +1120,37 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .mgCell.sel .mgMore{color:var(--ad-nav-on-ink)}
 .agenda{padding:8px 20px 20px;display:flex;flex-direction:column;gap:6px}.agTitle{font-size:15px;font-weight:700}
 .agRow{display:flex;align-items:center;gap:10px;padding:8px;border-radius:12px;width:100%;min-height:52px;border:1px solid var(--ad-line)}
+/* bare pages: sign in, public documents, booking, forms, system states */
+.bare{min-height:100%;display:flex;flex-direction:column;background:var(--ad-bg)}
+.bareTop{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--ad-line);background:var(--ad-bg);position:sticky;top:0;z-index:20}
+.bareBrand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;min-height:44px}
+.bareMain{flex:1;display:flex;flex-direction:column;align-items:center;gap:18px;padding:28px 16px 56px;width:100%}
+.bareFoot{align-items:center;display:flex;gap:16px;flex-wrap:wrap;justify-content:center;padding:18px 16px;border-top:1px solid var(--ad-line);font-size:13px;color:var(--ad-dim)}.bareFoot a{min-height:44px;display:inline-flex;align-items:center}
+.pvStates{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;font-size:12px;color:var(--ad-dim);width:100%;max-width:760px}
+.bareCard{width:100%;max-width:440px;background:var(--ad-panel);border:1px solid var(--ad-line);border-radius:20px;padding:28px 24px;display:flex;flex-direction:column;gap:16px;box-shadow:var(--ad-sh-1)}
+.bareCard.wide{max-width:760px}.bareCard.mid{max-width:600px}
+.bareCard h1{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;line-height:1.15}
+.bareCard .sub{color:var(--ad-dim);font-size:15px;line-height:1.5}
+.bareRow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.bareBtn{width:100%;min-height:48px;justify-content:center}
+.tickBig{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;background:var(--ad-tone-good);color:#fff;align-self:center}
+.codeRow{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}.codeRow .cbox{height:56px;border-radius:12px;border:1px solid var(--ad-line-2);background:var(--ad-panel);display:grid;place-items:center;font:700 22px 'Space Grotesk',sans-serif}.codeRow .cbox.on{border-color:var(--ad-ink);box-shadow:0 0 0 4px var(--ad-ring)}
+.errNote{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:var(--ad-tone-bad);color:#fff;font-size:14px}
+.okNote{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:var(--ad-tone-good);color:#fff;font-size:14px}
+.divOr{display:flex;align-items:center;gap:12px;color:var(--ad-dim);font-size:13px}.divOr:before,.divOr:after{content:"";flex:1;height:1px;background:var(--ad-line)}
+.reqList{display:flex;flex-direction:column;gap:6px;font-size:14px}.reqList li{display:flex;gap:8px;align-items:center;list-style:none}
+.docSheet{width:100%;max-width:760px;background:var(--ad-panel);border:1px solid var(--ad-line);border-radius:20px;overflow:hidden}
+.docSheet .dsHead{padding:22px 24px;display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:flex-start;border-bottom:1px solid var(--ad-line)}
+.docSheet .dsBody{padding:8px 24px 20px}
+.payOpt{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--ad-line-2);border-radius:14px;min-height:56px;width:100%;text-align:left;background:var(--ad-panel)}
+.payOpt.on{border-color:var(--ad-ink);box-shadow:0 0 0 4px var(--ad-ring)}
+.payOpt img{width:84px;height:28px;object-fit:contain;background:#fff;border-radius:8px;padding:2px 6px}
+.slotGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.slot{min-height:44px;border-radius:12px;border:1px solid var(--ad-line-2);background:var(--ad-panel);font-weight:600}.slot.on{background:var(--ad-nav-on);color:var(--ad-nav-on-ink);border-color:var(--ad-nav-on)}.slot[disabled]{opacity:.5;text-decoration:line-through}
+.stepDots{display:flex;gap:6px;justify-content:center}.stepDots span{width:8px;height:8px;border-radius:50%;background:var(--ad-line-2)}.stepDots span.on{background:var(--ad-ink)}
+.bigNum{font:700 64px 'Space Grotesk',sans-serif;line-height:1;text-align:center;color:var(--ad-ink)}
+.docMetaG{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+.docMetaG dt{font-size:12px;color:var(--ad-dim);margin-bottom:2px}
 
 </style>
 </helmet>
@@ -2595,7 +2626,7 @@ class Component extends DCLogic {
   openFile(f, push) {
     var self = this, I = this.icons();
     this.open(this.sh({ kind: 'file', wide: true, eyebrow: 'File · ' + (f.project || 'Library'), title: f.name, chip: f.fresh ? 'New' : '', tone: 'var(--ad-tone-live)', icon: I.file, iconTone: f.tone || 'var(--ad-tone-brand)', file: f,
-      rows: [{ k: 'Added', v: f.when }, { k: 'Size', v: f.size }, { k: 'By', v: f.by || 'The studio' }],
+      rows: [{ k: 'Added', v: f.when }, { k: 'Size', v: f.size }, { k: 'By', v: f.by || 'The studio' }], feedTitle: 'Versions and responses', feed: (f.versions || []).map(function (v) { return { t: v.t, when: v.when }; }),
       primary: 'Download', secondary: 'Ask about this file',
       onPrimary: function () { self.say('Downloading ' + f.name + ' (' + f.size + ')'); },
       onSecondary: function () { self.ask({ eyebrow: 'Message', title: 'Ask about ' + f.name, body: 'It goes to the person who shared the file, with the file attached.', input: true, inputLabel: 'Your question', inputPh: 'For example: can we see the leaf a little thinner?', ok: 'Send question', back: true, okToast: 'Sent. Replies come to Messages and your email.', icon: I.msg }, true); return 'stay'; } }), push);

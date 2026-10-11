@@ -175,6 +175,12 @@
     this.persist(nd); this.go(nd.no);
   }
   preview() { var d = this.D(), T = this.docTotals(d); this.openFile({ name: d.no + '.pdf', project: d.client ? d.client.name : '', view: 'doc', ref: d.no, docTitle: (d.kind === 'quote' ? 'Quote · ' : 'Invoice · ') + this.docMoney(d, T.total), when: this.fmtDate(d.issued), size: '190 KB', tone: 'var(--ad-tone-bad)' }); }
+  remSteps(d) { var base = [['b3', 'Friendly note', -3, 'Three days before it is due'], ['d0', 'On the due date', 0, 'The day it is due'], ['a3', 'Polite reminder', 3, 'Three days late'], ['a7', 'Weekly nudge', 7, 'Every week after that, until paid'], ['a14', 'Final notice', 14, 'Fourteen days late. Says work pauses.']], on = d.rem || { b3: true, d0: true, a3: true, a7: false, a14: true }; return base.map(function (x) { return { k: x[0], t: x[1], off: x[2], note: x[3], on: !!on[x[0]] }; }); }
+  editRem() {
+    var self = this, I = this.icons(), d = this.D(), steps = this.remSteps(d);
+    this.open(this.sh({ eyebrow: 'Reminders', title: 'Reminders for ' + d.no, icon: I.mail, keepOpen: true, body: 'Each one is an email with the Paystack and Flutterwave link. They stop the moment the invoice is paid or cancelled. This schedule is for this invoice only. The default is in Settings.', form: { on: steps.filter(function (x) { return x.on; }).map(function (x) { return x.t; }) }, chipSets: [{ key: 'on', label: 'Send these', multi: true, opts: steps.map(function (x) { return x.t; }), hint: 'The final notice is the firmest message we send.' }], primary: 'Save the schedule', secondary: 'Cancel',
+      onPrimary: function (ctx) { var r = {}; steps.forEach(function (x) { r[x.k] = ctx.form.on.indexOf(x.t) >= 0; }); var nd = self.log(Object.assign({}, self.D(), { rem: r }), 'Reminder schedule changed'); self.persist(nd); self.setState({ doc: nd, ra: self.state.ra + 1 }); self.say('Saved. ' + Object.keys(r).filter(function (k) { return r[k]; }).length + ' reminders are set for ' + d.no + '.'); } }));
+  }
   popItems(pop) {
     var self = this, I = this.icons(), it = this.menuItem.bind(this), d = this.D(), T = this.docTotals(d);
     if (pop.kind === 'line') return this.lineMenu(+pop.id);
@@ -225,6 +231,7 @@
     var lede = edit ? (d.client ? 'For ' + d.client.name + '. ' : 'Choose a client first. ') + 'Nothing is sent until you confirm the email.' : (d.client ? d.client.name : '') + (d.project ? ' · ' + d.project : '') + ' · ' + (isQ ? 'sent ' : 'issued ') + this.fmtDate(d.issued) + ' ·';
     var discOn = d.disc && d.disc.type !== 'none';
     return Object.assign(this.kit(), this.extraVals ? this.extraVals() : {}, {
+      hasRem: !edit && !isQ && !d.cancelled && !isPaid, remNote: 'Stops by itself when it is paid.', editRem: function () { self.editRem(); }, remRows: this.remSteps(d).map(function (x) { var iso = self.addDays(d.due, x.off), past = iso < self.today(), t = self.today() === iso; return { t: x.t, when: x.on ? self.fmtDate(iso) + ' · ' + x.note : 'Off · ' + x.note, state: !x.on ? 'Off' : (past ? 'Sent' : (t ? 'Today' : 'Booked')), tone: !x.on ? 'var(--ad-tone-flat)' : (past ? 'var(--ad-tone-good)' : (t ? 'var(--ad-tone-live)' : 'var(--ad-tone-brand)')), ink: !x.on ? 'var(--ad-on-flat)' : '#fff' }; }),
       pageTitle: title, chip: chip, chipTone: chipTone, chipInk: ink(chipTone), lede: lede, ledeB: edit ? '' : ledeB, isView: !edit, isEdit: edit, isQuote: isQ,
       act1: a1[1] || function () {}, act1Label: a1[0], act1Dis: !!a1[2], act2: a2[1] || function () {}, act2Label: a2[0],
       saveDraft: function () { if (d.sent) self.cancelEdit(); else self.saveDraft(); }, saveLabel: d.sent ? 'Discard changes' : 'Save draft', review: function () { self.review(); }, reviewLabel: d.sent ? 'Send corrected copy' : (isQ ? 'Review and send' : 'Review and send'),
