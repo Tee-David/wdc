@@ -9,7 +9,7 @@
       pal: false, q: '', hi: 0, pa: 0, tour: -1, tourKind: 'page', toast: null, ta: 0, menu: null, pop: null, dq: '',
       draft: '', reason: '', ack: false, spick: -1, ck: {}, vis: 'team', zoom: 1, cmt: '', comments: {},
       gone: {}, snoozed: {}, leaving: null, leaveKind: 'done', stampAt: null, enterN: 0, segPop: -1,
-      installing: false, installHidden: !!pref.installHidden, celebrated: false, form: {}, lq: '', lpg: 0, lcreate: false, lcf: {}, lextra: [], lsel: {}, ui: null, bsel: {}, flt: {}
+      installing: false, installHidden: !!pref.installHidden, celebrated: false, form: {}, lq: '', lpg: 0, lcreate: false, lcf: {}, lextra: [], lsel: {}, ui: null, bsel: {}, flt: {}, edMode: 'write', hc: this.shared('helpCats', null), ha: this.shared('helpArts', {}), hn: this.shared('helpNew', []), paused: this.shared('paused', { 'kora-app': { reason: 'Build paused until milestone 2 is paid', since: 'Sat 26 Sep', by: 'Babatope A.' } })
     }, this.extraState ? this.extraState() : {}, this.pageState ? this.pageState() : {});
     this._per = {};
   }
@@ -52,6 +52,7 @@
     else if (s.tour >= 0) this.queueTour();
     var f = this._foc;
     if (f) { var fe = document.getElementById(f.id); if (fe && document.activeElement !== fe) { try { fe.focus({ preventScroll: true }); if (f.s != null && fe.setSelectionRange) fe.setSelectionRange(f.s, f.e); } catch (err) { /* some input types have no caret */ } } }
+    if (s.sheet && s.sheet.watch) s.sheet.watch(this.sheetCtx(), s);
     if (this.pageDidUpdate) this.pageDidUpdate(ps);
   }
 
@@ -102,9 +103,12 @@
   open(sh, push) {
     var s = this.state;
     var stack = push && s.sheet ? s.stack.concat([{ sheet: s.sheet, draft: s.draft, reason: s.reason, ack: s.ack, spick: s.spick, ck: s.ck, zoom: s.zoom, form: s.form, lextra: s.lextra, lsel: s.lsel, lq: s.lq, lpg: s.lpg }]) : [];
-    this.setState({ sheet: sh, stack: stack, sheetFull: false, bell: false, pal: false, drawer: false, menu: null, pop: null, tour: -1, draft: sh.draft || '', reason: '', ack: false, ck: {}, spick: sh.pick != null ? sh.pick : -1, vis: sh.vis || 'team', zoom: 1, cmt: '', form: Object.assign({}, sh.form || {}), lq: '', lpg: 0, lcreate: false, lcf: {}, lextra: [], lsel: Object.assign({}, sh.lsel || {}), ui: null });
+    this.setState({ sheet: sh, stack: stack, sheetFull: false, bell: false, pal: false, drawer: false, menu: null, pop: null, tour: -1, draft: sh.draft || '', reason: '', ack: false, ck: {}, spick: sh.pick != null ? sh.pick : -1, vis: sh.vis || 'team', zoom: 1, cmt: '', form: Object.assign({}, sh.form || {}), lq: '', lpg: 0, lcreate: false, lcf: {}, lextra: [], lsel: Object.assign({}, sh.lsel || {}), ui: null, edMode: 'write' });
   }
-  closeSheet() { var self = this; this.exitThen('.sheetP, .sheetP ~ .scrim, .scrim', function () { self.setState({ sheet: null, stack: [], sheetFull: false }); }); }
+  closeSheet(force) {
+    var self = this, raw = this.state.sheet;
+    if (!force && raw && raw.guard && raw.guard(this.sheetCtx(), this.state)) { this.ask({ eyebrow: 'Unsaved', title: 'Close without saving?', body: raw.guardBody || 'What you have written here will be lost.', ok: 'Close without saving', cancel: 'Keep writing', danger: true, icon: this.icons().alert, tone: 'var(--ad-tone-warn)', onOk: function () { self.setState({ stack: [] }); self.closeSheet(true); } }, true); return; }
+    this.exitThen('.sheetP, .sheetP ~ .scrim, .scrim', function () { self.setState({ sheet: null, stack: [], sheetFull: false }); }); }
   sheetBack() {
     var s = this.state; if (!s.stack.length) { this.closeSheet(); return; }
     var prev = s.stack[s.stack.length - 1];
@@ -427,11 +431,12 @@
     if (raw.ack && !ctx.ack) { dis = 'y'; reqText = 'Tick "I understand" to continue.'; }
     if (raw.select && raw.selectRequired !== false && (raw.multi ? ctx.picks.length === 0 : ctx.pick < 0)) { dis = 'y'; reqText = raw.selectWhy || 'Choose one to continue.'; }
     if (raw.primaryDis) { var pd = raw.primaryDis(ctx, s); if (pd) { dis = 'y'; reqText = pd; } }
+    var galRaw = typeof raw.gallery === 'function' ? raw.gallery(s) : (raw.gallery || []), galEmpty = typeof raw.galleryEmpty === 'function' ? raw.galleryEmpty(s) : false;
     var sheet = Object.assign({}, raw, {
-      back: s.stack.length > 0, hasChip: !!raw.chip, hasIcon: !!raw.icon, icon: raw.icon || '', iconTone: raw.iconTone || 'var(--ad-tone-brand)', hasRows: raw.rows.length > 0, hasBody: !!raw.body, hasPreview: !!raw.preview, preview: raw.preview || {},
+      hasGallery: galRaw.length > 0, gallery: galRaw, galleryEmpty: galEmpty, back: s.stack.length > 0, hasChip: !!raw.chip, hasIcon: !!raw.icon, icon: raw.icon || '', iconTone: raw.iconTone || 'var(--ad-tone-brand)', hasRows: raw.rows.length > 0, hasBody: !!raw.body, hasPreview: !!raw.preview, preview: raw.preview || {},
       hasList: list.length > 0 || ss.has, list: list, ss: ss, listRole: raw.select ? (raw.multi ? 'group' : 'radiogroup') : 'list', hasChecks: checks.length > 0, checks: checks, checksTitle: raw.checksTitle || 'Checklist', checksDone: ckDone + ' of ' + checks.length, checksPct: checks.length ? Math.round(ckDone / checks.length * 100) : 0,
       hasFeed: raw.feed.length > 0, hasNote: !!raw.note, reason: !!raw.reason, reasonLabel: raw.reason ? raw.reason.label : '', reasonPh: raw.reason ? raw.reason.ph : '', ack: !!raw.ack, ackText: raw.ack || '',
-      hasFields: fields.length > 0, fields: fields, fieldsCls: raw.chipsFirst ? 'fieldsLate' : '', chipsCls: raw.chipsFirst ? 'chipsMid' : '', hasChipSets: chipSets.length > 0, chipSets: chipSets, hasNotice: !!notice, notice: notice || {}, primaryLabel: plabel, primaryCls: raw.danger ? 'btnD' : (raw.green ? 'btnG' : 'btn'), primaryDis: !!dis, why: reqText, hasSecondary: !!raw.secondary, secondaryLabel: typeof raw.secondary === 'function' ? raw.secondary(ctx, s) : raw.secondary, chip: typeof raw.chip === 'function' ? raw.chip(ctx, s) : raw.chip, tone: typeof raw.tone === 'function' ? raw.tone(ctx, s) : raw.tone, hasFoot: !raw.noFoot, busy: !!raw.busy
+      hasFields: fields.length > 0, fields: fields, fieldsCls: raw.chipsFirst ? 'fieldsLate' : '', listCls: raw.chipsFirst ? 'listLate' : '', chipsCls: raw.chipsFirst ? 'chipsMid' : '', hasChipSets: chipSets.length > 0, chipSets: chipSets, hasNotice: !!notice, notice: notice || {}, primaryLabel: plabel, primaryCls: raw.danger ? 'btnD' : (raw.green ? 'btnG' : 'btn'), primaryDis: !!dis, why: reqText, hasSecondary: !!raw.secondary, secondaryLabel: typeof raw.secondary === 'function' ? raw.secondary(ctx, s) : raw.secondary, chip: typeof raw.chip === 'function' ? raw.chip(ctx, s) : raw.chip, tone: typeof raw.tone === 'function' ? raw.tone(ctx, s) : raw.tone, hasFoot: !raw.noFoot, busy: !!raw.busy
     });
     var popItems = [];
     if (s.pop) {
@@ -458,7 +463,7 @@
       installApp: function () { if (self.state.installing) return; self.setState({ installing: true, drawer: false }); setTimeout(function () { self.setState({ installing: false, push: true }); self.say('WDC is on this device. Notifications are on.'); }, self.reduce ? 200 : 1900); },
       hideInstall: function () { self.setState({ installHidden: true, drawer: false }); self.say('Hidden. We will offer it again in 30 days. Install any time from Settings.', { undo: function () { self.setState({ installHidden: false }); } }); },
       drawer: s.drawer, openDrawer: function () { self.setState({ drawer: true }); }, closeDrawer: function () { self.exitThen('.drawerP, .scrim', function () { self.setState({ drawer: false }); }); },
-      sheetOpen: !!s.sheet, sheet: sheet, sheetCls: (raw.wide ? 'wide ' : '') + (s.sheetFull ? 'full' : ''),
+      sheetOpen: !!s.sheet, sheet: sheet, sheetCls: (raw.xl ? 'xl ' : '') + (raw.wide ? 'wide ' : '') + (s.sheetFull ? 'full' : ''),
       closeSheet: function () { self.closeSheet(); }, sheetBack: function () { self.sheetBack(); },
       sheetKey: function () {}, edgeGrab: function (e) { self.edgeStart(e); }, edgeReset: function () { var el = document.getElementById('sheetEl'); if (el) el.style.removeProperty('--shW'); }, grabSheet: function (e) { self.grabStart(e, '#sheetEl', function () { self.setState({ sheet: null, stack: [], sheetFull: false }); }); },
       sheetPrimary: function () { self.runSheet('p'); }, sheetSecondary: function () { if (!self.state.sheet || !self.state.sheet.secondary) return; self.runSheet('s'); },

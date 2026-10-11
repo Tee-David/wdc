@@ -17,21 +17,23 @@
                 <section class="card cq rise d2" aria-label="Money records" data-tour="table" style="overflow: hidden">
                   <div style="display: flex; align-items: center; gap: 10px; padding: 16px 20px 12px; flex-wrap: wrap">
                     <h2 style="font-size: 17px; font-weight: 700">{{tabTitle}}</h2>
-                    <span class="tag num" style="background: var(--ad-tone-flat); color: var(--ad-on-flat)">{{total}}</span>
+                    <sc-if value="{{notReports}}" hint-placeholder-val="{{ true }}"><span class="tag num" style="background: var(--ad-tone-flat); color: var(--ad-on-flat)">{{total}}</span></sc-if>
                     <span style="flex: 1"></span>
-                    <label class="sfield">
+                    <sc-if value="{{notReports}}" hint-placeholder-val="{{ true }}">                    <label class="sfield">
                       <svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="color: var(--ad-dim)"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"></path></svg>
                       <span class="sr">Search</span>
                       <input id="pgq" value="{{q}}" onChange="{{onQ}}" placeholder="{{qPh}}">
                       <sc-if value="{{hasQ}}" hint-placeholder-val="{{ false }}"><button class="clr" aria-label="Clear search" onClick="{{clearQ}}"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></sc-if>
                     </label>
-                    <button class="btn2" style="min-height: 44px" onClick="{{tabAct}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="{{tabActD}}"></path></svg>{{tabActLabel}}</button>
+                    <button class="btn2" style="min-height: 44px" onClick="{{tabAct}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="{{tabActD}}"></path></svg>{{tabActLabel}}</button></sc-if>
+                    <sc-if value="{{isReports}}" hint-placeholder-val="{{ false }}"><button class="btn2" style="min-height: 44px" onClick="{{RV.exportReport}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>Export</button><button class="btn2" style="min-height: 44px" onClick="{{RV.scheduleReport}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM22 6l-10 7L2 6"></path></svg>Email it</button></sc-if>
                   </div>
                   <div role="tablist" aria-label="Money records" class="tabs">
                     <sc-for list="{{tabs}}" as="tb" hint-placeholder-count="5">
-                      <button role="tab" class="tab {{tb.cls}}" aria-selected="{{tb.sel}}" onClick="{{tb.pick}}">{{tb.label}}<span class="tag num" style="background: {{tb.chip}}; color: {{tb.ink}}; height: 20px; padding: 0 7px">{{tb.n}}</span></button>
+                      <button role="tab" class="tab {{tb.cls}}" aria-selected="{{tb.sel}}" onClick="{{tb.pick}}">{{tb.label}}<sc-if value="{{tb.hasN}}" hint-placeholder-val="{{ true }}"><span class="tag num" style="background: {{tb.chip}}; color: {{tb.ink}}; height: 20px; padding: 0 7px">{{tb.n}}</span></sc-if></button>
                     </sc-for>
                   </div>
+                  <sc-if value="{{notReports}}" hint-placeholder-val="{{ true }}">
                   <div class="chips svcChips" role="group" aria-label="Filter" style="padding: 12px 20px"><sc-for list="{{chips}}" as="c" hint-placeholder-count="5"><button class="chip {{c.cls}}" aria-pressed="{{c.pressed}}" onClick="{{c.pick}}">{{c.t}}<span class="num" style="opacity: .75">{{c.n}}</span></button></sc-for></div>
                   %%TOOLS:TMO:Money%%
                   <div class="tblWrap" tabindex="0" aria-label="Table, scrolls sideways">
@@ -57,6 +59,42 @@
                     </sc-if>
                   </div>
                   %%PAGER:MP:Record%%
+                  </sc-if>
+                  <sc-if value="{{isReports}}" hint-placeholder-val="{{ false }}">
+                    <div class="repWrap">
+                      <div class="repParams" role="group" aria-label="Report parameters">
+                        <div class="repRow"><span class="repLbl">Period</span><div class="chips"><sc-for list="{{RV.period}}" as="c" hint-placeholder-count="6"><button class="chip {{c.cls}}" aria-pressed="{{c.pressed}}" onClick="{{c.pick}}">{{c.t}}</button></sc-for></div></div>
+                        <div class="repRow"><span class="repLbl">Compare with</span><div class="chips"><sc-for list="{{RV.compare}}" as="c" hint-placeholder-count="3"><button class="chip {{c.cls}}" aria-pressed="{{c.pressed}}" onClick="{{c.pick}}">{{c.t}}</button></sc-for></div></div>
+                        <div class="repRow"><span class="repLbl">Group the trend</span><div class="chips"><sc-for list="{{RV.groupBy}}" as="c" hint-placeholder-count="4"><button class="chip {{c.cls}}" aria-pressed="{{c.pressed}}" onClick="{{c.pick}}">{{c.t}}</button></sc-for></div></div>
+                        <div class="repRow"><span class="repLbl">Currency</span><div class="chips"><sc-for list="{{RV.curr}}" as="c" hint-placeholder-count="2"><button class="chip {{c.cls}}" aria-pressed="{{c.pressed}}" onClick="{{c.pick}}">{{c.t}}</button></sc-for></div></div>
+                        <div class="repRow"><span class="repLbl">Filters</span><div class="chips"><button class="btn2 tbBtn" onClick="{{RV.moreParams}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M22 3H2l8 9.46V19l4 2v-8.54z"></path></svg>More parameters</button><sc-for list="{{RV.chips}}" as="fc" hint-placeholder-count="0"><button class="fChip" aria-label="{{fc.aria}}" onClick="{{fc.remove}}">{{fc.t}}<svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></sc-for><button class="lnk" onClick="{{RV.clearParams}}">Reset</button><button class="lnk" onClick="{{RV.saveView}}">Save this view</button></div></div>
+                        <sc-if value="{{RV.hasSaved}}" hint-placeholder-val="{{ false }}"><div class="repRow"><span class="repLbl">Saved views</span><div class="chips"><sc-for list="{{RV.savedViews}}" as="sv" hint-placeholder-count="1"><span class="savedV"><button class="chip" onClick="{{sv.pick}}">{{sv.t}}</button><button class="svX" aria-label="Remove the saved view {{sv.t}}" onClick="{{sv.remove}}"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></span></sc-for></div></div></sc-if>
+                      </div>
+                      <p class="repSpan num">{{RV.spanLabel}}</p>
+                      <sc-if value="{{RV.empty}}" hint-placeholder-val="{{ false }}"><div class="emptyRow"><strong>No invoices match these parameters.</strong><span style="color: var(--ad-dim)">Loosen a filter or choose a longer period.</span><button class="btn2" onClick="{{RV.clearParams}}">Reset the report</button></div></sc-if>
+                      <div class="repKpis"><sc-for list="{{RV.kpis}}" as="k" hint-placeholder-count="6"><div class="repK" role="group" aria-label="{{k.aria}}"><span class="statHd"><span class="statIc" style="background: {{k.tile}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="{{k.ic}}"></path></svg></span><span class="statLbl">{{k.label}}</span></span><span class="num repV">{{k.value}}</span><span class="repN" style="color: {{k.col}}">{{k.note}}</span></div></sc-for></div>
+                      <section class="repBlk" aria-label="Trend">
+                        <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap"><h3 class="repH">Invoiced and collected</h3><span style="font-size: 13px; color: var(--ad-dim)">{{RV.groupLabel}}</span></div>
+                        <div class="chartBox" onMouseLeave="{{RV.clearHover}}">
+                          <div style="position: relative"><sc-for list="{{RV.ticks}}" as="tk" hint-placeholder-count="3"><span class="ylab num" style="bottom: {{tk.b}}%">{{tk.l}}</span></sc-for></div>
+                          <div class="plot {{RV.plotCls}}"><sc-for list="{{RV.ticks}}" as="tk" hint-placeholder-count="3"><span class="gridl" style="bottom: {{tk.b}}%"></span></sc-for>
+                            <sc-for list="{{RV.bars}}" as="b" hint-placeholder-count="6"><button class="barG {{b.cls}}" onMouseEnter="{{b.enter}}" onFocus="{{b.enter}}" onClick="{{b.enter}}" aria-label="{{b.aria}}" style="background: {{b.bg}}"><span class="bar" style="height: {{b.hi}}%; background: var(--ad-series-1); animation-delay: {{b.delay}}"></span><span class="bar" style="height: {{b.hc}}%; background: var(--ad-series-2); animation-delay: {{b.delay}}"></span></button></sc-for>
+                            <sc-if value="{{RV.hasTip}}" hint-placeholder-val="{{ false }}"><div class="ctip" role="status" style="left: {{RV.tip.left}}%; bottom: calc({{RV.tip.b}}% + 10px); transform: translateX({{RV.tip.tx}})"><strong>{{RV.tip.m}}</strong><br><span class="num">{{RV.tip.a}} invoiced</span><br><span class="num">{{RV.tip.c}} collected</span></div></sc-if></div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 38px minmax(0, 1fr)"><span></span><div style="display: flex; gap: 6px"><sc-for list="{{RV.bars}}" as="b" hint-placeholder-count="6"><span class="mlab {{b.lcls}}">{{b.m}}</span></sc-for></div></div>
+                        <div style="display: flex; gap: 14px; font-size: 12px; color: var(--ad-dim); flex-wrap: wrap"><span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: var(--ad-series-1)"></span>Invoiced</span><span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: var(--ad-series-2)"></span>Collected</span></div>
+                      </section>
+                      <div class="repGrid">
+                        <section class="repBlk" aria-label="By service"><h3 class="repH">Collected by service</h3><sc-for list="{{RV.bySvc}}" as="x" hint-placeholder-count="4"><button class="rbRow" onClick="{{x.pick}}" aria-label="{{x.aria}}"><span class="rbT"><strong>{{x.t}}</strong><span class="num">{{x.v}} · {{x.share}}</span></span><span class="rbBarW"><span class="rbBar2" style="width: {{x.pct}}%; background: {{x.tone}}"></span></span></button></sc-for></section>
+                        <section class="repBlk" aria-label="By payment method"><h3 class="repH">Collected by payment method</h3><sc-for list="{{RV.byWay}}" as="x" hint-placeholder-count="4"><button class="rbRow" onClick="{{x.pick}}" aria-label="{{x.aria}}"><span class="rbT"><strong>{{x.t}}</strong><span class="num">{{x.v}} · {{x.share}}</span></span><span class="rbBarW"><span class="rbBar2" style="width: {{x.pct}}%; background: {{x.tone}}"></span></span></button></sc-for></section>
+                        <section class="repBlk" aria-label="By client"><h3 class="repH">Top clients by money collected</h3><sc-for list="{{RV.clients}}" as="x" hint-placeholder-count="5"><button class="rbRow" onClick="{{x.pick}}" aria-label="{{x.aria}}"><span class="rbT"><strong>{{x.t}}</strong><span class="num">{{x.v}} · {{x.share}}</span></span><span class="rbBarW"><span class="rbBar2" style="width: {{x.pct}}%; background: {{x.tone}}"></span></span></button></sc-for><sc-if value="{{RV.hasClientPg}}" hint-placeholder-val="{{ false }}">%%PAGER:RV.CL:Client%%</sc-if></section>
+                        <section class="repBlk" aria-label="Ageing"><h3 class="repH">What is still open <span class="num" style="font-weight: 500; color: var(--ad-dim)">{{RV.ageTotal}}</span></h3><sc-for list="{{RV.age}}" as="x" hint-placeholder-count="4"><button class="rbRow" onClick="{{x.pick}}" aria-label="{{x.aria}}"><span class="rbT"><strong>{{x.t}}</strong><span class="num">{{x.v}} · {{x.n}}</span></span><span class="rbBarW"><span class="rbBar2" style="width: {{x.pct}}%; background: {{x.tone}}"></span></span></button></sc-for></section>
+                        <sc-if value="{{RV.hasExp}}" hint-placeholder-val="{{ false }}"><section class="repBlk" aria-label="Expenses"><h3 class="repH">Spent by category</h3><sc-for list="{{RV.byExp}}" as="x" hint-placeholder-count="4"><button class="rbRow" onClick="{{x.pick}}" aria-label="{{x.aria}}"><span class="rbT"><strong>{{x.t}}</strong><span class="num">{{x.v}} · {{x.share}}</span></span><span class="rbBarW"><span class="rbBar2" style="width: {{x.pct}}%; background: {{x.tone}}"></span></span></button></sc-for></section></sc-if>
+                        <sc-if value="{{RV.hasScheds}}" hint-placeholder-val="{{ false }}"><section class="repBlk" aria-label="Scheduled reports"><h3 class="repH">Emailed on a schedule</h3><sc-for list="{{RV.scheds}}" as="x" hint-placeholder-count="1"><div class="rbRow" style="flex-direction: row; align-items: center; gap: 10px"><span class="rbT" style="flex: 1"><strong>{{x.t}}</strong><span>{{x.s}}</span></span><button class="btn2" style="min-height: 44px" onClick="{{x.remove}}">Stop</button></div></sc-for></section></sc-if>
+                      </div>
+                    </div>
+                  </sc-if>
+
                 </section>
               </div>
 

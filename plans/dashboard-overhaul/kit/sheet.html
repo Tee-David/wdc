@@ -47,6 +47,8 @@
               </div>
               <div style="border-radius: 16px; background: var(--ad-panel-2); border: 1px solid var(--ad-line); padding: 18px; overflow: auto; max-height: 520px; overscroll-behavior: contain">
                 <div style="transform: scale({{zoom}}); transform-origin: top center; transition: transform .3s var(--ease)">
+                  <sc-if value="{{file.isImage}}" hint-placeholder-val="{{ false }}"><img src="{{file.url}}" alt="{{sheet.title}}" style="display: block; max-width: 100%; margin: 0 auto; border-radius: 10px"></sc-if>
+                  <sc-if value="{{file.isVideo}}" hint-placeholder-val="{{ false }}"><video src="{{file.url}}" controls playsinline style="display: block; max-width: 100%; margin: 0 auto; border-radius: 10px"></video></sc-if>
                   <sc-if value="{{file.isDoc}}" hint-placeholder-val="{{ false }}">
                     <div style="position: relative; aspect-ratio: 1 / 1.414; max-width: 380px; margin: 0 auto; background: #fff; color: #0e0e2c; border-radius: 6px; box-shadow: var(--ad-sh-2); padding: 26px 24px; display: flex; flex-direction: column; gap: 10px; overflow: hidden">
                       <span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font: 700 64px 'Space Grotesk',sans-serif; color: rgb(0 0 101/.05); transform: rotate(-28deg); pointer-events: none">WDC</span>
@@ -179,7 +181,7 @@
           </sc-if>
 
           <sc-if value="{{sheet.hasList}}" hint-placeholder-val="{{ false }}">
-            <div style="display: flex; flex-direction: column; gap: 8px" role="{{sheet.listRole}}" aria-label="{{sheet.listTitle}}">
+            <div class="{{sheet.listCls}}" style="display: flex; flex-direction: column; gap: 8px" role="{{sheet.listRole}}" aria-label="{{sheet.listTitle}}">
               <h3 style="font-size: 15px; font-weight: 700">{{sheet.listTitle}}</h3>
               <sc-if value="{{sheet.ss.has}}" hint-placeholder-val="{{ false }}">
                 <div class="ssHead">
@@ -214,6 +216,8 @@
             </div>
           </sc-if>
 
+          <sc-if value="{{sheet.hasGallery}}" hint-placeholder-val="{{ false }}"><div class="galGrid" role="list"><sc-for list="{{sheet.gallery}}" as="g" hint-placeholder-count="6"><button class="galTile" role="listitem" aria-label="{{g.aria}}" onClick="{{g.open}}"><sc-if value="{{g.isVideo}}" hint-placeholder-val="{{ false }}"><video src="{{g.url}}" muted playsinline preload="metadata"></video><span class="vidTag">Video</span></sc-if><sc-if value="{{g.isImage}}" hint-placeholder-val="{{ true }}"><img src="{{g.url}}" alt="" loading="lazy"></sc-if><span class="galSub">{{g.sub}}</span></button></sc-for></div></sc-if>
+          <sc-if value="{{sheet.galleryEmpty}}" hint-placeholder-val="{{ false }}"><div class="ssNone">No pictures or video yet.</div></sc-if>
           <sc-if value="{{sheet.hasFields}}" hint-placeholder-val="{{ false }}">
             <div class="formGrid {{sheet.fieldsCls}}"><sc-for list="{{sheet.fields}}" as="fd" hint-placeholder-count="3">
               <sc-if value="{{fd.isPlain}}" hint-placeholder-val="{{ true }}"><label class="field {{fd.cls}}"><span>{{fd.label}}</span><sc-if value="{{fd.isInput}}" hint-placeholder-val="{{ true }}"><input class="input" id="{{fd.id}}" type="{{fd.type}}" inputmode="{{fd.mode}}" value="{{fd.value}}" placeholder="{{fd.ph}}" onChange="{{fd.on}}"></sc-if><sc-if value="{{fd.isArea}}" hint-placeholder-val="{{ false }}"><textarea class="area" id="{{fd.id}}" style="min-height: 90px" value="{{fd.value}}" placeholder="{{fd.ph}}" onChange="{{fd.on}}"></textarea></sc-if><sc-if value="{{fd.hasHint}}" hint-placeholder-val="{{ false }}"><span class="{{fd.hintCls}}">{{fd.hint}}</span></sc-if></label></sc-if>
@@ -242,6 +246,31 @@
                   <div class="chips" role="group" aria-label="Common times"><sc-for list="{{fd.quick}}" as="qk" hint-placeholder-count="4"><button type="button" class="chip {{qk.cls}}" onClick="{{qk.pick}}">{{qk.t}}</button></sc-for></div>
                   <div class="timeList" role="listbox" aria-label="Times"><sc-for list="{{fd.rows}}" as="tr" hint-placeholder-count="5"><button type="button" role="option" aria-selected="{{tr.sel}}" class="timeRow {{tr.cls}}" onClick="{{tr.pick}}">{{tr.t}}</button></sc-for><sc-if value="{{fd.none}}" hint-placeholder-val="{{ false }}"><span class="ssNone">{{fd.noneText}}</span></sc-if></div>
                   <div class="calFoot"><button type="button" class="btn2" style="min-height: 40px; margin-left: auto" onClick="{{fd.closeCal}}">Close</button></div>
+                </div>
+              </sc-if>
+              <sc-if value="{{fd.isEditor}}" hint-placeholder-val="{{ false }}">
+                <div class="field wideF"><span>{{fd.label}} <span class="num" style="color: var(--ad-dim); font-weight: 500">{{fd.stats}}</span></span>
+                  <div class="edBox">
+                    <div class="edBar" role="toolbar" aria-label="Formatting">
+                      <div class="seg" role="group" aria-label="Write or preview" style="--n: 2; --i: {{fd.modeI}}; width: 168px"><span class="pill" aria-hidden="true"></span><button type="button" class="{{fd.wCls}}" aria-pressed="{{fd.wPress}}" onClick="{{fd.setWrite}}">Write</button><button type="button" class="{{fd.pCls}}" aria-pressed="{{fd.pPress}}" onClick="{{fd.setPrev}}">Preview</button></div>
+                      <sc-if value="{{fd.isWrite}}" hint-placeholder-val="{{ true }}"><span class="edTools"><sc-for list="{{fd.tools}}" as="tl" hint-placeholder-count="8"><button type="button" class="edT" title="{{tl.label}}" aria-label="{{tl.label}}" onClick="{{tl.fn}}"><svg class="ic" viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="{{tl.d}}"></path></svg></button></sc-for><label class="edT fileBtn" title="Add a picture" aria-label="Add a picture in the text"><svg class="ic" viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM8.5 10a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM21 15l-5-5L5 21"></path></svg><input type="file" accept="image/*" onChange="{{fd.onPic}}"></label></span></sc-if>
+                    </div>
+                    <sc-if value="{{fd.isWrite}}" hint-placeholder-val="{{ true }}"><textarea class="edArea" id="{{fd.id}}" placeholder="{{fd.ph}}" value="{{fd.value}}" onChange="{{fd.on}}" onKeyDown="{{fd.onKey}}"></textarea></sc-if>
+                    <sc-if value="{{fd.isPrev}}" hint-placeholder-val="{{ false }}"><article class="edPrev" aria-label="Preview">
+                      <sc-if value="{{fd.hasCover}}" hint-placeholder-val="{{ false }}"><img class="edCover" src="{{fd.cover}}" alt=""></sc-if>
+                      <strong class="edTitle">{{fd.title}}</strong>
+                      <sc-if value="{{fd.noBlocks}}" hint-placeholder-val="{{ false }}"><p class="edEmpty">Nothing to preview yet. Write something and it appears here the way readers see it.</p></sc-if>
+                      <sc-for list="{{fd.blocks}}" as="bk" hint-placeholder-count="3">
+                        <sc-if value="{{bk.isH2}}" hint-placeholder-val="{{ false }}"><h2><sc-for list="{{bk.runs}}" as="rn" hint-placeholder-count="2"><sc-if value="{{rn.plain}}" hint-placeholder-val="{{ true }}">{{rn.t}}</sc-if><sc-if value="{{rn.bold}}" hint-placeholder-val="{{ false }}"><strong>{{rn.t}}</strong></sc-if><sc-if value="{{rn.em}}" hint-placeholder-val="{{ false }}"><em>{{rn.t}}</em></sc-if><sc-if value="{{rn.link}}" hint-placeholder-val="{{ false }}"><a class="mdA" href="{{rn.href}}">{{rn.t}}</a></sc-if></sc-for></h2></sc-if>
+                        <sc-if value="{{bk.isH3}}" hint-placeholder-val="{{ false }}"><h3><sc-for list="{{bk.runs}}" as="rn" hint-placeholder-count="2"><sc-if value="{{rn.plain}}" hint-placeholder-val="{{ true }}">{{rn.t}}</sc-if><sc-if value="{{rn.bold}}" hint-placeholder-val="{{ false }}"><strong>{{rn.t}}</strong></sc-if><sc-if value="{{rn.em}}" hint-placeholder-val="{{ false }}"><em>{{rn.t}}</em></sc-if><sc-if value="{{rn.link}}" hint-placeholder-val="{{ false }}"><a class="mdA" href="{{rn.href}}">{{rn.t}}</a></sc-if></sc-for></h3></sc-if>
+                        <sc-if value="{{bk.isP}}" hint-placeholder-val="{{ true }}"><p><sc-for list="{{bk.runs}}" as="rn" hint-placeholder-count="2"><sc-if value="{{rn.plain}}" hint-placeholder-val="{{ true }}">{{rn.t}}</sc-if><sc-if value="{{rn.bold}}" hint-placeholder-val="{{ false }}"><strong>{{rn.t}}</strong></sc-if><sc-if value="{{rn.em}}" hint-placeholder-val="{{ false }}"><em>{{rn.t}}</em></sc-if><sc-if value="{{rn.link}}" hint-placeholder-val="{{ false }}"><a class="mdA" href="{{rn.href}}">{{rn.t}}</a></sc-if></sc-for></p></sc-if>
+                        <sc-if value="{{bk.isQuote}}" hint-placeholder-val="{{ false }}"><blockquote><sc-for list="{{bk.runs}}" as="rn" hint-placeholder-count="2"><sc-if value="{{rn.plain}}" hint-placeholder-val="{{ true }}">{{rn.t}}</sc-if><sc-if value="{{rn.bold}}" hint-placeholder-val="{{ false }}"><strong>{{rn.t}}</strong></sc-if><sc-if value="{{rn.em}}" hint-placeholder-val="{{ false }}"><em>{{rn.t}}</em></sc-if><sc-if value="{{rn.link}}" hint-placeholder-val="{{ false }}"><a class="mdA" href="{{rn.href}}">{{rn.t}}</a></sc-if></sc-for></blockquote></sc-if>
+                        <sc-if value="{{bk.isUl}}" hint-placeholder-val="{{ false }}"><ul><sc-for list="{{bk.items}}" as="li" hint-placeholder-count="2"><li><sc-for list="{{li.runs}}" as="rn" hint-placeholder-count="2"><sc-if value="{{rn.plain}}" hint-placeholder-val="{{ true }}">{{rn.t}}</sc-if><sc-if value="{{rn.bold}}" hint-placeholder-val="{{ false }}"><strong>{{rn.t}}</strong></sc-if><sc-if value="{{rn.em}}" hint-placeholder-val="{{ false }}"><em>{{rn.t}}</em></sc-if><sc-if value="{{rn.link}}" hint-placeholder-val="{{ false }}"><a class="mdA" href="{{rn.href}}">{{rn.t}}</a></sc-if></sc-for></li></sc-for></ul></sc-if>
+                        <sc-if value="{{bk.isOl}}" hint-placeholder-val="{{ false }}"><ol><sc-for list="{{bk.items}}" as="li2" hint-placeholder-count="2"><li><sc-for list="{{li2.runs}}" as="rn" hint-placeholder-count="2"><sc-if value="{{rn.plain}}" hint-placeholder-val="{{ true }}">{{rn.t}}</sc-if><sc-if value="{{rn.bold}}" hint-placeholder-val="{{ false }}"><strong>{{rn.t}}</strong></sc-if><sc-if value="{{rn.em}}" hint-placeholder-val="{{ false }}"><em>{{rn.t}}</em></sc-if><sc-if value="{{rn.link}}" hint-placeholder-val="{{ false }}"><a class="mdA" href="{{rn.href}}">{{rn.t}}</a></sc-if></sc-for></li></sc-for></ol></sc-if>
+                        <sc-if value="{{bk.isImg}}" hint-placeholder-val="{{ false }}"><figure><img src="{{bk.src}}" alt="{{bk.alt}}"><figcaption>{{bk.alt}}</figcaption></figure></sc-if>
+                      </sc-for></article></sc-if>
+                  </div>
+                  <sc-if value="{{fd.hasHint}}" hint-placeholder-val="{{ false }}"><span class="hint">{{fd.hint}}</span></sc-if>
                 </div>
               </sc-if>
               <sc-if value="{{fd.isFile}}" hint-placeholder-val="{{ false }}">

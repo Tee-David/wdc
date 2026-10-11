@@ -161,6 +161,7 @@
 
     return Object.assign(this.kit(), this.extraVals(), {
       pj: Object.assign({ hasFlag: !!pj.flag }, pj), hasCrumbs: !!M.crumb, crumbHref: M.crumb ? M.crumb.href : '', crumbLabel: M.crumb ? M.crumb.label : '',
+      hasPause: !!M.pauseBanner, pause: M.pauseBanner || {}, pauseAct: function () { if (M.pauseBanner) M.pauseBanner.fn(); },
       hasSwitch: !!M.switches, switches: M.switches || [], switchN: (M.switches || []).length || 1, switchI: s.sw,
       hasHeadAct: !!M.headAct, headActLabel: M.headAct ? M.headAct.label : '', headActIcon: M.headAct ? M.headAct.icon : '', headAct: function () { if (M.headAct) M.headAct.fn(); }, hasChores: !!M.chores, openChores: function (e) { self.openPop(e, 'chores', 'chores', 240, 230, 'More for this project'); },
       track: track, stepAria: pj.name + ': stage ' + (pj.cur + 1) + ' of ' + pj.stages.length + ', ' + pj.stages[pj.cur], stageNote: pj.stageNote,

@@ -89,7 +89,7 @@
   extraVals() {
     var s = this.state, self = this, raw = s.sheet || {}, out = {};
     var f = raw.file || {};
-    out.file = { isDoc: f.view === 'doc', isPalette: f.view === 'palette', isArt: f.view === 'art', ref: f.ref || '', docTitle: f.docTitle || f.name, lines: ['92%', '78%', '86%', '60%', '88%', '70%', '82%', '54%'], pageCount: f.pageCount || 1, pages: (f.pageCount || 1) + (f.pageCount > 1 ? ' pages' : ' page'), swatches: f.swatches || [], bg: f.bg || '#000065', fg: f.fg || '#fff', mark: f.mark || '' };
+    out.file = { isImage: f.view === 'image', isVideo: f.view === 'video', url: f.url || '', isDoc: f.view === 'doc', isPalette: f.view === 'palette', isArt: f.view === 'art', ref: f.ref || '', docTitle: f.docTitle || f.name, lines: ['92%', '78%', '86%', '60%', '88%', '70%', '82%', '54%'], pageCount: f.pageCount || 1, pages: (f.pageCount || 1) + (f.pageCount > 1 ? ' pages' : ' page'), swatches: f.swatches || [], bg: f.bg || '#000065', fg: f.fg || '#fff', mark: f.mark || '' };
     out.zoom = s.zoom; out.zoomLabel = Math.round(s.zoom * 100) + '%';
     out.zoomIn = function () { self.setState({ zoom: Math.min(2, Math.round((self.state.zoom + 0.25) * 100) / 100) }); };
     out.zoomOut = function () { self.setState({ zoom: Math.max(0.5, Math.round((self.state.zoom - 0.25) * 100) / 100) }); };

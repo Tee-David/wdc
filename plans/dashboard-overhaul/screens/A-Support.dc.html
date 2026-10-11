@@ -868,6 +868,105 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .setNav a.on .dotU{box-shadow:0 0 0 2px var(--ad-nav-on-ink)}
 .saveBar .btn[disabled]{background:rgba(255,255,255,.2);color:var(--ad-bg);border-color:transparent;opacity:.8}.saveBar .btn2[disabled]{opacity:.5}
 
+.galGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.galTile{position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden;background:var(--ad-panel-2);border:1px solid var(--ad-line);transition:transform .2s var(--spring)}
+.galTile:hover{transform:scale(1.02)}.galTile:active{transform:scale(.97)}
+.galTile img,.galTile video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.galSub{position:absolute;left:0;right:0;bottom:0;padding:16px 8px 6px;background:linear-gradient(transparent,#0e0e2c);color:#fff;font-size:11px;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ===== messages: swipe to reply, quotes, media, attach bar ===== */
+.msgW{position:relative}
+.swHint{position:absolute;left:6px;top:50%;margin-top:-16px;width:32px;height:32px;border-radius:50%;background:var(--ad-fill);color:var(--ad-on-fill);display:grid;place-items:center;opacity:var(--sw,0);transform:scale(calc(.6 + var(--sw,0) * .4));pointer-events:none}
+.msgItem{touch-action:pan-y;position:relative}
+.msgItem.swiping{user-select:none;cursor:grabbing}
+.msgAct{display:flex;gap:2px;align-self:center;opacity:0;transition:opacity .15s;flex:none}
+.msgItem:hover .msgAct,.msgItem:focus-within .msgAct{opacity:1}
+@media (hover:none){.msgAct{opacity:1}.msgAct .actB:first-child{display:none}}
+.actB{position:relative;width:32px;height:32px;border-radius:50%;color:var(--ad-dim)}
+.actB::after{content:'';position:absolute;inset:-6px}
+.mine .msgAct{order:-1}
+.quoteBlk{display:flex;flex-direction:column;gap:2px;margin:-2px 0 8px;padding:6px 10px;border-left:3px solid var(--ad-tone-live);border-radius:8px;background:rgba(127,127,160,.16);font-size:12.5px}
+.quoteBlk span{opacity:.85;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.mine .bubble .quoteBlk{background:rgba(255,255,255,.16);border-left-color:#fff}
+.bTxt{white-space:pre-wrap}
+.mg{display:grid;gap:3px;border-radius:14px;overflow:hidden;max-width:min(360px,100%);width:360px}
+.mg1{grid-template-columns:1fr}.mg2,.mg3,.mg4{grid-template-columns:1fr 1fr}
+.mgTile{position:relative;aspect-ratio:1;background:var(--ad-panel-2);overflow:hidden;min-height:0}
+.mg1 .mgTile{aspect-ratio:4/3}.mg3 .mgTile:first-child{grid-row:span 2;aspect-ratio:auto}
+.mgTile img,.mgTile video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.mgMore{position:absolute;inset:0;background:rgba(14,14,44,.62);color:#fff;display:grid;place-items:center;font:700 22px 'Space Grotesk',sans-serif}
+.tagRow{display:flex;flex-wrap:wrap;gap:4px}
+.thSearch{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--ad-line)}
+.replyBar{display:flex;align-items:center;gap:10px;padding:8px 8px 8px 12px;border-radius:12px;background:var(--ad-panel-2);border:1px solid var(--ad-line)}
+.rbBar{align-self:stretch;width:3px;border-radius:3px;background:var(--ad-tone-live)}
+.rbT{flex:1;min-width:0;display:flex;flex-direction:column;font-size:13px}
+.rbT span{color:var(--ad-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.attStrip{display:flex;gap:8px;overflow-x:auto;padding:2px 0;scrollbar-width:thin}
+.attItem{position:relative;flex:none;width:84px;height:84px;border-radius:12px;overflow:hidden;background:var(--ad-panel-2);border:1px solid var(--ad-line)}
+.attItem img,.attItem video{width:100%;height:100%;object-fit:cover;display:block}
+.attDoc{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:100%;padding:6px}
+.attName{font-size:10.5px;max-width:72px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.attBar{display:flex;gap:4px;flex-wrap:wrap}
+.attB{position:relative;display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 10px;border-radius:12px;color:var(--ad-ink);font-size:13px;font-weight:600;cursor:pointer;transition:background .15s}
+.attB:hover{background:var(--ad-hover)}.attB:active{background:var(--ad-line)}
+.attB.fileBtn{overflow:hidden}
+@container app (max-width:640px){.attL{display:none}.attB{width:44px;justify-content:center;padding:0}}
+.shBody > .listLate,.shBody > .galGrid,.shBody > .galGrid ~ .ssNone{order:3}
+
+.sheetP.xl{width:min(var(--shW,980px),100%)}
+.sheetP.xl ~ .toastP{left:calc((100% - min(980px,100%)) / 2)}
+.edBox{border:1px solid var(--ad-line);border-radius:14px;background:var(--ad-panel);overflow:hidden;transition:border-color .15s,box-shadow .15s}
+.edBox:focus-within{border-color:var(--ad-ink);box-shadow:0 0 0 4px var(--ad-ring)}
+.edBar{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:8px;border-bottom:1px solid var(--ad-line);background:var(--ad-panel-2)}
+.edTools{display:flex;flex-wrap:wrap;gap:2px}
+.edT{position:relative;width:44px;height:44px;border-radius:10px;display:grid;place-items:center;color:var(--ad-ink);cursor:pointer;transition:background .15s}
+.edT:hover{background:var(--ad-hover)}.edT:active{background:var(--ad-line)}
+.edT.fileBtn{overflow:hidden}
+.edArea{display:block;width:100%;min-height:340px;max-height:60vh;padding:16px;border:0;outline:0;background:transparent;resize:vertical;font:inherit;line-height:1.65;color:var(--ad-ink)}
+.edPrev{padding:20px;max-height:60vh;min-height:340px;overflow:auto;display:flex;flex-direction:column;gap:12px;line-height:1.7}
+.edPrev h2{font:700 22px 'Space Grotesk',sans-serif;margin:10px 0 0}
+.edPrev h3{font:700 18px 'Space Grotesk',sans-serif;margin:6px 0 0}
+.edPrev p,.edPrev li{font-size:16px}
+.edPrev ul,.edPrev ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:4px}
+.edPrev blockquote{margin:0;padding:6px 16px;border-left:4px solid var(--ad-tone-live);background:var(--ad-panel-2);border-radius:0 10px 10px 0}
+.edPrev figure{margin:0}.edPrev figure img,.edCover{width:100%;border-radius:12px;display:block}
+.edPrev figcaption{font-size:13px;color:var(--ad-dim);margin-top:4px}
+.edTitle{font:700 28px/1.2 'Space Grotesk',sans-serif}
+.edEmpty{color:var(--ad-dim)}
+.mdA{color:var(--ad-accent-ink);text-decoration:underline}
+
+.pauseBan{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 16px;border-radius:16px;background:var(--ad-tone-bad);color:#fff;margin-bottom:16px}
+.pbIc{width:40px;height:40px;border-radius:12px;background:#fff;color:var(--ad-tone-bad);display:grid;place-items:center;flex:none}
+.pbT{flex:1 1 260px;min-width:0;display:flex;flex-direction:column;gap:2px;font-size:14px}
+.pbT strong{font-size:15px}
+.pauseBan .btn{background:#fff;color:#0e0e2c;border-color:#fff}.pauseBan .btn:hover{background:#f2f3f9;border-color:#f2f3f9}
+
+/* ===== Money reports ===== */
+.repWrap{display:flex;flex-direction:column;gap:16px;padding:4px 20px 20px}
+.repParams{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:16px;background:var(--ad-panel-2);border:1px solid var(--ad-line)}
+.repRow{display:flex;gap:8px 14px;align-items:flex-start;flex-wrap:wrap}
+.repLbl{flex:0 0 118px;padding-top:10px;font-size:13px;font-weight:600;color:var(--ad-dim)}
+.repRow .chips{flex:1 1 260px;min-width:0}
+.repSpan{margin:0;font-size:14px;font-weight:600}
+.repKpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:10px}
+.repK{display:flex;flex-direction:column;gap:6px;padding:14px 16px;border-radius:16px;border:1px solid var(--ad-line);background:var(--ad-panel)}
+.repV{font:700 clamp(22px,2.4vw,26px)/1.1 'Space Grotesk',sans-serif}
+.repN{font-size:12px;font-weight:600}
+.repBlk{display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:16px;border:1px solid var(--ad-line);background:var(--ad-panel);min-width:0}
+.repH{font-size:15px;font-weight:700}
+.repGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:12px}
+.rbRow{display:flex;flex-direction:column;gap:6px;width:100%;text-align:left;padding:8px 10px;margin:0 -10px;width:calc(100% + 20px);border-radius:12px;min-height:44px;transition:background .15s}
+@media (hover:hover){button.rbRow:hover{background:var(--ad-hover)}}
+.rbT{display:flex;justify-content:space-between;gap:10px;font-size:14px;min-width:0}
+.rbT strong{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rbT .num{color:var(--ad-dim);flex:none;font-size:13px}
+.rbBarW{height:8px;border-radius:99px;background:var(--ad-line);overflow:hidden}
+.rbBar2{display:block;height:100%;border-radius:99px;transition:width .5s var(--ease)}
+.savedV{display:inline-flex;align-items:center;gap:2px}
+.svX{position:relative;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;color:var(--ad-dim)}
+.svX::after{content:'';position:absolute;inset:-6px}
+@container card (max-width:520px){.repLbl{flex-basis:100%;padding-top:0}.repWrap{padding:4px 14px 16px}}
+
 </style>
 </helmet>
 <div class="{{rootCls}}" onClick="{{rootClick}}">
@@ -1348,6 +1447,8 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
               </div>
               <div style="border-radius: 16px; background: var(--ad-panel-2); border: 1px solid var(--ad-line); padding: 18px; overflow: auto; max-height: 520px; overscroll-behavior: contain">
                 <div style="transform: scale({{zoom}}); transform-origin: top center; transition: transform .3s var(--ease)">
+                  <sc-if value="{{file.isImage}}" hint-placeholder-val="{{ false }}"><img src="{{file.url}}" alt="{{sheet.title}}" style="display: block; max-width: 100%; margin: 0 auto; border-radius: 10px"></sc-if>
+                  <sc-if value="{{file.isVideo}}" hint-placeholder-val="{{ false }}"><video src="{{file.url}}" controls playsinline style="display: block; max-width: 100%; margin: 0 auto; border-radius: 10px"></video></sc-if>
                   <sc-if value="{{file.isDoc}}" hint-placeholder-val="{{ false }}">
                     <div style="position: relative; aspect-ratio: 1 / 1.414; max-width: 380px; margin: 0 auto; background: #fff; color: #0e0e2c; border-radius: 6px; box-shadow: var(--ad-sh-2); padding: 26px 24px; display: flex; flex-direction: column; gap: 10px; overflow: hidden">
                       <span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font: 700 64px 'Space Grotesk',sans-serif; color: rgb(0 0 101/.05); transform: rotate(-28deg); pointer-events: none">WDC</span>
@@ -1480,7 +1581,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
           </sc-if>
 
           <sc-if value="{{sheet.hasList}}" hint-placeholder-val="{{ false }}">
-            <div style="display: flex; flex-direction: column; gap: 8px" role="{{sheet.listRole}}" aria-label="{{sheet.listTitle}}">
+            <div class="{{sheet.listCls}}" style="display: flex; flex-direction: column; gap: 8px" role="{{sheet.listRole}}" aria-label="{{sheet.listTitle}}">
               <h3 style="font-size: 15px; font-weight: 700">{{sheet.listTitle}}</h3>
               <sc-if value="{{sheet.ss.has}}" hint-placeholder-val="{{ false }}">
                 <div class="ssHead">
@@ -1515,6 +1616,8 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
             </div>
           </sc-if>
 
+          <sc-if value="{{sheet.hasGallery}}" hint-placeholder-val="{{ false }}"><div class="galGrid" role="list"><sc-for list="{{sheet.gallery}}" as="g" hint-placeholder-count="6"><button class="galTile" role="listitem" aria-label="{{g.aria}}" onClick="{{g.open}}"><sc-if value="{{g.isVideo}}" hint-placeholder-val="{{ false }}"><video src="{{g.url}}" muted playsinline preload="metadata"></video><span class="vidTag">Video</span></sc-if><sc-if value="{{g.isImage}}" hint-placeholder-val="{{ true }}"><img src="{{g.url}}" alt="" loading="lazy"></sc-if><span class="galSub">{{g.sub}}</span></button></sc-for></div></sc-if>
+          <sc-if value="{{sheet.galleryEmpty}}" hint-placeholder-val="{{ false }}"><div class="ssNone">No pictures or video yet.</div></sc-if>
           <sc-if value="{{sheet.hasFields}}" hint-placeholder-val="{{ false }}">
             <div class="formGrid {{sheet.fieldsCls}}"><sc-for list="{{sheet.fields}}" as="fd" hint-placeholder-count="3">
               <sc-if value="{{fd.isPlain}}" hint-placeholder-val="{{ true }}"><label class="field {{fd.cls}}"><span>{{fd.label}}</span><sc-if value="{{fd.isInput}}" hint-placeholder-val="{{ true }}"><input class="input" id="{{fd.id}}" type="{{fd.type}}" inputmode="{{fd.mode}}" value="{{fd.value}}" placeholder="{{fd.ph}}" onChange="{{fd.on}}"></sc-if><sc-if value="{{fd.isArea}}" hint-placeholder-val="{{ false }}"><textarea class="area" id="{{fd.id}}" style="min-height: 90px" value="{{fd.value}}" placeholder="{{fd.ph}}" onChange="{{fd.on}}"></textarea></sc-if><sc-if value="{{fd.hasHint}}" hint-placeholder-val="{{ false }}"><span class="{{fd.hintCls}}">{{fd.hint}}</span></sc-if></label></sc-if>
@@ -1543,6 +1646,31 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
                   <div class="chips" role="group" aria-label="Common times"><sc-for list="{{fd.quick}}" as="qk" hint-placeholder-count="4"><button type="button" class="chip {{qk.cls}}" onClick="{{qk.pick}}">{{qk.t}}</button></sc-for></div>
                   <div class="timeList" role="listbox" aria-label="Times"><sc-for list="{{fd.rows}}" as="tr" hint-placeholder-count="5"><button type="button" role="option" aria-selected="{{tr.sel}}" class="timeRow {{tr.cls}}" onClick="{{tr.pick}}">{{tr.t}}</button></sc-for><sc-if value="{{fd.none}}" hint-placeholder-val="{{ false }}"><span class="ssNone">{{fd.noneText}}</span></sc-if></div>
                   <div class="calFoot"><button type="button" class="btn2" style="min-height: 40px; margin-left: auto" onClick="{{fd.closeCal}}">Close</button></div>
+                </div>
+              </sc-if>
+              <sc-if value="{{fd.isEditor}}" hint-placeholder-val="{{ false }}">
+                <div class="field wideF"><span>{{fd.label}} <span class="num" style="color: var(--ad-dim); font-weight: 500">{{fd.stats}}</span></span>
+                  <div class="edBox">
+                    <div class="edBar" role="toolbar" aria-label="Formatting">
+                      <div class="seg" role="group" aria-label="Write or preview" style="--n: 2; --i: {{fd.modeI}}; width: 168px"><span class="pill" aria-hidden="true"></span><button type="button" class="{{fd.wCls}}" aria-pressed="{{fd.wPress}}" onClick="{{fd.setWrite}}">Write</button><button type="button" class="{{fd.pCls}}" aria-pressed="{{fd.pPress}}" onClick="{{fd.setPrev}}">Preview</button></div>
+                      <sc-if value="{{fd.isWrite}}" hint-placeholder-val="{{ true }}"><span class="edTools"><sc-for list="{{fd.tools}}" as="tl" hint-placeholder-count="8"><button type="button" class="edT" title="{{tl.label}}" aria-label="{{tl.label}}" onClick="{{tl.fn}}"><svg class="ic" viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="{{tl.d}}"></path></svg></button></sc-for><label class="edT fileBtn" title="Add a picture" aria-label="Add a picture in the text"><svg class="ic" viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM8.5 10a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM21 15l-5-5L5 21"></path></svg><input type="file" accept="image/*" onChange="{{fd.onPic}}"></label></span></sc-if>
+                    </div>
+                    <sc-if value="{{fd.isWrite}}" hint-placeholder-val="{{ true }}"><textarea class="edArea" id="{{fd.id}}" placeholder="{{fd.ph}}" value="{{fd.value}}" onChange="{{fd.on}}" onKeyDown="{{fd.onKey}}"></textarea></sc-if>
+                    <sc-if value="{{fd.isPrev}}" hint-placeholder-val="{{ false }}"><article class="edPrev" aria-label="Preview">
+                      <sc-if value="{{fd.hasCover}}" hint-placeholder-val="{{ false }}"><img class="edCover" src="{{fd.cover}}" alt=""></sc-if>
+                      <strong class="edTitle">{{fd.title}}</strong>
+                      <sc-if value="{{fd.noBlocks}}" hint-placeholder-val="{{ false }}"><p class="edEmpty">Nothing to preview yet. Write something and it appears here the way readers see it.</p></sc-if>
+                      <sc-for list="{{fd.blocks}}" as="bk" hint-placeholder-count="3">
+                        <sc-if value="{{bk.isH2}}" hint-placeholder-val="{{ false }}"><h2><sc-for list="{{bk.runs}}" as="rn" hint-placeholder-count="2"><sc-if value="{{rn.plain}}" hint-placeholder-val="{{ true }}">{{rn.t}}</sc-if><sc-if value="{{rn.bold}}" hint-placeholder-val="{{ false }}"><strong>{{rn.t}}</strong></sc-if><sc-if value="{{rn.em}}" hint-placeholder-val="{{ false }}"><em>{{rn.t}}</em></sc-if><sc-if value="{{rn.link}}" hint-placeholder-val="{{ false }}"><a class="mdA" href="{{rn.href}}">{{rn.t}}</a></sc-if></sc-for></h2></sc-if>
+                        <sc-if value="{{bk.isH3}}" hint-placeholder-val="{{ false }}"><h3><sc-for list="{{bk.runs}}" as="rn" hint-placeholder-count="2"><sc-if value="{{rn.plain}}" hint-placeholder-val="{{ true }}">{{rn.t}}</sc-if><sc-if value="{{rn.bold}}" hint-placeholder-val="{{ false }}"><strong>{{rn.t}}</strong></sc-if><sc-if value="{{rn.em}}" hint-placeholder-val="{{ false }}"><em>{{rn.t}}</em></sc-if><sc-if value="{{rn.link}}" hint-placeholder-val="{{ false }}"><a class="mdA" href="{{rn.href}}">{{rn.t}}</a></sc-if></sc-for></h3></sc-if>
+                        <sc-if value="{{bk.isP}}" hint-placeholder-val="{{ true }}"><p><sc-for list="{{bk.runs}}" as="rn" hint-placeholder-count="2"><sc-if value="{{rn.plain}}" hint-placeholder-val="{{ true }}">{{rn.t}}</sc-if><sc-if value="{{rn.bold}}" hint-placeholder-val="{{ false }}"><strong>{{rn.t}}</strong></sc-if><sc-if value="{{rn.em}}" hint-placeholder-val="{{ false }}"><em>{{rn.t}}</em></sc-if><sc-if value="{{rn.link}}" hint-placeholder-val="{{ false }}"><a class="mdA" href="{{rn.href}}">{{rn.t}}</a></sc-if></sc-for></p></sc-if>
+                        <sc-if value="{{bk.isQuote}}" hint-placeholder-val="{{ false }}"><blockquote><sc-for list="{{bk.runs}}" as="rn" hint-placeholder-count="2"><sc-if value="{{rn.plain}}" hint-placeholder-val="{{ true }}">{{rn.t}}</sc-if><sc-if value="{{rn.bold}}" hint-placeholder-val="{{ false }}"><strong>{{rn.t}}</strong></sc-if><sc-if value="{{rn.em}}" hint-placeholder-val="{{ false }}"><em>{{rn.t}}</em></sc-if><sc-if value="{{rn.link}}" hint-placeholder-val="{{ false }}"><a class="mdA" href="{{rn.href}}">{{rn.t}}</a></sc-if></sc-for></blockquote></sc-if>
+                        <sc-if value="{{bk.isUl}}" hint-placeholder-val="{{ false }}"><ul><sc-for list="{{bk.items}}" as="li" hint-placeholder-count="2"><li><sc-for list="{{li.runs}}" as="rn" hint-placeholder-count="2"><sc-if value="{{rn.plain}}" hint-placeholder-val="{{ true }}">{{rn.t}}</sc-if><sc-if value="{{rn.bold}}" hint-placeholder-val="{{ false }}"><strong>{{rn.t}}</strong></sc-if><sc-if value="{{rn.em}}" hint-placeholder-val="{{ false }}"><em>{{rn.t}}</em></sc-if><sc-if value="{{rn.link}}" hint-placeholder-val="{{ false }}"><a class="mdA" href="{{rn.href}}">{{rn.t}}</a></sc-if></sc-for></li></sc-for></ul></sc-if>
+                        <sc-if value="{{bk.isOl}}" hint-placeholder-val="{{ false }}"><ol><sc-for list="{{bk.items}}" as="li2" hint-placeholder-count="2"><li><sc-for list="{{li2.runs}}" as="rn" hint-placeholder-count="2"><sc-if value="{{rn.plain}}" hint-placeholder-val="{{ true }}">{{rn.t}}</sc-if><sc-if value="{{rn.bold}}" hint-placeholder-val="{{ false }}"><strong>{{rn.t}}</strong></sc-if><sc-if value="{{rn.em}}" hint-placeholder-val="{{ false }}"><em>{{rn.t}}</em></sc-if><sc-if value="{{rn.link}}" hint-placeholder-val="{{ false }}"><a class="mdA" href="{{rn.href}}">{{rn.t}}</a></sc-if></sc-for></li></sc-for></ol></sc-if>
+                        <sc-if value="{{bk.isImg}}" hint-placeholder-val="{{ false }}"><figure><img src="{{bk.src}}" alt="{{bk.alt}}"><figcaption>{{bk.alt}}</figcaption></figure></sc-if>
+                      </sc-for></article></sc-if>
+                  </div>
+                  <sc-if value="{{fd.hasHint}}" hint-placeholder-val="{{ false }}"><span class="hint">{{fd.hint}}</span></sc-if>
                 </div>
               </sc-if>
               <sc-if value="{{fd.isFile}}" hint-placeholder-val="{{ false }}">
@@ -1714,7 +1842,7 @@ class Component extends DCLogic {
       pal: false, q: '', hi: 0, pa: 0, tour: -1, tourKind: 'page', toast: null, ta: 0, menu: null, pop: null, dq: '',
       draft: '', reason: '', ack: false, spick: -1, ck: {}, vis: 'team', zoom: 1, cmt: '', comments: {},
       gone: {}, snoozed: {}, leaving: null, leaveKind: 'done', stampAt: null, enterN: 0, segPop: -1,
-      installing: false, installHidden: !!pref.installHidden, celebrated: false, form: {}, lq: '', lpg: 0, lcreate: false, lcf: {}, lextra: [], lsel: {}, ui: null, bsel: {}, flt: {}
+      installing: false, installHidden: !!pref.installHidden, celebrated: false, form: {}, lq: '', lpg: 0, lcreate: false, lcf: {}, lextra: [], lsel: {}, ui: null, bsel: {}, flt: {}, edMode: 'write', hc: this.shared('helpCats', null), ha: this.shared('helpArts', {}), hn: this.shared('helpNew', []), paused: this.shared('paused', { 'kora-app': { reason: 'Build paused until milestone 2 is paid', since: 'Sat 26 Sep', by: 'Babatope A.' } })
     }, this.extraState ? this.extraState() : {}, this.pageState ? this.pageState() : {});
     this._per = {};
   }
@@ -1757,6 +1885,7 @@ class Component extends DCLogic {
     else if (s.tour >= 0) this.queueTour();
     var f = this._foc;
     if (f) { var fe = document.getElementById(f.id); if (fe && document.activeElement !== fe) { try { fe.focus({ preventScroll: true }); if (f.s != null && fe.setSelectionRange) fe.setSelectionRange(f.s, f.e); } catch (err) { /* some input types have no caret */ } } }
+    if (s.sheet && s.sheet.watch) s.sheet.watch(this.sheetCtx(), s);
     if (this.pageDidUpdate) this.pageDidUpdate(ps);
   }
 
@@ -1807,9 +1936,12 @@ class Component extends DCLogic {
   open(sh, push) {
     var s = this.state;
     var stack = push && s.sheet ? s.stack.concat([{ sheet: s.sheet, draft: s.draft, reason: s.reason, ack: s.ack, spick: s.spick, ck: s.ck, zoom: s.zoom, form: s.form, lextra: s.lextra, lsel: s.lsel, lq: s.lq, lpg: s.lpg }]) : [];
-    this.setState({ sheet: sh, stack: stack, sheetFull: false, bell: false, pal: false, drawer: false, menu: null, pop: null, tour: -1, draft: sh.draft || '', reason: '', ack: false, ck: {}, spick: sh.pick != null ? sh.pick : -1, vis: sh.vis || 'team', zoom: 1, cmt: '', form: Object.assign({}, sh.form || {}), lq: '', lpg: 0, lcreate: false, lcf: {}, lextra: [], lsel: Object.assign({}, sh.lsel || {}), ui: null });
+    this.setState({ sheet: sh, stack: stack, sheetFull: false, bell: false, pal: false, drawer: false, menu: null, pop: null, tour: -1, draft: sh.draft || '', reason: '', ack: false, ck: {}, spick: sh.pick != null ? sh.pick : -1, vis: sh.vis || 'team', zoom: 1, cmt: '', form: Object.assign({}, sh.form || {}), lq: '', lpg: 0, lcreate: false, lcf: {}, lextra: [], lsel: Object.assign({}, sh.lsel || {}), ui: null, edMode: 'write' });
   }
-  closeSheet() { var self = this; this.exitThen('.sheetP, .sheetP ~ .scrim, .scrim', function () { self.setState({ sheet: null, stack: [], sheetFull: false }); }); }
+  closeSheet(force) {
+    var self = this, raw = this.state.sheet;
+    if (!force && raw && raw.guard && raw.guard(this.sheetCtx(), this.state)) { this.ask({ eyebrow: 'Unsaved', title: 'Close without saving?', body: raw.guardBody || 'What you have written here will be lost.', ok: 'Close without saving', cancel: 'Keep writing', danger: true, icon: this.icons().alert, tone: 'var(--ad-tone-warn)', onOk: function () { self.setState({ stack: [] }); self.closeSheet(true); } }, true); return; }
+    this.exitThen('.sheetP, .sheetP ~ .scrim, .scrim', function () { self.setState({ sheet: null, stack: [], sheetFull: false }); }); }
   sheetBack() {
     var s = this.state; if (!s.stack.length) { this.closeSheet(); return; }
     var prev = s.stack[s.stack.length - 1];
@@ -2132,11 +2264,12 @@ class Component extends DCLogic {
     if (raw.ack && !ctx.ack) { dis = 'y'; reqText = 'Tick "I understand" to continue.'; }
     if (raw.select && raw.selectRequired !== false && (raw.multi ? ctx.picks.length === 0 : ctx.pick < 0)) { dis = 'y'; reqText = raw.selectWhy || 'Choose one to continue.'; }
     if (raw.primaryDis) { var pd = raw.primaryDis(ctx, s); if (pd) { dis = 'y'; reqText = pd; } }
+    var galRaw = typeof raw.gallery === 'function' ? raw.gallery(s) : (raw.gallery || []), galEmpty = typeof raw.galleryEmpty === 'function' ? raw.galleryEmpty(s) : false;
     var sheet = Object.assign({}, raw, {
-      back: s.stack.length > 0, hasChip: !!raw.chip, hasIcon: !!raw.icon, icon: raw.icon || '', iconTone: raw.iconTone || 'var(--ad-tone-brand)', hasRows: raw.rows.length > 0, hasBody: !!raw.body, hasPreview: !!raw.preview, preview: raw.preview || {},
+      hasGallery: galRaw.length > 0, gallery: galRaw, galleryEmpty: galEmpty, back: s.stack.length > 0, hasChip: !!raw.chip, hasIcon: !!raw.icon, icon: raw.icon || '', iconTone: raw.iconTone || 'var(--ad-tone-brand)', hasRows: raw.rows.length > 0, hasBody: !!raw.body, hasPreview: !!raw.preview, preview: raw.preview || {},
       hasList: list.length > 0 || ss.has, list: list, ss: ss, listRole: raw.select ? (raw.multi ? 'group' : 'radiogroup') : 'list', hasChecks: checks.length > 0, checks: checks, checksTitle: raw.checksTitle || 'Checklist', checksDone: ckDone + ' of ' + checks.length, checksPct: checks.length ? Math.round(ckDone / checks.length * 100) : 0,
       hasFeed: raw.feed.length > 0, hasNote: !!raw.note, reason: !!raw.reason, reasonLabel: raw.reason ? raw.reason.label : '', reasonPh: raw.reason ? raw.reason.ph : '', ack: !!raw.ack, ackText: raw.ack || '',
-      hasFields: fields.length > 0, fields: fields, fieldsCls: raw.chipsFirst ? 'fieldsLate' : '', chipsCls: raw.chipsFirst ? 'chipsMid' : '', hasChipSets: chipSets.length > 0, chipSets: chipSets, hasNotice: !!notice, notice: notice || {}, primaryLabel: plabel, primaryCls: raw.danger ? 'btnD' : (raw.green ? 'btnG' : 'btn'), primaryDis: !!dis, why: reqText, hasSecondary: !!raw.secondary, secondaryLabel: typeof raw.secondary === 'function' ? raw.secondary(ctx, s) : raw.secondary, chip: typeof raw.chip === 'function' ? raw.chip(ctx, s) : raw.chip, tone: typeof raw.tone === 'function' ? raw.tone(ctx, s) : raw.tone, hasFoot: !raw.noFoot, busy: !!raw.busy
+      hasFields: fields.length > 0, fields: fields, fieldsCls: raw.chipsFirst ? 'fieldsLate' : '', listCls: raw.chipsFirst ? 'listLate' : '', chipsCls: raw.chipsFirst ? 'chipsMid' : '', hasChipSets: chipSets.length > 0, chipSets: chipSets, hasNotice: !!notice, notice: notice || {}, primaryLabel: plabel, primaryCls: raw.danger ? 'btnD' : (raw.green ? 'btnG' : 'btn'), primaryDis: !!dis, why: reqText, hasSecondary: !!raw.secondary, secondaryLabel: typeof raw.secondary === 'function' ? raw.secondary(ctx, s) : raw.secondary, chip: typeof raw.chip === 'function' ? raw.chip(ctx, s) : raw.chip, tone: typeof raw.tone === 'function' ? raw.tone(ctx, s) : raw.tone, hasFoot: !raw.noFoot, busy: !!raw.busy
     });
     var popItems = [];
     if (s.pop) {
@@ -2163,7 +2296,7 @@ class Component extends DCLogic {
       installApp: function () { if (self.state.installing) return; self.setState({ installing: true, drawer: false }); setTimeout(function () { self.setState({ installing: false, push: true }); self.say('WDC is on this device. Notifications are on.'); }, self.reduce ? 200 : 1900); },
       hideInstall: function () { self.setState({ installHidden: true, drawer: false }); self.say('Hidden. We will offer it again in 30 days. Install any time from Settings.', { undo: function () { self.setState({ installHidden: false }); } }); },
       drawer: s.drawer, openDrawer: function () { self.setState({ drawer: true }); }, closeDrawer: function () { self.exitThen('.drawerP, .scrim', function () { self.setState({ drawer: false }); }); },
-      sheetOpen: !!s.sheet, sheet: sheet, sheetCls: (raw.wide ? 'wide ' : '') + (s.sheetFull ? 'full' : ''),
+      sheetOpen: !!s.sheet, sheet: sheet, sheetCls: (raw.xl ? 'xl ' : '') + (raw.wide ? 'wide ' : '') + (s.sheetFull ? 'full' : ''),
       closeSheet: function () { self.closeSheet(); }, sheetBack: function () { self.sheetBack(); },
       sheetKey: function () {}, edgeGrab: function (e) { self.edgeStart(e); }, edgeReset: function () { var el = document.getElementById('sheetEl'); if (el) el.style.removeProperty('--shW'); }, grabSheet: function (e) { self.grabStart(e, '#sheetEl', function () { self.setState({ sheet: null, stack: [], sheetFull: false }); }); },
       sheetPrimary: function () { self.runSheet('p'); }, sheetSecondary: function () { if (!self.state.sheet || !self.state.sheet.secondary) return; self.runSheet('s'); },
@@ -2347,7 +2480,7 @@ class Component extends DCLogic {
   extraVals() {
     var s = this.state, self = this, raw = s.sheet || {}, out = {};
     var f = raw.file || {};
-    out.file = { isDoc: f.view === 'doc', isPalette: f.view === 'palette', isArt: f.view === 'art', ref: f.ref || '', docTitle: f.docTitle || f.name, lines: ['92%', '78%', '86%', '60%', '88%', '70%', '82%', '54%'], pageCount: f.pageCount || 1, pages: (f.pageCount || 1) + (f.pageCount > 1 ? ' pages' : ' page'), swatches: f.swatches || [], bg: f.bg || '#000065', fg: f.fg || '#fff', mark: f.mark || '' };
+    out.file = { isImage: f.view === 'image', isVideo: f.view === 'video', url: f.url || '', isDoc: f.view === 'doc', isPalette: f.view === 'palette', isArt: f.view === 'art', ref: f.ref || '', docTitle: f.docTitle || f.name, lines: ['92%', '78%', '86%', '60%', '88%', '70%', '82%', '54%'], pageCount: f.pageCount || 1, pages: (f.pageCount || 1) + (f.pageCount > 1 ? ' pages' : ' page'), swatches: f.swatches || [], bg: f.bg || '#000065', fg: f.fg || '#fff', mark: f.mark || '' };
     out.zoom = s.zoom; out.zoomLabel = Math.round(s.zoom * 100) + '%';
     out.zoomIn = function () { self.setState({ zoom: Math.min(2, Math.round((self.state.zoom + 0.25) * 100) / 100) }); };
     out.zoomOut = function () { self.setState({ zoom: Math.max(0.5, Math.round((self.state.zoom - 0.25) * 100) / 100) }); };
@@ -2520,6 +2653,7 @@ class Component extends DCLogic {
         if (ui && ui.key === fd.key && ui.kind === 'time') out.push(self.timePanel(fd.key, F[fd.key] || '', function (v) { setF(fd.key, v); self.setState({ ui: null }); }));
         return;
       }
+      if (t === 'editor') { out.push(self.editorField(fd, F, setF)); return; }
       if (t === 'file') {
         var cur = F[fd.key] || null;
         out.push({ isFile: true, isTrig: false, isPlain: false, key: fd.key, id: 'f-' + fd.key, label: fd.label, cls: 'wideF', hint: fd.hint || '', hasHint: !!fd.hint, accept: fd.accept || '', hasFile: !!cur, noFile: !cur, name: cur ? cur.name : '', info: cur ? cur.rows.length + (cur.rows.length === 1 ? ' row' : ' rows') + ' found · ' + self.fileSize(cur.size) : '',
@@ -2532,7 +2666,7 @@ class Component extends DCLogic {
       var err = fd.check ? fd.check(F[fd.key] || '', F) : '';
       out.push({ isPlain: true, isTrig: false, key: fd.key, id: 'f-' + fd.key, label: fd.label, ph: fd.ph || '', value: F[fd.key] != null ? F[fd.key] : '', mode: fd.mode || 'text', type: fd.type || 'text', hint: err || fd.hint || '', hasHint: !!(err || fd.hint), hintCls: err ? 'hint err' : 'hint', cls: fd.wide ? 'wideF' : '', isArea: t === 'area', isInput: t !== 'area', on: function (e) { setF(fd.key, e.target.value); } });
     });
-    return out.map(function (o) { return Object.assign({ isTrig: false, isPlain: false, isPanelDate: false, isPanelTime: false, isMedia: false, isFile: false, hasHint: !!o.hint, hintCls: 'hint', cls: '' }, o); });
+    return out.map(function (o) { return Object.assign({ isTrig: false, isPlain: false, isPanelDate: false, isPanelTime: false, isMedia: false, isFile: false, isEditor: false, hasHint: !!o.hint, hintCls: 'hint', cls: '' }, o); });
   }
   /* The calendar, as the site draws it: days, then months, then years, with Today and Clear. */
   calPanel(key, value, min, clearable, pick, max) {
@@ -2600,6 +2734,89 @@ class Component extends DCLogic {
     var up = function () { edge.classList.remove('dragging'); window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up); };
     window.addEventListener('pointermove', move); window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up);
   }
+
+  /* ---------- the post editor: write in plain markdown with a toolbar, read it back as it will look ---------- */
+  mdRuns(text) {
+    var out = [], re = /(\*\*[^*]+\*\*|_[^_]+_|\[[^\]]+\]\(https?:\/\/[^)\s]+\))/g, last = 0, m;
+    while ((m = re.exec(text))) {
+      if (m.index > last) out.push({ plain: true, t: text.slice(last, m.index) });
+      var tok = m[0];
+      if (tok.indexOf('**') === 0) out.push({ bold: true, t: tok.slice(2, -2) });
+      else if (tok.charAt(0) === '_') out.push({ em: true, t: tok.slice(1, -1) });
+      else { var lm = /^\[([^\]]+)\]\((.+)\)$/.exec(tok); out.push({ link: true, t: lm[1], href: lm[2] }); }
+      last = m.index + tok.length;
+    }
+    if (last < text.length) out.push({ plain: true, t: text.slice(last) });
+    return out.length ? out : [{ plain: true, t: '' }];
+  }
+  mdBlocks(text) {
+    var self = this, lines = String(text || '').split(/\r?\n/), blocks = [], para = [], list = null;
+    var flush = function () { if (para.length) { blocks.push({ isP: true, runs: self.mdRuns(para.join(' ')) }); para = []; } if (list) { blocks.push(list); list = null; } };
+    lines.forEach(function (ln) {
+      var t = ln.trim(), m;
+      if (!t) { flush(); return; }
+      if ((m = /^(#{1,3})\s+(.+)$/.exec(t))) { flush(); blocks.push(m[1].length === 3 ? { isH3: true, runs: self.mdRuns(m[2]) } : { isH2: true, runs: self.mdRuns(m[2]) }); return; }
+      if ((m = /^>\s?(.*)$/.exec(t))) { flush(); blocks.push({ isQuote: true, runs: self.mdRuns(m[1]) }); return; }
+      if ((m = /^!\[([^\]]*)\]\((\S+)\)$/.exec(t))) { flush(); blocks.push({ isImg: true, alt: m[1], src: m[2] }); return; }
+      if ((m = /^[-*]\s+(.+)$/.exec(t))) { if (!list || !list.isUl) { flush(); list = { isUl: true, items: [] }; } list.items.push({ runs: self.mdRuns(m[1]) }); return; }
+      if ((m = /^\d+\.\s+(.+)$/.exec(t))) { if (!list || !list.isOl) { flush(); list = { isOl: true, items: [] }; } list.items.push({ runs: self.mdRuns(m[1]) }); return; }
+      if (list) { blocks.push(list); list = null; }
+      para.push(t);
+    });
+    flush();
+    return blocks.map(function (b) { return Object.assign({ isH2: false, isH3: false, isP: false, isQuote: false, isUl: false, isOl: false, isImg: false, runs: [], items: [], src: '', alt: '' }, b); });
+  }
+  edApply(key, kind) {
+    var ta = document.getElementById('f-' + key); if (!ta) return;
+    var v = ta.value, a = ta.selectionStart, b = ta.selectionEnd, sel = v.slice(a, b), out = v, ns = a, ne = b;
+    var wrap = function (pre, post, ph) { var inner = sel || ph; out = v.slice(0, a) + pre + inner + post + v.slice(b); ns = a + pre.length; ne = ns + inner.length; };
+    var lines = function (fn) { var s0 = v.lastIndexOf('\n', a - 1) + 1, e0 = v.indexOf('\n', b); if (e0 < 0) e0 = v.length; var block = v.slice(s0, e0).split('\n').map(fn).join('\n'); out = v.slice(0, s0) + block + v.slice(e0); ns = s0; ne = s0 + block.length; };
+    if (kind === 'h2') lines(function (l) { return '## ' + l.replace(/^#+\s*/, ''); });
+    else if (kind === 'h3') lines(function (l) { return '### ' + l.replace(/^#+\s*/, ''); });
+    else if (kind === 'bold') wrap('**', '**', 'bold text');
+    else if (kind === 'italic') wrap('_', '_', 'italic text');
+    else if (kind === 'ul') lines(function (l) { return '- ' + l.replace(/^[-*]\s+/, ''); });
+    else if (kind === 'ol') { var n = 0; lines(function (l) { n++; return n + '. ' + l.replace(/^\d+\.\s+/, ''); }); }
+    else if (kind === 'quote') lines(function (l) { return '> ' + l.replace(/^>\s?/, ''); });
+    else if (kind === 'link') { wrap('[', '](https://)', 'link text'); ne = ns + (sel || 'link text').length; }
+    var f = Object.assign({}, this.state.form); f[key] = out; this.setState({ form: f });
+    setTimeout(function () { var t2 = document.getElementById('f-' + key); if (t2) { t2.focus(); try { t2.setSelectionRange(ns, ne); } catch (e) { /* fine */ } } }, 30);
+  }
+  editorField(fd, F, setF) {
+    var self = this, val = F[fd.key] || '', mode = this.state.edMode || 'write', words = (val.trim().match(/\S+/g) || []).length, I = this.icons();
+    var T = [['Heading', 'h2', 'M6 4v16M18 4v16M6 12h12'], ['Subheading', 'h3', 'M4 6v12M14 6v12M4 12h10M18 10c2 0 3 1 3 2.5S19.5 15 18 15M18 15c2 0 3 1 3 2.5S19.5 20 18 20'], ['Bold', 'bold', 'M6 4h8a4 4 0 0 1 0 8H6zM6 12h9a4 4 0 0 1 0 8H6z'], ['Italic', 'italic', 'M19 4h-9M14 20H5M15 4 9 20'], ['Bulleted list', 'ul', 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01'], ['Numbered list', 'ol', 'M10 6h11M10 12h11M10 18h11M4 6h1v4M4 10h2M6 18H4c0-1 2-2 2-3s-1-1.5-2-1'], ['Quote', 'quote', 'M3 21c3 0 7-1 7-8V5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h4M15 21c3 0 7-1 7-8V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h4'], ['Link', 'link', 'M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71']];
+    var cover = (F[fd.coverKey || 'cover'] || [])[0];
+    return { isEditor: true, isTrig: false, isPlain: false, key: fd.key, id: 'f-' + fd.key, label: fd.label, cls: 'wideF', ph: fd.ph || '', value: val, hint: fd.hint || '', hasHint: !!fd.hint, stats: words + (words === 1 ? ' word' : ' words') + ' · ' + Math.max(1, Math.round(words / 200)) + ' min read',
+      isWrite: mode === 'write', isPrev: mode === 'preview', modeI: mode === 'write' ? 0 : 1, wCls: mode === 'write' ? 'on' : '', pCls: mode === 'preview' ? 'on' : '', wPress: mode === 'write' ? 'true' : 'false', pPress: mode === 'preview' ? 'true' : 'false',
+      setWrite: function () { self.setState({ edMode: 'write' }); }, setPrev: function () { self.setState({ edMode: 'preview' }); },
+      tools: T.map(function (t) { return { label: t[0], d: t[2], fn: function () { self.edApply(fd.key, t[1]); } }; }),
+      on: function (e) { setF(fd.key, e.target.value); },
+      onKey: function (e) { var k = (e.key || '').toLowerCase(); if ((e.ctrlKey || e.metaKey) && k === 'b') { e.preventDefault(); self.edApply(fd.key, 'bold'); } else if ((e.ctrlKey || e.metaKey) && k === 'i') { e.preventDefault(); self.edApply(fd.key, 'italic'); } },
+      onPic: function (e) { var f = e && e.target && e.target.files && e.target.files[0]; if (!f) return; if (f.size > 8 * 1048576) { self.say('Pictures in a post stay under 8 MB so the page loads fast.'); return; } var url = URL.createObjectURL(f), alt = f.name.replace(/\.[^.]+$/, ''); e.target.value = ''; var cur = self.state.form[fd.key] || ''; setF(fd.key, cur + (cur && !/\n$/.test(cur) ? '\n\n' : '') + '![' + alt + '](' + url + ')\n\n'); self.say('Picture added at the end. Move the line where you want it.'); },
+      hasCover: !!cover, cover: cover ? cover.url : '', title: (F[fd.titleKey || 'title'] || '').trim() || 'Untitled post', blocks: this.mdBlocks(val), noBlocks: !val.trim() };
+  }
+
+  /* ---------- pause and resume a project: one shared state every page reads ---------- */
+  pauseProject(id, name, client, who) {
+    var self = this, I = this.icons(), w = who || client;
+    this.ask({ eyebrow: 'Pause', title: 'Pause ' + name + '?', body: 'Work stops: its tasks leave everyone’s My Day and deadlines stop counting down. ' + w + ' sees “Paused” in their portal with the reason you give. Nothing is lost, and you can resume it any time.', input: true, inputLabel: 'Reason ' + w + ' sees', inputPh: 'For example: paused until milestone 2 is paid', ok: 'Pause project', icon: I.clock, tone: 'var(--ad-tone-warn)',
+      onOk: function (reason) {
+        var p = Object.assign({}, self.state.paused); p[id] = { reason: (reason || '').trim() || 'Paused by Admin', since: 'Sat 10 Oct', by: self.me().name };
+        self.setState({ paused: p, ra: self.state.ra + 1, ta: (self.state.ta || 0) + 1 }); self.setShared('paused', p);
+        self.say(name + ' is paused. ' + w + ' is told, and its tasks leave My Day.', { undo: function () { var u = Object.assign({}, self.state.paused); delete u[id]; self.setState({ paused: u, ra: self.state.ra + 1 }); self.setShared('paused', u); } });
+      } });
+  }
+  resumeProject(id, name, client) {
+    var self = this, I = this.icons(), cur = this.state.paused[id];
+    this.ask({ eyebrow: 'Resume', title: 'Resume ' + name + '?', body: 'Its tasks return to My Day and deadlines count down again. ' + client + ' is told by email and in the portal.' + (cur ? ' It was paused: ' + cur.reason + '.' : ''), ok: 'Resume project', green: true, icon: I.play, tone: 'var(--ad-tone-good)',
+      onOk: function () {
+        var u = Object.assign({}, self.state.paused), prev = u[id]; delete u[id];
+        self.setState({ paused: u, ra: self.state.ra + 1, ta: (self.state.ta || 0) + 1 }); self.setShared('paused', u);
+        self.say(name + ' resumed. The team sees its tasks again and ' + client + ' is told.', { undo: function () { var p = Object.assign({}, self.state.paused); if (prev) p[id] = prev; self.setState({ paused: p, ra: self.state.ra + 1 }); self.setShared('paused', p); } });
+      } });
+  }
+
+  helpCatsDefault() { return [{ id: 'c1', name: 'Getting started', desc: 'First steps for someone new to the portal.', visible: true }, { id: 'c2', name: 'Billing and payments', desc: 'Invoices, receipts, Paystack and Flutterwave.', visible: true }, { id: 'c3', name: 'Approvals and files', desc: 'Reviewing work, comments and the file library.', visible: true }, { id: 'c4', name: 'Your account', desc: 'People, notifications and settings.', visible: true }]; }
 
   /* ======================= tools: real CSV and Excel files, import with a sample, bulk select, filters ======================= */
 
@@ -3126,7 +3343,7 @@ class Component extends DCLogic {
       clearHover: function () { self.setState({ hover: -1 }); },
       rangeI: s.range === 12 ? 1 : 0, c6: s.range === 6 ? 'on' : '', c12: s.range === 12 ? 'on' : '', p6: s.range === 6 ? 'true' : 'false', p12: s.range === 12 ? 'true' : 'false',
       set6: function () { self.setState({ range: 6, hover: -1 }); }, set12: function () { self.setState({ range: 12, hover: -1 }); },
-      openReport: function () { self.open(statDefs[0].sheet); }, openFeed: function () { self.open(X.feed); },
+      openReport: function () { window.location.href = 'A-Money.dc.html?tab=reports'; }, openFeed: function () { self.open(X.feed); },
       teamStack: T.slice(0, 3).map(function (m) { return Object.assign({}, m, { open: function () { self.open(personSheet(m)); } }); }), teamMore: T.length - 3, teamMoreAria: 'Show ' + (T.length - 3) + ' more people',
       openTeam: function () { self.open(S({ eyebrow: 'Team', title: 'On today', chip: T.length + ' people', tone: 'var(--ad-tone-brand)', icon: I.users, listTitle: 'Everyone', list: T.map(function (m) { return { t: m.name, s: m.dept + ' · ' + m.load, ini: m.i, av: m.tone, open: personSheet(m) }; }), primary: 'Close' })); },
       pulse: pulse, renewals: renewals,
@@ -3289,9 +3506,7 @@ class Component extends DCLogic {
       onPrimary: function (ctx) { if (onAdd) onAdd(ctx.form); self.say('Task added. It is on ' + ctx.form.who.split(' ')[0] + '’s My Day, due ' + ctx.form.due.toLowerCase() + '.'); } });
   }
 
-  /* ======================= Support (shared by all roles, driven by this.supModel()) ======================= */
-  pageState() { var M = this.supModel(); return { stab: M.defaultTab || 'tickets', sq: '', schip: 'all', spage: 0, sper: 5, ra: 0, tstat: {}, replies: {}, newT: [], newA: [], helpful: {} }; }
-  pageName() { return 'Support'; }
+  /* ======================= Help articles: the knowledge base, its categories and what Admin has changed ======================= */
   /* The client facing knowledge base: clients read it, the owner edits it. */
   kbClient() {
     var I = this.icons(), st = function (t, s) { return { t: t, s: s }; };
@@ -3308,6 +3523,71 @@ class Component extends DCLogic {
     ];
   }
 
+  /* what Admin sees: the client articles plus two drafts */
+  kbAdmin() {
+    var I = this.icons(), st = function (t, s) { return { t: t, s: s }; };
+    return this.kbClient().concat([
+
+      { id: 'd1', t: 'Match a bank transfer to an invoice', s: 'Draft for clients who pay by transfer in USD.', cat: 'Billing and payments', mins: '2 min read', d: I.cash, kw: 'bank transfer match reconcile usd dollars', draft: true, steps: [st('Pay into the USD account', 'The details are on the invoice.'), st('Use the invoice number as the reference', 'It lets us match it the same day.'), st('We email the receipt', 'Usually within one working day.')] },
+      { id: 'd2', t: 'Switch an invoice to US dollars', s: 'Draft. Answers the most searched question that has no article yet.', cat: 'Billing and payments', mins: '1 min read', d: I.cash, kw: 'dollars usd currency invoice', draft: true, steps: [st('Ask us in Support', 'Dollar invoices are set up by Admin.'), st('Pay into the Sterling USD account', 'Paystack and Flutterwave are for naira.')] }
+    ]);
+  }
+  /* categories are one shared list, edited in Settings and used by the help centre, new articles and filters */
+  helpCats() { return this.state.hc || this.helpCatsDefault(); }
+  setHelpCats(list) { this.setState({ hc: list, ra: (this.state.ra || 0) + 1 }); this.setShared('helpCats', list); }
+  /* the article list after Admin's edits: moves, publishing, trash and new articles */
+  kbEdited(base) {
+    var ov = this.state.ha || {}, news = (this.state.hn || []);
+    return news.concat(base).map(function (a) { return ov[a.id] ? Object.assign({}, a, ov[a.id]) : a; }).filter(function (a) { return !a.gone; });
+  }
+  setArt(id, patch) { var o = Object.assign({}, this.state.ha); o[id] = Object.assign({}, o[id] || {}, patch); this.setState({ ha: o, ra: (this.state.ra || 0) + 1 }); this.setShared('helpArts', o); }
+  addArt(a) { var n = [a].concat(this.state.hn || []); this.setState({ hn: n, ra: (this.state.ra || 0) + 1 }); this.setShared('helpNew', n); }
+  kbBody(a) { return (a.steps || []).map(function (x, i) { return (i + 1) + '. ' + x.t + (x.s ? ': ' + x.s : ''); }).join('\n'); }
+  kbSteps(body) {
+    var lines = String(body || '').split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean), out = [];
+    lines.forEach(function (l) { var m = /^\d+\.\s+(.+)$/.exec(l) || /^[-*]\s+(.+)$/.exec(l), t = m ? m[1] : l, i = t.indexOf(': '); out.push(i > 0 ? { t: t.slice(0, i), s: t.slice(i + 2) } : { t: t, s: '' }); });
+    return out;
+  }
+  /* write or edit a help article: the same editor as the blog, a category from the shared list (or a new one), draft or publish */
+  openArticleEditor(a, titleHint) {
+    var self = this, I = this.icons(), cats = this.helpCats().map(function (c) { return c.name; });
+    var start = a ? { title: a.t, sum: a.s, body: this.kbBody(a), kw: a.kw || '', cat: a.cat, newcat: '', when: a.draft ? 'Save as draft' : 'Publish now' } : { title: titleHint || '', sum: '', body: '', kw: (titleHint || '').toLowerCase(), cat: '', newcat: '', when: 'Save as draft' };
+    this.open(this.sh({ wide: true, xl: true, eyebrow: a ? 'Edit article' : 'New article', title: a ? a.t : 'Write a help article', icon: I.file, keepOpen: true, focus: 'f-title',
+      body: 'Write the steps a client would follow, one per line, numbered. Short sentences, plain words. It stays a draft until you publish it.',
+      guard: function (ctx) { var f = ctx.form; return ['title', 'sum', 'body'].some(function (k) { return (f[k] || '') !== (start[k] || ''); }); }, guardBody: 'The article is not saved yet. If you close now, what you wrote here is lost.',
+      form: start,
+      fields: [{ key: 'title', label: 'Title', ph: 'How to change my domain', wide: true }, { key: 'sum', label: 'One line summary', ph: 'What the reader will be able to do', wide: true }, { key: 'body', type: 'editor', label: 'The steps', ph: '1. Open Settings\n2. Tap the thing\n3. Done', hint: 'Number the steps. Add “: and the detail” after a step to give it a second line.' }, { key: 'kw', label: 'Words people search for', ph: 'domain change transfer dns', wide: true, hint: 'Search finds an article by these as well as by its title.' }, { key: 'newcat', label: 'Or a new category', ph: 'For example: Domains and email', wide: true, hint: 'Leave empty to use the one chosen above. A new category is added to the list in Settings, Help centre.', check: function (v) { return v.trim() && cats.some(function (c) { return c.toLowerCase() === v.trim().toLowerCase(); }) ? 'That category already exists. Choose it above.' : ''; } }],
+      chipSets: [{ key: 'cat', label: 'Category', opts: cats }, { key: 'when', label: 'What now?', opts: ['Save as draft', 'Publish now'] }],
+      notice: function (ctx) { var f = ctx.form, n = self.kbSteps(f.body).length; return { tone: n >= 2 && (f.sum || '').trim() ? 'var(--ad-tone-good)' : 'var(--ad-tone-warn)', icon: n >= 2 ? I.check : I.alert, title: n + (n === 1 ? ' step' : ' steps'), body: n < 2 ? 'Most articles read best with three to six steps.' : 'It reads as ' + Math.max(1, Math.round(n / 2)) + ' min read.' }; },
+      primary: function (ctx) { return ctx.form.when === 'Publish now' ? 'Publish article' : 'Save draft'; }, secondary: 'Cancel',
+      primaryDis: function (ctx) { var f = ctx.form, nc = (f.newcat || '').trim(); if (!(f.title || '').trim()) return 'Add a title.'; if (!(f.sum || '').trim()) return 'Add a one line summary.'; if (!f.cat && !nc) return 'Choose a category or name a new one.'; if (nc && cats.some(function (c) { return c.toLowerCase() === nc.toLowerCase(); })) return 'That category already exists. Choose it above.'; if (f.when === 'Publish now' && self.kbSteps(f.body).length < 2) return 'Write at least two steps before it is published.'; return ''; },
+      onPrimary: function (ctx) {
+        var f = ctx.form, nc = (f.newcat || '').trim(), cat = nc || f.cat, steps = self.kbSteps(f.body);
+        if (nc) self.setHelpCats(self.helpCats().concat([{ id: 'c' + Date.now(), name: nc, desc: '', visible: true }]));
+        var draft = f.when !== 'Publish now', patch = { t: f.title.trim(), s: f.sum.trim(), cat: cat, kw: (f.kw || '').toLowerCase(), draft: draft, steps: steps.length ? steps : [{ t: 'Add the steps', s: '' }], mins: Math.max(1, Math.round(steps.length / 2)) + ' min read' };
+        self.setState({ sheet: null, stack: [] });
+        if (a) self.setArt(a.id, patch); else self.addArt(Object.assign({ id: 'n' + Date.now(), d: I.file }, patch));
+        self.setState({ stab: 'kb', schip: 'all', spage: 0, ra: self.state.ra + 1 });
+        self.say(draft ? 'Saved. “' + patch.t + '” is a draft in the Knowledge base.' : 'Published. “' + patch.t + '” is live for clients in ' + cat + '.');
+      } }));
+  }
+  renameCat(from, to) { var self = this, o = Object.assign({}, this.state.ha); this.kbEdited(this.kbAdmin()).forEach(function (a) { if (a.cat === from) o[a.id] = Object.assign({}, o[a.id] || {}, { cat: to }); }); this.setState({ ha: o }); this.setShared('helpArts', o); }
+  moveArts(ids, cat) { var o = Object.assign({}, this.state.ha); ids.forEach(function (id) { o[id] = Object.assign({}, o[id] || {}, { cat: cat }); }); this.setState({ ha: o, ra: (this.state.ra || 0) + 1 }); this.setShared('helpArts', o); }
+  patchArts(ids, patch) { var o = Object.assign({}, this.state.ha); ids.forEach(function (id) { o[id] = Object.assign({}, o[id] || {}, patch); }); this.setState({ ha: o, ra: (this.state.ra || 0) + 1 }); this.setShared('helpArts', o); }
+  catSheet(c) {
+    var self = this, I = this.icons(), cats = this.helpCats();
+    this.open(this.sh({ eyebrow: 'Help centre', title: c ? 'Edit ' + c.name : 'New category', icon: I.life, body: 'Categories group the articles clients browse. The order here is the order they see.', focus: 'f-name',
+      form: { name: c ? c.name : '', desc: c ? c.desc : '', vis: !c || c.visible ? 'Shown to clients' : 'Hidden from clients' },
+      fields: [{ key: 'name', label: 'Name', ph: 'Domains and email', wide: true, check: function (v) { v = v.trim(); if (v.length > 32) return 'Keep it under 32 characters.'; return v && cats.some(function (x) { return x.name.toLowerCase() === v.toLowerCase() && (!c || x.id !== c.id); }) ? 'That category already exists.' : ''; } }, { key: 'desc', label: 'One line about it', ph: 'What clients find here', type: 'area', wide: true }],
+      chipSets: [{ key: 'vis', label: 'Visibility', opts: ['Shown to clients', 'Hidden from clients'], hint: 'A hidden category and its articles stay in Settings and are not shown in the client help centre.' }],
+      primary: c ? 'Save changes' : 'Add the category', secondary: 'Cancel',
+      primaryDis: function (ctx) { var f = ctx.form, v = (f.name || '').trim(); if (!v) return 'Name the category.'; if (cats.some(function (x) { return x.name.toLowerCase() === v.toLowerCase() && (!c || x.id !== c.id); })) return 'That category already exists.'; return ''; },
+      onPrimary: function (ctx) { var f = ctx.form, name = f.name.trim(), vis = f.vis === 'Shown to clients'; if (c) { if (c.name !== name) self.renameCat(c.name, name); self.setHelpCats(cats.map(function (x) { return x.id === c.id ? Object.assign({}, x, { name: name, desc: (f.desc || '').trim(), visible: vis }) : x; })); self.say('Updated. ' + name + ' is saved.'); } else { self.setHelpCats(cats.concat([{ id: 'c' + Date.now(), name: name, desc: (f.desc || '').trim(), visible: vis }])); self.say('Saved. ' + name + ' is at the end of the list. Move it up from its menu.'); } } }));
+  }
+
+  /* ======================= Support (shared by all roles, driven by this.supModel()) ======================= */
+  pageState() { var M = this.supModel(); return { stab: M.defaultTab || 'tickets', sq: '', schip: 'all', spage: 0, sper: 5, ra: 0, tstat: {}, replies: {}, newT: [], newA: [], helpful: {} }; }
+  pageName() { return 'Support'; }
   tourSteps() {
     var I = this.icons(), M = this.supModel();
     var st = [];
@@ -3332,7 +3612,7 @@ class Component extends DCLogic {
     m[id] = Object.assign({}, cur, patch, { updated: 'Just now', feedAdd: fa }); this.setState({ tstat: m, ra: this.state.ra + 1 });
   }
   tkTone(st) { return ({ open: 'var(--ad-tone-live)', wait: 'var(--ad-tone-warn)', done: 'var(--ad-tone-good)' })[st]; }
-  artAll() { var M = this.supModel(); return this.state.newA.concat(M.articles); }
+  artAll() { var M = this.supModel(), role = M.role, hidden = {}; this.helpCats().forEach(function (c) { if (!c.visible) hidden[c.name] = true; }); return this.kbEdited(this.state.newA.concat(M.articles)).filter(function (a) { return role === 'admin' || (!a.draft && !hidden[a.cat]); }); }
   tkOrder(a, b) { var o = { open: 0, wait: 1, done: 2 }; return o[a.status] - o[b.status]; }
   openTicket(t) {
     var self = this, I = this.icons(), M = this.supModel(), done = t.status === 'done', L = M.labels;
@@ -3380,7 +3660,7 @@ class Component extends DCLogic {
     this.open(this.sh({ eyebrow: a.cat + ' · ' + a.mins, title: a.t, icon: I.life, iconTone: 'var(--ad-tone-brand)', chip: a.draft ? 'Draft' : '', tone: 'var(--ad-tone-warn)', body: a.s,
       listTitle: 'Steps', list: a.steps.map(function (x, i) { return { t: (i + 1) + '. ' + x.t, s: x.s }; }), checksTitle: '', note: a.note || '',
       primary: M.role === 'admin' ? (a.draft ? 'Publish article' : 'Edit article') : 'Yes, this helped', secondary: M.role === 'admin' ? 'Close' : 'Not quite, ask us',
-      onPrimary: function () { if (M.role === 'admin') { self.say(a.draft ? '“' + a.t + '” is published and visible to clients.' : 'The editor opens here, with a preview of what clients see.'); return; } var h = Object.assign({}, self.state.helpful); h[a.id] = true; self.setState({ helpful: h }); self.say('Thanks. That helps us decide what to write next.'); },
+      onPrimary: function () { if (M.role === 'admin') { if (a.draft) { self.setArt(a.id, { draft: false }); self.closeSheet(true); self.say('“' + a.t + '” is published and visible to clients.'); } else { self.closeSheet(true); setTimeout(function () { self.openArticleEditor(a); }, 80); } return; } var h = Object.assign({}, self.state.helpful); h[a.id] = true; self.setState({ helpful: h }); self.say('Thanks. That helps us decide what to write next.'); },
       onSecondary: function () { if (M.role === 'admin') { self.closeSheet(); return 'stay'; } self.closeSheet(); setTimeout(function () { self.newTicketSheet('Question about: ' + a.t); }, 80); return 'stay'; } }), push);
   }
   newTicketSheet(subject) {
@@ -3402,7 +3682,7 @@ class Component extends DCLogic {
     var self = this, I = this.icons(), it = this.menuItem.bind(this), M = this.supModel();
     if (pop.kind === 'row') {
       var t = this.tkAll().filter(function (x) { return x.id === pop.id; })[0]; if (t) return this.ticketActions(t);
-      var a = this.artAll().filter(function (x) { return x.id === pop.id; })[0]; return a ? [it('Open article', I.open, function () { self.openArticle(a); })] : [];
+      var a = this.artAll().filter(function (x) { return x.id === pop.id; })[0]; if (!a) return []; var out = [it('Open article', I.open, function () { self.openArticle(a); })]; if (M.role === 'admin') { out.push(it('Edit article', I.edit, function () { self.openArticleEditor(a); })); out.push(it(a.draft ? 'Publish' : 'Move back to drafts', a.draft ? I.send : I.undo, function () { self.setArt(a.id, { draft: !a.draft }); self.say(a.draft ? '“' + a.t + '” is published.' : '“' + a.t + '” is a draft again and clients no longer see it.'); })); out.push(this.menuSep()); out.push(it('Move to Trash…', I.trash, function () { self.ask({ eyebrow: 'Trash', title: 'Move “' + a.t + '” to Trash?', body: 'It leaves the help centre at once. Restore it from Settings, Trash, for 30 days.', ok: 'Move to Trash', danger: true, tone: 'var(--ad-tone-bad)', icon: I.trash, onOk: function () { self.setArt(a.id, { gone: true }); self.say('Moved to Trash.'); } }); }, { danger: true })); } return out;
     }
     if (pop.kind === 'chores') return M.chores(this, it, I);
     return [];
@@ -3412,7 +3692,8 @@ class Component extends DCLogic {
     var dk = this.deck(), dv = this.deckView(dk), q = s.sq.trim().toLowerCase();
     var tickets = this.tkAll().sort(function (a, b) { return self.tkOrder(a, b); }), arts = this.artAll();
     var isT = s.stab === 'tickets';
-    var cats = ['all'].concat(arts.map(function (a) { return a.cat; }).filter(function (c, i, arr) { return arr.indexOf(c) === i; }));
+    var order = this.helpCats().filter(function (c) { return M.role === 'admin' || c.visible; }).map(function (c) { return c.name; }), seenC = arts.map(function (a) { return a.cat; }).filter(function (c, i, arr) { return arr.indexOf(c) === i; });
+    var cats = ['all'].concat(order, seenC.filter(function (c) { return order.indexOf(c) < 0; }));
     var chipsT = [['all', 'All'], ['open', 'Open'], ['wait', 'Waiting'], ['done', 'Resolved']];
     var chipKey = isT ? (chipsT.map(function (c) { return c[0]; }).indexOf(s.schip) >= 0 ? s.schip : 'all') : (cats.indexOf(s.schip) >= 0 ? s.schip : 'all');
     var tMatch = function (t) { return !q || (t.subject + ' ' + t.id + ' ' + t.from + ' ' + t.org + ' ' + t.about).toLowerCase().indexOf(q) >= 0; };
@@ -3467,10 +3748,7 @@ class Component extends DCLogic {
       { id: 'T-1038', subject: 'Need Meta Business access for Lumen', kind: 'Request', from: 'Chiamaka A.', org: 'Social & Ads (staff)', about: 'Instagram ads', status: 'open', updated: '3 days ago', feed: [f('Chiamaka asked: “I cannot start the November ads without Meta Business Manager access. Can Daniel be asked?”', '3 days ago, 09:30')] },
       { id: 'T-1037', subject: 'Invoice sent to the wrong email', kind: 'Problem', from: 'Adebayo K.', org: 'Kora Logistics', about: 'Billing', status: 'done', updated: 'Last week', feed: [f('Adebayo said invoices go to an inbox nobody reads.', 'Last week'), f('You added a second billing contact and resent the invoice.', 'Last week'), f('Marked resolved.', 'Last week')] }
     ];
-    var arts = this.kbClient().concat([
-      { id: 'd1', t: 'Match a bank transfer to an invoice', s: 'Draft for clients who pay by transfer in USD.', cat: 'Billing and payments', mins: '2 min read', d: I.cash, kw: 'bank transfer match reconcile usd dollars', draft: true, steps: [st('Pay into the USD account', 'The details are on the invoice.'), st('Use the invoice number as the reference', 'It lets us match it the same day.'), st('We email the receipt', 'Usually within one working day.')] },
-      { id: 'd2', t: 'Switch an invoice to US dollars', s: 'Draft. Answers the most searched question that has no article yet.', cat: 'Billing and payments', mins: '1 min read', d: I.cash, kw: 'dollars usd currency invoice', draft: true, steps: [st('Ask us in Support', 'Dollar invoices are set up by Admin.'), st('Pay into the Sterling USD account', 'Paystack and Flutterwave are for naira.')] }
-    ]);
+    var arts = this.kbAdmin();
     var tk = function (id) { return self.tkAll().filter(function (t) { return t.id === id; })[0]; };
     var hand = function (top, who, msg) { return function () { self.clear(top, 'delegated', '', msg, { final: true }); }; };
     var deck = function (me) {
@@ -3516,15 +3794,7 @@ class Component extends DCLogic {
       onPrimary: function (ctx) { var team = ctx.vis === 'team'; self.tkSet(t.id, team ? {} : { status: 'wait' }, (team ? 'Team note: ' : 'You replied: ') + ctx.draft); self.say(team ? 'Saved as a team note on ' + t.id + '.' : 'Reply sent to ' + t.from.split(' ')[0] + '. The ticket now waits on them.'); },
       onSecondary: function () { self.resolveAsk(t); return 'stay'; } });
   }
-  newArticle(title) {
-    var self = this, I = this.icons(), cats = ['Getting started', 'Billing and payments', 'Approvals and files', 'Your account'];
-    this.open(this.sh({ eyebrow: 'New article', title: 'Write a help article', icon: I.file, body: 'It saves as a draft. Nothing is visible to clients until you publish it.',
-      fields: [{ key: 'title', label: 'Title', ph: 'How to change my domain', wide: true }, { key: 'sum', label: 'One line summary', ph: 'What the reader will be able to do', wide: true }],
-      chipSets: [{ key: 'cat', label: 'Category', opts: cats }], primary: 'Save draft', secondary: 'Cancel',
-      primaryDis: function (ctx) { var f = ctx.form; if (!(f.title || '').trim()) return 'Add a title.'; if (!(f.sum || '').trim()) return 'Add a one line summary.'; if (!f.cat) return 'Choose a category.'; return ''; },
-      onPrimary: function (ctx) { var f = ctx.form, a = { id: 'n' + Date.now(), t: f.title.trim(), s: f.sum.trim(), cat: f.cat, mins: '1 min read', d: I.file, kw: f.title.toLowerCase(), draft: true, steps: [{ t: 'Add the steps', s: 'The editor opens here.' }] }; self.setState({ newA: [a].concat(self.state.newA), stab: 'kb', schip: 'all', spage: 0, ra: self.state.ra + 1 }); self.say('Saved. “' + a.t + '” is a draft in the Knowledge base.'); } }));
-    if (title) setTimeout(function () { self.setState({ form: { title: title } }); }, 40);
-  }
+  newArticle(title) { this.openArticleEditor(null, title); }
 
 }
 </script>

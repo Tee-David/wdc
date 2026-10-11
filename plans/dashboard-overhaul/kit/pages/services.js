@@ -3,7 +3,19 @@
      A spec is written once from the owner's side. adapt() turns it into the staff or client view. */
   projKeys() { return ({ admin: ['mira-so', 'mira-br', 'bloom-seo', 'oak-web', 'kora-app', 'halo-ai', 'lumen-ads', 'ade-oct'], staff: ['ade-oct', 'lumen-ads', 'mira-so'], client: ['mira-br', 'mira-so'] })[this.projRole()]; }
   modelState() { var m = /[?&]p=([\w-]+)/.exec((typeof window !== 'undefined' && window.location.search) || ''), i = m ? this.projKeys().indexOf(m[1]) : -1; return { sw: i < 0 ? 0 : i }; }
-  projectModel() { var key = this.projKeys()[Math.min(this.state.sw, this.projKeys().length - 1)]; return this.adapt(this.spec(key), key); }
+  projectModel() { var key = this.projKeys()[Math.min(this.state.sw, this.projKeys().length - 1)]; return this.withPause(this.adapt(this.spec(key), key), key); }
+  /* a paused project reads as paused everywhere: flag, banner, the head button, and what each role can do about it */
+  withPause(m, key) {
+    var ps = this.state.paused[key], role = this.projRole(), I = this.icons(), self = this, o = Object.assign({}, m), pj = m.pj;
+    o.pj = Object.assign({}, pj); o.pauseBanner = null;
+    if (!ps) { if (pj.flag === 'Paused') { o.pj.flag = ''; o.pj.flagTone = ''; } return o; }
+    o.pj.flag = 'Paused'; o.pj.flagTone = 'var(--ad-tone-bad)';
+    var ban = { title: 'Paused since ' + ps.since, why: ps.reason };
+    if (role === 'admin') { ban.body = 'Tasks are off My Day and deadlines have stopped counting down. ' + pj.client + ' sees this banner with your reason.'; ban.act = 'Resume project'; ban.fn = function () { self.resumeProject(key, pj.name, pj.client); }; o.headAct = { label: 'Resume project', icon: I.play, fn: ban.fn }; }
+    else if (role === 'staff') { ban.body = 'Admin paused this. Its tasks are off your My Day and deadlines have stopped. Nothing is lost.'; ban.act = 'Ask Admin about it'; ban.fn = function () { window.location.href = 'S-Messages.dc.html'; }; o.headAct = { label: 'Ask Admin about it', icon: I.msg, fn: ban.fn }; }
+    else { ban.body = 'Work is on hold, and nothing is lost. We tell you by email the moment it restarts.'; ban.act = 'Message the team'; ban.fn = function () { window.location.href = 'C-Messages.dc.html'; }; }
+    o.pauseBanner = ban; return o;
+  }
   spec(key) { var m = { 'mira-so': 'socialSpec', 'mira-br': 'brandSpec', 'bloom-seo': 'seoSpec', 'oak-web': 'webSpec', 'kora-app': 'appSpec', 'halo-ai': 'softSpec', 'lumen-ads': 'adsSpec', 'ade-oct': 'adeSpec' }; return this[m[key]](); }
   projHref(key) { return ({ admin: 'A-Project.dc.html', staff: 'S-Project.dc.html', client: 'C-Projects.dc.html' })[this.projRole()] + '?p=' + key; }
   navSection() { return 'Projects'; }
@@ -18,7 +30,7 @@
         return function () {
           var it = self.menuItem.bind(self);
           return [it('Edit project', I.edit, function () { self.open(S({ eyebrow: pj.client, title: 'Edit project', icon: I.edit, form: { name: pj.name, lead: pj.leadName }, fields: [{ key: 'name', label: 'Project name', wide: true }], chipSets: [{ key: 'lead', label: 'Lead', opts: self.teamData().map(function (m) { return m.name; }) }], primary: 'Save changes', secondary: 'Cancel', onPrimary: function () { self.say('Updated. The team and ' + who + ' see the changes.'); } })); }),
-            it('Pause project…', I.clock, function () { self.ask({ eyebrow: 'Pause', title: 'Pause ' + pj.name + '?', body: 'Work stops and tasks leave My Day. ' + who + ' sees “Paused” in their portal with your reason.', input: true, inputLabel: 'Reason ' + who + ' sees', inputPh: 'For example: paused until the invoice is paid', ok: 'Pause project', tone: 'var(--ad-tone-warn)', icon: I.clock, okToast: 'Project paused. ' + who + ' has been told.' }); }),
+            self.state.paused[self.projKeys()[self.state.sw]] ? it('Resume project', I.play, function () { self.resumeProject(self.projKeys()[self.state.sw], pj.name, pj.client); }) : it('Pause project…', I.clock, function () { self.pauseProject(self.projKeys()[self.state.sw], pj.name, pj.client, who); }),
             it('Mark done…', I.check, function () { self.ask({ eyebrow: 'Done', title: 'Mark ' + pj.name + ' done?', body: 'A project is usually marked done after the recorded handover meeting and the final invoice.', ok: 'Mark done', tone: 'var(--ad-tone-warn)', icon: I.check, okToast: 'Marked done. It moves to Done in Projects.' }); }),
             self.menuSep(),
             it('Jump to another project', I.folder, function () { self.jumpProject(); }),
