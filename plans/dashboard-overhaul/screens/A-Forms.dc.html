@@ -971,6 +971,24 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 /* Avatar stacks: 34px tiles get a 44px hit area */
 .avStack>button{position:relative}
 .avStack>button::after{content:"";position:absolute;inset:-5px}
+/* Bank picker row, suggested banks and lookup status (add a bank account) */
+.bankRow{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:6px 14px 6px 8px;border-radius:12px;border:1px solid var(--ad-line-2);background:var(--ad-panel);color:var(--ad-ink);text-align:left;font:inherit;cursor:pointer}
+.bankRow:hover{background:var(--ad-hover)}
+.bankRow:focus-visible{outline:2px solid var(--ad-focus);outline-offset:2px}
+.bankRow .bnkName{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bankRow .bnkName.ph{font-weight:400;color:var(--ad-dim)}
+.bnkLogo{display:inline-grid;place-items:center;flex:none;width:36px;height:36px;border-radius:50%;color:#fff;font:700 12px/1 'Space Grotesk',sans-serif;letter-spacing:.02em}
+.bnkLogo.sm{width:24px;height:24px;font-size:9px}
+.bnkSug{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.bnkSug .chip{display:inline-flex;align-items:center;gap:8px;padding-left:6px}
+.bnkStat{display:flex;align-items:center;gap:10px;margin-top:10px;padding:12px 14px;border-radius:12px;font-weight:600;font-size:14px;background:var(--ad-panel-2);color:var(--ad-ink);min-width:0}
+.bnkStat span{min-width:0;overflow-wrap:anywhere}
+.bnkStat.ok{background:var(--ad-tone-good);color:#fff}
+.bnkStat.bad,.bnkStat.none{background:var(--ad-panel-2);color:var(--ad-ink)}
+.bnkStat.bad{background:var(--ad-tone-bad);color:#fff}
+.bnkStat .ic{flex:none}
+.bnkSpin{flex:none;width:18px;height:18px;border-radius:50%;border:2px solid var(--ad-line-2);border-top-color:var(--ad-ink);animation:spin .8s linear infinite}
+@media (prefers-reduced-motion:reduce){.bnkSpin{animation:none;border-top-color:var(--ad-ink)}}
 
 </style>
 </helmet>
@@ -1639,6 +1657,13 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
                   <sc-if value="{{fd.hasHint}}" hint-placeholder-val="{{ false }}"><span class="hint">{{fd.hint}}</span></sc-if>
                 </div>
               </sc-if>
+              <sc-if value="{{fd.isBank}}" hint-placeholder-val="{{ false }}">
+                <div class="field wideF"><span>{{fd.label}}</span>
+                  <button type="button" class="bankRow" onClick="{{fd.onOpen}}" aria-haspopup="dialog"><sc-if value="{{fd.hasLogo}}" hint-placeholder-val="{{ false }}"><span class="bnkLogo" style="background: {{fd.tone}}">{{fd.ini}}</span></sc-if><sc-if value="{{fd.noLogo}}" hint-placeholder-val="{{ true }}"><span class="bnkLogo" style="background: var(--ad-tone-neutral)"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M3 21h18M5 21V10M19 21V10M9 21V10M15 21V10M2 10l10-6 10 6"></path></svg></span></sc-if><span class="bnkName {{fd.nameCls}}">{{fd.name}}</span><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg></button>
+                  <sc-if value="{{fd.hasSuggest}}" hint-placeholder-val="{{ false }}"><div class="bnkSug" role="group" aria-label="Banks that fit this number"><sc-for list="{{fd.suggest}}" as="sg" hint-placeholder-count="2"><button type="button" class="chip {{sg.cls}}" aria-pressed="{{sg.pressed}}" onClick="{{sg.pick}}"><span class="bnkLogo sm" style="background: {{sg.tone}}">{{sg.ini}}</span>{{sg.t}}</button></sc-for></div></sc-if>
+                  <sc-if value="{{fd.hasStatus}}" hint-placeholder-val="{{ false }}"><div class="{{fd.statCls}}" role="status" aria-live="polite"><sc-if value="{{fd.isLoad}}" hint-placeholder-val="{{ false }}"><span class="bnkSpin" aria-hidden="true"></span></sc-if><sc-if value="{{fd.isOk}}" hint-placeholder-val="{{ false }}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></sc-if><sc-if value="{{fd.isNone}}" hint-placeholder-val="{{ false }}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"></path></svg></sc-if><sc-if value="{{fd.isBad}}" hint-placeholder-val="{{ false }}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path></svg></sc-if><span>{{fd.statText}}</span></div></sc-if>
+                </div>
+              </sc-if>
               <sc-if value="{{fd.isFile}}" hint-placeholder-val="{{ false }}">
                 <div class="field wideF"><span>{{fd.label}}</span>
                   <sc-if value="{{fd.noFile}}" hint-placeholder-val="{{ true }}"><div class="dropZone" onDragOver="{{fd.over}}" onDrop="{{fd.drop}}"><svg class="ic" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"></path></svg><span>Drop your file here, or</span><span class="dzActs"><label class="btn2 fileBtn" style="min-height: 44px">Choose a file<input type="file" accept="{{fd.accept}}" onChange="{{fd.onFiles}}"></label></span></div></sc-if>
@@ -2280,7 +2305,7 @@ class Component extends DCLogic {
       notes: shown, notesEmpty: !shown.length, unread: unread, hasUnread: unread > 0, bellLabel: 'Notifications, ' + unread + ' unread', bellI: s.bellTab === 'unread' ? 1 : 0,
       bAll: s.bellTab === 'all' ? 'on' : '', bUn: s.bellTab === 'unread' ? 'on' : '', bAllP: s.bellTab === 'all' ? 'true' : 'false', bUnP: s.bellTab === 'unread' ? 'true' : 'false',
       tabAll: function () { self.setState({ bellTab: 'all' }); }, tabUnread: function () { self.setState({ bellTab: 'unread' }); },
-      allNotesHref: 'A-Notifications.dc.html', hasAllNotes: this.role() === 'admin',
+      allNotesHref: { admin: 'A-Notifications.dc.html', staff: 'S-Notifications.dc.html', client: 'C-Notifications.dc.html' }[this.role()] || '#', hasAllNotes: true,
       markAll: function () { var r = {}; notesRaw.forEach(function (n) { r[n.id] = true; }); var prev = self.state.read; self.setState({ read: r }); self.say('All marked as read', { undo: function () { self.setState({ read: prev }); } }); },
       pushText: s.push ? 'Push notifications are on for this device.' : this.installCopy()[0] + '.', pushBtn: s.push ? 'Turn off' : 'Install app',
       togglePush: function () { var on = !self.state.push; self.setState({ push: on }); self.say(on ? 'WDC installed. Push notifications are on.' : 'Push notifications are off. Email still reaches you.'); },
@@ -2620,6 +2645,7 @@ class Component extends DCLogic {
         if (ui && ui.key === fd.key && ui.kind === 'time') out.push(self.timePanel(fd.key, F[fd.key] || '', function (v) { setF(fd.key, v); self.setState({ ui: null }); }));
         return;
       }
+      if (t === 'bank' && self.bankField) { out.push(self.bankField(fd, F, setF)); return; }
       if (t === 'editor') { out.push(self.editorField(fd, F, setF)); return; }
       if (t === 'file') {
         var cur = F[fd.key] || null;
@@ -2633,7 +2659,7 @@ class Component extends DCLogic {
       var err = fd.check ? fd.check(F[fd.key] || '', F) : '';
       out.push({ isPlain: true, isTrig: false, key: fd.key, id: 'f-' + fd.key, label: fd.label, ph: fd.ph || '', value: F[fd.key] != null ? F[fd.key] : '', mode: fd.mode || 'text', type: fd.type || 'text', hint: err || fd.hint || '', hasHint: !!(err || fd.hint), hintCls: err ? 'hint err' : 'hint', cls: fd.wide ? 'wideF' : '', isArea: t === 'area', isInput: t !== 'area', on: function (e) { setF(fd.key, e.target.value); } });
     });
-    return out.map(function (o) { return Object.assign({ isTrig: false, isPlain: false, isPanelDate: false, isPanelTime: false, isMedia: false, isFile: false, isEditor: false, hasHint: !!o.hint, hintCls: 'hint', cls: '' }, o); });
+    return out.map(function (o) { return Object.assign({ isTrig: false, isPlain: false, isPanelDate: false, isPanelTime: false, isMedia: false, isFile: false, isEditor: false, isBank: false, isNone: false, isBad: false, isLoad: false, isOk: false, hasHint: !!o.hint, hintCls: 'hint', cls: '' }, o); });
   }
   /* The calendar, as the site draws it: days, then months, then years, with Today and Clear. */
   calPanel(key, value, min, clearable, pick, max) {
@@ -3475,7 +3501,6 @@ class Component extends DCLogic {
 
   /* ======================= Hub pages (Email, Forms, Meetings): tabs, one table, a rail ======================= */
   pageState() { return { tab: 0, chip: 'all', hpg: 0, hper: 5, hq: '', ra: 0, pst: {}, added: {}, gone: {}, flt: {}, bsel: {} }; }
-  navCounts() { return { Clients: { n: 5 }, Money: { n: 3, tone: 'var(--ad-tone-bad)' }, Messages: { n: 6 } }; }
   hubApply(key, base) { var s = this.state; return (s.added[key] || []).concat(base).map(function (x) { return s.pst[x.id] ? Object.assign({}, x, s.pst[x.id]) : x; }).filter(function (x) { return !s.gone[x.id]; }); }
   hubPatch(id, patch) { var m = Object.assign({}, this.state.pst); m[id] = Object.assign({}, m[id] || {}, patch); this.setState({ pst: m, ra: this.state.ra + 1 }); }
   hubAdd(key, item) { var a = Object.assign({}, this.state.added); a[key] = [item].concat(a[key] || []); this.setState({ added: a, ra: this.state.ra + 1 }); }
@@ -3583,7 +3608,7 @@ class Component extends DCLogic {
       body: f.on ? 'Turning it off shows people a note to email you instead. Entries already received stay.' : 'Paused. The page shows a note to email you.',
       primary: f.on ? 'Pause form' : 'Turn on', secondary: 'Edit questions',
       onPrimary: function () { self.hubPatch(f.id, { on: !f.on }); self.say(f.on ? 'Paused. “' + f.name + '” shows a note to email you.' : 'Updated. “' + f.name + '” is live.'); },
-      onSecondary: function () { self.say('The form builder opens for “' + f.name + '”.'); return 'stay'; } });
+      onSecondary: function () { window.location.href = 'A-FormBuilder.dc.html'; } });
   }
   linkMake() {
     var self = this, I = this.icons(), cs = this.clientsData(), forms = this.fmForms().map(function (f) { return f.name; });
@@ -3611,7 +3636,7 @@ class Component extends DCLogic {
           sheet: function (e) { return self.entrySheet(e); },
           actions: function (e, it, I2) { var o = [it('Open entry', I2.open, function () { self.open(self.entrySheet(e)); })]; if (!e.client) o.push(it('Assign to a client', I2.users, function () { self.entryAssign(e); })); if (e.status !== 'Spam') o.push(it('Mark as spam', I2.ban, function () { self.hubPatch(e.id, { status: 'Spam' }); self.say('Marked as spam.', { undo: function () { self.hubPatch(e.id, { status: e.status }); } }); })); o.push(self.menuSep()); o.push(it('Move to Trash…', I2.trash, function () { self.ask({ eyebrow: 'Trash', title: 'Move this entry to Trash?', body: 'You can restore it from Settings, Trash, for 30 days.', ok: 'Move to Trash', danger: true, icon: I2.trash, tone: 'var(--ad-tone-bad)', onOk: function () { self.hubGone([e.id], 'Entry moved to Trash.'); } }); }, { danger: true })); return o; },
           bulk: function () { return [{ label: 'Mark as spam', icon: I.ban, fn: function (sel, done) { sel.forEach(function (e) { self.hubPatch(e.id, { status: 'Spam' }); }); self.say(sel.length + ' marked as spam.'); done(); } }, { label: 'Move to Trash', icon: I.trash, danger: true, fn: function (sel, done) { self.ask({ eyebrow: 'Trash', title: 'Move ' + sel.length + ' entries to Trash?', body: 'You can restore them from Settings, Trash, for 30 days.', ok: 'Move to Trash', danger: true, icon: I.trash, tone: 'var(--ad-tone-bad)', onOk: function () { self.hubGone(sel.map(function (x) { return x.id; }), sel.length + ' entries moved to Trash.'); done(); } }); } }]; } },
-        { key: 'form', label: 'Forms', title: 'Forms', noun: 'forms', one: 'form', ph: 'Name or address', file: 'wdc-forms', actLabel: 'New form', actD: I.plus, act: function () { self.say('Pick a starting point, then add the questions.'); }, emptyT: 'No forms yet.', emptyB: 'Start from Contact.',
+        { key: 'form', label: 'Forms', title: 'Forms', noun: 'forms', one: 'form', ph: 'Name or address', file: 'wdc-forms', actLabel: 'New form', actD: I.plus, act: function () { window.location.href = 'A-FormBuilder.dc.html'; }, emptyT: 'No forms yet.', emptyB: 'Start from Contact.',
           cols: [{ t: 'Form' }, { t: 'Where' }, { t: 'State' }, { t: 'Entries, 30 days', cls: 'r' }, { t: 'Finish rate', cls: 'r' }],
           items: function () { return self.fmForms().map(function (f) { return Object.assign({}, f, { hay: f.name + ' ' + f.where, cells: [{ t: f.where }, { tag: true, t: f.on ? 'Live' : 'Paused', tone: f.on ? G : Fl, ink: f.on ? '#fff' : 'var(--ad-on-flat)' }, { t: String(f.n), cls: 'r num' }, { t: f.n ? f.conv + '%' : 'None yet', cls: 'r num' }] }); }); },
           chips: [['all', 'All', function () { return true; }], ['on', 'Live', function (x) { return x.on; }], ['off', 'Paused', function (x) { return !x.on; }]],
