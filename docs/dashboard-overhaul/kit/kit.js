@@ -91,7 +91,7 @@
   later(msg) { this.say(msg || 'This opens in the full prototype.'); }
 
   /* ---------- sheets: a stack, so a confirmation opened from a sheet returns to it on Cancel ---------- */
-  sh(o) { return Object.assign({ kind: '', eyebrow: '', title: '', chip: '', tone: 'var(--neutral)', rows: [], body: '', list: [], listTitle: '', checks: [], checksTitle: '', feed: [], primary: 'Done', pToast: '', secondary: '', sToast: '', compose: false, composeLabel: 'Message', composePh: 'Write here', draft: '', note: '' }, o); }
+  sh(o) { return Object.assign({ kind: '', eyebrow: '', title: '', chip: '', tone: 'var(--ad-tone-neutral)', rows: [], body: '', list: [], listTitle: '', checks: [], checksTitle: '', feed: [], primary: 'Done', pToast: '', secondary: '', sToast: '', compose: false, composeLabel: 'Message', composePh: 'Write here', draft: '', note: '' }, o); }
   open(sh, push) {
     var s = this.state;
     var stack = push && s.sheet ? s.stack.concat([{ sheet: s.sheet, draft: s.draft, reason: s.reason, ack: s.ack, spick: s.spick, ck: s.ck, zoom: s.zoom }]) : [];
@@ -106,7 +106,7 @@
   ask(cf, push) {
     var self = this, I = this.icons();
     this.open(this.sh({
-      kind: 'confirm', eyebrow: cf.eyebrow || 'Please confirm', title: cf.title, body: cf.body || '', icon: cf.icon || I.check, iconTone: cf.tone || 'var(--brand)',
+      kind: 'confirm', eyebrow: cf.eyebrow || 'Please confirm', title: cf.title, body: cf.body || '', icon: cf.icon || I.check, iconTone: cf.tone || 'var(--ad-tone-brand)',
       preview: cf.to ? { to: cf.to, subject: cf.subject || '', text: cf.preview || '' } : null,
       ack: cf.needAck ? (cf.ackText || 'This cannot be undone.') : '', reason: cf.input ? { label: cf.inputLabel || 'Reason', ph: cf.inputPh || '', required: true } : null,
       primary: cf.ok || 'Confirm', back: !!cf.back, danger: !!cf.danger, green: !!cf.green, secondary: cf.cancel || 'Cancel', note: cf.note || '',
@@ -163,7 +163,7 @@
   closePop() { var self = this; this.exitThen('.mSheet, .mSheet ~ .scrim, .menuF', function () { self.setState({ pop: null }); }); }
   menuItem(label, d, fn, opt) {
     opt = opt || {}; var self = this;
-    return { isItem: true, sep: false, label: label, d: d, hasIcon: !!d, sub: opt.sub || '', hasSub: !!opt.sub, hint: opt.hint || '', col: opt.danger ? 'var(--badInk)' : 'var(--ink)', role: opt.role || 'menuitem', checked: opt.checked ? 'true' : 'false', cls: opt.on ? 'on' : '', hasAv: !!opt.av, av: opt.av || '', ini: opt.ini || '', hasBadge: !!opt.badge, badge: opt.badge || '', badgeTone: opt.badgeTone || 'var(--good)', pick: function () { self.setState({ pop: null }); fn(); } };
+    return { isItem: true, sep: false, label: label, d: d, hasIcon: !!d, sub: opt.sub || '', hasSub: !!opt.sub, hint: opt.hint || '', col: opt.danger ? 'var(--ad-bad-ink)' : 'var(--ad-ink)', role: opt.role || 'menuitem', checked: opt.checked ? 'true' : 'false', cls: opt.on ? 'on' : '', hasAv: !!opt.av, av: opt.av || '', ini: opt.ini || '', hasBadge: !!opt.badge, badge: opt.badge || '', badgeTone: opt.badgeTone || 'var(--ad-tone-good)', pick: function () { self.setState({ pop: null }); fn(); } };
   }
   menuSep() { return { sep: true, isItem: false }; }
 
@@ -321,7 +321,7 @@
     var self = this, all = this.deck(), s = this.state, dq = (s.dq || '').trim().toLowerCase();
     var top = all.filter(function (d) { return !s.gone[d.id] && !s.snoozed[d.id]; })[0]; if (!top) return [];
     return this.teamData().filter(function (m) { return !dq || (m.name + ' ' + m.dept).toLowerCase().indexOf(dq) >= 0; }).map(function (m) {
-      return self.menuItem(m.name, '', function () { self.clear(top, 'delegated', '', 'Handed to ' + m.name + '. It is on their ' + (self.teamDay ? self.teamDay() : 'My Day') + ' now, with your notes.'); }, { sub: m.dept + ' · ' + m.load, av: m.tone, ini: m.i, badge: m.dept === top.dept ? 'Fits' : '', badgeTone: 'var(--good)' });
+      return self.menuItem(m.name, '', function () { self.clear(top, 'delegated', '', 'Handed to ' + m.name + '. It is on their ' + (self.teamDay ? self.teamDay() : 'My Day') + ' now, with your notes.'); }, { sub: m.dept + ' · ' + m.load, av: m.tone, ini: m.i, badge: m.dept === top.dept ? 'Fits' : '', badgeTone: 'var(--ad-tone-good)' });
     });
   }
 
@@ -353,9 +353,12 @@
     var DEV = [['desktop', 'Desktop', 'M2 4h20v12H2zM8 20h8M12 16v4', '100%', 'auto', 'Full width'], ['tablet', 'Tablet', 'M6 2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM11 18h2', '834px', '1112px', '834 × 1112'], ['phone', 'Phone', 'M8 2h8a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM11 18h2', '390px', '844px', '390 × 844']];
     var devI = 0; DEV.forEach(function (d, i) { if (d[0] === s.dev) devI = i; });
     var cur = DEV[devI];
-    var nav = this.navData().map(function (n) { var on = n.label === self.pageName(); return { label: n.label, d: n.d, href: n.href || '#', hasCount: n.count > 0, count: n.count, tone: n.tone || 'var(--brand)', aria: n.label + (n.count ? ', ' + n.count + ' new' : ''), cls: on ? 'on' : '', current: on ? 'page' : 'false', go: function (e) { if (on || !n.href || n.href === '#') { if (e && e.preventDefault) e.preventDefault(); self.setState({ drawer: false }); if (!on) self.later(n.label + ' opens in the full prototype.'); } } }; });
+    var navOn = this.navSection ? this.navSection() : this.pageName();
+    var mk = function (n) { var on = n.label === navOn; return { label: n.label, d: n.d, href: n.href || '#', hasCount: n.count > 0, count: n.count, tone: n.tone || 'var(--ad-tone-brand)', aria: n.label + (n.count ? ', ' + n.count + ' new' : ''), cls: on ? 'on' : '', current: on ? 'page' : 'false', go: function (e) { if (on || !n.href || n.href === '#') { if (e && e.preventDefault) e.preventDefault(); self.setState({ drawer: false }); } } }; };
+    var nav2 = this.roleNav().filter(function (n) { return n.second; }).map(mk);
+    var nav = this.navData().map(function (n) { var on = n.label === navOn; return { label: n.label, d: n.d, href: n.href || '#', hasCount: n.count > 0, count: n.count, tone: n.tone || 'var(--ad-tone-brand)', aria: n.label + (n.count ? ', ' + n.count + ' new' : ''), cls: on ? 'on' : '', current: on ? 'page' : 'false', go: function (e) { if (on || !n.href || n.href === '#') { if (e && e.preventDefault) e.preventDefault(); self.setState({ drawer: false }); if (!on) self.later(n.label + ' opens in the full prototype.'); } } }; });
     var notesRaw = this.notesData();
-    var notes = notesRaw.map(function (n) { var rd = !!s.read[n.id]; return Object.assign({}, n, { unread: !rd, dotBg: rd ? 'transparent' : 'var(--dot)', weight: rd ? '400' : '600', open: function () { var r = Object.assign({}, self.state.read); r[n.id] = true; self.setState({ read: r }); self.open(n.sheet); } }); });
+    var notes = notesRaw.map(function (n) { var rd = !!s.read[n.id]; return Object.assign({}, n, { unread: !rd, dotBg: rd ? 'transparent' : 'var(--ad-dot)', weight: rd ? '400' : '600', open: function () { var r = Object.assign({}, self.state.read); r[n.id] = true; self.setState({ read: r }); self.open(n.sheet); } }); });
     var unread = notes.filter(function (n) { return n.unread; }).length;
     var shown = (s.bellTab === 'unread' ? notes.filter(function (n) { return n.unread; }) : notes).map(function (n, i) { return Object.assign({}, n, { anim: self.anim(s.bellTab === 'unread' ? 1 : 0), delay: (i * 0.03) + 's' }); });
     var q = s.q.trim().toLowerCase(), recs = this.records().filter(function (r) { return !q || (r.label + ' ' + r.sub + ' ' + r.kind).toLowerCase().indexOf(q) >= 0; });
@@ -372,8 +375,8 @@
     var steps = this.allSteps(s.tourKind), t = s.tour;
     var tour = t >= 0 && steps[t] ? { n: t + 1, of: steps.length, title: steps[t].title, body: steps[t].body, icon: steps[t].icon || I.compass, hint: steps[t].hint || '', hasHint: !!steps[t].hint, hasBack: t > 0, next: t === steps.length - 1 ? 'Finish' : 'Next', pct: Math.round((t + 1) / steps.length * 100), kind: s.tourKind === 'full' ? 'Full walkthrough' : 'Tour of ' + this.pageName(), anim: this.anim(t) } : { n: 0, of: 0 };
     var finishTour = function () { self.setState({ tour: -1 }); self.say('Tour finished. Replay it any time from Tour this page.'); };
-    var tourOpts = [['page', 'Tour this page', 'The ' + this.pageName() + ' page, stop by stop. The parts you use most.', '1 min', I.target, 'var(--live)'], ['full', 'Full walkthrough', 'Your menu, search, alerts and this page, then where your settings live.', '3 min', I.map, 'var(--brand)']].map(function (o) {
-      var on = s.tourKind === o[0], n = self.allSteps(o[0]).length, dots = []; for (var k = 0; k < n; k++) dots.push(on ? 'var(--dot)' : 'var(--line2)');
+    var tourOpts = [['page', 'Tour this page', 'The ' + this.pageName() + ' page, stop by stop. The parts you use most.', '1 min', I.target, 'var(--ad-tone-live)'], ['full', 'Full walkthrough', 'Your menu, search, alerts and this page, then where your settings live.', '3 min', I.map, 'var(--ad-tone-brand)']].map(function (o) {
+      var on = s.tourKind === o[0], n = self.allSteps(o[0]).length, dots = []; for (var k = 0; k < n; k++) dots.push(on ? 'var(--ad-dot)' : 'var(--ad-line-2)');
       return { t: o[1], s: o[2] + ' ' + n + ' stops.', time: o[3], d: o[4], tone: o[5], dots: dots, cls: on ? 'on' : '', checked: on ? 'true' : 'false', pick: function () { var sh = Object.assign({}, self.state.sheet, { primary: o[0] === 'full' ? 'Start the walkthrough' : 'Start the page tour' }); self.setState({ tourKind: o[0], sheet: sh }); } };
     });
 
@@ -383,8 +386,8 @@
     var rawList = typeof raw.list === 'function' ? raw.list(s) : (raw.list || []);
     var list = rawList.map(function (l, i) {
       var on = listSel && s.spick === i, act = l.act || null;
-      return { t: l.t, s: l.s || '', tag: l.tag || '', tone: l.tone || 'var(--neutral)', hasTag: !!l.tag, radio: listSel, cls: on ? 'on' : '', role: listSel ? 'radio' : 'listitem', checked: on ? 'true' : 'false', tab: listSel || l.open ? '0' : '-1', cursor: listSel || l.open ? 'pointer' : 'default',
-        hasLogo: !!l.logo, ld: l.logo ? l.logo.d : '', lc: l.logo ? l.logo.c : '', hasAv: !!l.ini, av: l.av || 'var(--brand)', ini: l.ini || '',
+      return { t: l.t, s: l.s || '', tag: l.tag || '', tone: l.tone || 'var(--ad-tone-neutral)', hasTag: !!l.tag, radio: listSel, cls: on ? 'on' : '', role: listSel ? 'radio' : 'listitem', checked: on ? 'true' : 'false', tab: listSel || l.open ? '0' : '-1', cursor: listSel || l.open ? 'pointer' : 'default',
+        hasLogo: !!l.logo, ld: l.logo ? l.logo.d : '', lc: l.logo ? l.logo.c : '', hasAv: !!l.ini, av: l.av || 'var(--ad-tone-brand)', ini: l.ini || '',
         hasAct: !!act, actLabel: act ? act.label : '', actCls: act && act.primary ? 'btn' : 'btn2',
         act: function (e) { if (e && e.stopPropagation) e.stopPropagation(); if (act) act.fn(); },
         pick: function () { if (listSel) self.setState({ spick: i }); else if (l.open) self.open(l.open, true); } };
@@ -402,7 +405,7 @@
     if (raw.select && raw.selectRequired !== false && ctx.pick < 0) { dis = 'y'; reqText = raw.selectWhy || 'Choose one to continue.'; }
     if (raw.primaryDis) { var pd = raw.primaryDis(ctx, s); if (pd) { dis = 'y'; reqText = pd; } }
     var sheet = Object.assign({}, raw, {
-      back: s.stack.length > 0, hasChip: !!raw.chip, hasIcon: !!raw.icon, icon: raw.icon || '', iconTone: raw.iconTone || 'var(--brand)', hasRows: raw.rows.length > 0, hasBody: !!raw.body, hasPreview: !!raw.preview, preview: raw.preview || {},
+      back: s.stack.length > 0, hasChip: !!raw.chip, hasIcon: !!raw.icon, icon: raw.icon || '', iconTone: raw.iconTone || 'var(--ad-tone-brand)', hasRows: raw.rows.length > 0, hasBody: !!raw.body, hasPreview: !!raw.preview, preview: raw.preview || {},
       hasList: list.length > 0, list: list, listRole: listSel ? 'radiogroup' : 'list', hasChecks: checks.length > 0, checks: checks, checksTitle: raw.checksTitle || 'Checklist', checksDone: ckDone + ' of ' + checks.length, checksPct: checks.length ? Math.round(ckDone / checks.length * 100) : 0,
       hasFeed: raw.feed.length > 0, hasNote: !!raw.note, reason: !!raw.reason, reasonLabel: raw.reason ? raw.reason.label : '', reasonPh: raw.reason ? raw.reason.ph : '', ack: !!raw.ack, ackText: raw.ack || '',
       primaryLabel: plabel, primaryCls: raw.danger ? 'btnD' : (raw.green ? 'btnG' : 'btn'), primaryDis: !!dis, why: reqText, hasSecondary: !!raw.secondary, secondaryLabel: typeof raw.secondary === 'function' ? raw.secondary(ctx, s) : raw.secondary, chip: typeof raw.chip === 'function' ? raw.chip(ctx, s) : raw.chip, tone: typeof raw.tone === 'function' ? raw.tone(ctx, s) : raw.tone, hasFoot: !raw.noFoot, busy: !!raw.busy
@@ -426,8 +429,8 @@
       replaySkeleton: function () { self.boot(1600); },
       rootClick: function (e) { var st = self.state; if (!st.menu && !(st.pop && !st.pop.asSheet)) return; var el = e.target; if (el && el.closest && el.closest('[data-menu]')) return; self.setState({ menu: null, pop: null }); },
       brand: this.brand(), me: this.me(), pageTitle: this.pageName(), searchHint: this.searchHint(), palHint: this.palHint(), palEmptyHint: this.palEmptyHint ? this.palEmptyHint() : '',
-      nav: nav, miniCls: s.mini ? 'mini' : '', toggleMini: function () { self.setState({ mini: true }); }, expandSide: function () { if (self.state.mini) self.setState({ mini: false }); else self.setState({ drawer: true }); },
-      signOut: function () { self.ask({ eyebrow: 'Sign out', title: 'Sign out of WDC on this device?', body: 'You will need your email and password to come back in. Drafts you have open are kept.', ok: 'Sign out', icon: I.out, tone: 'var(--neutral)', okToast: 'Signed out. In the real portal you land on the sign-in page.' }, false); },
+      nav: nav, nav2: nav2, miniCls: s.mini ? 'mini' : '', toggleMini: function () { self.setState({ mini: true }); }, expandSide: function () { if (self.state.mini) self.setState({ mini: false }); else self.setState({ drawer: true }); },
+      signOut: function () { self.ask({ eyebrow: 'Sign out', title: 'Sign out of WDC on this device?', body: 'You will need your email and password to come back in. Drafts you have open are kept.', ok: 'Sign out', icon: I.out, tone: 'var(--ad-tone-neutral)', okToast: 'Signed out. In the real portal you land on the sign-in page.' }, false); },
       showInstall: !s.push && !s.installHidden, installing: s.installing, installIdle: !s.installing, installTitle: this.installCopy()[0], installBody: this.installCopy()[1],
       installApp: function () { if (self.state.installing) return; self.setState({ installing: true, drawer: false }); setTimeout(function () { self.setState({ installing: false, push: true }); self.say('WDC is on this device. Notifications are on.'); }, self.reduce ? 200 : 1900); },
       hideInstall: function () { self.setState({ installHidden: true, drawer: false }); self.say('Hidden. We will offer it again in 30 days. Install any time from Settings.', { undo: function () { self.setState({ installHidden: false }); } }); },
@@ -440,7 +443,7 @@
       ackOn: s.ack, ackCls: s.ack ? 'on' : '', ackChecked: s.ack ? 'true' : 'false', toggleAck: function () { self.setState({ ack: !self.state.ack }); },
       visI: client ? 1 : 0, visTeam: client ? '' : 'on', visClient: client ? 'on' : '', visTeamP: client ? 'false' : 'true', visClientP: client ? 'true' : 'false',
       setTeam: function () { self.setState({ vis: 'team' }); }, setClient: function () { self.setState({ vis: 'client' }); },
-      visNote: client ? 'The client sees this in their portal and gets an email.' : 'Only the studio team sees this.', visCol: client ? 'var(--aink)' : 'var(--dim)',
+      visNote: client ? 'The client sees this in their portal and gets an email.' : 'Only the studio team sees this.', visCol: client ? 'var(--ad-accent-ink)' : 'var(--ad-dim)',
       attach: function () { self.say('The file picker opens here. Up to 50 MB a file.'); },
       isTourPick: raw.kind === 'tour', tourOpts: tourOpts, isFile: raw.kind === 'file', isPost: raw.kind === 'post', isPay: raw.kind === 'pay', isFollow: raw.kind === 'follow', isQuote: raw.kind === 'quote',
       popOpen: !!s.pop && (popItems.length > 0 || s.pop.search), popAsMenu: !!s.pop && !s.pop.asSheet, popAsSheet: !!s.pop && s.pop.asSheet, pop: Object.assign({ hasNote: !!(s.pop && s.pop.note) }, s.pop || {}), popItems: popItems, popEmpty: !!s.pop && s.pop.search && !popItems.length, popEmptyText: 'Nobody matches "' + s.dq + '".',
@@ -468,6 +471,17 @@
       loading: !s.ready, ready: s.ready
     };
   }
+  /* One map of every role's pages, so every board links to every other. Counts come from the page. */
+  roleNav() {
+    var I = this.icons(), c = this.navCounts ? this.navCounts() : {};
+    var R = {
+      admin: [['Today', I.home, 'D-Admin.dc.html'], ['Clients', I.users, 'A-Clients.dc.html'], ['Projects', I.folder, 'A-Projects.dc.html'], ['Money', I.wallet, 'A-Money.dc.html'], ['Messages', I.msg, 'A-Messages.dc.html'], ['Blog', I.pen, 'A-Blog.dc.html'], ['Settings', I.gear, 'A-Settings.dc.html'], ['Support', I.life, 'A-Support.dc.html', 1]],
+      staff: [['My Day', I.home, 'D-Staff.dc.html'], ['Projects', I.folder, 'S-Projects.dc.html'], ['Clients', I.users, 'S-Clients.dc.html'], ['Messages', I.msg, 'S-Messages.dc.html'], ['Settings', I.gear, 'S-Settings.dc.html'], ['Support', I.life, 'S-Support.dc.html', 1]],
+      client: [['Home', I.home, 'D-Client.dc.html'], ['Projects', I.folder, 'C-Projects.dc.html'], ['Billing', I.card, 'C-Billing.dc.html'], ['Messages', I.msg, 'C-Messages.dc.html'], ['Settings', I.gear, 'C-Settings.dc.html'], ['Support', I.life, 'C-Support.dc.html', 1]]
+    }[this.role()];
+    return R.map(function (r) { var x = c[r[0]] || {}; return { label: r[0], d: r[1], href: r[2], second: !!r[3], count: x.n || 0, tone: x.tone || 'var(--ad-tone-brand)' }; });
+  }
+  navData() { return this.roleNav().filter(function (n) { return !n.second; }); }
   baseIcons() {
     return {
       home: 'm3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 22V12h6v10',
@@ -509,6 +523,7 @@
       cal: 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z',
       upload: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12',
       sun: 'M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41',
-      moon: 'M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z'
+      moon: 'M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z',
+      pen: 'M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z'
     };
   }

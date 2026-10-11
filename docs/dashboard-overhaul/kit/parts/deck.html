@@ -2,8 +2,8 @@
                   <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap">
                     <h2 style="font-size: 17px; font-weight: 700">{{deckTitle}}</h2>
                     <span class="strip" role="img" aria-label="{{stripLabel}}"><sc-for list="{{strip}}" as="sg" hint-placeholder-count="6"><span class="{{sg.cls}}"></span></sc-for></span>
-                    <span class="num" style="color: var(--dim); font-size: 13px">{{stripText}}</span>
-                    <span class="hideS" style="margin-left: auto; color: var(--dim); font-size: 12px">{{deckKeys}}</span>
+                    <span class="num" style="color: var(--ad-dim); font-size: 13px">{{stripText}}</span>
+                    <span class="hideS" style="margin-left: auto; color: var(--ad-dim); font-size: 12px">{{deckKeys}}</span>
                   </div>
                   <sc-if value="{{hasTop}}" hint-placeholder-val="{{ true }}">
                     <div class="deck {{top.deckCls}}">
@@ -13,15 +13,15 @@
                         <div class="tags">
                           <span class="tag" style="background: #fff; color: #000065">{{top.kind}}</span>
                           <span class="tag" style="background: {{top.utone}}; color: #fff">{{top.urgency}}</span>
-                          <span class="projLbl num" style="margin-left: auto; font-size: 13px; color: var(--heroDim)">{{top.label}}</span>
+                          <span class="projLbl num" style="margin-left: auto; font-size: 13px; color: var(--ad-hero-dim)">{{top.label}}</span>
                         </div>
                         <div style="display: flex; flex-direction: column; gap: 8px">
                           <h3 class="cardH">{{top.title}}</h3>
-                          <p style="color: var(--heroDim); font-size: 15px">{{top.body}}</p>
+                          <p style="color: var(--ad-hero-dim); font-size: 15px">{{top.body}}</p>
                         </div>
                         <sc-if value="{{top.hasSteps}}" hint-placeholder-val="{{ false }}">
                           <div style="display: flex; flex-direction: column; gap: 8px">
-                            <span style="display: flex; justify-content: space-between; font-size: 13px; color: var(--heroDim)"><span>Steps</span><span class="num">{{top.stepText}}</span></span>
+                            <span style="display: flex; justify-content: space-between; font-size: 13px; color: var(--ad-hero-dim)"><span>Steps</span><span class="num">{{top.stepText}}</span></span>
                             <span style="height: 8px; border-radius: 99px; background: rgb(255 255 255/.14); overflow: hidden"><span style="display: block; height: 100%; width: {{top.stepPct}}%; background: #ff6500; border-radius: 99px; transition: width .45s var(--ease)"></span></span>
                             <div style="display: flex; flex-wrap: wrap; gap: 6px">
                               <sc-for list="{{top.stepList}}" as="st" hint-placeholder-count="4">
@@ -37,7 +37,7 @@
                                 <button class="route {{r.cls}}" role="radio" aria-checked="{{r.checked}}" onClick="{{r.pick}}">
                                   <span class="routePrev" style="background: {{r.bg}}"><span class="disp" style="font-size: clamp(20px, 5cqi, 30px); font-weight: 700; color: {{r.fg}}; letter-spacing: -.04em">{{r.mark}}</span><sc-if value="{{r.isSel}}" hint-placeholder-val="{{ false }}"><span class="tag pickTag"><svg class="ic" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true" style="stroke-width: 3"><path d="M20 6 9 17l-5-5"></path></svg>Your pick</span></sc-if></span>
                                   <strong style="font-size: 14px; padding: 0 4px">{{r.name}}</strong>
-                                  <span class="rNote" style="font-size: 12px; color: var(--heroDim); padding: 0 4px 4px">{{r.note}}</span>
+                                  <span class="rNote" style="font-size: 12px; color: var(--ad-hero-dim); padding: 0 4px 4px">{{r.note}}</span>
                                 </button>
                               </sc-for>
                             </div>
@@ -69,7 +69,7 @@
                     <div class="card empty" role="status">
                       <span class="emptyIc"><svg class="ic" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true" style="stroke-width: 2.6"><path pathLength="1" d="M20 6 9 17l-5-5"></path></svg></span>
                       <h3>{{emptyTitle}}</h3>
-                      <p style="color: var(--dim)">{{emptyBody}} <strong style="color: var(--ink)">{{emptyNext}}</strong></p>
+                      <p style="color: var(--ad-dim)">{{emptyBody}} <strong style="color: var(--ad-ink)">{{emptyNext}}</strong></p>
                       <div class="emptyActs"><button class="btn" onClick="{{emptyPrimary}}">{{emptyPrimaryLabel}}</button><button class="btn2" onClick="{{restoreDeck}}">{{emptySecondaryLabel}}</button></div>
                     </div>
                   </sc-if>

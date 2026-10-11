@@ -6,7 +6,7 @@
           <sc-if value="{{sheet.back}}" hint-placeholder-val="{{ false }}"><button class="ibtn ghostB" aria-label="Back" onClick="{{sheetBack}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></button></sc-if>
           <sc-if value="{{sheet.hasIcon}}" hint-placeholder-val="{{ false }}"><span style="width: 44px; height: 44px; border-radius: 14px; background: {{sheet.iconTone}}; color: #fff; display: flex; align-items: center; justify-content: center; flex: none"><svg class="ic draw" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path pathLength="1" d="{{sheet.icon}}"></path></svg></span></sc-if>
           <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px">
-            <span style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap"><span style="color: var(--dim); font-size: 13px">{{sheet.eyebrow}}</span><sc-if value="{{sheet.hasChip}}" hint-placeholder-val="{{ true }}"><span class="tag" style="background: {{sheet.tone}}; color: #fff">{{sheet.chip}}</span></sc-if></span>
+            <span style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap"><span style="color: var(--ad-dim); font-size: 13px">{{sheet.eyebrow}}</span><sc-if value="{{sheet.hasChip}}" hint-placeholder-val="{{ true }}"><span class="tag" style="background: {{sheet.tone}}; color: #fff">{{sheet.chip}}</span></sc-if></span>
             <h2>{{sheet.title}}</h2>
           </div>
           <button class="ibtn xBtn" aria-label="Close" onClick="{{closeSheet}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
@@ -15,7 +15,7 @@
           <sc-if value="{{sheet.hasRows}}" hint-placeholder-val="{{ true }}"><dl class="dl"><sc-for list="{{sheet.rows}}" as="r" hint-placeholder-count="4"><div style="min-width: 0"><dt>{{r.k}}</dt><dd class="num">{{r.v}}</dd></div></sc-for></dl></sc-if>
           <sc-if value="{{sheet.hasBody}}" hint-placeholder-val="{{ true }}"><p style="max-width: 62ch">{{sheet.body}}</p></sc-if>
           <sc-if value="{{sheet.hasPreview}}" hint-placeholder-val="{{ false }}">
-            <div class="preview"><span style="font-size: 12px; color: var(--dim)">To <strong style="color: var(--ink)">{{sheet.preview.to}}</strong></span><strong>{{sheet.preview.subject}}</strong><span>{{sheet.preview.text}}</span></div>
+            <div class="preview"><span style="font-size: 12px; color: var(--ad-dim)">To <strong style="color: var(--ad-ink)">{{sheet.preview.to}}</strong></span><strong>{{sheet.preview.subject}}</strong><span>{{sheet.preview.text}}</span></div>
           </sc-if>
 
           <sc-if value="{{isTourPick}}" hint-placeholder-val="{{ false }}">
@@ -23,8 +23,8 @@
               <sc-for list="{{tourOpts}}" as="o" hint-placeholder-count="2">
                 <button class="tourOpt {{o.cls}}" role="radio" aria-checked="{{o.checked}}" onClick="{{o.pick}}">
                   <span class="tIcon" style="background: {{o.tone}}"><svg class="ic" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path pathLength="1" d="{{o.d}}"></path></svg></span>
-                  <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><strong>{{o.t}}</strong><span style="color: var(--dim); font-size: 13px">{{o.s}}</span><span style="display: flex; gap: 4px; margin-top: 6px" aria-hidden="true"><sc-for list="{{o.dots}}" as="dd" hint-placeholder-count="4"><span style="height: 4px; flex: 1; max-width: 22px; border-radius: 9px; background: {{dd}}; transition: background .25s"></span></sc-for></span></span>
-                  <span class="tag num" style="background: var(--flat); color: var(--onflat)">{{o.time}}</span>
+                  <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><strong>{{o.t}}</strong><span style="color: var(--ad-dim); font-size: 13px">{{o.s}}</span><span style="display: flex; gap: 4px; margin-top: 6px" aria-hidden="true"><sc-for list="{{o.dots}}" as="dd" hint-placeholder-count="4"><span style="height: 4px; flex: 1; max-width: 22px; border-radius: 9px; background: {{dd}}; transition: background .25s"></span></sc-for></span></span>
+                  <span class="tag num" style="background: var(--ad-tone-flat); color: var(--ad-on-flat)">{{o.time}}</span>
                 </button>
               </sc-for>
             </div>
@@ -37,14 +37,14 @@
                 <span class="num" style="min-width: 52px; text-align: center; font-weight: 600">{{zoomLabel}}</span>
                 <button class="ibtn" style="width: 40px; height: 40px" aria-label="Zoom in" onClick="{{zoomIn}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg></button>
                 <span style="flex: 1"></span>
-                <span class="num" style="font-size: 13px; color: var(--dim)">{{file.pages}}</span>
+                <span class="num" style="font-size: 13px; color: var(--ad-dim)">{{file.pages}}</span>
                 <button class="ibtn" style="width: 40px; height: 40px" aria-label="Print" onClick="{{printFile}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"></path></svg></button>
                 <button class="ibtn" style="width: 40px; height: 40px" aria-label="Download" onClick="{{downloadFile}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg></button>
               </div>
-              <div style="border-radius: 16px; background: var(--panel2); border: 1px solid var(--line); padding: 18px; overflow: auto; max-height: 520px; overscroll-behavior: contain">
+              <div style="border-radius: 16px; background: var(--ad-panel-2); border: 1px solid var(--ad-line); padding: 18px; overflow: auto; max-height: 520px; overscroll-behavior: contain">
                 <div style="transform: scale({{zoom}}); transform-origin: top center; transition: transform .3s var(--ease)">
                   <sc-if value="{{file.isDoc}}" hint-placeholder-val="{{ false }}">
-                    <div style="position: relative; aspect-ratio: 1 / 1.414; max-width: 380px; margin: 0 auto; background: #fff; color: #0e0e2c; border-radius: 6px; box-shadow: var(--sh2); padding: 26px 24px; display: flex; flex-direction: column; gap: 10px; overflow: hidden">
+                    <div style="position: relative; aspect-ratio: 1 / 1.414; max-width: 380px; margin: 0 auto; background: #fff; color: #0e0e2c; border-radius: 6px; box-shadow: var(--ad-sh-2); padding: 26px 24px; display: flex; flex-direction: column; gap: 10px; overflow: hidden">
                       <span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font: 700 64px 'Space Grotesk',sans-serif; color: rgb(0 0 101/.05); transform: rotate(-28deg); pointer-events: none">WDC</span>
                       <span style="display: flex; justify-content: space-between; align-items: center"><strong style="font: 700 15px 'Space Grotesk',sans-serif; color: #000065">WDC Studio</strong><span style="font-size: 10px; color: #5c5c7a">{{file.ref}}</span></span>
                       <span style="height: 3px; width: 48px; background: #ff6500; border-radius: 3px"></span>
@@ -54,14 +54,14 @@
                     </div>
                   </sc-if>
                   <sc-if value="{{file.isPalette}}" hint-placeholder-val="{{ false }}">
-                    <div style="max-width: 420px; margin: 0 auto; background: #f1ece4; border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 12px; box-shadow: var(--sh2); color: #2b2620">
+                    <div style="max-width: 420px; margin: 0 auto; background: #f1ece4; border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 12px; box-shadow: var(--ad-sh-2); color: #2b2620">
                       <strong style="font: 700 22px 'Space Grotesk',sans-serif">mira ❦</strong>
                       <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px"><sc-for list="{{file.swatches}}" as="sw" hint-placeholder-count="4"><span style="display: flex; flex-direction: column; gap: 4px; font-size: 10px"><span style="aspect-ratio: 1; border-radius: 8px; background: {{sw.c}}; box-shadow: inset 0 0 0 1px rgb(0 0 0/.12)"></span><span>{{sw.n}}</span><span style="opacity: .7">{{sw.c}}</span></span></sc-for></div>
                       <span style="font-size: 12px">Headings: Fraunces · Body: Inter</span>
                     </div>
                   </sc-if>
                   <sc-if value="{{file.isArt}}" hint-placeholder-val="{{ false }}">
-                    <div style="max-width: 420px; aspect-ratio: 4 / 3; margin: 0 auto; border-radius: 10px; background: {{file.bg}}; display: flex; align-items: center; justify-content: center; box-shadow: var(--sh2)"><span style="font: 700 44px 'Space Grotesk',sans-serif; color: {{file.fg}}; letter-spacing: -.04em">{{file.mark}}</span></div>
+                    <div style="max-width: 420px; aspect-ratio: 4 / 3; margin: 0 auto; border-radius: 10px; background: {{file.bg}}; display: flex; align-items: center; justify-content: center; box-shadow: var(--ad-sh-2)"><span style="font: 700 44px 'Space Grotesk',sans-serif; color: {{file.fg}}; letter-spacing: -.04em">{{file.mark}}</span></div>
                   </sc-if>
                 </div>
               </div>
@@ -70,15 +70,15 @@
 
           <sc-if value="{{isPost}}" hint-placeholder-val="{{ false }}">
             <div style="display: flex; flex-direction: column; gap: 12px">
-              <div style="border: 1px solid var(--line); border-radius: 16px; overflow: hidden">
-                <div style="display: flex; align-items: center; gap: 10px; padding: 10px 12px"><span class="platform" style="background: {{post.pc}}"><svg class="logo" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="{{post.pd}}"></path></svg></span><span style="display: flex; flex-direction: column; line-height: 1.25"><strong style="font-size: 13px">{{post.handle}}</strong><span style="font-size: 12px; color: var(--dim)">{{post.platform}} · {{post.when}}</span></span></div>
+              <div style="border: 1px solid var(--ad-line); border-radius: 16px; overflow: hidden">
+                <div style="display: flex; align-items: center; gap: 10px; padding: 10px 12px"><span class="platform" style="background: {{post.pc}}"><svg class="logo" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="{{post.pd}}"></path></svg></span><span style="display: flex; flex-direction: column; line-height: 1.25"><strong style="font-size: 13px">{{post.handle}}</strong><span style="font-size: 12px; color: var(--ad-dim)">{{post.platform}} · {{post.when}}</span></span></div>
                 <div style="aspect-ratio: 1; background: {{post.art}}; display: flex; align-items: flex-end; padding: 16px"><span style="font: 700 22px 'Space Grotesk',sans-serif; color: #fff; text-shadow: 0 2px 12px rgb(0 0 0/.3)">{{post.title}}</span></div>
                 <p style="padding: 12px; font-size: 14px">{{post.cap}}</p>
               </div>
               <div style="display: flex; flex-direction: column; gap: 8px">
                 <h3 style="font-size: 15px; font-weight: 700">Comments</h3>
-                <sc-for list="{{post.comments}}" as="c" hint-placeholder-count="2"><div style="display: flex; gap: 10px"><span class="av0" style="width: 30px; height: 30px; font-size: 11px; background: {{c.tone}}">{{c.i}}</span><span style="flex: 1; min-width: 0; padding: 8px 12px; border-radius: 12px; background: var(--panel2); font-size: 13px"><strong>{{c.who}}</strong> <span style="color: var(--dim)">{{c.when}}</span><br>{{c.t}}</span></div></sc-for>
-                <sc-if value="{{post.noComments}}" hint-placeholder-val="{{ false }}"><span style="font-size: 13px; color: var(--dim)">No comments yet. {{post.cmtNote}}</span></sc-if>
+                <sc-for list="{{post.comments}}" as="c" hint-placeholder-count="2"><div style="display: flex; gap: 10px"><span class="av0" style="width: 30px; height: 30px; font-size: 11px; background: {{c.tone}}">{{c.i}}</span><span style="flex: 1; min-width: 0; padding: 8px 12px; border-radius: 12px; background: var(--ad-panel-2); font-size: 13px"><strong>{{c.who}}</strong> <span style="color: var(--ad-dim)">{{c.when}}</span><br>{{c.t}}</span></div></sc-for>
+                <sc-if value="{{post.noComments}}" hint-placeholder-val="{{ false }}"><span style="font-size: 13px; color: var(--ad-dim)">No comments yet. {{post.cmtNote}}</span></sc-if>
                 <div style="display: flex; gap: 8px; align-items: flex-end"><textarea id="cmtIn" class="area" style="min-height: 48px" placeholder="Add a comment" value="{{cmt}}" onChange="{{onCmt}}"></textarea><button class="btn" style="min-height: 48px" disabled="{{cmtDis}}" onClick="{{sendCmt}}" aria-label="Send comment"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4zM22 2 11 13"></path></svg></button></div>
               </div>
             </div>
@@ -92,20 +92,20 @@
                   <sc-for list="{{pay.providers}}" as="pv" hint-placeholder-count="2">
                     <button class="item {{pv.cls}}" role="radio" aria-checked="{{pv.checked}}" onClick="{{pv.pick}}" style="min-height: 66px">
                       <span class="radio"></span>
-                      <span style="width: 40px; height: 40px; border-radius: 12px; background: #fff; border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; flex: none"><img src="{{pv.logo}}" alt="" width="24" height="24"></span>
+                      <span style="width: 40px; height: 40px; border-radius: 12px; background: #fff; border: 1px solid var(--ad-line); display: flex; align-items: center; justify-content: center; flex: none"><img src="{{pv.logo}}" alt="" width="24" height="24"></span>
                       <span class="t"><strong>{{pv.name}}</strong><span>{{pv.sub}}</span></span>
                     </button>
                   </sc-for>
                 </div>
-                <div class="preview" style="white-space: normal"><span style="display: flex; justify-content: space-between"><span style="color: var(--dim)">{{pay.forLabel}}</span><strong class="num">{{pay.amount}}</strong></span><span style="display: flex; justify-content: space-between"><span style="color: var(--dim)">Processing fee</span><strong>None for you</strong></span><span style="font-size: 12px; color: var(--dim)">You pay on {{pay.providerName}}'s secure page. We never see your card. This invoice is in Naira. <button class="lnk" style="min-height: 0; display: inline" onClick="{{askUsd}}">Need a USD invoice?</button></span></div>
-                <div style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; border: 1px dashed var(--line2); font-size: 12px; color: var(--dim)"><span style="flex: 1">Prototype only: choose what the provider answers</span><div class="seg" role="group" aria-label="Prototype outcome" style="--n: 2; --i: {{pay.outI}}"><span class="pill" aria-hidden="true"></span><button class="{{pay.okCls}}" onClick="{{pay.setOk}}">Success</button><button class="{{pay.failCls}}" onClick="{{pay.setFail}}">Failure</button></div></div>
+                <div class="preview" style="white-space: normal"><span style="display: flex; justify-content: space-between"><span style="color: var(--ad-dim)">{{pay.forLabel}}</span><strong class="num">{{pay.amount}}</strong></span><span style="display: flex; justify-content: space-between"><span style="color: var(--ad-dim)">Processing fee</span><strong>None for you</strong></span><span style="font-size: 12px; color: var(--ad-dim)">You pay on {{pay.providerName}}'s secure page. We never see your card. This invoice is in Naira. <button class="lnk" style="min-height: 0; display: inline" onClick="{{askUsd}}">Need a USD invoice?</button></span></div>
+                <div style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; border: 1px dashed var(--ad-line-2); font-size: 12px; color: var(--ad-dim)"><span style="flex: 1">Prototype only: choose what the provider answers</span><div class="seg" role="group" aria-label="Prototype outcome" style="--n: 2; --i: {{pay.outI}}"><span class="pill" aria-hidden="true"></span><button class="{{pay.okCls}}" onClick="{{pay.setOk}}">Success</button><button class="{{pay.failCls}}" onClick="{{pay.setFail}}">Failure</button></div></div>
               </sc-if>
               <sc-if value="{{pay.loading}}" hint-placeholder-val="{{ false }}">
                 <div style="display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 24px 0; text-align: center">
-                  <span style="position: relative; width: 84px; height: 84px; border-radius: 50%; background: #fff; border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; box-shadow: var(--sh2)"><img src="{{pay.logo}}" alt="" width="40" height="40"><span style="position: absolute; inset: -8px; border-radius: 50%; border: 3px solid var(--s1); border-right-color: transparent; border-bottom-color: transparent; animation: spin 1s linear infinite"></span></span>
+                  <span style="position: relative; width: 84px; height: 84px; border-radius: 50%; background: #fff; border: 1px solid var(--ad-line); display: flex; align-items: center; justify-content: center; box-shadow: var(--ad-sh-2)"><img src="{{pay.logo}}" alt="" width="40" height="40"><span style="position: absolute; inset: -8px; border-radius: 50%; border: 3px solid var(--ad-series-1); border-right-color: transparent; border-bottom-color: transparent; animation: spin 1s linear infinite"></span></span>
                   <strong class="disp" style="font-size: 18px">Opening {{pay.providerName}}…</strong>
                   <div style="display: flex; flex-direction: column; gap: 8px; text-align: left; width: min(300px, 100%)"><sc-for list="{{pay.steps}}" as="ps" hint-placeholder-count="3"><span style="display: flex; gap: 10px; align-items: center; font-size: 13px; color: {{ps.col}}; transition: color .3s"><span class="box {{ps.cls}}" style="border-radius: 50%; width: 18px; height: 18px"><sc-if value="{{ps.done}}" hint-placeholder-val="{{ false }}"><svg class="ic" viewBox="0 0 24 24" width="11" height="11" aria-hidden="true" style="stroke-width: 3"><path d="M20 6 9 17l-5-5"></path></svg></sc-if></span>{{ps.t}}</span></sc-for></div>
-                  <span style="font-size: 12px; color: var(--dim)">Keep this page open. It takes a few seconds.</span>
+                  <span style="font-size: 12px; color: var(--ad-dim)">Keep this page open. It takes a few seconds.</span>
                 </div>
               </sc-if>
               <sc-if value="{{pay.success}}" hint-placeholder-val="{{ false }}">
@@ -114,7 +114,7 @@
                   <strong class="disp" style="font-size: 20px">Payment received</strong>
                   <div style="width: min(320px, 100%); overflow: hidden; border-radius: 0 0 12px 12px">
                     <div style="height: 14px; border-radius: 12px; background: #000065; box-shadow: inset 0 -4px 0 rgb(0 0 0/.3)"></div>
-                    <div style="margin: -6px 12px 0; background: #fffdf7; color: #0e0e2c; padding: 18px 16px 14px; font: 500 12px/1.6 'Space Grotesk',monospace; box-shadow: var(--sh2); animation: slipFeed 1.4s var(--ease) backwards .3s">
+                    <div style="margin: -6px 12px 0; background: #fffdf7; color: #0e0e2c; padding: 18px 16px 14px; font: 500 12px/1.6 'Space Grotesk',monospace; box-shadow: var(--ad-sh-2); animation: slipFeed 1.4s var(--ease) backwards .3s">
                       <span style="display: flex; justify-content: space-between"><strong>WDC Studio</strong><span>{{pay.receiptNo}}</span></span>
                       <span style="display: block; border-top: 1px dashed #c9ccdc; margin: 8px 0"></span>
                       <span style="display: flex; justify-content: space-between"><span>{{pay.forLabel}}</span><span>{{pay.amount}}</span></span>
@@ -125,14 +125,14 @@
                       <span aria-hidden="true" style="display: block; height: 26px; margin-top: 10px; background: repeating-linear-gradient(90deg,#0e0e2c 0 2px,transparent 2px 4px,#0e0e2c 4px 5px,transparent 5px 8px)"></span>
                     </div>
                   </div>
-                  <span style="font-size: 13px; color: var(--dim); text-align: center">A copy is in your email and in Billing. Thank you, Adaeze.</span>
+                  <span style="font-size: 13px; color: var(--ad-dim); text-align: center">A copy is in your email and in Billing. Thank you, Adaeze.</span>
                 </div>
               </sc-if>
               <sc-if value="{{pay.failed}}" hint-placeholder-val="{{ false }}">
                 <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 12px">
-                  <span style="width: 56px; height: 56px; border-radius: 18px; background: var(--bad); color: #fff; display: flex; align-items: center; justify-content: center; animation: stampPop .5s var(--spring) backwards"><svg class="ic" viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg></span>
+                  <span style="width: 56px; height: 56px; border-radius: 18px; background: var(--ad-tone-bad); color: #fff; display: flex; align-items: center; justify-content: center; animation: stampPop .5s var(--spring) backwards"><svg class="ic" viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg></span>
                   <strong class="disp" style="font-size: 20px">The payment did not go through</strong>
-                  <p style="color: var(--dim)">{{pay.providerName}} said: <strong style="color: var(--ink)">your bank declined the card.</strong> Nothing was taken from your account, and your invoice is still open.</p>
+                  <p style="color: var(--ad-dim)">{{pay.providerName}} said: <strong style="color: var(--ad-ink)">your bank declined the card.</strong> Nothing was taken from your account, and your invoice is still open.</p>
                   <div style="display: flex; flex-direction: column; gap: 8px; width: 100%">
                     <button class="item" onClick="{{pay.switchProvider}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M17 1l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3"></path></svg><span class="t"><strong>Try {{pay.otherName}} instead</strong><span>A different provider sometimes works when a card is declined</span></span></button>
                     <button class="item" onClick="{{pay.support}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></svg><span class="t"><strong>Ask us for help</strong><span>We reply within a working day</span></span></button>
@@ -148,7 +148,7 @@
               <div class="field"><span>How</span><div class="seg" role="group" aria-label="How" style="--n: 3; --i: {{fu.howI}}; width: 100%"><span class="pill" aria-hidden="true"></span><sc-for list="{{fu.hows}}" as="h" hint-placeholder-count="3"><button class="{{h.cls}}" aria-pressed="{{h.pressed}}" onClick="{{h.pick}}">{{h.t}}</button></sc-for></div></div>
               <div class="field"><span>Who does it</span><div class="chips"><sc-for list="{{fu.whos}}" as="p" hint-placeholder-count="3"><button class="chip {{p.cls}}" aria-pressed="{{p.pressed}}" onClick="{{p.pick}}"><span class="av0" style="width: 22px; height: 22px; font-size: 9px; background: {{p.tone}}">{{p.i}}</span>{{p.t}}</button></sc-for></div></div>
               <label class="field"><span>Note for that moment</span><textarea class="area" style="min-height: 72px" placeholder="For example: ask about the venue date, send the web price list" value="{{draft}}" onChange="{{onDraft}}"></textarea></label>
-              <span style="font-size: 13px; color: var(--dim)">It lands on {{fu.whoName}}'s Today at that time, with this note. The lead's owner becomes {{fu.whoName}}.</span>
+              <span style="font-size: 13px; color: var(--ad-dim)">It lands on {{fu.whoName}}'s Today at that time, with this note. The lead's owner becomes {{fu.whoName}}.</span>
             </div>
           </sc-if>
 
@@ -165,10 +165,10 @@
               </sc-for>
               <button class="chk {{qt.vatCls}}" onClick="{{qt.toggleVat}}"><span class="box"><sc-if value="{{qt.vat}}" hint-placeholder-val="{{ true }}"><svg class="ic" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true" style="stroke-width: 3"><path d="M20 6 9 17l-5-5"></path></svg></sc-if></span><span style="flex: 1; text-align: left">Add VAT at 7.5%</span></button>
               <div class="preview" style="white-space: normal">
-                <span style="display: flex; justify-content: space-between"><span style="color: var(--dim)">Subtotal</span><span class="num">{{qt.sub}}</span></span>
-                <span style="display: flex; justify-content: space-between"><span style="color: var(--dim)">VAT 7.5%</span><span class="num">{{qt.vatAmt}}</span></span>
+                <span style="display: flex; justify-content: space-between"><span style="color: var(--ad-dim)">Subtotal</span><span class="num">{{qt.sub}}</span></span>
+                <span style="display: flex; justify-content: space-between"><span style="color: var(--ad-dim)">VAT 7.5%</span><span class="num">{{qt.vatAmt}}</span></span>
                 <span style="display: flex; justify-content: space-between; font-size: 16px"><strong>Total</strong><strong class="num">{{qt.total}}</strong></span>
-                <span style="display: flex; justify-content: space-between; color: var(--dim)"><span>50% deposit to start</span><span class="num">{{qt.deposit}}</span></span>
+                <span style="display: flex; justify-content: space-between; color: var(--ad-dim)"><span>50% deposit to start</span><span class="num">{{qt.deposit}}</span></span>
                 <span style="font-size: 12px; color: {{qt.fitCol}}; font-weight: 600">{{qt.fit}}</span>
               </div>
             </div>
@@ -192,12 +192,12 @@
 
           <sc-if value="{{sheet.hasChecks}}" hint-placeholder-val="{{ false }}">
             <div style="display: flex; flex-direction: column; gap: 8px">
-              <h3 style="font-size: 15px; font-weight: 700; display: flex; justify-content: space-between">{{sheet.checksTitle}}<span class="num" style="color: var(--dim); font-weight: 600">{{sheet.checksDone}}</span></h3>
-              <span style="height: 6px; border-radius: 99px; background: var(--line); overflow: hidden"><span style="display: block; height: 100%; width: {{sheet.checksPct}}%; background: var(--good); border-radius: 99px; transition: width .45s var(--ease)"></span></span>
+              <h3 style="font-size: 15px; font-weight: 700; display: flex; justify-content: space-between">{{sheet.checksTitle}}<span class="num" style="color: var(--ad-dim); font-weight: 600">{{sheet.checksDone}}</span></h3>
+              <span style="height: 6px; border-radius: 99px; background: var(--ad-line); overflow: hidden"><span style="display: block; height: 100%; width: {{sheet.checksPct}}%; background: var(--ad-tone-good); border-radius: 99px; transition: width .45s var(--ease)"></span></span>
               <sc-for list="{{sheet.checks}}" as="ck" hint-placeholder-count="3">
                 <div class="chk {{ck.cls}}" style="align-items: center">
                   <button class="box" role="checkbox" aria-checked="{{ck.checked}}" aria-label="{{ck.aria}}" onClick="{{ck.toggle}}"><sc-if value="{{ck.on}}" hint-placeholder-val="{{ false }}"><svg class="ic" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true" style="stroke-width: 3"><path d="M20 6 9 17l-5-5"></path></svg></sc-if></button>
-                  <span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><strong style="font-weight: 600">{{ck.t}}</strong><span style="color: var(--dim); font-size: 13px">{{ck.s}}</span></span>
+                  <span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><strong style="font-weight: 600">{{ck.t}}</strong><span style="color: var(--ad-dim); font-size: 13px">{{ck.s}}</span></span>
                   <sc-if value="{{ck.hasAct}}" hint-placeholder-val="{{ false }}"><button class="btn2" style="min-height: 38px; padding: 0 12px" onClick="{{ck.act}}">{{ck.actLabel}}</button></sc-if>
                 </div>
               </sc-for>
@@ -219,10 +219,10 @@
           <sc-if value="{{sheet.hasFeed}}" hint-placeholder-val="{{ false }}">
             <div style="display: flex; flex-direction: column">
               <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 10px">History</h3>
-              <sc-for list="{{sheet.feed}}" as="f" hint-placeholder-count="3"><div class="feedRow"><span style="display: flex; flex-direction: column; align-items: center"><span class="d"></span><span style="flex: 1; width: 2px; background: var(--line)"></span></span><span style="padding-bottom: 14px"><span style="font-weight: 600">{{f.t}}</span><br><span style="color: var(--dim); font-size: 13px">{{f.when}}</span></span></div></sc-for>
+              <sc-for list="{{sheet.feed}}" as="f" hint-placeholder-count="3"><div class="feedRow"><span style="display: flex; flex-direction: column; align-items: center"><span class="d"></span><span style="flex: 1; width: 2px; background: var(--ad-line)"></span></span><span style="padding-bottom: 14px"><span style="font-weight: 600">{{f.t}}</span><br><span style="color: var(--ad-dim); font-size: 13px">{{f.when}}</span></span></div></sc-for>
             </div>
           </sc-if>
-          <sc-if value="{{sheet.hasNote}}" hint-placeholder-val="{{ false }}"><p style="font-size: 13px; color: var(--dim)">{{sheet.note}}</p></sc-if>
+          <sc-if value="{{sheet.hasNote}}" hint-placeholder-val="{{ false }}"><p style="font-size: 13px; color: var(--ad-dim)">{{sheet.note}}</p></sc-if>
         </div>
         <sc-if value="{{sheet.hasFoot}}" hint-placeholder-val="{{ true }}">
           <div class="shFoot">
@@ -230,7 +230,7 @@
               <button class="{{sheet.primaryCls}}" id="shPrimary" disabled="{{sheet.primaryDis}}" onClick="{{sheetPrimary}}"><sc-if value="{{sheet.busy}}" hint-placeholder-val="{{ false }}"><span class="spinner"></span></sc-if>{{sheet.primaryLabel}}</button>
               <sc-if value="{{sheet.hasSecondary}}" hint-placeholder-val="{{ true }}"><button class="btn2" onClick="{{sheetSecondary}}">{{sheet.secondaryLabel}}</button></sc-if>
             </div>
-            <sc-if value="{{sheet.primaryDis}}" hint-placeholder-val="{{ false }}"><span style="font-size: 12px; color: var(--dim)">{{sheet.why}}</span></sc-if>
+            <sc-if value="{{sheet.primaryDis}}" hint-placeholder-val="{{ false }}"><span style="font-size: 12px; color: var(--ad-dim)">{{sheet.why}}</span></sc-if>
           </div>
         </sc-if>
       </aside>

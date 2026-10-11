@@ -5,7 +5,7 @@
   /* A file opens as a real preview with zoom, print and download. */
   openFile(f, push) {
     var self = this, I = this.icons();
-    this.open(this.sh({ kind: 'file', wide: true, eyebrow: 'File · ' + (f.project || 'Library'), title: f.name, chip: f.fresh ? 'New' : '', tone: 'var(--live)', icon: I.file, iconTone: f.tone || 'var(--brand)', file: f,
+    this.open(this.sh({ kind: 'file', wide: true, eyebrow: 'File · ' + (f.project || 'Library'), title: f.name, chip: f.fresh ? 'New' : '', tone: 'var(--ad-tone-live)', icon: I.file, iconTone: f.tone || 'var(--ad-tone-brand)', file: f,
       rows: [{ k: 'Added', v: f.when }, { k: 'Size', v: f.size }, { k: 'By', v: f.by || 'The studio' }],
       primary: 'Download', secondary: 'Ask about this file',
       onPrimary: function () { self.say('Downloading ' + f.name + ' (' + f.size + ')'); },
@@ -20,7 +20,7 @@
       primaryDis: function (ctx, s) { return s.okPosts[p.id] ? (client ? 'You approved this post. It goes out ' + p.when + '.' : 'The client approved it.') : ''; },
       secondary: client ? 'Request changes' : 'Close', keepOpen: true,
       onPrimary: function () {
-        if (client) self.ask({ eyebrow: 'Approve', title: 'Approve "' + p.title + '"?', body: 'It goes out on ' + p.platform + ' on ' + p.when + ' exactly as you see it. You can still pull it until an hour before.', ok: 'Approve post', back: true, green: true, icon: I.check, tone: 'var(--good)', onOk: function () { var o = Object.assign({}, self.state.okPosts); o[p.id] = true; self.setState({ okPosts: o }); self.say('Approved. It goes out ' + p.when + '.', { undo: function () { var u = Object.assign({}, self.state.okPosts); delete u[p.id]; self.setState({ okPosts: u }); } }); } }, true);
+        if (client) self.ask({ eyebrow: 'Approve', title: 'Approve "' + p.title + '"?', body: 'It goes out on ' + p.platform + ' on ' + p.when + ' exactly as you see it. You can still pull it until an hour before.', ok: 'Approve post', back: true, green: true, icon: I.check, tone: 'var(--ad-tone-good)', onOk: function () { var o = Object.assign({}, self.state.okPosts); o[p.id] = true; self.setState({ okPosts: o }); self.say('Approved. It goes out ' + p.when + '.', { undo: function () { var u = Object.assign({}, self.state.okPosts); delete u[p.id]; self.setState({ okPosts: u }); } }); } }, true);
         else self.ask({ eyebrow: 'Send for approval', title: 'Send "' + p.title + '" to ' + p.client + '?', body: 'They get an email and a portal notice. They see this version only.', ok: 'Send for approval', icon: I.send, onOk: function () { var o = Object.assign({}, self.state.askedPosts); o[p.id] = true; self.setState({ askedPosts: o }); self.closeSheet(); self.say('Sent to ' + p.client + ' for approval.'); } }, true);
       },
       onSecondary: function () {
@@ -29,7 +29,7 @@
         return 'stay';
       } }), push);
   }
-  postStatus(p) { var s = this.state; if (s.okPosts[p.id]) return { label: 'Approved', tone: 'var(--good)' }; if (s.askedPosts[p.id]) return { label: 'With client', tone: 'var(--live)' }; return { label: p.status || 'Needs approval', tone: p.statusTone || 'var(--warn)' }; }
+  postStatus(p) { var s = this.state; if (s.okPosts[p.id]) return { label: 'Approved', tone: 'var(--ad-tone-good)' }; if (s.askedPosts[p.id]) return { label: 'With client', tone: 'var(--ad-tone-live)' }; return { label: p.status || 'Needs approval', tone: p.statusTone || 'var(--ad-tone-warn)' }; }
   addComment(id, text) { var c = Object.assign({}, this.state.comments), list = (c[id] || []).concat([{ who: this.me().name.split(' ')[0], i: this.me().i, tone: this.me().tone, when: 'Just now', t: text }]); c[id] = list; this.setState({ comments: c, cmt: '' }); }
 
   /* Paystack and Flutterwave only. Choose, initialise, confirm, then the receipt rolls out; a failure offers the other provider or help. */
@@ -37,7 +37,7 @@
     var self = this, I = this.icons();
     var other = function (k) { return k === 'paystack' ? 'flutterwave' : 'paystack'; };
     this.setState({ payStage: 'choose', payStep: 0 });
-    this.open(this.sh({ kind: 'pay', eyebrow: 'Invoice ' + inv.no, title: 'Pay ' + inv.amount, chip: function (c, s) { return s.payStage === 'success' ? 'Paid' : inv.due; }, tone: function (c, s) { return s.payStage === 'success' ? 'var(--good)' : 'var(--warn)'; }, pay: inv, keepOpen: true,
+    this.open(this.sh({ kind: 'pay', eyebrow: 'Invoice ' + inv.no, title: 'Pay ' + inv.amount, chip: function (c, s) { return s.payStage === 'success' ? 'Paid' : inv.due; }, tone: function (c, s) { return s.payStage === 'success' ? 'var(--ad-tone-good)' : 'var(--ad-tone-warn)'; }, pay: inv, keepOpen: true,
       primary: function (ctx, s) { var n = self.provName(s.payProv); return ({ choose: 'Pay ' + inv.amount + ' with ' + n, loading: 'Waiting for ' + n, success: 'Done', failed: 'Try ' + n + ' again' })[s.payStage]; },
       primaryDis: function (ctx, s) { return s.payStage === 'loading' ? 'Keep this open. If you close it we still check, and email you the result.' : ''; },
       secondary: function (c, s) { return s.payStage === 'success' ? 'Download receipt' : 'Download invoice PDF'; },
@@ -61,7 +61,7 @@
   openFollow(lead, onSet) {
     var self = this, I = this.icons();
     this.setState({ fuWhen: 1, fuHow: 1, fuWho: 0 });
-    this.open(this.sh({ kind: 'follow', eyebrow: 'Follow up · ' + lead.name, title: 'When should we follow up?', icon: I.clock, iconTone: 'var(--live)', fu: lead, focus: 'shPrimary',
+    this.open(this.sh({ kind: 'follow', eyebrow: 'Follow up · ' + lead.name, title: 'When should we follow up?', icon: I.clock, iconTone: 'var(--ad-tone-live)', fu: lead, focus: 'shPrimary',
       primary: function (ctx, s) { return 'Set for ' + lead.whens[s.fuWhen][0]; }, secondary: 'Cancel',
       onPrimary: function () { var s = self.state, w = lead.whens[s.fuWhen], h = ['Call', 'WhatsApp', 'Email'][s.fuHow], who = lead.whos[s.fuWho]; if (onSet) onSet(w, h, who, (s.draft || '').trim()); } }));
   }
@@ -71,7 +71,7 @@
     var self = this, I = this.icons(), on = {}, qty = {};
     q.lines.forEach(function (l, i) { on[i] = !!l.on; qty[i] = l.qty || 1; });
     this.setState({ qtOn: on, qtQty: qty, qtVat: true });
-    this.open(this.sh({ kind: 'quote', wide: true, eyebrow: 'New quote · ' + q.client, title: q.title, chip: 'Draft', tone: 'var(--neutral)', icon: I.quote, quote: q, focus: 'shPrimary',
+    this.open(this.sh({ kind: 'quote', wide: true, eyebrow: 'New quote · ' + q.client, title: q.title, chip: 'Draft', tone: 'var(--ad-tone-neutral)', icon: I.quote, quote: q, focus: 'shPrimary',
       primary: 'Review and send', secondary: 'Save as draft', keepOpen: true,
       primaryDis: function () { return self.quoteTotals(q).sub ? '' : 'Add at least one line to send a quote.'; },
       onPrimary: function () { var T = self.quoteTotals(q); self.ask({ eyebrow: 'Send quote', title: 'Send ' + self.ngn(T.total) + ' quote to ' + q.client + '?', body: 'It stays valid for 14 days. When they accept, the deposit invoice is created for you.', to: q.to, subject: 'Your quote from WDC: ' + q.title, preview: 'Hello ' + q.contact + ',\n' + T.lines.map(function (l) { return l.t + (l.qty > 1 ? ' × ' + l.qty : '') + ': ' + self.ngn(l.total); }).join('\n') + '\nTotal ' + self.ngn(T.total) + (self.state.qtVat ? ' including VAT' : '') + '. Deposit to start: ' + self.ngn(T.total / 2) + '.', ok: 'Send quote', icon: I.send, onOk: function () { self.setState({ sheet: null, stack: [] }); if (onSent) onSent(T); } }, true); },
@@ -104,7 +104,7 @@
     var provs = [['paystack', 'Paystack', 'Card, bank app, USSD or bank transfer through Paystack'], ['flutterwave', 'Flutterwave', 'Card, bank app or mobile money through Flutterwave']];
     out.pay = { choose: s.payStage === 'choose', loading: s.payStage === 'loading', success: s.payStage === 'success', failed: s.payStage === 'failed', amount: inv.amount || '', forLabel: inv.forLabel || '', receiptNo: inv.receipt || '', providerName: this.provName(prov), otherName: this.provName(prov === 'paystack' ? 'flutterwave' : 'paystack'), logo: P[prov] || '',
       providers: provs.map(function (v) { var on = prov === v[0]; return { name: v[1], sub: v[2], logo: P[v[0]] || '', cls: on ? 'on' : '', checked: on ? 'true' : 'false', pick: function () { self.setState({ payProv: v[0] }); } }; }),
-      steps: ['Creating a secure payment', 'Opening ' + this.provName(prov), 'Waiting for ' + this.provName(prov) + ' to confirm'].map(function (t, i) { var done = s.payStep > i, cur = s.payStep === i; return { t: t, done: done, cls: done ? 'on' : '', col: done || cur ? 'var(--ink)' : 'var(--dim)' }; }),
+      steps: ['Creating a secure payment', 'Opening ' + this.provName(prov), 'Waiting for ' + this.provName(prov) + ' to confirm'].map(function (t, i) { var done = s.payStep > i, cur = s.payStep === i; return { t: t, done: done, cls: done ? 'on' : '', col: done || cur ? 'var(--ad-ink)' : 'var(--ad-dim)' }; }),
       outI: s.payOut === 'ok' ? 0 : 1, okCls: s.payOut === 'ok' ? 'on' : '', failCls: s.payOut === 'fail' ? 'on' : '', setOk: function () { self.setState({ payOut: 'ok' }); }, setFail: function () { self.setState({ payOut: 'fail' }); },
       switchProvider: raw.switchProvider || function () {}, support: raw.support || function () {} };
     out.askUsd = function () { self.ask({ eyebrow: 'Billing', title: 'Ask for a USD invoice?', body: 'Finance reissues it in US dollars at today’s rate and cancels the Naira one. You get it by email within a working day.', ok: 'Ask for USD', back: true, okToast: 'Asked. The USD invoice comes by email.', icon: self.icons().cash }, true); };
@@ -119,7 +119,7 @@
     out.qt = { vat: s.qtVat, vatCls: s.qtVat ? 'on' : '', toggleVat: function () { self.setState({ qtVat: !self.state.qtVat }); },
       sub: this.ngn(T.sub), vatAmt: this.ngn(T.vat), total: this.ngn(T.total), deposit: this.ngn(T.total / 2),
       fit: !q.budget ? '' : (T.total < q.budget[0] ? 'Under their budget of ' + this.short(q.budget[0]) + ' to ' + this.short(q.budget[1]) + '. Room to add hosting or rush delivery.' : (T.total > q.budget[1] ? 'Over their top budget of ' + this.short(q.budget[1]) + ' by ' + this.ngn(T.total - q.budget[1]) + '.' : 'Inside their budget of ' + this.short(q.budget[0]) + ' to ' + this.short(q.budget[1]) + '.')),
-      fitCol: !q.budget ? 'var(--dim)' : (T.total > q.budget[1] ? 'var(--badInk)' : 'var(--good)'),
+      fitCol: !q.budget ? 'var(--ad-dim)' : (T.total > q.budget[1] ? 'var(--ad-bad-ink)' : 'var(--ad-tone-good)'),
       lines: q.lines.map(function (l, i) { var on = !!s.qtOn[i], n = s.qtQty[i] || 1; return { t: l.t, s: l.s + ' · ' + self.ngn(l.price) + (l.unit ? ' ' + l.unit : ''), on: on, cls: on ? '' : 'off', boxCls: on ? 'on' : '', checked: on ? 'true' : 'false', aria: 'Include ' + l.t, qty: n, total: on ? self.ngn(l.price * n) : '—',
         toggle: function () { var o = Object.assign({}, self.state.qtOn); o[i] = !on; self.setState({ qtOn: o }); },
         dec: function () { var o = Object.assign({}, self.state.qtQty); o[i] = Math.max(1, n - 1); self.setState({ qtQty: o }); },
