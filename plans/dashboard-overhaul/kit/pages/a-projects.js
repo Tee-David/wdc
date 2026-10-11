@@ -1,5 +1,5 @@
   /* ======================= Owner · Projects ======================= */
-  pageState() { return { view: 'list', va: 0, svc: 'all', ptab: 'live', ppage: 0, pper: 5, q2: '', ra: 0, wk: 0, added: [], trashed: {}, leadOv: {} }; }
+  pageState() { return { drag: '', dover: -1, view: 'list', va: 0, svc: 'all', ptab: 'live', ppage: 0, pper: 5, q2: '', ra: 0, wk: 0, added: [], trashed: {}, leadOv: {} }; }
   pageName() { return 'Projects'; }
   tourSteps() {
     var I = this.icons();
@@ -15,6 +15,7 @@
   newProjectSheet() {
     var self = this, I = this.icons(), clients = this.clientsData().filter(function (c) { return c.status !== 'past'; });
     var stagesFor = { 'Brand identity': 'Discovery, Concepts, Review, Final files, Handover', 'Website': 'Discovery, Design, Build, Launch, Handover', 'Social media': 'Setup, Plan, Approve, Publish, Report', 'SEO': 'Audit, Fix, Content, Report', 'App': 'Discovery, Design, Build, Test, Release', 'Software & AI': 'Discovery, Design, Build, Test, Release' };
+    this.shared('services', []).forEach(function (v) { stagesFor[v.n] = v.stages.join(', '); });
     this.open(this.sh({ eyebrow: 'New project', title: 'Start a project', icon: I.folder, wide: true,
       listTitle: 'Client', select: true, selectWhy: 'Choose the client.', searchPh: 'Search clients by name, contact or email', create: this.clientCreate('Add a new client'), list: clients.map(function (c) { return { t: c.name, s: c.contact + (c.status === 'lead' ? ' · lead, converts when the project starts' : ''), ini: c.ini, av: c.tone, ref: c, k: c.email + ' ' + c.phone }; }),
       chipSets: function (s) { return [{ key: 'svc', label: 'Service', opts: Object.keys(stagesFor), hint: s.form.svc ? 'Stages: ' + stagesFor[s.form.svc] + '.' : 'The stages come from the service.' }, { key: 'lead', label: 'Lead', opts: self.teamData().map(function (m) { return m.name; }) }, { key: 'start', label: 'Starts', opts: ['Tue 13 Oct', 'Tue 20 Oct', 'Sun 1 Nov'] }, { key: 'dep', label: 'Deposit', opts: ['Send the 50% deposit invoice now', 'Bill later'] }]; },
@@ -65,6 +66,29 @@
     } });
     return out;
   }
+  boardCols() { return [['Starting or blocked', 'var(--ad-tone-neutral)', 'Setup, discovery or something in the way'], ['In progress', 'var(--ad-tone-live)', 'The team is working on it'], ['With the client', 'var(--ad-tone-warn)', 'Waiting on a reply, approval or payment'], ['Handover and reporting', 'var(--ad-tone-good)', 'Final stage'], ['Done', 'var(--ad-tone-flat)', 'Finished']]; }
+  boardCol(x) { if (x.status === 'done') return 4; if (x.flag === 'Paused' || x.flag === 'Blocked' || (x.cur === 0 && x.stages.length > 1)) return 0; if (x.status === 'waiting') return 2; if (x.stage === 'Handover' || x.stage === 'Report' || x.stage === 'Release' || (x.stages.length > 1 && x.cur >= x.stages.length - 1)) return 3; return 1; }
+  /* Moving a card changes the project for real: its stage, status and flag move with it, the Projects list agrees, and Undo puts it back. */
+  moveProject(x, ci) {
+    var self = this, I = this.icons(), BC = this.boardCols(), from = this.boardCol(x), L = x.stages.length;
+    if (ci === from) return;
+    if (x.flag === 'Paused' && ci !== 0) { this.say(x.name + ' is paused. Resume it from its menu first, then move it.'); return; }
+    var prev = this.state.leadOv[x.id], patch = {};
+    if (ci === 0) patch = { cur: 0, status: 'live', flag: x.flag === 'Waiting' ? '' : x.flag };
+    else if (ci === 1) patch = { cur: Math.min(Math.max(1, x.cur), Math.max(1, L - 2)), status: 'live', flag: x.flag === 'Blocked' || x.flag === 'With client' || /^Waiting/.test(x.flag) ? '' : x.flag };
+    else if (ci === 2) patch = { cur: Math.min(Math.max(1, x.cur), Math.max(1, L - 2)), status: 'waiting', flag: x.flag === 'Blocked' ? '' : (x.flag || 'With client') };
+    else if (ci === 3) patch = { cur: Math.max(0, L - 1), status: 'live', flag: x.flag === 'Blocked' || x.flag === 'With client' || /^Waiting/.test(x.flag) ? '' : x.flag };
+    else patch = { cur: L, status: 'done', flag: '' };
+    if (L === 1) patch.cur = ci === 4 ? 1 : 0;
+    patch.stage = patch.status === 'done' ? 'Done' : (x.stages[patch.cur] || x.stage);
+    var apply = function () {
+      var ov = Object.assign({}, self.state.leadOv); ov[x.id] = Object.assign({}, prev || {}, patch);
+      self.setState({ leadOv: ov, ra: self.state.ra + 1 });
+      self.say(x.name + ' moved to ' + BC[ci][0] + '.' + (ci === 3 ? ' Stage is now ' + patch.stage + '.' : ''), { undo: function () { var o2 = Object.assign({}, self.state.leadOv); if (prev) o2[x.id] = prev; else delete o2[x.id]; self.setState({ leadOv: o2, ra: self.state.ra + 1 }); } });
+    };
+    if (ci === 4) this.ask({ eyebrow: 'Mark done', title: 'Mark ' + x.name + ' done?', body: 'It moves to Done and its tasks leave My Day. Usually this happens after the recorded handover meeting. You can move it back.', ok: 'Mark done', icon: I.check, tone: 'var(--ad-tone-good)', onOk: apply });
+    else apply();
+  }
   rowMenu(pj) {
     var self = this, I = this.icons(), it = this.menuItem.bind(this), out = [it('Open', I.open, function () { self.openProject(pj); })];
     if (this.hideMoney()) { if (pj.status !== 'done') out.push(it('Add a task', I.task, function () { self.open(self.taskSheet(pj)); })); out.push(it('Message ' + pj.client, I.msg, function () { window.location.href = 'S-Messages.dc.html'; })); return out; }
@@ -78,6 +102,7 @@
   }
   popItems(pop) {
     var self = this, I = this.icons(), it = this.menuItem.bind(this);
+    if (pop.kind === 'move') { var mp = this.allProjects().filter(function (x) { return x.id === pop.id; })[0]; if (!mp) return []; var cur = this.boardCol(mp); return this.boardCols().map(function (c, ci) { return it(c[0], I.layers, function () { self.moveProject(mp, ci); }, { hint: ci === cur ? 'Now' : '', checked: ci === cur, on: ci === cur, role: 'menuitemradio' }); }); }
     if (pop.kind === 'row') { var pj = this.allProjects().filter(function (x) { return x.id === pop.id; })[0]; return pj ? this.rowMenu(pj) : []; }
     if (pop.kind === 'chores') return [it('Meetings', I.cal, function () { window.location.href = 'A-Meetings.dc.html'; }, { hint: 'Reviews and handovers' }), it('Export projects', I.down, function () { self.exportProjects([], self.allProjects()); }, { hint: 'CSV or Excel' }), it('Stage templates', I.layers, function () { window.location.href = 'A-Settings.dc.html'; }, { hint: 'Settings' }), this.menuSep(), it('Open Trash', I.trash, function () { window.location.href = 'A-Settings.dc.html'; }, { hint: 'Settings' })];
     return [];
@@ -86,7 +111,7 @@
   renderVals() {
     var s = this.state, self = this, p = s.p, I = this.icons(), S = this.sh.bind(this);
     var all = this.allProjects(), q = s.q2.trim().toLowerCase();
-    var SV = ['Branding & Design', 'Web & Apps', 'Social & Ads', 'SEO', 'Apps', 'Software & AI'].filter(function (v) { return !self.hideMoney() || all.some(function (x) { return x.svc === v; }); });
+    var SV = ['Branding & Design', 'Web & Apps', 'Social & Ads', 'SEO', 'Apps', 'Software & AI'].concat(this.shared('services', []).map(function (v) { return v.n; })).filter(function (v) { return !self.hideMoney() || all.some(function (x) { return x.svc === v; }); });
     var matchQ = function (x) { return !q || (x.name + ' ' + x.client + ' ' + x.lead).toLowerCase().indexOf(q) >= 0; };
     var matchS = function (x) { return s.svc === 'all' || x.svc === s.svc; };
     var inTab = function (x, t) { return t === 'live' ? x.status !== 'done' : (t === 'waiting' ? x.status === 'waiting' : x.status === 'done'); };
@@ -110,10 +135,12 @@
     var V = [['list', 'List', 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01'], ['board', 'Board', 'M3 3h7v18H3zM14 3h7v10h-7z'], ['cal', 'Calendar', 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z']], vI = 0;
     V.forEach(function (v, i) { if (v[0] === s.view) vI = i; });
     var live = base.filter(function (x) { return x.status !== 'done'; });
-    var colOf = function (x) { if (x.flag === 'Paused' || x.flag === 'Blocked' || x.cur === 0) return 0; if (x.status === 'waiting') return 2; if (x.stage === 'Handover' || x.stage === 'Report' || x.stage === 'Release') return 3; return 1; };
-    var cols = [['Starting or blocked', 'var(--ad-tone-neutral)'], ['In progress', 'var(--ad-tone-live)'], ['With the client', 'var(--ad-tone-warn)'], ['Handover and reporting', 'var(--ad-tone-good)']].map(function (c, ci) {
-      var cards = live.filter(function (x) { return colOf(x) === ci; }).map(function (x) { return Object.assign({}, x, { pct: pct(x), hasFlag: !!x.flag, flagTone: x.flag === 'New' ? 'var(--ad-tone-brand)' : (x.flag === 'With client' || x.flag.indexOf('Waiting') === 0 ? 'var(--ad-tone-warn)' : 'var(--ad-tone-bad)'), dueCol: x.dueHot ? 'var(--ad-accent-ink)' : 'var(--ad-dim)', aria: x.name + ' for ' + x.client, open: function () { self.openProject(x); } }); });
-      return { t: c[0], tone: c[1], n: cards.length, cards: cards, empty: !cards.length };
+    var colOf = function (x) { return self.boardCol(x); }, BC = this.boardCols();
+    var mkCard = function (x) { return Object.assign({}, x, { pct: pct(x), hasFlag: !!x.flag, flagTone: x.flag === 'New' ? 'var(--ad-tone-brand)' : (x.flag === 'With client' || x.flag.indexOf('Waiting') === 0 ? 'var(--ad-tone-warn)' : (x.flag === 'Done' ? 'var(--ad-tone-good)' : 'var(--ad-tone-bad)')), dueCol: x.dueHot ? 'var(--ad-accent-ink)' : 'var(--ad-dim)', aria: x.name + ' for ' + x.client + '. Drag to another column, or use its menu to move it.', open: function () { self.openProject(x); }, dragging: s.drag === x.id ? 'dragging' : '', dragStart: function (e) { try { e.dataTransfer.setData('text/plain', x.id); e.dataTransfer.effectAllowed = 'move'; } catch (er) {} self.setState({ drag: x.id }); }, dragEnd: function () { self.setState({ drag: '', dover: -1 }); }, moveAria: 'Move ' + x.name, moveMenu: function (e) { if (e && e.stopPropagation) e.stopPropagation(); self.openPop(e, 'move', x.id, 270, 280, 'Move ' + x.name); }, moveX: self.popOn('move', x.id) }); };
+    var board = base.filter(function (x) { return x.status !== 'done' || s.ptab === 'done' || true; });
+    var cols = BC.map(function (c, ci) {
+      var cards = board.filter(function (x) { return colOf(x) === ci; }).map(mkCard);
+      return { t: c[0], tone: c[1], n: cards.length, cards: cards, empty: !cards.length, hint: c[2], cls: s.dover === ci ? 'over' : '', over: function (e) { e.preventDefault(); try { e.dataTransfer.dropEffect = 'move'; } catch (er) {} if (self.state.dover !== ci) self.setState({ dover: ci }); }, leave: function (e) { if (e.currentTarget && e.relatedTarget && e.currentTarget.contains(e.relatedTarget)) return; if (self.state.dover === ci) self.setState({ dover: -1 }); }, drop: function (e) { e.preventDefault(); var id = self.state.drag; try { id = id || e.dataTransfer.getData('text/plain'); } catch (er) {} var pj = self.allProjects().filter(function (z) { return z.id === id; })[0]; self.setState({ drag: '', dover: -1 }); if (pj) self.moveProject(pj, ci); } };
     });
     var weeks = [
       { label: 'Next 7 days · 13 to 19 Oct', days: [['Tue', 13, [['lumen-tt', 'Print files due', 'deadline']]], ['Wed', 14, [['mira-br', 'Logo review with Adaeze, 15:30', 'meeting'], ['mira-so', 'Mira deposit due', 'money']]], ['Thu', 15, [['okafor-fl', 'Flyers revision due', 'deadline']]], ['Fri', 16, [['oak-web', 'Handover meeting, 14:00', 'meeting'], ['lumen-ads', 'Ad creatives round 2', 'deadline']]], ['Sat', 17, [['mira-br', 'Final files and brand guide', 'deadline']]], ['Sun', 18, []], ['Mon', 19, []]] },

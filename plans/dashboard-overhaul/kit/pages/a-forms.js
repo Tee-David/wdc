@@ -1,5 +1,5 @@
   /* ======================= Owner · Enquiries (forms, entries, subscribers, links) ======================= */
-  pageName() { return 'Clients'; }
+  pageName() { return 'Forms'; }
   tourSteps() {
     var I = this.icons();
     return [

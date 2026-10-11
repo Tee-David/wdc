@@ -219,6 +219,6 @@
       approvals: approvals, apEmpty: !approvals.length, apTitle: M.role === 'client' ? 'Needs your yes' : 'Waiting on ' + pj.client, apSub: M.apSub || '', apEmptyBody: M.apEmptyBody || 'New approvals appear here and in the deck on the home page.',
       frows: frows, FP: FP, canUpload: M.role !== 'client' || M.clientUpload, upload: function () { self.open(S({ eyebrow: pj.name, title: 'Upload files', icon: I.upload, body: 'Up to 50 MB a file. ' + (M.role === 'client' ? 'The team is told when your files land.' : 'Choose who sees them before they land.'), chipSets: M.role === 'client' ? [] : [{ key: 'who', label: 'Who sees them', opts: ['Team only', 'Client sees it'] }], form: { who: 'Team only' }, primary: 'Choose files', secondary: 'Cancel', onPrimary: function (ctx) { self.say('The file picker opens here.' + (ctx.form.who ? ' ' + ctx.form.who + '.' : '')); } })); },
       mrows: mrows, schedule: (M.money || {}).schedule || [], scheduleNote: (M.money || {}).note || '',
-      acts: acts, AP: AP
+      acts: acts, AP: AP, fEmpty: !F.length, aEmpty: !A.length
     }, M.extra ? M.extra() : {});
   }

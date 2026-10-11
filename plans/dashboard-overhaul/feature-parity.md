@@ -57,7 +57,13 @@ Sources read: `components/admin/*`, `forms/*`, `email/*`, `settings/*`, `compone
 
 | Live feature | Status | Board and notes |
 | --- | --- | --- |
-| Invoices, quotes, receipts, record payment, refunds, reports, expenses | Covered | `A-Money` |
+| Invoices, quotes, receipts, record payment, refunds, reports, expenses | Covered | `A-Money` lists, `A-Invoice` for the document |
+| Create and edit an invoice or quote (client, project, dates, lines, price list, VAT, discount, notes, terms, preview) | Covered | `A-Invoice` edit mode |
+| Open an invoice or quote: record payment, refund, remind, cancel, edit, reconcile, accept, decline, make the deposit invoice | Covered | `A-Invoice` view mode |
+| Every project has a detail page shaped by its service | Covered | `A-Project?p=<id>` |
+| Drag a project between board columns | Covered | `A-Projects` Board |
+| Marketing (campaigns, calendar, automations, templates, contacts) and Forms as top level pages | Covered | `A-Email`, `A-Forms` |
+| Services, teams, blog categories and tags, expense categories, file folders, lead sources | Covered | `A-Settings` Services, Team, Lists and categories |
 | Reconciliation: statement import and match | Covered | `A-Reconcile` Statement |
 | Paystack events: needs somebody, match to an invoice, write off, bank it | Covered | `A-Reconcile` Paystack tab |
 | Messages that did not go, resend | Covered | `A-Reconcile` Emails that failed tab |

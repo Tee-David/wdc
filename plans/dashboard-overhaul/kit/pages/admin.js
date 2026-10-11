@@ -118,13 +118,14 @@
   invSheet(r) {
     var self = this, I = this.icons(), paid = r.status === 'Paid' || r.status === 'Refunded';
     return this.sh({ eyebrow: paid ? 'Receipt' : 'Invoice', title: r.no + ' · ' + r.client, chip: r.status, tone: r.tone, icon: I.file, iconTone: r.tone, rows: [{ k: 'Amount', v: r.amount }, { k: paid ? 'Paid on' : 'Due', v: r.date }, { k: 'Method', v: r.method }, { k: 'Currency', v: r.amount.charAt(0) === '$' ? 'USD' : 'NGN' }], feed: paid ? [{ t: 'Receipt emailed to ' + r.client, when: r.date }, { t: 'Paid by ' + r.method, when: r.date }, { t: 'Invoice issued', when: 'by you' }] : [{ t: 'Viewed by the client', when: '2 days ago' }, { t: 'Invoice issued', when: 'by you' }],
-      primary: paid ? 'Preview the receipt' : 'Preview the invoice', secondary: paid ? 'Resend receipt' : 'Copy payment link', sToast: paid ? 'Receipt sent to ' + r.client + '.' : 'Payment link copied.',
-      onPrimary: function () { self.openFile({ name: r.no + '.pdf', project: r.client, view: 'doc', ref: r.no, docTitle: (paid ? 'Receipt · ' : 'Invoice · ') + r.amount, when: r.date, size: '190 KB', tone: 'var(--ad-tone-bad)' }); } });
+      primary: 'Open the invoice', secondary: paid ? 'Resend receipt' : 'Copy payment link', sToast: paid ? 'Receipt sent to ' + r.client + '.' : 'Payment link copied.',
+      onPrimary: function () { if (r.no) { self.goDoc(r.no); return; } self.openFile({ name: r.no + '.pdf', project: r.client, view: 'doc', ref: r.no, docTitle: (paid ? 'Receipt · ' : 'Invoice · ') + r.amount, when: r.date, size: '190 KB', tone: 'var(--ad-tone-bad)' }); } });
   }
+  goDoc(no, extra) { window.location.href = 'A-Invoice.dc.html?no=' + encodeURIComponent(no) + (extra || ''); }
   rowActions(row, tab) {
     var self = this, I = this.icons(), it = this.menuItem.bind(this), sep = this.menuSep();
     if (tab === 'paid') return [
-      it('View receipt', I.eye, function () { self.open(self.invSheet(row)); }),
+      it('Open invoice', I.open, function () { self.goDoc(row.no); }),
       it('Download receipt', I.down, function () { self.say('Receipt PDF downloaded'); }),
       it('Resend receipt', I.mail, function () { self.say('Receipt sent to ' + row.client, { delay: 8, pending: function (n) { return 'Resending to ' + row.client + ' in ' + n + 's'; } }); }),
       sep,
@@ -132,9 +133,9 @@
     ];
     var acts = [
       it('Send a reminder', I.mail, function () { self.say('Reminder sent to ' + row.client, { delay: 8, pending: function (n) { return 'Sending a reminder to ' + row.client + ' in ' + n + 's'; } }); }),
-      it('Record a payment', I.cash, function () { self.recordSheet(row); }),
-      it('Copy payment link', I.link, function () { self.say('Payment link copied. It opens Paystack or Flutterwave.'); }),
-      it('Preview PDF', I.eye, function () { self.open(self.invSheet(row)); })
+      it('Open invoice', I.open, function () { self.goDoc(row.no); }),
+      it('Record a payment', I.cash, function () { self.goDoc(row.no, '&pay=1'); }),
+      it('Copy payment link', I.link, function () { self.say('Payment link copied. It opens Paystack or Flutterwave.'); })
     ];
     if (tab === 'over') acts.unshift(it('Send final notice', I.alert, function () { self.ask({ eyebrow: 'Final notice', title: 'Send a final notice to ' + row.client + '?', body: 'This is the firmest message we send. It says work pauses until payment.', to: row.client + ' · billing contact', subject: 'Final notice: ' + row.no + ' is overdue', preview: row.no + ' for ' + row.amount + ' was due on ' + row.date + '.\nPlease pay today to keep work moving.', ok: 'Send final notice', okToast: 'Final notice sent to ' + row.client + '.', tone: 'var(--ad-tone-warn)', icon: I.alert }); }));
     acts.push(sep);

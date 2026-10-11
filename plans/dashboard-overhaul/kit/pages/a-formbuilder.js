@@ -3,7 +3,7 @@
      Questions are a list with a menu per row. Wording, schedule, emails and spam are rows. Publish sits in the head. */
   setL(key, v) { var l = Object.assign({}, this.state.lists); l[key] = v; this.setState({ lists: l, ra: this.state.ra + 1 }); }
   getL(key) { return this.state.lists[key]; }
-  pageName() { return 'Clients'; }
+  pageName() { return 'Forms'; }
   fbTypes() { return ['Short answer', 'Long answer', 'Email', 'Phone', 'Number', 'Date', 'Dropdown', 'Choose one', 'Choose several', 'File', 'Section heading', 'Agreement']; }
   fbBase() {
     return [
