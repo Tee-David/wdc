@@ -114,7 +114,6 @@ export function Calendar({
 
   const view: View = picked ?? (phone ? "day" : "week");
   const cur = parse(date);
-  const todayD = parse(clock.today);
   const monday = addDays(cur, -((cur.getUTCDay() + 6) % 7));
   const colour = useMemo(() => Object.fromEntries(cals.map((c) => [c.id, c])), [cals]);
 
@@ -188,6 +187,7 @@ export function Calendar({
 
   return (
     <div className="adCe" data-tour={dataTour}>
+      <div className="adCe__in">
       <aside className="adCe__side" aria-label="Calendar tools">
         {add ? <Link className="ad__btn ad__btn--primary adCe__add" href={addHref(date, null)}><Plus aria-hidden="true" />{add.label}</Link> : null}
         <div className="adCe__mini">
@@ -288,11 +288,10 @@ export function Calendar({
                   {Array.from({ length: h1 - h0 }, (_, i) => <span key={i} className="adCe__hr" style={{ top: i * rowHeight }}>{pad(h0 + i)}:00</span>)}
                 </div>
                 {days.map((d) => (
-                  // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
                   <div key={iso(d)} className={`adCe__col${iso(d) === clock.today ? " is-today" : ""}${add ? " can-add" : ""}`} onClick={(e) => slot(e, iso(d))}>
                     {lay(timed(iso(d))).map((e) => {
                       const top = Math.max(0, (e.s - h0 * 60) / 60 * rowHeight);
-                      const h = Math.max(46, (e.e - e.s) / 60 * rowHeight) - 3;
+                      const h = Math.max(48, (e.e - e.s) / 60 * rowHeight) - 3;
                       const ppl = e.people ?? [];
                       const style = { top: top + 1, height: h, left: `calc(${e.lane * 100 / e.lanes}% + 3px)`, width: `calc(${100 / e.lanes}% - 6px)`, "--c": colour[e.cal]?.color ?? "var(--cal-1)" } as React.CSSProperties;
                       const body = (
@@ -352,6 +351,7 @@ export function Calendar({
             ? `${inView.length} ${inView.length === 1 ? "item" : "items"} ${view === "day" ? (date === clock.today ? "today" : "on this day") : view === "week" ? "this week" : "this month"}${summaryNote ? `. ${summaryNote}` : "."}`
             : emptyNote ?? "Nothing is booked in this view. Pick another day or turn a calendar back on."}
         </p>
+      </div>
       </div>
     </div>
   );

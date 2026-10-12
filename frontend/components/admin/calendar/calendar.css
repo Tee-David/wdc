@@ -4,7 +4,8 @@
 :root { --cal-1: #000065; --cal-2: #b84a00; --cal-3: #15803d; --cal-4: #c62828; --cal-5: #a16207; --cal-6: #5c5c7a; --cal-7: #6d28d9; }
 .dark { --cal-1: #7377ff; --cal-2: #ff6500; --cal-3: #4ade80; --cal-4: #ff8a8a; --cal-5: #fbbf24; --cal-6: #9b9dc4; --cal-7: #c4a1ff; }
 
-.adCe { display: grid; grid-template-columns: 264px minmax(0, 1fr); border-top: 1px solid var(--ad-line); min-width: 0; container: card / inline-size; }
+.adCe { min-width: 0; container: card / inline-size; border-top: 1px solid var(--ad-line); }
+.adCe__in { display: grid; grid-template-columns: 264px minmax(0, 1fr); min-width: 0; }
 .adCe svg { width: 1rem; height: 1rem; flex: none; }
 .adCe__side { padding: 1rem; border-right: 1px solid var(--ad-line); display: flex; flex-direction: column; gap: 1.1rem; min-width: 0; }
 .adCe__add { width: 100%; justify-content: center; min-height: 2.75rem; }
@@ -51,7 +52,7 @@
 .adCe__sp { flex: 1 1 0; }
 .adCe__seg { position: relative; display: inline-grid; grid-template-columns: repeat(3, 1fr); padding: 4px; gap: 0; border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-bg); }
 .adCe__pill { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / 3); border-radius: 9px; background: var(--ad-panel); box-shadow: var(--ad-sh-1); transform: translateX(calc(var(--i, 0) * 100%)); transition: transform .3s var(--ad-ease); }
-.adCe__seg button { position: relative; min-height: 2.5rem; padding: 0 1rem; border: 0; background: none; border-radius: 9px; font: 600 .88rem var(--font-outfit), system-ui, sans-serif; color: var(--ad-dim); cursor: pointer; }
+.adCe__seg button { position: relative; min-height: 2.75rem; padding: 0 1rem; border: 0; background: none; border-radius: 9px; font: 600 .88rem var(--font-outfit), system-ui, sans-serif; color: var(--ad-dim); cursor: pointer; }
 .adCe__seg button.on { color: var(--ad-ink); }
 .adCe__strip { display: none; }
 .adCe__sum { margin: 0; padding: .75rem 1.25rem; font-size: .82rem; color: var(--ad-dim); border-top: 1px solid var(--ad-line); }
@@ -121,7 +122,7 @@ a.adCe__chip:hover, a.adCe__mEv:hover { background: var(--ad-hover); }
 
 @container card (max-width: 1020px) {
   .adCe__tg { min-width: calc(56px + var(--cols) * 92px); }
-  .adCe { grid-template-columns: minmax(0, 1fr); }
+  .adCe__in { grid-template-columns: minmax(0, 1fr); }
   .adCe__side { border-right: 0; border-bottom: 1px solid var(--ad-line); display: grid; grid-template-columns: minmax(220px, 300px) minmax(0, 1fr); gap: .9rem 1.5rem; align-items: start; }
   .adCe__add { grid-column: 1 / -1; }
   .adCe__list { border-top: 0; padding-top: 0; }
