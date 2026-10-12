@@ -1,0 +1,28 @@
+.adTlv { overflow: auto; margin: 0 1.25rem 1.25rem; border: 1px solid var(--ad-line); border-radius: 16px; max-height: 720px; overscroll-behavior: contain; }
+.adTlv:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
+.adTlv__in { min-width: 980px; position: relative; }
+.adTlv__head, .adTlv__row { display: grid; grid-template-columns: 220px minmax(0, 1fr); }
+.adTlv__head { position: sticky; top: 0; z-index: 6; background: var(--ad-panel-2); border-bottom: 1px solid var(--ad-line); }
+.adTlv__corner { position: sticky; left: 0; z-index: 7; background: var(--ad-panel-2); padding: .75rem .9rem; font-size: .75rem; font-weight: 600; color: var(--ad-dim); }
+.adTlv__axis { position: relative; display: grid; grid-template-columns: repeat(var(--wk), minmax(0, 1fr)); }
+.adTlv__wk { padding: .75rem .5rem; font-size: .75rem; font-weight: 600; color: var(--ad-dim); border-left: 1px solid var(--ad-line); font-variant-numeric: tabular-nums; }
+.adTlv__row { border-bottom: 1px solid var(--ad-line); min-height: 4rem; }
+.adTlv__row:last-child { border-bottom: 0; }
+.adTlv__name { position: sticky; left: 0; z-index: 5; background: var(--ad-panel); display: flex; flex-direction: column; justify-content: center; gap: 1px; padding: .5rem .9rem; border-right: 1px solid var(--ad-line); color: var(--ad-ink); text-decoration: none; min-width: 0; }
+.adTlv__name strong { font-size: .88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adTlv__name span { font-size: .75rem; color: var(--ad-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adTlv__name:hover { background: var(--ad-hover); }
+.adTlv__name:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: -2px; }
+.adTlv__track { position: relative; background-image: repeating-linear-gradient(to right, transparent 0, transparent calc(100% / var(--wk) - 1px), var(--ad-line) calc(100% / var(--wk) - 1px), var(--ad-line) calc(100% / var(--wk))); }
+.adTlv__bar { position: absolute; top: .55rem; min-width: 3.5rem; height: 2.75rem; display: flex; flex-direction: column; justify-content: center; gap: 6px; color: var(--ad-ink); text-decoration: none; border-radius: 10px; transition: transform .18s var(--ad-ease); }
+.adTlv__bar:hover { transform: translateY(-1px); }
+.adTlv__bar:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
+.adTlv__rail { display: block; height: 12px; border-radius: 99px; background: var(--ad-tone-flat); overflow: hidden; }
+.adTlv__bar:hover .adTlv__rail { box-shadow: 0 0 0 3px var(--ad-ring); }
+.adTlv__fill { display: block; height: 100%; border-radius: 99px; background: var(--c); transform-origin: left; animation: adTlvGrow .8s var(--ad-ease) backwards; }
+@keyframes adTlvGrow { from { transform: scaleX(0); } }
+.adTlv__txt { font-size: .75rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.adTlv__none { position: absolute; left: .9rem; top: 1.35rem; font-size: .75rem; color: var(--ad-dim); }
+.adTlv__todayLine { position: absolute; top: 0; bottom: 0; left: calc(220px + (100% - 220px) * var(--today, 0)); width: 0; z-index: 4; pointer-events: none; border-left: 2px solid var(--ad-act); }
+.adTlv__pillT { position: absolute; top: 0; left: calc(var(--today, 0) * 100%); transform: translateX(-50%); background: var(--ad-act); color: #fff; font: 700 .68rem/1 var(--font-space-grotesk), system-ui, sans-serif; padding: 5px 8px; border-radius: 0 0 8px 8px; z-index: 2; }
+@media (prefers-reduced-motion: reduce) { .adTlv__fill { animation: none; } .adTlv__bar { transition: none; } }

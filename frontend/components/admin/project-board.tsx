@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarDays, GripVertical } from "lucide-react";
+import { CalendarDays, CheckSquare, GripVertical } from "lucide-react";
 import type { Attention, Health, Project, Stage } from "@/lib/admin/types";
+import "./project-board.css";
 import { moveOnBoard } from "@/lib/admin/actions";
 import { ask } from "./confirm";
 import { AttentionPills, HealthPill } from "./bits";
@@ -14,8 +15,14 @@ import { toast } from "./toast";
 export type BoardCard = {
   project: Project; clientName?: string; clientInitials?: string; service?: string;
   attention: Attention[]; due: string; ownerInitials?: string;
+  /** Where it is among the stages ("3 of 6") and how far that is, 0 to 1. */
+  stageNo?: number; stageCount?: number; progress?: number;
+  tasks?: { done: number; total: number };
+  /** The due date is past. */
+  late?: boolean;
 };
-export type BoardColumn = { stage: Stage; dot: number; ids: string[] };
+/** `stage` is the column's key: a real stage when the board is grouped by stage, otherwise a service or a lead. */
+export type BoardColumn = { stage: string; label?: string; dot: number; ids: string[] };
 
 type Drag = {
   id: string; pointerId: number; x0: number; y0: number; started: boolean; touch: boolean;
@@ -47,7 +54,7 @@ const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefe
  * make room (FLIP, transform only). The drop is saved by `moveOnBoard` (the
  * same stage event and client email as the stage menu) and undone if refused.
  */
-export function ProjectBoard({ columns, cards }: { columns: BoardColumn[]; cards: Record<string, BoardCard> }) {
+export function ProjectBoard({ columns, cards, locked = false }: { columns: BoardColumn[]; cards: Record<string, BoardCard>; locked?: boolean }) {
   const router = useRouter();
   const [order, setOrder] = useState<Record<string, string[]>>(() => Object.fromEntries(columns.map((c) => [c.stage, c.ids])));
   const [dragId, setDragId] = useState<string | null>(null);
@@ -177,7 +184,7 @@ export function ProjectBoard({ columns, cards }: { columns: BoardColumn[]; cards
   };
 
   const onPointerDown = (e: React.PointerEvent<HTMLElement>, id: string) => {
-    if (e.button !== 0 || kbd) return;
+    if (locked || e.button !== 0 || kbd) return;
     if ((e.target as HTMLElement).closest("button, [role=menu], input, select, textarea")) return;
     const el = e.currentTarget;
     const d: Drag = {
@@ -277,21 +284,21 @@ export function ProjectBoard({ columns, cards }: { columns: BoardColumn[]; cards
 
   return (
     <>
-      <div ref={board} className={`ad__board${dragId || kbd ? " is-moving" : ""}`} data-lenis-prevent>
+      <div ref={board} className={`ad__board${dragId || kbd ? " is-moving" : ""}${locked ? " is-locked" : ""}`} data-lenis-prevent tabIndex={0} role="region" aria-label="Project board, scrolls sideways">
         {columns.map((c) => {
           const ids = order[c.stage] ?? [];
           return (
-            <section key={c.stage} className="ad__kcol" data-stage={c.stage} aria-label={`${c.stage}, ${ids.length}`}>
+            <section key={c.stage} className="ad__kcol" data-stage={c.stage} aria-label={`${c.label ?? c.stage}, ${ids.length}`}>
               <header className="ad__kcolH">
                 <span className={`ad__kdot ad__kdot--${c.dot}`} aria-hidden="true" />
-                <h2>{c.stage}</h2>
-                <span className="ad__tabN">{ids.length}</span>
+                <h2>{c.label ?? c.stage}</h2>
+                <span className="adBd__n">{ids.length}</span>
               </header>
               {ids.map((id) => (
                 <article key={id} data-card={id}
                   className={`ad__kcard${dragId === id ? " is-placeholder" : ""}${kbd === id ? " is-lifted" : ""}`}
                   onPointerDown={(e) => onPointerDown(e, id)}>
-                  <Card card={cards[id]} grip={
+                  <Card card={cards[id]} grip={locked ? undefined :
                     <button type="button" className="ad__kgrip" data-grip={id}
                       aria-label={`Move ${cards[id].project.title}`} aria-pressed={kbd === id}
                       aria-describedby="board-help" onKeyDown={(e) => onGripKey(e, id)}
@@ -301,7 +308,7 @@ export function ProjectBoard({ columns, cards }: { columns: BoardColumn[]; cards
                   } />
                 </article>
               ))}
-              {!ids.length ? <p className="ad__kempty">Drop a card here</p> : null}
+              {!ids.length ? <p className="ad__kempty">{locked ? "No projects here" : "Drop a card here"}</p> : null}
             </section>
           );
         })}
@@ -309,36 +316,41 @@ export function ProjectBoard({ columns, cards }: { columns: BoardColumn[]; cards
       {lift ? (
         <div ref={ghost} className="ad__kcard ad__kghost" aria-hidden="true"
           style={{ left: lift.rect.left, top: lift.rect.top, width: lift.rect.width }}>
-          <Card card={cards[lift.id]} />
+          <Card card={cards[lift.id]} menu={false} />
         </div>
       ) : null}
-      <p id="board-help" className="ad__sr">Drag a card, or press Space on its grip and use the arrow keys, to change its stage or order.</p>
+      {locked ? null : <p id="board-help" className="ad__sr">Drag a card, or press Space on its grip and use the arrow keys, to change its stage or order.</p>}
       <p className="ad__sr" aria-live="assertive">{said}</p>
     </>
   );
 }
 
-function Card({ card, grip }: { card: BoardCard; grip?: React.ReactNode }) {
+function Card({ card, grip, menu = true }: { card: BoardCard; grip?: React.ReactNode; menu?: boolean }) {
   const p = card.project;
+  const lead = card.ownerInitials;
   return (
     <>
       <div className="ad__kcardTags">
         {grip}
         {card.service ? <span className="ad__pill ad__pill--flat">{card.service}</span> : null}
-        <HealthPill health={p.health as Health} />
-        {grip ? <span className="ad__kcardMenu"><ProjectMenu project={p} clientName={card.clientName} /></span> : null}
+        {p.health !== "On track" ? <HealthPill health={p.health as Health} /> : null}
+        {menu ? <span className="ad__kcardMenu"><ProjectMenu project={p} clientName={card.clientName} /></span> : null}
       </div>
-      <Link href={`/admin/projects/${p.id}`} className="ad__kcardTitle" draggable={false}><b>{p.title}</b></Link>
-      {card.clientName ? (
-        <span className="ad__who ad__kcardWho">
-          <span className="ad__av ad__av--sm" aria-hidden="true">{card.clientInitials}</span>
-          <small>{card.clientName}</small>
-        </span>
-      ) : null}
+      <Link href={`/admin/projects/${p.id}`} className="ad__kcardTitle adBd__title" draggable={false}><b>{p.title}</b></Link>
+      {card.clientName ? <small className="adBd__client">{card.clientName}</small> : null}
       <AttentionPills items={card.attention} except={p.health} />
-      <div className="ad__kcardFoot">
-        <span className="ad__dim"><CalendarDays aria-hidden="true" />{card.due}</span>
-        {p.owner ? <span className="ad__av ad__av--sm ad__av--good" title={`Owner: ${p.owner}`} aria-label={`Owner: ${p.owner}`}>{card.ownerInitials}</span> : null}
+      {card.progress !== undefined ? (
+        <div className="adBd__prog">
+          <span className="adBd__progL"><span>{p.stage}</span><b>{card.stageNo} of {card.stageCount}</b></span>
+          <span className="adBar" aria-hidden="true"><span style={{ "--w": card.progress } as React.CSSProperties} /></span>
+        </div>
+      ) : null}
+      <div className="ad__kcardFoot adBd__foot">
+        <span>{lead ? <span className="adMk adMk--sm adMk--round" title={`Lead: ${p.owner}`} role="img" aria-label={`Lead: ${p.owner}`}>{lead}</span> : <span className="ad__dim">No lead yet</span>}</span>
+        <span className="adBd__meta">
+          {card.tasks && card.tasks.total ? <span title="Tasks done"><CheckSquare aria-hidden="true" />{card.tasks.done}/{card.tasks.total}</span> : null}
+          <span className={card.late ? "is-late" : undefined}><CalendarDays aria-hidden="true" />{card.due}</span>
+        </span>
       </div>
     </>
   );
