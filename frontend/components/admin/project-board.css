@@ -19,4 +19,4 @@
 .adBd__meta svg { width: .85rem; height: .85rem; }
 .adBd__meta .is-late { color: var(--ad-bad-ink); font-weight: 700; }
 .ad__kcardMenu .ad__rm { min-width: 2.75rem; min-height: 2.75rem; }
-.adBd__title { display: block; padding-block: .6rem; margin-block: -.6rem; }
+.adBd__title { display: block; padding-block: .75rem; margin-block: -.75rem; }

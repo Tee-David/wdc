@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { CalendarDays, FolderKanban, Hourglass, KanbanSquare, List as ListIcon, GanttChart } from "lucide-react";
 import { SERVICES } from "@/lib/services";
-import { getBoard, getInvoices } from "@/lib/admin/store";
+import { getBoard, getClients, getInvoices } from "@/lib/admin/store";
 import { HEALTH, STAGES, invoiceStatus, invoiceTotals, naira, type Stage } from "@/lib/admin/types";
 import { adminRole } from "@/lib/admin/guard";
 import { can } from "@/lib/admin/permissions";
@@ -144,7 +144,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
   const exportParams = new URLSearchParams();
   for (const k of ["q", "stage", "service", "health", "owner"] as const) if (q[k]) exportParams.set(k, q[k]!);
   const exportHref = exportable ? `/admin/projects/export${exportParams.size ? `?${exportParams}` : ""}` : undefined;
-  const hasClients = true;
+  const hasClients = getClients().length > 0;
 
   const empty = !all.length;
   const filteredEmpty = (
