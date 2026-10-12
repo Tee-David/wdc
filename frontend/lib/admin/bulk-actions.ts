@@ -4,7 +4,7 @@ import { FAIL, OK, type ActionState } from "./validate";
 import { archiveClient, emailReminder, moveStage, setProjectArchived, setTicketState } from "./actions";
 import { moveBlogPostToDraft, publishBlogPostNow, trashBlogDraft } from "./blog-actions";
 import { bulkUsers } from "./user-actions";
-import { bulkCancelInvites } from "./invite-actions";
+import { bulkCancelInvites, inviteClient } from "./invite-actions";
 import { getProject } from "./store";
 import { syncStore } from "./persist";
 import { STAGES } from "./types";
@@ -24,6 +24,7 @@ const RUN: Record<string, Job> = {
   "tickets:Closed": { run: setTicketState, fields: (id) => ({ id, status: "Closed" }), done: "closed" },
   "tickets:Open": { run: setTicketState, fields: (id) => ({ id, status: "Open" }), done: "reopened" },
   "clients:archive": { run: archiveClient, fields: (id) => ({ id }), done: "archived" },
+  "clients:invite": { run: inviteClient, fields: (id) => ({ clientId: id }), done: "invited to the portal" },
   "invoices:remind": { run: emailReminder, fields: (id) => ({ id }), done: "reminded" },
   "projects:archive": { run: setProjectArchived, fields: (id) => ({ id }), done: "archived" },
   /* One per stage, so a stage move is the same moveStage a person presses:

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft, Mail, PenSquare } from "lucide-react";
+import { PageHead } from "@/components/admin/page-head";
+import { Mail, PenSquare } from "lucide-react";
 import AreaGate from "@/components/admin/owner-only";
 import { Empty, Panel, when } from "@/components/admin/bits";
 import { AfterButtons, AudienceForm, SendForm, StateButtons, TagClickers } from "@/components/admin/email/campaign-ui";
@@ -28,17 +28,15 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
   const reaches = `${reach.toLocaleString("en-NG")} ${reach === 1 ? "person" : "people"}`;
   return (
     <AreaGate area="settings" what="Email">
-      <div className="ad__head">
-        <div>
-          <Link href="/admin/email?tab=campaigns" className="ad__btn"><ArrowLeft aria-hidden="true" /> Campaigns</Link>
-          <h1>{c.title}</h1>
-          <p>
-            <span className={`ad__pill${st.tone ? ` ad__pill--${st.tone}` : ""}`}>{st.label}</span>
-            {c.scheduledAt && c.status === "scheduled" ? ` Goes out ${when(c.scheduledAt)}.` : c.startedAt ? ` Started ${when(c.startedAt)}.` : ""}
-          </p>
-        </div>
-        <StateButtons id={c.id} status={c.status} />
-      </div>
+      <PageHead
+        title={c.title}
+        crumbs={[{ href: "/admin/email?tab=campaigns", label: "Marketing" }]}
+        lede={<>
+          <span className={`ad__pill${st.tone ? ` ad__pill--${st.tone}` : ""}`}>{st.label}</span>
+          {c.scheduledAt && c.status === "scheduled" ? ` Goes out ${when(c.scheduledAt)}.` : c.startedAt ? ` Started ${when(c.startedAt)}.` : ""}
+        </>}
+        action={<StateButtons id={c.id} status={c.status} />}
+      />
       <div className="ad__stack">
         {!draft ? (
           <>

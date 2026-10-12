@@ -152,7 +152,7 @@ export async function createClient(_prev: ActionState, fd: FormData): Promise<Ac
      survives a reload without re-posting, it works with no JavaScript at all,
      and landing on the thing you just made is a better confirmation than a
      sentence saying it worked. */
-  redirect(`/admin/clients/${c.id}`);
+  redirect(`/admin/clients/${c.id}?saved=1`);
 }
 
 export async function updateClient(_prev: ActionState, fd: FormData): Promise<ActionState> {
