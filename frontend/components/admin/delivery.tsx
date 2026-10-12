@@ -41,14 +41,10 @@ const APPROVAL_OPTIONS = APPROVALS.filter((a) => a !== "Not sent").map((a) => ({
 
 /* ------------------------------------------------------------------ tasks */
 
-export function Tasks({ project, tasks }: { project: Project; tasks: Task[] }) {
-  const open = tasks.filter((t) => !t.done).length;
+/** The "Add a task" sheet, on its own so the project head can offer it as the page's one action too. */
+export function AddTask({ project, tasks, tone = "primary", dataTour }: { project: Project; tasks: Task[]; tone?: "primary" | "plain"; dataTour?: string }) {
   return (
-    <Panel
-      title={`What is left${open ? ` (${open})` : ""}`}
-      dataTour="proj-tasks"
-      action={
-        <DialogButton label="Add a task" title="Add a task" icon={ListPlus} tone="plain">
+    <DialogButton label="Add a task" title="Add a task" icon={ListPlus} tone={tone} dataTour={dataTour}>
           {(close) => (
             <Form action={createTask} onDone={close} resetOnDone>
               <Hidden name="projectId" value={project.id} />
@@ -73,6 +69,17 @@ export function Tasks({ project, tasks }: { project: Project; tasks: Task[] }) {
             </Form>
           )}
         </DialogButton>
+  );
+}
+
+export function Tasks({ project, tasks }: { project: Project; tasks: Task[] }) {
+  const open = tasks.filter((t) => !t.done).length;
+  return (
+    <Panel
+      title={`What is left${open ? ` (${open})` : ""}`}
+      dataTour="proj-tasks"
+      action={
+        <AddTask project={project} tasks={tasks} tone="plain" />
       }
     >
       {tasks.length ? (
@@ -385,11 +392,18 @@ function DeliverableUpload({ onBusyChange }: { onBusyChange: (busy: boolean) => 
 /* -------------------------------------------------------- the project card */
 
 export function ProjectDetails({ project }: { project: Project }) {
+  return (
+    <DialogButton label="Edit details" title="Project details" wide>
+      {(close) => <ProjectDetailsForm project={project} close={close} />}
+    </DialogButton>
+  );
+}
+
+/** The details form, for the button above and for a menu that opens it in a sheet. */
+export function ProjectDetailsForm({ project, close }: { project: Project; close: () => void }) {
   /* The budget is money: staff do not see it, and the action ignores it from them. */
   const money = can(useAdminRole(), "money");
   return (
-    <DialogButton label="Edit details" title="Project details" wide>
-      {(close) => (
         <Form action={saveProjectDetails} onDone={close}>
           <Hidden name="id" value={project.id} />
           <Fields>
@@ -414,8 +428,6 @@ export function ProjectDetails({ project }: { project: Project }) {
           </Fields>
           <Actions><Submit>Save</Submit></Actions>
         </Form>
-      )}
-    </DialogButton>
   );
 }
 

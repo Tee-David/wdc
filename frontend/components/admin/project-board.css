@@ -1,0 +1,21 @@
+/* THE PROJECTS BOARD, as drawn: columns with a count pill, cards with a service tag, a title, the client,
+   stage progress, the lead and the counts. The drag behaviour and its base look are in admin.css. */
+.ad__board { margin: 0; padding: 0 1.25rem 1.25rem; gap: 1rem; grid-auto-columns: minmax(min(82vw, 17rem), 1fr); }
+.ad__board:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: -2px; border-radius: 12px; }
+.ad__board.is-locked[data-lenis-prevent] .ad__kcard[data-card] { cursor: default; -webkit-user-select: auto; user-select: auto; }
+.ad__kcol { padding: .65rem; border-radius: 16px; gap: .65rem; max-width: 24rem; }
+.ad__kcolH { padding: .25rem .25rem .1rem; }
+.ad__kcolH h2 { font: 700 .9rem var(--font-outfit), system-ui, sans-serif; }
+.adBd__n { min-width: 1.5rem; height: 1.4rem; padding: 0 .45rem; border-radius: 999px; display: inline-grid; place-items: center; background: var(--ad-tone-flat); color: var(--ad-on-flat); font-size: .75rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.ad__kcard { gap: .45rem; padding: .75rem .8rem .7rem; border-radius: 16px; }
+.adBd__title b { font: 700 .95rem/1.25 var(--font-space-grotesk), system-ui, sans-serif; }
+.adBd__client { color: var(--ad-dim); font-size: .78rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adBd__prog { display: grid; gap: .3rem; margin-top: .1rem; }
+.adBd__progL { display: flex; justify-content: space-between; gap: .5rem; font-size: .75rem; color: var(--ad-dim); }
+.adBd__progL b { color: var(--ad-ink); font-variant-numeric: tabular-nums; }
+.adBd__foot { margin-top: .15rem; }
+.adBd__meta { display: inline-flex; align-items: center; gap: .65rem; min-width: 0; flex-wrap: wrap; justify-content: flex-end; color: var(--ad-dim); font-size: .75rem; }
+.adBd__meta > span { display: inline-flex; align-items: center; gap: .25rem; white-space: nowrap; }
+.adBd__meta svg { width: .85rem; height: .85rem; }
+.adBd__meta .is-late { color: var(--ad-bad-ink); font-weight: 700; }
+.ad__kcardMenu .ad__rm { min-width: 2.75rem; min-height: 2.75rem; }

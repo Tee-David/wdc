@@ -91,13 +91,18 @@ function Sure({
 /* --------------------------------------------------------------- projects */
 
 export function ProjectMenu({
-  project, clientName,
+  project, clientName, extra, onProject = false,
 }: {
   project: Pick<Project, "id" | "title" | "stage" | "due" | "clientId" | "archived">;
   clientName?: string;
+  /** Items to put first, such as "Edit details" on the project's own page. */
+  extra?: RowMenuItem[];
+  /** On the project's own page "Open the project" would only reload it. */
+  onProject?: boolean;
 }) {
   const items: RowMenuItem[] = [
-    { kind: "link", label: "Open the project", href: `/admin/projects/${project.id}`, icon: ArrowRight },
+    ...(extra ?? []),
+    ...(onProject ? [] : [{ kind: "link" as const, label: "Open the project", href: `/admin/projects/${project.id}`, icon: ArrowRight }]),
     {
       kind: "dialog", label: "Move its stage", icon: Move,
       title: `Move ${project.title}`,
