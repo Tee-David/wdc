@@ -17,7 +17,7 @@
     var self = this;
     this.reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
     this.onResize = function () { if (self.state.pop && !self.state.pop.asSheet) self.setState({ pop: null }); self.queueTour(); };
-    this.onScroll = function () { if (self.state.pop && !self.state.pop.asSheet) self.setState({ pop: null }); self.queueTour(); };
+    this.onScroll = function (e) { var t = e && e.target; if (t && t.closest && t.closest('.board, .tgWrap, .tlWrap, .cmWrap')) return; if (self.state.pop && !self.state.pop.asSheet) self.setState({ pop: null }); self.queueTour(); };
     this.onKey = function (e) {
       var k = e.key;
       if ((e.ctrlKey || e.metaKey) && (k === 'k' || k === 'K')) { e.preventDefault(); self.openPalette(); return; }
@@ -103,7 +103,7 @@
   open(sh, push) {
     var s = this.state;
     var stack = push && s.sheet ? s.stack.concat([{ sheet: s.sheet, draft: s.draft, reason: s.reason, ack: s.ack, spick: s.spick, ck: s.ck, zoom: s.zoom, form: s.form, lextra: s.lextra, lsel: s.lsel, lq: s.lq, lpg: s.lpg }]) : [];
-    this.setState({ sheet: sh, stack: stack, sheetFull: false, bell: false, pal: false, drawer: false, menu: null, pop: null, tour: -1, draft: sh.draft || '', reason: '', ack: false, ck: {}, spick: sh.pick != null ? sh.pick : -1, vis: sh.vis || 'team', zoom: 1, cmt: '', form: Object.assign({}, sh.form || {}), lq: '', lpg: 0, lcreate: false, lcf: {}, lextra: [], lsel: Object.assign({}, sh.lsel || {}), ui: null, edMode: 'write' });
+    this.setState({ sheet: sh, stack: stack, sheetFull: false, bell: false, pal: false, drawer: false, menu: null, pop: null, tour: -1, draft: sh.draft || '', reason: '', ack: false, ck: {}, spick: sh.pick != null ? sh.pick : -1, vis: sh.vis || 'team', zoom: 1, cmt: '', form: Object.assign({}, sh.form || {}), lq: '', lpg: 0, lcreate: false, lcf: {}, lextra: [], lsel: Object.assign({}, sh.lsel || {}), ui: null, edMode: 'write', shTab: 0 });
   }
   closeSheet(force) {
     var self = this, raw = this.state.sheet;
@@ -432,7 +432,10 @@
     if (raw.select && raw.selectRequired !== false && (raw.multi ? ctx.picks.length === 0 : ctx.pick < 0)) { dis = 'y'; reqText = raw.selectWhy || 'Choose one to continue.'; }
     if (raw.primaryDis) { var pd = raw.primaryDis(ctx, s); if (pd) { dis = 'y'; reqText = pd; } }
     var galRaw = typeof raw.gallery === 'function' ? raw.gallery(s) : (raw.gallery || []), galEmpty = typeof raw.galleryEmpty === 'function' ? raw.galleryEmpty(s) : false;
+    var TB = raw.tabs || [], tbi = Math.min(s.shTab || 0, Math.max(0, TB.length - 1)), tbOn = TB[tbi] || {};
     var sheet = Object.assign({}, raw, {
+      hasAttrs: !!(raw.attrs && raw.attrs.length), attrs: (raw.attrs || []).map(function (a) { var ch = a.chips || [], pe = a.people || []; return { ic: a.ic || '', k: a.k, v: a.v || '', hasText: !!a.v && !ch.length && !pe.length, chips: ch, people: pe }; }),
+      hasTabs: TB.length > 0, tabs: TB.map(function (t, i) { var on = i === tbi; return { t: t.t, n: t.items ? t.items.length : (t.n != null ? t.n : ''), hasN: !!(t.items ? t.items.length : t.n), cls: on ? 'on' : '', sel: on ? 'true' : 'false', pick: function () { if (!on) self.setState({ shTab: i }); } }; }), hasTabText: !!tbOn.text, tabText: tbOn.text || '', hasTabItems: !!(tbOn.items && tbOn.items.length), tabItems: tbOn.items || [], tabEmpty: tbOn.items && !tbOn.items.length ? (tbOn.empty || 'Nothing here yet.') : '', hasTabEmpty: !!(tbOn.items && !tbOn.items.length),
       feedTitle: raw.feedTitle || 'History', hasQuick: !!(raw.quick && raw.quick.length), quick: (raw.quick || []).map(function (q) { return { t: q.t, d: q.d || '', fn: function () { if (q.fn) q.fn(); } }; }), hasGallery: galRaw.length > 0, gallery: galRaw, galleryEmpty: galEmpty, back: s.stack.length > 0, hasChip: !!raw.chip, hasIcon: !!raw.icon, icon: raw.icon || '', iconTone: raw.iconTone || 'var(--ad-tone-brand)', hasRows: raw.rows.length > 0, hasBody: !!raw.body, hasPreview: !!raw.preview, preview: raw.preview || {},
       hasList: list.length > 0 || ss.has, list: list, ss: ss, listRole: raw.select ? (raw.multi ? 'group' : 'radiogroup') : 'list', hasChecks: checks.length > 0, checks: checks, checksTitle: raw.checksTitle || 'Checklist', checksDone: ckDone + ' of ' + checks.length, checksPct: checks.length ? Math.round(ckDone / checks.length * 100) : 0,
       hasFeed: raw.feed.length > 0, hasNote: !!raw.note, reason: !!raw.reason, reasonLabel: raw.reason ? raw.reason.label : '', reasonPh: raw.reason ? raw.reason.ph : '', ack: !!raw.ack, ackText: raw.ack || '',

@@ -197,6 +197,13 @@
     var platDefs = [['all', 'All'], ['instagram', 'Instagram'], ['facebook', 'Facebook'], ['tiktok', 'TikTok']], platI = 0; platDefs.forEach(function (x, i) { if (x[0] === s.plat) platI = i; });
     var allP = this.allPosts(), waitN = allP.filter(function (x) { return self.postState(x) === 'client'; }).length;
 
+    var calCfg = { today: '2026-10-12', now: '10:42', date: '2026-10-' + (M.calStartDay || '13'), view: 'week', startHour: 8, endHour: 20, rowH: 66, addLabel: 'Plan a post', listTitle: 'Platforms', canAdd: M.role !== 'client',
+      cals: [{ id: 'instagram', label: 'Instagram', color: 'var(--cal-4)' }, { id: 'facebook', label: 'Facebook', color: 'var(--cal-1)' }, { id: 'tiktok', label: 'TikTok', color: 'var(--cal-6)' }].filter(function (c) { return (M.platforms || ['Instagram', 'Facebook', 'TikTok']).map(function (n) { return n.toLowerCase(); }).indexOf(c.id) >= 0; }),
+      events: this.allPosts().map(function (x) { var T = self.postTone(self.postState(x)), t0 = x.time || '12:30', a0 = t0.split(':'), v = (+a0[0]) * 60 + (+a0[1]) + 90, e0 = ('0' + Math.floor(v / 60)).slice(-2) + ':' + ('0' + (v % 60)).slice(-2); return { id: x.id, date: x.key, start: t0, end: e0, title: x.title, sub: x.plat.charAt(0).toUpperCase() + x.plat.slice(1) + ' · ' + (M.pj ? M.pj.client : ''), cal: x.plat, logo: { d: L[x.plat].d, c: x.plat === 'tiktok' ? '#000' : L[x.plat].c }, tag: [T[0], T[1], T[2]], people: [], open: openPost(x) }; }),
+      open: function (e) { e.open(); }, onAdd: function () { self.planPostSheet(null); }, onSlot: function (d, t) { self.planPostSheet([(+d.slice(5, 7)) + '-' + (+d.slice(8))]); },
+      summaryNote: waitN + ' with the client', onExport: function () { self.say('Exporting the content calendar as a file.'); } };
+    var CALC = this.calView('ccal', calCfg);
+
     /* approvals, files, money, activity */
     var approvals = (M.approvals || []).filter(function (a) { return !s.apDone[a.id]; }).map(function (a) { return Object.assign({ anim: self.anim(s.ra), hasAlt: !!a.altLabel, hasAct: !!a.actLabel, actCls: a.actCls || 'btn' }, a); });
     var F = M.files || [], fp = Math.min(s.fpage, Math.max(0, Math.ceil(F.length / s.fper) - 1));
@@ -208,6 +215,7 @@
     var AP = Object.assign(this.pager('pacts', A.length, s.aper, ap, function (k) { self.setState({ apage: k, aa: self.state.aa + 1 }); }, function (n) { self.setState({ aper: n, apage: 0 }); }), { all: function () { self.setState({ aper: 20, apage: 0 }); } });
 
     return Object.assign(this.kit(), this.extraVals(), {
+      CALC: CALC,
       pj: Object.assign({ hasFlag: !!pj.flag }, pj), hasCrumbs: !!M.crumb, crumbHref: M.crumb ? M.crumb.href : '', crumbLabel: M.crumb ? M.crumb.label : '',
       hasPause: !!M.pauseBanner, pause: M.pauseBanner || {}, pauseAct: function () { if (M.pauseBanner) M.pauseBanner.fn(); },
       hasSwitch: !!M.switches, switches: M.switches || [], switchN: (M.switches || []).length || 1, switchI: s.sw,

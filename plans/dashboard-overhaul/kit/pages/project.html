@@ -78,31 +78,11 @@
             </sc-if>
 
             <sc-if value="{{isCal}}" hint-placeholder-val="{{ false }}">
-              <section class="card cq tabIn" aria-label="Content calendar" data-tour="cal" style="padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; animation-name: {{tabAnim}}">
-                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+              <section class="card cq tabIn" aria-label="Content calendar" style="overflow: hidden; animation-name: {{tabAnim}}">
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 16px 20px 14px">
                   <span style="flex: 1 1 180px; min-width: 0; display: flex; flex-direction: column"><h2 style="font-size: 17px; font-weight: 700">Content calendar</h2><span style="font-size: 13px; color: var(--ad-dim)">{{calSummary}}</span></span>
-                  <div class="seg" role="group" aria-label="Calendar view" style="--n: 2; --i: {{calViewI}}"><span class="pill" aria-hidden="true"></span><button class="{{cWeek}}" aria-pressed="{{cWeekP}}" onClick="{{setWeek}}">Week</button><button class="{{cMonth}}" aria-pressed="{{cMonthP}}" onClick="{{setMonth}}">Month</button></div>
-                  <sc-if value="{{canPlan}}" hint-placeholder-val="{{ true }}"><button class="btn2" onClick="{{planPost}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Plan a post</button></sc-if>
                 </div>
-                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
-                  <div class="seg" role="group" aria-label="Platform" style="--n: 4; --i: {{platI}}"><span class="pill" aria-hidden="true"></span><sc-for list="{{plats}}" as="pl" hint-placeholder-count="4"><button class="{{pl.cls}}" aria-pressed="{{pl.pressed}}" aria-label="{{pl.aria}}" onClick="{{pl.pick}}" style="padding: 0 10px"><sc-if value="{{pl.hasLogo}}" hint-placeholder-val="{{ false }}"><svg class="logo" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="color: {{pl.c}}"><path d="{{pl.d}}"></path></svg></sc-if><sc-if value="{{pl.isAll}}" hint-placeholder-val="{{ true }}">All</sc-if></button></sc-for></div>
-                  <span style="flex: 1"></span>
-                  <button class="ibtn" aria-label="Previous" onClick="{{calPrev}}" disabled="{{calPrevDis}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></button>
-                  <span class="num" style="font-weight: 600; font-size: 14px; min-width: 128px; text-align: center" aria-live="polite">{{calLabel}}</span>
-                  <button class="ibtn" aria-label="Next" onClick="{{calNext}}" disabled="{{calNextDis}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></button>
-                </div>
-                <sc-if value="{{isWeek}}" hint-placeholder-val="{{ true }}">
-                  <div class="rowIn" style="animation-name: {{calAnim}}">
-                    <sc-for list="{{days}}" as="dy" hint-placeholder-count="7"><div class="dayRow"><span style="display: flex; flex-direction: column; line-height: 1.2; padding-top: 6px"><span style="font-size: 12px; color: {{dy.dcol}}; font-weight: 600">{{dy.d}}</span><span class="num" style="font-size: 17px; font-weight: 700; color: {{dy.ncol}}">{{dy.n}}</span></span><span style="display: flex; flex-direction: column; gap: 6px; min-width: 0"><sc-for list="{{dy.items}}" as="e" hint-placeholder-count="1"><button class="postPill" onClick="{{e.open}}" aria-label="{{e.aria}}"><span class="platform" style="background: {{e.pc}}"><svg class="logo" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="{{e.pd}}"></path></svg></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><span style="font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{e.t}}</span><span class="num" style="font-size: 12px; color: var(--ad-dim)">{{e.time}}</span></span><span class="tag" style="background: {{e.tone}}; color: {{e.ink}}; height: 22px; font-size: 11px">{{e.st}}</span></button></sc-for><sc-if value="{{dy.empty}}" hint-placeholder-val="{{ false }}"><span style="font-size: 13px; color: var(--ad-dim); padding: 9px 0">Nothing planned</span></sc-if></span></div></sc-for>
-                  </div>
-                </sc-if>
-                <sc-if value="{{isMonth}}" hint-placeholder-val="{{ false }}">
-                  <div class="monthGrid rowIn" style="animation-name: {{calAnim}}" role="grid" aria-label="{{calLabel}}">
-                    <sc-for list="{{wkdays}}" as="wd" hint-placeholder-count="7"><span class="mgHead" role="columnheader">{{wd}}</span></sc-for>
-                    <sc-for list="{{cells}}" as="c" hint-placeholder-count="35"><button class="mgCell {{c.cls}}" role="gridcell" aria-label="{{c.aria}}" onClick="{{c.open}}" disabled="{{c.dis}}"><span class="num mgN">{{c.n}}</span><span class="mgDots"><sc-for list="{{c.dots}}" as="dt" hint-placeholder-count="2"><span class="mgDot" style="background: {{dt}}"></span></sc-for></span><span class="mgMore">{{c.more}}</span></button></sc-for>
-                  </div>
-                </sc-if>
-                <div style="display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--ad-dim)"><sc-for list="{{legend}}" as="lg" hint-placeholder-count="4"><span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: {{lg.c}}"></span>{{lg.t}}</span></sc-for></div>
+                %%CAL:CALC%%
               </section>
             </sc-if>
 

@@ -155,19 +155,18 @@
     ];
   }
   projectSheet(pj) {
-    var self = this, I = this.icons(), done = pj.status === 'done';
-    return this.sh({ eyebrow: 'Project · ' + pj.client, title: pj.name, chip: pj.flag || (done ? 'Done' : pj.stage), tone: pj.flag ? (pj.flag === 'Paused' || pj.flag === 'Blocked' ? 'var(--ad-tone-bad)' : 'var(--ad-tone-warn)') : (done ? 'var(--ad-tone-good)' : 'var(--ad-tone-live)'), icon: I.folder,
-      rows: [{ k: 'Service', v: pj.svc }, { k: 'Stage', v: done ? 'Done' : pj.stage + (pj.stages.length > 1 ? ', ' + (pj.cur + 1) + ' of ' + pj.stages.length : '') }, { k: 'Lead', v: pj.lead }, { k: 'Due', v: pj.due }, ].concat(this.hideMoney() ? [{ k: 'Billing', v: this.payChip(pj) }] : [{ k: 'Value', v: pj.value }, { k: 'Payment', v: pj.pay }]),
-      body: 'Next: ' + pj.next + '.',
-      primary: pj.id === 'mira-so' ? 'Open project' : (done ? 'Close' : 'Message ' + pj.lead.split(' ')[0]), secondary: done ? '' : (pj.cid === 'mira' ? 'Open Mira Skincare' : 'Add a task'),
-      onPrimary: function () {
-        if (self.projPageKeys().indexOf(pj.id) >= 0) { window.location.href = self.projPageHref(pj.id); return; }
-        if (done) return;
-        setTimeout(function () { self.open(self.sh({ eyebrow: pj.name + ' · ' + pj.client, title: 'Message ' + pj.lead, icon: I.msg, compose: true, composeLabel: 'Message', required: true, primary: 'Send', onPrimary: function () { self.say('Sent to ' + pj.lead.split(' ')[0] + ' in the project thread.'); } })); }, 30);
-      },
+    var self = this, I = this.icons(), done = pj.status === 'done', team = this.teamData(), tone = pj.flag ? (pj.flag === 'Paused' || pj.flag === 'Blocked' ? 'var(--ad-tone-bad)' : 'var(--ad-tone-warn)') : (done ? 'var(--ad-tone-good)' : 'var(--ad-tone-live)');
+    var hs = 0; for (var ci = 0; ci < pj.id.length; ci++) hs += pj.id.charCodeAt(ci);
+    var crew = [{ name: pj.lead, i: pj.leadI, tone: pj.leadTone }].concat([team[hs % team.length], team[(hs + 2) % team.length]].filter(function (m) { return m && m.name !== pj.lead; }).slice(0, 2).map(function (m) { return { name: m.name, i: m.i, tone: m.tone }; }));
+    var FILES = { 'Branding & Design': ['Logo round 2.pdf', 'Colour and type sheet.png', 'Brand guide draft.pdf'], 'Web & Apps': ['Sitemap.pdf', 'Homepage design.png', 'Launch checklist.pdf'], 'Social & Ads': ['Content pillars.pdf', 'Instagram access guide.pdf'], SEO: ['Audit report.pdf', 'Keyword list.xlsx'], Apps: ['Screens round 1.pdf', 'Build plan.pdf'], 'Software & AI': ['Flow diagram.pdf', 'Test cases.xlsx'] }[pj.svc] || ['Brief.pdf'];
+    var STT = { 'Branding & Design': 'Concepts built from the colours and fonts the client chose.', 'Web & Apps': 'Pages, content and the build, with a recorded handover at the end.', 'Social & Ads': 'A monthly plan of posts the client approves before they go out.', SEO: 'An audit, fixes, and a monthly report on what moved.', Apps: 'Screens, build milestones and store release.', 'Software & AI': 'Scoping, a working build and tests the client signs off.' };
+    return this.sh({ eyebrow: 'Project · ' + pj.client, title: pj.name, chip: pj.flag || (done ? 'Done' : pj.stage), tone: tone, icon: I.folder,
+      attrs: [{ ic: 'M12 8v4l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z', k: 'Status', chips: [{ t: pj.flag || (done ? 'Done' : pj.stage), tone: tone, ink: '#fff' }] }, { ic: 'M4 6h16M4 12h16M4 18h10', k: 'Service', chips: [{ t: pj.svc, tone: 'var(--ad-tone-flat)', ink: 'var(--ad-on-flat)' }] }, { ic: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8', k: 'Team', people: crew }, { ic: 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z', k: 'Due', v: pj.due }, { ic: 'M3 3h7v18H3zM14 3h7v10h-7z', k: 'Stage', v: done ? 'Done' : pj.stage + (pj.stages.length > 1 ? ', ' + (pj.cur + 1) + ' of ' + pj.stages.length : '') }].concat(this.hideMoney() ? [{ ic: 'M2 7h20v10H2zM12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z', k: 'Billing', chips: [{ t: this.payChip(pj), tone: 'var(--ad-tone-flat)', ink: 'var(--ad-on-flat)' }] }] : [{ ic: 'M2 7h20v10H2zM12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z', k: 'Value', v: pj.value }, { ic: 'M20 6 9 17l-5-5', k: 'Payment', v: pj.pay }]),
+      tabs: [{ t: 'Description', text: (STT[pj.svc] || 'Work for this client.') + ' Next: ' + pj.next + '.' }, { t: 'Discussion', items: [{ t: pj.lead, i: pj.leadI, tone: pj.leadTone, when: 'Today, 09:12', s: pj.next + '.' }, { t: 'Client', i: pj.client.split(' ').map(function (w) { return w.charAt(0); }).join('').slice(0, 2).toUpperCase(), tone: 'var(--ad-tone-neutral)', when: 'Yesterday, 16:40', s: 'Thank you, we will look at it today.' }] }, { t: 'Attachments', items: FILES.map(function (f, k) { return { t: f, i: f.split('.').pop().toUpperCase().slice(0, 3), tone: 'var(--ad-tone-bad)', when: ['Today', 'Wed 7 Oct', 'Sat 3 Oct'][k] || 'Sat 3 Oct', s: ['4.2 MB', '1.1 MB', '420 KB'][k] || '300 KB' }; }) }],
+      primary: 'Open project page', secondary: done ? '' : 'Message ' + pj.lead.split(' ')[0],
+      onPrimary: function () { if (self.projPageKeys().indexOf(pj.id) >= 0) window.location.href = self.projPageHref(pj.id); else self.say('The project page opens here.'); },
       onSecondary: function () {
-        if (pj.cid === 'mira') { window.location.href = 'A-Client.dc.html'; return 'stay'; }
-        self.open(self.taskSheet(pj), true); return 'stay';
+        self.open(self.sh({ eyebrow: pj.name + ' · ' + pj.client, title: 'Message ' + pj.lead, icon: I.msg, compose: true, composeLabel: 'Message', required: true, primary: 'Send', onPrimary: function () { self.say('Sent to ' + pj.lead.split(' ')[0] + ' in the project thread.'); } }), true); return 'stay';
       } });
   }
   taskSheet(pj, onAdd) {

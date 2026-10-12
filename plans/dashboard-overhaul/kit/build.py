@@ -25,6 +25,8 @@ BOARDS = [dict(json.loads(p.read_text()), id=p.name[:-11]) for p in sorted((HERE
 def expand(html):
     html = html.replace('%%SKELLIST%%', read('parts/skel-list.html')).replace('%%SKEL%%', read('parts/skel.html')).replace('%%DECK%%', read('parts/deck.html'))
     pager = read('parts/pager.html')
+    cal = read('parts/cal.html')
+    html = re.sub(r'%%CAL:([\w.]+)%%', lambda m: cal.replace('KEY', m.group(1)), html)
     tools = read('parts/tools.html')
     html = re.sub(r'%%TOOLS:([\w.]+):([^%]+)%%', lambda m: tools.replace('KEY', m.group(1)).replace('LABEL', m.group(2)), html)
     return re.sub(r'%%PAGER:([\w.]+):([^%]+)%%', lambda m: pager.replace('KEY', m.group(1)).replace('LABEL', m.group(2)), html)
