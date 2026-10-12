@@ -1,273 +1,360 @@
 import Link from "next/link";
-import { BulkBar, PickAll, RowPick } from "@/components/admin/bulk";
-import { adminRole } from "@/lib/admin/guard";
+import { CalendarDays, FolderKanban, Hourglass, KanbanSquare, List as ListIcon, GanttChart } from "lucide-react";
 import { SERVICES } from "@/lib/services";
-import {
-  getBoard, getClient, getClients, getProjects, getTasks,
-} from "@/lib/admin/store";
-import { HEALTH, STAGES, projectAttention, type Project } from "@/lib/admin/types";
-import {
-  AttentionPills, Empty, HealthPill, Panel, StagePill, when,
-} from "@/components/admin/bits";
+import { getBoard, getInvoices } from "@/lib/admin/store";
+import { HEALTH, STAGES, invoiceStatus, invoiceTotals, naira, type Stage } from "@/lib/admin/types";
+import { adminRole } from "@/lib/admin/guard";
+import { can } from "@/lib/admin/permissions";
+import { persistSoon, syncStore } from "@/lib/admin/persist";
+import { buildProjectRows, type ProjectRow } from "@/lib/admin/project-signals";
+import { meetingList } from "@/lib/meetings/store";
+import { dateWords, nowMs } from "@/lib/admin/when";
+import { initials, avTone } from "@/lib/admin/client-mark";
+import { studioStamp } from "@/components/admin/calendar/studio-time";
+import type { CalEvent } from "@/components/admin/calendar/types";
+import { Calendar } from "@/components/admin/calendar/calendar";
+import { PageHead } from "@/components/admin/page-head";
+import { StatTiles } from "@/components/admin/workbench";
+import { Chips } from "@/components/admin/chips";
+import { Tabs } from "@/components/admin/tabs";
+import { UrlSearch } from "@/components/admin/url-search";
+import { ClickRow } from "@/components/admin/click-row";
+import { Pager, readPer } from "@/components/admin/pager";
+import { BulkBar, PickAll, RowPick } from "@/components/admin/bulk";
 import { AddProject } from "@/components/admin/project-forms";
 import { ProjectMenu } from "@/components/admin/row-actions";
 import { ProjectBoard, type BoardCard } from "@/components/admin/project-board";
-import PageTourButton from "@/components/admin/tour/page-tour-button";
-import { persistSoon, syncStore } from "@/lib/admin/persist";
+import { ProjectTimeline } from "@/components/admin/project-timeline";
+import { ProjectFilters, ProjectsChores } from "@/components/admin/projects-parts";
+import { AttentionPills, Empty, StagePill } from "@/components/admin/bits";
 import { ExampleNote } from "@/components/admin/example-note";
-import { FilterPick } from "@/components/admin/pick";
-import { Pager, readPer } from "@/components/admin/pager";
+import "@/components/admin/projects.css";
 
 export const metadata = { title: "Projects" };
 
 /**
- * Every project, as a board by stage or as a list.
- *
- * THE BOARD IS COLUMNS OF CARDS, not a drag-and-drop. Dragging is the first
- * thing people expect and the last thing they need: it needs a pointer, it
- * needs a server round trip per drop, and moving a stage here has to write an
- * event and email the client. A stage is changed on the project itself, where
- * the note that goes with it can be written at the same time.
- *
- * EVERY FILTER IS IN THE URL AND NOTHING HERE IS A CLIENT COMPONENT. The
- * controls are a plain GET form: choosing a value submits, the browser
- * navigates, and the server renders the filtered page. That buys three things
- * a `useState` version would not. A filtered view can be sent to somebody. The
- * back button undoes a filter, which is what everybody expects it to do. And
- * the whole screen ships no JavaScript for its own filtering, on a page whose
- * job is to be opened forty times a day.
+ * PROJECTS: the work in four pictures of the same set (list, board, timeline, calendar), the service as a
+ * chip row, three figures above. Everything is derived by lib/admin/project-signals.ts, and the address bar
+ * holds the view, the grouping, the tab, the chip, the search, the facets and the page, so a filtered view is
+ * a link and the back button undoes a filter. The board is draggable between stages (its own component);
+ * grouped by service or lead it is read only, because those are not places a project moves to. Staff see
+ * the work and payment chips, never an amount.
  */
-
-type Query = {
-  stage?: string; service?: string; owner?: string; health?: string; view?: string; q?: string; page?: string; per?: string;
+type Q = {
+  view?: string; group?: string; tab?: string; service?: string; q?: string; stage?: string; health?: string; owner?: string;
+  page?: string; per?: string;
 };
 
-/** A link that keeps every filter except the one it is changing. */
-function withQuery(q: Query, patch: Query) {
-  const next = new URLSearchParams();
-  for (const [k, v] of Object.entries({ ...q, ...patch })) {
-    if (v) next.set(k, v);
-  }
-  const s = next.toString();
-  return `/admin/projects${s ? `?${s}` : ""}`;
-}
+const VIEWS = [["list", "List", ListIcon], ["board", "Board", KanbanSquare], ["timeline", "Timeline", GanttChart], ["calendar", "Calendar", CalendarDays]] as const;
+type View = (typeof VIEWS)[number][0];
+const GROUPS = [["stage", "Stage"], ["service", "Service"], ["lead", "Lead"]] as const;
+type Group = (typeof GROUPS)[number][0];
+const TABS = [["live", "Live"], ["waiting", "Waiting on client"], ["done", "Done"]] as const;
+type Tab = (typeof TABS)[number][0];
+const DAY = 86_400_000;
 
-export default async function ProjectsPage({
-  searchParams,
-}: {
-  searchParams: Promise<Query>;
-}) {
+export default async function ProjectsPage({ searchParams }: { searchParams: Promise<Q> }) {
   await syncStore();
   persistSoon();
-  const isOwner = (await adminRole()) === "owner";
   const q = await searchParams;
+  const role = await adminRole();
+  const isOwner = role === "owner";
+  const money = can(role, "money");
+  const exportable = can(role, "exports");
 
-  /* Every one of these is checked against the closed set it belongs to rather
-     than used as typed. A query string is user input on a page that renders
-     whatever it is given. */
+  const view: View = VIEWS.find(([k]) => k === q.view)?.[0] ?? "list";
+  const group: Group = GROUPS.find(([k]) => k === q.group)?.[0] ?? "stage";
+  const tab: Tab = TABS.find(([k]) => k === q.tab)?.[0] ?? "live";
   const stage = STAGES.find((s) => s === q.stage);
-  const service = SERVICES.find((s) => s.slug === q.service);
   const health = HEALTH.find((h) => h === q.health);
-  /* LIST IS THE DEFAULT, and `?view=board` is the one that has to be asked
-     for. A board is the better picture of a pipeline and the worse way to find
-     a project, and finding one is what somebody opening this page is nearly
-     always doing -- especially on a phone, where six columns of cards are six
-     screens of sideways scrolling. The parameter is inverted rather than
-     renamed so an existing `?view=list` link still lands on the list. */
-  const board = q.view === "board";
+  const service = SERVICES.find((s) => s.slug === q.service)?.slug;
+  const needle = String(q.q ?? "").trim().slice(0, 80).toLocaleLowerCase();
+  const per = readPer(q.per);
 
-  const projects = getProjects();
-  const tasks = getTasks();
-
-  /* Owners come from the projects themselves rather than a list somewhere:
-     there is no user table yet, and offering names nobody is using would be
-     inventing staff. */
-  const owners = [...new Set(projects.map((p) => p.owner).filter(Boolean))].sort();
+  const all = buildProjectRows({ money });
+  const owners = [...new Set(all.map((r) => r.project.owner).filter(Boolean))].sort();
   const owner = owners.find((o) => o === q.owner);
 
-  /* Words, matched against the title, the client and the owner. */
-  const needle = String(q.q ?? "").trim().slice(0, 80).toLocaleLowerCase();
-  const match = (p: Project) =>
-    (!needle || `${p.title} ${getClient(p.clientId)?.company ?? ""} ${p.owner}`.toLocaleLowerCase().includes(needle)) &&
-    (!stage || p.stage === stage) &&
-    (!service || p.service === service.slug) &&
-    (!health || p.health === health) &&
-    (!owner || p.owner === owner);
+  const href = (patch: Partial<Record<keyof Q, string | undefined>>) => {
+    const next = new URLSearchParams();
+    for (const [k, v] of Object.entries({ ...q, ...patch })) if (v) next.set(k, v);
+    const s = next.toString();
+    return `/admin/projects${s ? `?${s}` : ""}`;
+  };
 
-  const all = projects.filter(match);
-  const filtered = !!(needle || stage || service || health || owner);
-  const live = all.filter((p) => p.stage !== "Delivered").length;
-  const per = readPer(q.per);
-  const pageCount = Math.max(1, Math.ceil(all.length / per));
-  const page = Math.min(pageCount, Math.max(1, Number.parseInt(q.page ?? "1", 10) || 1));
-  const rows = all.slice((page - 1) * per, page * per);
+  /* ONE FILTER, APPLIED WITH ONE FACET LEFT OUT, so each tab and chip counts what pressing it would show. */
+  const matches = (r: ProjectRow, skip: "tab" | "service" | null) => {
+    const p = r.project;
+    if (needle && !`${p.title} ${r.client?.company ?? ""} ${p.owner}`.toLocaleLowerCase().includes(needle)) return false;
+    if (skip !== "service" && service && p.service !== service) return false;
+    if (skip !== "tab" && view === "list" && (tab === "live" ? r.state === "done" : r.state !== tab)) return false;
+    if (stage && p.stage !== stage) return false;
+    if (health && p.health !== health) return false;
+    if (owner && p.owner !== owner) return false;
+    return true;
+  };
+  const shown = all.filter((r) => matches(r, null));
+  const facetN = [stage, health, owner].filter(Boolean).length;
+  const filtered = !!(needle || service || facetN || (view === "list" && tab !== "live"));
+
+  /* THE FIGURES. */
+  const today = studioStamp(nowMs()).date;
+  const nowStamp = studioStamp(nowMs());
+  const live = all.filter((r) => r.state !== "done");
+  const waiting = all.filter((r) => r.state === "waiting");
+  const week = nowMs() + 7 * DAY;
+  const dueSoon = live.filter((r) => r.project.due && Date.parse(r.project.due) <= week);
+  const usedServices = new Set(live.map((r) => r.project.service)).size;
+  const invoices = money ? getInvoices().filter((i) => !i.voided && i.status !== "Draft" && invoiceStatus(i) !== "Paid") : [];
+  const paymentsSoon = invoices.filter((i) => Date.parse(i.due) <= week && Date.parse(i.due) >= nowMs() - DAY);
+
+  /* Meetings come from the persisted bookings: a week ahead for the figure's note, a wider window for the calendar. */
+  const meetingsOn = isOwner;
+  let meetings: Awaited<ReturnType<typeof meetingList>> = [];
+  let meetingsFailed = false;
+  if (meetingsOn) {
+    const from = view === "calendar" ? nowMs() - 60 * DAY : nowMs() - DAY;
+    const to = view === "calendar" ? nowMs() + 150 * DAY : week;
+    try { meetings = await meetingList(new Date(from).toISOString(), new Date(to).toISOString()); } catch { meetingsFailed = true; }
+  }
+  const liveMeetings = meetings.filter((b) => !["cancelled", "rejected"].includes(b.status.toLowerCase()));
+  const meetingsSoon = liveMeetings.filter((b) => Date.parse(b.start) >= nowMs() && Date.parse(b.start) <= week).length;
+
+  const dueNote = [
+    meetingsOn && !meetingsFailed ? `${meetingsSoon} ${meetingsSoon === 1 ? "meeting" : "meetings"}` : "",
+    money ? `${paymentsSoon.length} ${paymentsSoon.length === 1 ? "payment" : "payments"}` : "",
+  ].filter(Boolean).join(", ");
+
+  const lede = <>
+    {live.length} live {live.length === 1 ? "project" : "projects"} across {usedServices} {usedServices === 1 ? "service" : "services"}.{" "}
+    <strong>{waiting.length ? `${waiting.length} ${waiting.length === 1 ? "waits" : "wait"} on clients.` : "Nobody is waiting on a client."}</strong>
+  </>;
+
+  /* Chips and tabs. */
+  const chipItems = [
+    { key: "", label: "All services", href: href({ service: undefined, page: undefined }), count: all.filter((r) => matches(r, "service")).length },
+    ...SERVICES.map((s) => ({ key: s.slug, label: s.short, href: href({ service: s.slug, page: undefined }), count: all.filter((r) => matches(r, "service") && r.project.service === s.slug).length })),
+  ];
+  const tabItems = TABS.map(([key, label]) => ({
+    key, label, href: href({ tab: key === "live" ? undefined : key, page: undefined }),
+    count: all.filter((r) => matches(r, "tab") && (key === "live" ? r.state !== "done" : r.state === key)).length,
+    tone: key === "waiting" ? ("warn" as const) : undefined,
+  }));
+
   const exportParams = new URLSearchParams();
-  for (const k of ["q", "stage", "service", "health", "owner"] as const) if (q[k]) exportParams.set(k, q[k]);
+  for (const k of ["q", "stage", "service", "health", "owner"] as const) if (q[k]) exportParams.set(k, q[k]!);
+  const exportHref = exportable ? `/admin/projects/export${exportParams.size ? `?${exportParams}` : ""}` : undefined;
+  const hasClients = true;
+
+  const empty = !all.length;
+  const filteredEmpty = (
+    <Empty title="Nothing matches those filters" action={<Link className="ad__btn" href={href({ q: undefined, service: undefined, stage: undefined, health: undefined, owner: undefined, tab: undefined, page: undefined })}>Clear filters</Link>}>
+      Try another service, tab or search, or clear the filters.
+    </Empty>
+  );
+  const noneYet = <Empty title="No projects yet" action={<AddProject hasClients={hasClients} />}>Projects keep delivery, deadlines, files and client updates together.</Empty>;
+
+  /* ---------------------------------------------------------------- views */
+  let body: React.ReactNode;
+  if (view === "list") {
+    const pageCount = Math.max(1, Math.ceil(shown.length / per));
+    const page = Math.min(pageCount, Math.max(1, Number.parseInt(q.page ?? "1", 10) || 1));
+    const rows = shown.slice((page - 1) * per, page * per);
+    body = (
+      <>
+        <Tabs label="Project status" items={tabItems} current={tab} />
+        <div className="adList__tools">
+          <ProjectFilters
+            keep={{ view: undefined, tab: tab === "live" ? undefined : tab, service, q: q.q, per: q.per }}
+            stage={stage ?? ""} health={health ?? ""} owner={owner ?? ""} active={facetN}
+            stages={STAGES.map((s) => ({ value: s, label: s }))} healths={HEALTH.map((h) => ({ value: h, label: h }))} owners={owners.map((o) => ({ value: o, label: o }))}
+          />
+          <span className="adSp" />
+          {filtered ? <Link className="ad__btn" href={href({ q: undefined, service: undefined, stage: undefined, health: undefined, owner: undefined, tab: undefined, page: undefined })}>Clear filters</Link> : null}
+          {exportHref ? <a className="ad__btn" href={exportHref}>Export</a> : null}
+        </div>
+        {shown.length ? (
+          <>
+            <BulkBar target="projects-table" noun="projects"
+              actions={isOwner ? [{ kind: "projects:archive", label: "Archive", icon: "archive", danger: true, confirm: "Archive {n} projects? Their invoices, updates and approvals stay; you can bring them back." }] : []}
+              more={STAGES.map((st) => ({ kind: `projects:stage:${st}`, label: `Move to ${st}`, confirm: `Move {n} projects to ${st}? Each client who gets updates is emailed.` }))} />
+            <div className="ad__scroll" id="projects-table" tabIndex={0} role="region" aria-label="Projects table, scrolls sideways" data-lenis-prevent>
+              <table className="ad__t">
+                <thead>
+                  <tr>
+                    <th><span className="ad__pickRow"><PickAll label="Select every project" />Project</span></th>
+                    <th>Service</th><th>Stage</th><th>Lead</th><th>Due</th><th>Payment</th>
+                    <th className="ad__rmH"><span className="ad__sr">Actions</span></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((r) => {
+                    const p = r.project;
+                    return (
+                      <ClickRow key={p.id} href={`/admin/projects/${p.id}`} label={`${p.title}, ${r.client?.company ?? "unknown client"}. ${p.stage}. Press Enter to open.`}>
+                        <td>
+                          <span className="ad__who">
+                            <RowPick id={p.id} label={p.title} />
+                            <span>
+                              <Link href={`/admin/projects/${p.id}`}><b>{p.title}</b></Link>
+                              <small>{r.client?.company ?? "Unknown client"}</small>
+                            </span>
+                          </span>
+                        </td>
+                        <td><span className="ad__pill ad__pill--flat">{r.service?.short}</span></td>
+                        <td>
+                          <span className="adT__stack adPl__stage">
+                            <span className="adT__row">
+                              {p.health !== "On track" ? <span className={`ad__pill ${p.health === "Blocked" ? "ad__pill--bad" : "ad__pill--warn"}`}>{p.health === "Waiting on client" ? `Waiting on client` : p.health}</span> : <StagePill stage={p.stage} />}
+                              <small className="ad__dim">{r.stageIndex + 1} of {STAGES.length}</small>
+                            </span>
+                            <span className="adBar" aria-hidden="true"><span style={{ "--w": r.progress } as React.CSSProperties} /></span>
+                            {p.health !== "On track" ? <small className="ad__dim">{p.stage}</small> : <AttentionPills items={r.attention} except={p.health} />}
+                          </span>
+                        </td>
+                        <td>
+                          {p.owner ? <span className="ad__who"><span className={`adMk adMk--sm adMk--round adMk--${avTone(p.owner)}`} aria-hidden="true">{initials(p.owner)}</span><span>{p.owner}</span></span> : <span className="ad__dim">No lead yet</span>}
+                        </td>
+                        <td className={`num${r.due && r.due < today && r.state !== "done" ? " adPl__late" : ""}`}>{r.due ? dateWords(p.due!, nowMs()) : <span className="ad__dim">Not set</span>}</td>
+                        <td>
+                          <span className="adT__stack">
+                            {money && r.payment.invoiced ? <b className="ad__num">{naira(r.payment.invoiced)}</b> : null}
+                            <span className={`adPl__pay adPl__pay--${r.payment.tone}`}>{r.payment.text}{money && r.payment.paidShare !== undefined && r.payment.text !== "Paid" ? ` · ${r.payment.paidShare}% paid` : ""}</span>
+                          </span>
+                        </td>
+                        <td className="ad__rmC"><ProjectMenu project={p} clientName={r.client?.company} /></td>
+                      </ClickRow>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <Pager label="Project pages" total={shown.length} page={page} per={per} noun={shown.length === 1 ? "project" : "projects"}
+              href={(patch) => href({ page: patch.page && patch.page > 1 ? String(patch.page) : undefined, per: patch.per ? String(patch.per) : q.per })} />
+          </>
+        ) : empty ? noneYet : filteredEmpty}
+      </>
+    );
+  } else if (view === "board") {
+    const order = getBoard();
+    const byId = new Map(shown.map((r) => [r.project.id, r]));
+    const cards = Object.fromEntries(shown.map((r) => {
+      const p = r.project;
+      return [p.id, {
+        project: money ? p : { ...p, budget: null }, /* the budget is money: it must not reach a staff browser */
+        clientName: r.client?.company, clientInitials: r.client ? initials(r.client.company) : undefined,
+        service: r.service?.short, attention: r.attention, due: r.due ? dateWords(p.due!, nowMs()) : "No date yet",
+        ownerInitials: p.owner ? initials(p.owner) : undefined,
+        stageNo: r.stageIndex + 1, stageCount: STAGES.length, progress: r.progress,
+        tasks: { done: r.tasksDone, total: r.tasksTotal }, late: !!r.due && r.due < today && r.state !== "done",
+      } satisfies BoardCard];
+    }));
+    const columns = group === "stage"
+      ? (stage ? [stage] : [...STAGES]).map((st: Stage) => ({ stage: st, dot: STAGES.indexOf(st), ids: (order.get(st) ?? []).filter((p) => byId.has(p.id)).map((p) => p.id) }))
+      : group === "service"
+        ? SERVICES.map((s, i) => ({ stage: s.slug, label: s.short, dot: i, ids: shown.filter((r) => r.project.service === s.slug).map((r) => r.project.id) })).filter((c) => c.ids.length || !service)
+        : [...new Set([...owners, ""])].map((o, i) => ({ stage: o || "none", label: o || "No lead yet", dot: i, ids: shown.filter((r) => r.project.owner === o).map((r) => r.project.id) })).filter((c) => c.ids.length);
+    body = (
+      <>
+        <div className="adPl__bar">
+          <span className="adPl__barL">Group by</span>
+          <span className="ad__switch" role="group" aria-label="Group the board by">
+            {GROUPS.map(([k, label]) => <Link key={k} href={href({ group: k === "stage" ? undefined : k })} scroll={false} aria-current={group === k}>{label}</Link>)}
+          </span>
+          <span className="adSp" />
+          <ProjectFilters
+            keep={{ view: "board", group: group === "stage" ? undefined : group, service, q: q.q }}
+            stage={stage ?? ""} health={health ?? ""} owner={owner ?? ""} active={facetN}
+            stages={STAGES.map((s) => ({ value: s, label: s }))} healths={HEALTH.map((h) => ({ value: h, label: h }))} owners={owners.map((o) => ({ value: o, label: o }))}
+          />
+          <span className="adPl__barN">{shown.length} {shown.length === 1 ? "project" : "projects"}</span>
+          <span className="adPl__barTip">{group === "stage" ? "Drag a card to move it to another stage." : "Grouped for reading. Group by stage to move cards."}</span>
+        </div>
+        {shown.length ? (
+          <ProjectBoard
+            key={JSON.stringify([group, columns.map((c) => [c.stage, c.ids])])}
+            columns={columns} cards={cards} locked={group !== "stage"}
+          />
+        ) : empty ? noneYet : filteredEmpty}
+      </>
+    );
+  } else if (view === "timeline") {
+    const rows = shown.filter((r) => r.state !== "done").sort((a, b) => (a.due || "9").localeCompare(b.due || "9"));
+    body = rows.length ? <ProjectTimeline rows={rows} today={today} /> : empty ? noneYet : filteredEmpty;
+  } else {
+    const events: CalEvent[] = [];
+    for (const r of shown) {
+      const p = r.project;
+      if (!r.due || r.state === "done") continue;
+      events.push({
+        id: `due-${p.id}`, date: r.due, title: `${p.title} due`, sub: r.client?.company, cal: "deadlines", href: `/admin/projects/${p.id}`,
+        people: p.owner ? [{ initials: initials(p.owner) }] : undefined,
+        tag: p.health !== "On track" ? { text: p.health, tone: p.health === "Blocked" ? "bad" : "warn" } : undefined,
+      });
+    }
+    const shownIds = new Set(shown.map((r) => r.project.id));
+    if (money) {
+      for (const i of invoices) {
+        if (i.projectId && !shownIds.has(i.projectId)) continue;
+        if (!i.projectId && (service || needle || facetN)) continue;
+        const r = all.find((x) => x.project.id === i.projectId);
+        events.push({ id: `pay-${i.id}`, date: i.due.slice(0, 10), title: `${i.number} due`, sub: `${r?.client?.company ?? "Invoice"} · ${naira(invoiceTotals(i).due)}`, cal: "payments", href: `/admin/money/${i.id}` });
+      }
+    }
+    if (meetingsOn && !service && !facetN) {
+      for (const b of liveMeetings) {
+        const s = studioStamp(b.start), e = studioStamp(b.end);
+        if (needle && !`${b.title} ${b.attendees?.[0]?.name ?? ""}`.toLocaleLowerCase().includes(needle)) continue;
+        events.push({
+          id: `meet-${b.uid}`, date: s.date, start: s.time, end: e.date === s.date ? e.time : undefined, title: b.title, sub: b.attendees?.[0]?.name, cal: "meetings", href: "/admin/meetings",
+          tag: b.status.toLowerCase() === "pending" ? { text: "Awaiting confirmation", tone: "warn" } : undefined,
+        });
+      }
+    }
+    const cals = [
+      ...(meetingsOn ? [{ id: "meetings", label: "Meetings", color: "var(--cal-1)" }] : []),
+      { id: "deadlines", label: "Deadlines", color: "var(--cal-2)" },
+      ...(money ? [{ id: "payments", label: "Payments due", color: "var(--cal-3)" }] : []),
+    ];
+    body = (
+      <>
+        {meetingsFailed ? <p className="adPl__note" role="status">Meetings could not be read just now, so they are left out. Deadlines{money ? " and payments" : ""} are shown.</p> : null}
+        <Calendar
+          id="projects" cals={cals} events={events} today={nowStamp.date} now={nowStamp.time}
+          add={meetingsOn ? { label: "Book a meeting", href: "/meet" } : undefined}
+          exportName="Studio projects" dataTour="projects-calendar"
+          emptyNote="Nothing is due in this view. Pick another day or turn a calendar back on."
+        />
+      </>
+    );
+  }
 
   return (
     <>
-      <div className="ad__head">
-        <div>
-          <h1>Projects</h1>
-          <p>
-            {filtered
-              ? `${all.length} of ${projects.length} shown.`
-              : `${live} live, ${projects.length} in total.`}
-          </p>
-        </div>
-        <div className="ad__row">
-          {/* Two links styled as one control. Server-rendered from the URL, so
-              the choice survives a reload and can be linked to. */}
-          <span className="ad__switch" data-tour="projects-switch">
-            {/* The default sits on the left, which is the order somebody
-                reads them in and the order they are in the URL. */}
-            <Link href={withQuery(q, { view: "" })} aria-current={!board}>List</Link>
-            <Link href={withQuery(q, { view: "board" })} aria-current={board}>Board</Link>
-          </span>
-          {isOwner ? <a className="ad__btn" href={`/admin/projects/export${exportParams.size ? `?${exportParams}` : ""}`}>Export CSV</a> : null}
-          <PageTourButton />
-          <AddProject hasClients={getClients().length > 0} dataTour="projects-add" />
-        </div>
-      </div>
-
+      <PageHead
+        title="Projects" lede={lede}
+        action={<AddProject hasClients={hasClients} dataTour="projects-add" />}
+        chores={<ProjectsChores exportHref={exportHref} meetings={isOwner} />}
+      />
       <ExampleNote />
-
-      <Panel title="Narrow it down">
-        {/* GET, so submitting navigates rather than posting. `view` rides
-            along as a hidden field or changing a filter would throw the board
-            or list choice away. */}
-        <form method="get" action="/admin/projects" className="ad__filters" style={{ padding: ".9rem 1rem" }}>
-          {/* The filter form is a GET, so anything not carried here is dropped
-              when it submits -- which would bounce a reader off the board and
-              back to the list every time they narrowed something down. */}
-          {board ? <input type="hidden" name="view" value="board" /> : null}
-          <label className="ad__filterSearch">
-            Search
-            <input type="search" name="q" defaultValue={needle} placeholder="A project, client or owner" />
-          </label>
-          <FilterPick label="Stage" name="stage" defaultValue={stage ?? ""} placeholder="Any"
-                      options={STAGES.map((s) => ({ value: s, label: s }))} />
-          <FilterPick label="Service" name="service" defaultValue={service?.slug ?? ""} placeholder="Any"
-                      options={SERVICES.map((s) => ({ value: s.slug, label: s.short }))} />
-          <FilterPick label="How it is going" name="health" defaultValue={health ?? ""} placeholder="Any"
-                      options={HEALTH.map((h) => ({ value: h, label: h }))} />
-          {owners.length ? (
-            <FilterPick label="Owner" name="owner" defaultValue={owner ?? ""} placeholder="Anyone"
-                        options={owners.map((o) => ({ value: o, label: o }))} />
-          ) : null}
-          <span className="ad__row">
-            <button type="submit" className="ad__btn">Apply</button>
-            {filtered ? (
-              <Link className="ad__btn ad__btn--plain" href={withQuery({}, { view: q.view })}>
-                Clear
-              </Link>
-            ) : null}
-          </span>
-        </form>
-      </Panel>
-
-      {board && !all.length ? (
-        /* Six columns of "Drop a card here" said nothing about why the board
-           was empty; say it, the same way the list does. */
-        <div style={{ marginTop: ".9rem" }}>
-          <Panel title="Board">
-            {filtered ? (
-              <Empty title="Nothing matches those filters"
-                action={<Link className="ad__btn" href={withQuery({}, { view: q.view })}>Clear the filters</Link>}>
-                Try a different stage, service, owner or health.
-              </Empty>
-            ) : (
-              <Empty title="No projects yet" action={<AddProject hasClients={getClients().length > 0} />}>
-                Each project becomes a card you can move between stages.
-              </Empty>
-            )}
-          </Panel>
+      <div className="adPl__tiles" data-tour="figures">
+        <StatTiles items={[
+          { label: "Live projects", value: String(live.length), note: `${usedServices} ${usedServices === 1 ? "service" : "services"}`, icon: FolderKanban, tone: "brand", href: href({ view: undefined, tab: undefined, page: undefined }) },
+          { label: "Waiting on clients", value: String(waiting.length), note: waiting.length ? waiting.slice(0, 2).map((r) => r.project.title).join(", ") : "Nobody is waiting", noteTone: waiting.length ? "accent" : undefined, icon: Hourglass, tone: "warn", href: href({ view: undefined, tab: "waiting", page: undefined }) },
+          { label: "Due next 7 days", value: String(dueSoon.length), note: dueNote || (dueSoon.length ? "Projects with a date this week" : "Nothing is due this week"), icon: CalendarDays, tone: "live", href: href({ view: "calendar", page: undefined }) },
+        ]} />
+      </div>
+      <section className="adList adPl" aria-label="All projects" data-tour="projects-switch">
+        <div className="adList__hd adPl__hd">
+          <nav className="ad__switch" aria-label="Project views">
+            {VIEWS.map(([k, label, Icon]) => <Link key={k} href={href({ view: k === "list" ? undefined : k, page: undefined })} scroll={false} aria-current={view === k}><Icon aria-hidden="true" />{label}</Link>)}
+          </nav>
+          <span className="adList__sp" />
+          <UrlSearch label="Search projects" placeholder="Project or client" />
         </div>
-      ) : board ? (
-        /* THE BOARD (the mockups' Projects board): a column per stage, a card
-           per project. The card is a link and the menu is a button, so they
-           cannot be nested -- a button inside an anchor is invalid and
-           behaves differently in every browser. They are siblings. */
-        <ProjectBoard
-          key={JSON.stringify([...getBoard()].map(([st, l]) => [st, l.map((p) => p.id)]))}
-          columns={(stage ? [stage] : STAGES).map((st) => ({
-            stage: st, dot: STAGES.indexOf(st), ids: (getBoard().get(st) ?? []).filter(match).map((p) => p.id),
-          }))}
-          cards={Object.fromEntries(all.map((p) => {
-            const client = getClient(p.clientId);
-            return [p.id, {
-              project: isOwner ? p : { ...p, budget: null }, /* the budget is money: it must not reach a staff browser */ clientName: client?.company, clientInitials: client ? initialsOf(client.company) : undefined,
-              service: SERVICES.find((x) => x.slug === p.service)?.short, attention: projectAttention(p, tasks),
-              due: p.due ? when(p.due) : "No date yet", ownerInitials: p.owner ? initialsOf(p.owner) : undefined,
-            } satisfies BoardCard];
-          }))}
-        />
-      ) : (
-        <div style={{ marginTop: ".9rem" }}>
-          <Panel title={filtered ? "Matching projects" : "All projects"}>
-            {all.length ? (
-              <>
-              {/* Stage moves go through moveStage row by row, so each keeps
-                  its history line and the client's email; archiving is the
-                  owner's, as it is from a project's own menu. */}
-              <BulkBar target="projects-table" noun="projects"
-                actions={isOwner ? [{ kind: "projects:archive", label: "Archive", icon: "archive", danger: true, confirm: "Archive {n} projects? Their invoices, updates and approvals stay; you can bring them back." }] : []}
-                more={STAGES.map((st) => ({ kind: `projects:stage:${st}`, label: `Move to ${st}`, confirm: `Move {n} projects to ${st}? Each client who gets updates is emailed.` }))} />
-              <div className="ad__scroll" id="projects-table">
-                <table className="ad__t">
-                  <thead>
-                    <tr>
-                      <th><span className="ad__pickRow"><PickAll label="Select every project" />Project</span></th><th>Client</th><th>Owner</th><th>Service</th>
-                      <th>Stage</th><th>Health</th><th>Due</th>
-                      <th className="ad__rmH"><span className="ad__sr">Actions</span></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows.map((p) => (
-                      <tr key={p.id}>
-                        <td>
-                          <span className="ad__pickRow"><RowPick id={p.id} label={p.title} /><Link href={`/admin/projects/${p.id}`}><b>{p.title}</b></Link></span>
-                          <AttentionPills items={projectAttention(p, tasks)} except={p.health} />
-                        </td>
-                        <td>{getClient(p.clientId)?.company ?? "Unknown"}</td>
-                        <td>{p.owner || <span className="ad__dim">Nobody</span>}</td>
-                        <td>{SERVICES.find((x) => x.slug === p.service)?.short}</td>
-                        <td><StagePill stage={p.stage} /></td>
-                        <td><HealthPill health={p.health} /></td>
-                        <td className="num">{when(p.due)}</td>
-                        <td className="ad__rmC">
-                          <ProjectMenu project={p} clientName={getClient(p.clientId)?.company} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <Pager label="Project pages" total={all.length} page={page} per={per} noun={all.length === 1 ? "project" : "projects"}
-                href={(patch) => withQuery(q, { page: patch.page && patch.page > 1 ? String(patch.page) : "", per: patch.per ? String(patch.per) : q.per })} />
-              </>
-            ) : filtered ? (
-              /* A FILTERED-EMPTY IS NOT AN EMPTY. There is data; this
-                 combination just has none of it, and the way out is to widen
-                 the filter rather than to create something. */
-              <Empty
-                title="Nothing matches those filters"
-                action={<Link className="ad__btn" href={withQuery({}, { view: q.view })}>Clear the filters</Link>}
-              >
-                Try a different stage, service, owner or health.
-              </Empty>
-            ) : (
-              <Empty title="No projects yet" action={<AddProject hasClients={getClients().length > 0} />}>
-                Projects keep delivery, deadlines, files, and client updates together.
-              </Empty>
-            )}
-          </Panel>
-        </div>
-      )}
+        <div className="adList__pad"><Chips label="Service" items={chipItems} current={service ?? ""} /></div>
+        {body}
+      </section>
     </>
   );
-}
-
-function initialsOf(name: string) {
-  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("");
 }

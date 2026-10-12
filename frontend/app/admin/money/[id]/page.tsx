@@ -284,19 +284,9 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
               <div className="ad__qr">
                 <QrCode url={invoiceUrl(inv.token)} label={`Open invoice ${inv.number}`} animate={false} boxPx={160} />
               </div>
-              <div style={{ minWidth: 0, flex: "1 1 16rem" }}>
-                <p style={{ margin: "0 0 .4rem" }}>
-                  Print this code on the invoice, or send the link. It opens a
-                  one-page version of {inv.number} showing what is owed now,
-                  every payment received against it, and a receipt for each.
-                </p>
-                <p className="ad__dim ad__num" style={{ margin: "0 0 .6rem", overflowWrap: "anywhere", fontSize: ".82rem" }}>
-                  /i/{inv.token}
-                </p>
-                <a className="ad__btn" href={`/i/${inv.token}`} target="_blank" rel="noopener noreferrer">
-                  Open it as the client sees it
-                </a>
-              </div>
+              <a className="ad__btn" href={`/i/${inv.token}`} target="_blank" rel="noopener noreferrer">
+                Open as the client sees it
+              </a>
             </div>
           </Panel>
         ) : null}
