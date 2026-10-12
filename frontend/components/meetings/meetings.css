@@ -42,3 +42,4 @@
 .meetSheet__who { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
 .meetSheet__who li { display: grid; gap: .1rem; padding: .6rem .8rem; border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel-2); min-width: 0; overflow-wrap: anywhere; }
 .meetSheet__who small { color: var(--ad-dim); }
+.meetField .adPick,.meetField .adDT{width:100%;min-width:0}

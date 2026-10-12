@@ -2,15 +2,17 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { Copy, RefreshCw, Settings } from "lucide-react";
+import { CalendarPlus, Copy, RefreshCw, Settings } from "lucide-react";
 import { Dialog } from "@/components/admin/dialog";
 import { DateTimeInput } from "@/components/admin/pick";
 import { ask } from "@/components/admin/confirm";
 import { toast } from "@/components/admin/toast";
 import { RowMenu, type RowMenuItem } from "@/components/admin/row-menu";
 import { BulkBar } from "@/components/admin/bulk";
-import { dateTimeWords } from "@/lib/admin/when";
-import { meetingCommand } from "./client";
+import { dateTimeWords, nowMs } from "@/lib/admin/when";
+import { RemotePick } from "@/components/admin/remote-pick";
+import { searchOptions } from "@/lib/admin/search-actions";
+import { guestToken, meetingCommand } from "./client";
 import { safeJoinUrl } from "./links";
 import type { Booking } from "@/lib/meetings/cal";
 import "./meetings.css";
@@ -134,4 +136,83 @@ export function MeetingsChores({ owner }: { owner: boolean }) {
     ...(owner ? [{ kind: "link" as const, label: "Scheduling settings", href: "/admin/settings/meetings", icon: Settings }] : []),
   ];
   return <RowMenu items={items} label="meetings, more" />;
+}
+
+
+/**
+ * BOOK A MEETING FOR A CLIENT, at a time we choose.
+ *
+ * The public page offers the client the slots Cal.com has free. This is the
+ * other direction: pick the client (their name and email come across and can be
+ * changed), then the exact date and time with the site's own pickers, and the
+ * meeting goes through the same command the public page uses, so Cal.com
+ * checks the time against the calendar and sends the invitation. A time Cal.com
+ * will not accept comes back as its own words, and nothing is saved.
+ */
+export function BookForClient({ label = "Book for a client" }: { label?: string }) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [who, setWho] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [start, setStart] = useState("");
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [progress, setProgress] = useState("");
+
+  const reset = () => { setWho(""); setName(""); setEmail(""); setStart(""); setNote(""); setError(""); setProgress(""); };
+  const pick = async (id: string, label: string) => {
+    setWho(id);
+    if (!id) return;
+    setName(label);
+    try {
+      const { selected } = await searchOptions("clients", "", [id]);
+      const hint = selected[0]?.hint ?? "";
+      const mail = hint.match(/[^\s,]+@[^\s,]+\.[^\s,]+/)?.[0];
+      if (mail) setEmail(mail);
+      const person = hint.split(",")[0]?.trim();
+      if (person && !person.includes("@")) setName(person);
+    } catch { /* the fields stay editable */ }
+  };
+  const valid = name.trim() && /^\S+@\S+\.\S+$/.test(email.trim()) && start && Date.parse(start) > nowMs();
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!valid || busy) return;
+    setBusy(true); setError("");
+    try {
+      await meetingCommand({ action: "book", token: guestToken(), start: new Date(start).toISOString(), name: name.trim(), email: email.trim(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, context: note.trim() }, setProgress);
+      toast("Meeting saved");
+      setOpen(false); reset(); router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "The meeting could not be booked.");
+    } finally { setBusy(false); }
+  }
+
+  return (
+    <>
+      <button type="button" className="ad__btn ad__btn--primary" onClick={() => setOpen(true)} aria-haspopup="dialog"><CalendarPlus aria-hidden="true" />{label}</button>
+      <Dialog open={open} onClose={() => { if (!busy) setOpen(false); }} title="Book a meeting for a client">
+        <form onSubmit={submit} onChange={(e) => setStart(String(new FormData(e.currentTarget).get("start") ?? ""))} className="meetSheet">
+          <p className="meetHint">Pick the client, then the exact day and time. Cal.com checks it against the calendar and sends the invitation.</p>
+          <div className="meetField"><label id="bookWho">Client</label>
+            <RemotePick kind="clients" labelledBy="bookWho" value={who} placeholder="Search for a client" label="Client" onChange={pick} />
+          </div>
+          <label className="meetField">Attendee name<input value={name} onChange={(e) => setName(e.target.value)} autoComplete="off" maxLength={120} required /></label>
+          <label className="meetField">Attendee email<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="off" maxLength={320} required /></label>
+          <div className="meetField"><span id="bookWhen">Date and time</span><DateTimeInput name="start" defaultValue={start} min={localInput(new Date().toISOString())} /></div>
+          <label className="meetField">What it is for (optional)<textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} maxLength={500} placeholder="Handover meeting, recorded on Google Meet." /></label>
+          <p className="meetHint">Times use your browser&rsquo;s time zone.</p>
+          {progress && busy ? <p role="status" className="meetHint">{progress}</p> : null}
+          {error ? <p role="alert" className="meetError">{error}</p> : null}
+          <div className="meetActions">
+            <button className="ad__btn ad__btn--primary" disabled={!valid || busy}>{busy ? "Booking…" : "Book this time"}</button>
+            <button type="button" className="ad__btn" disabled={busy} onClick={() => setOpen(false)}>Cancel</button>
+          </div>
+          {!valid && !busy ? <p className="meetHint">{!who && !name ? "Pick a client or type who is coming." : !email.trim() ? "Add an email address." : !start ? "Choose a date and time." : "Choose a time in the future."}</p> : null}
+        </form>
+      </Dialog>
+    </>
+  );
 }
