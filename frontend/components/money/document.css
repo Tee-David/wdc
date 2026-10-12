@@ -1,114 +1,335 @@
 /* ============================================================================
-   The public invoice, quote and receipt.
+   The public invoice and receipt.
 
-   A DOCUMENT, NOT A DASHBOARD, in the dashboard's colours. The frame (top bar,
-   footer, card) is components/layout/bare-page.tsx and the tokens are the
-   --ad-* set, so the page follows the theme like the rest of the product. PRINT
-   IS DIFFERENT: paper is white, so the print block below pins the tokens to
-   their light values on the document, whatever theme the phone was in.
+   A DOCUMENT, NOT A DASHBOARD. This is the page a client opens from the QR on
+   a printed invoice, usually on a phone, usually to answer one question: how
+   much do I owe and how do I pay it. So it is one column, the figure is the
+   biggest thing on it, and nothing here is interactive except the links that
+   help them pay.
 
-   The sheet is the board's docSheet: a head (the studio, the number, a status
-   tag), a body (meta, lines, totals, how to pay), a row of actions.
+   It draws its own colours rather than the site's tokens: a document reads as
+   a document, and a printed one is on white whatever the phone was set to.
    ========================================================================== */
 
-.doc { width: 100%; min-width: 0; color: var(--ad-ink); }
-.doc__sheet { position: relative; isolation: isolate; max-width: 760px; margin: 0 auto; }
+.doc {
+  min-height: 100dvh;
+  background: #f6f6f4;
+  color: #0e0e2c;
+  padding: clamp(1rem, 4vw, 3rem) clamp(1rem, 4vw, 2rem);
+}
+.doc__sheet {
+  /* The containing block for the rubber stamp, which is absolutely positioned
+     into this corner -- see stamp.css. */
+  position: relative;
+  max-width: 46rem; margin: 0 auto;
+  background: #fff; border: 1px solid rgba(0, 0, 101, .12); border-radius: 18px;
+  padding: clamp(1.25rem, 4vw, 2.5rem);
+}
 
-.doc__top { align-items: flex-start; }
+.doc__top {
+  display: flex; flex-wrap: wrap; gap: 1rem;
+  align-items: flex-start; justify-content: space-between;
+  padding-bottom: 1.2rem; border-bottom: 1px solid rgba(0, 0, 101, .12);
+}
 .doc__who { display: flex; align-items: center; gap: .6rem; min-width: 0; }
 .doc__who img { width: 2.5rem; height: 2.5rem; flex: none; }
-.doc__who b { display: block; font-family: var(--font-space-grotesk), system-ui, sans-serif; font-size: 1.05rem; line-height: 1.15; }
-.doc__who small { color: var(--ad-dim); font-size: .8rem; }
-.doc__id { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; min-width: 0; text-align: right; }
-.doc__no { margin: 0; font: 700 clamp(1.15rem, 1rem + .9vw, 1.5rem)/1.15 var(--font-space-grotesk), system-ui, sans-serif; letter-spacing: -.01em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-@media (max-width: 560px) { .doc__id { align-items: flex-start; text-align: left; flex-basis: 100%; } }
+.doc__who b {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: 1.05rem; line-height: 1.15; display: block;
+}
+.doc__who small { color: #5a5a72; font-size: .8rem; }
 
-.doc__body { display: flex; flex-direction: column; gap: 4px; }
-.doc__note2 { margin: 14px 0 4px; }
-.doc__note2 svg { margin-top: 1px; }
+.doc__id { text-align: right; min-width: 0; }
+.doc__kind {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .72rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+  color: #c95000;
+}
+.doc__no {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: clamp(1.2rem, 1rem + 1vw, 1.6rem); font-weight: 700;
+  letter-spacing: -.01em; font-variant-numeric: tabular-nums;
+}
 
-.doc__meta { margin: 16px 0; }
-.doc__meta dt { font-size: .75rem; font-weight: 600; color: var(--ad-dim); margin-bottom: .15rem; }
-.doc__meta dd { margin: 0; overflow-wrap: anywhere; }
-.doc__meta a, .doc__pay a, .doc__sub a { color: var(--ad-accent-ink, #b84a00); font-weight: 600; }
-.dark .doc__meta a, .dark .doc__pay a { color: var(--accent-ink, #ff6500); }
-.doc__late { color: var(--ad-bad-ink); }
+/* The headline figure. On a phone this is the whole reason the page exists. */
+.doc__owed {
+  margin: 1.4rem 0; padding: 1.1rem 1.25rem;
+  border-radius: 14px; background: #f6f6f4;
+  border: 1px solid rgba(0, 0, 101, .1);
+}
+/* `.doc__k`, NOT `.doc__owed > span`. The status pill is also a span in this
+   box, so the descendant rule was making it `display: block` and stretching a
+   999px pill across the full width of the panel. Naming the label settles it
+   on the element that is actually the label. */
+.doc__k {
+  display: block; font-size: .78rem; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase; color: #5a5a72;
+}
+.doc__owed b {
+  display: block; margin-top: .2rem;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: clamp(1.8rem, 1.2rem + 3vw, 2.8rem); font-weight: 700;
+  letter-spacing: -.02em; font-variant-numeric: tabular-nums;
+}
+.doc__owed.is-clear b { color: #1c7a4a; }
+
+/* THE STATUS IS A LINE OF TYPE, NOT A CHIP.
+
+   It used to carry a 999px outline, and on a document that reads as a button:
+   a rounded box with a border is the shape of something you press, so putting
+   an unpressable one directly under the amount invites a tap and then does
+   nothing. On a printed copy it is worse -- an empty capsule that costs ink
+   and says nothing the words inside it did not.
+
+   So the weight, the caps and the colour carry it instead. It sits under the
+   figure it qualifies, in the figure's own colour family, which is how a
+   statement of account has always done this.
+
+   COLOUR ALONE IS NOT THE MESSAGE. Every one of these still reads correctly in
+   greyscale, because the words say the whole thing: "Past its due date" is not
+   relying on being orange to mean what it means.
+
+   CONTRAST IS MEASURED ON THE PANEL, NOT ON THE SHEET. These sit inside
+   `.doc__owed`, which is #f6f6f4, and that is the darker of the two grounds --
+   so it decides. At this size the threshold is 4.5:1; the large-text 3:1 does
+   not apply until 18.66px bold. Measured: green 4.94:1, amber 5.90:1, red
+   6.04:1, orange 5.08:1.
+
+   The orange is #b34700 and NOT the site's `--accent-ink` (#c95000). That
+   token is correct on white and only just -- 4.53:1 -- and on this panel it
+   drops to 4.19:1 and fails. A darker orange is the same decision the token
+   itself represents, taken again for a darker ground. */
+.doc__pill {
+  display: block; margin-top: .55rem;
+  font-size: .82rem; font-weight: 700;
+  letter-spacing: .06em; text-transform: uppercase;
+}
+.doc__pill--good { color: #1c7a4a; }
+.doc__pill--bad  { color: #b3261e; }
+.doc__pill--warn { color: #8a5200; }
+.doc__pill--due  { color: #b34700; }
+
+.doc__meta {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: .9rem; margin: 1.2rem 0;
+}
+.doc__meta dt {
+  font-size: .72rem; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: #5a5a72; margin-bottom: .15rem;
+}
+.doc__meta dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
 
 /* A section label inside the sheet. It was an inline style, which meant the
-   print block could not reach it. */
-.doc__sub { margin: 1.4rem 0 .5rem; font: 700 1.05rem var(--font-space-grotesk), system-ui, sans-serif; color: var(--ad-ink); }
-.doc__note { margin: 0 0 1rem; color: var(--ad-dim); line-height: 1.6; }
-.doc__hint { margin: 0; color: var(--ad-dim); font-size: 13px; line-height: 1.55; }
-.doc__hint a { color: var(--ad-accent-ink, #b84a00); font-weight: 600; }
-.dark .doc__hint a { color: var(--accent-ink, #ff6500); }
+   print block could not reach it -- an inline declaration outranks any
+   stylesheet rule that is not `!important`, so the one heading on the page
+   kept its screen spacing while everything around it tightened. */
+.doc__sub {
+  margin: 1.4rem 0 .5rem;
+  font-size: .8rem; letter-spacing: .08em; text-transform: uppercase;
+  color: #5a5a72;
+}
+
+.doc__note { margin: 0 0 1rem; color: #5a5a72; line-height: 1.6; }
 /* The line under the printer. Centred, because the slip above it is, and a
    left-aligned paragraph under a centred object reads as a different page. */
-.doc__said { margin: 1.5rem auto 0; max-width: 34rem; text-align: center; color: var(--ad-dim); line-height: 1.65; }
+.doc__said {
+  margin: 1.5rem auto 0; max-width: 34rem;
+  text-align: center; color: #5a5a72; line-height: 1.65;
+}
 
 /* The running head: the document's number and client, repeated at the top of
-   every printed sheet of line items. Off on screen. */
+   every printed sheet of line items. Off on screen, where there is only ever
+   one sheet and the number is already in the corner above it. */
 .doc__run { display: none; }
 
-/* A provider's reference under the line it belongs to. */
-.doc__ref { display: block; margin-top: .15rem; font-size: .74rem; color: var(--ad-dim); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+/* A provider's reference under the line it belongs to. Small and quiet: it is
+   there to be quoted when something has to be traced, not to be read. */
+.doc__ref {
+  display: block; margin-top: .15rem;
+  font-size: .74rem; color: #5a5a72;
+  font-variant-numeric: tabular-nums; overflow-wrap: anywhere;
+}
 
-/* TABLES STAY TABLES: the first column pins, the box scrolls sideways. */
-.doc__scroll { overflow-x: auto; margin: 6px 0; border-radius: 12px; }
-.doc__scroll:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
-.doc__lines { width: 100%; border-collapse: separate; border-spacing: 0; font-size: .92rem; }
+.doc__scroll { overflow-x: auto; }
+.doc__lines { width: 100%; border-collapse: collapse; margin: 1.2rem 0; font-size: .92rem; }
 .doc__lines th {
-  text-align: left; padding: 12px 14px; white-space: nowrap;
-  font-size: 13px; font-weight: 600; color: var(--ad-dim);
-  background: var(--ad-panel-2); border-bottom: 1px solid var(--ad-line);
+  text-align: left; padding: .5rem .6rem;
+  font-size: .7rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: #5a5a72; border-bottom: 1px solid rgba(0, 0, 101, .12);
 }
-.doc__lines td { padding: 14px; border-bottom: 1px solid var(--ad-line); vertical-align: top; }
-.doc__lines tbody td:first-child, .doc__lines thead th:first-child { position: sticky; left: 0; z-index: 1; min-width: 11rem; background: var(--ad-panel); }
-.doc__lines thead th:first-child { background: var(--ad-panel-2); }
+.doc__lines td { padding: .6rem; border-bottom: 1px solid rgba(0, 0, 101, .07); }
 .doc__lines .n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.doc__lines tfoot td { border-bottom: 0; padding: 6px 14px; }
-.doc__lines tfoot tr:first-child td { padding-top: 14px; }
-.doc__lines tfoot tr:last-child td { font: 700 1.15rem var(--font-space-grotesk), system-ui, sans-serif; padding-top: 12px; border-top: 1px solid var(--ad-line); }
-.doc__lines tfoot td:first-child { position: static; }
+.doc__lines tfoot td { border-bottom: 0; padding-top: .5rem; }
+.doc__lines tfoot tr:last-child td { font-weight: 700; font-size: 1.02rem; }
 
-/* The totals block. */
-.doc__tot { display: grid; gap: 6px; width: min(100%, 22rem); margin: 8px 0 0 auto; padding: 8px 14px 4px; }
-.doc__tot > div { display: flex; justify-content: space-between; gap: 16px; font-variant-numeric: tabular-nums; }
-.doc__tot dt { color: var(--ad-dim); }
-.doc__tot dd { margin: 0; white-space: nowrap; }
-.doc__tot .is-strong { margin-top: 4px; padding-top: 10px; border-top: 1px solid var(--ad-line); font: 700 1.15rem var(--font-space-grotesk), system-ui, sans-serif; }
-.doc__tot .is-strong dt { color: var(--ad-ink); }
-
-/* HOW TO PAY, a section of the sheet divided by a rule, not a coloured box. */
-.doc__pay { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; padding-top: 18px; border-top: 1px solid var(--ad-line); }
-.doc__pay h2 { margin: 0; font: 700 1.05rem var(--font-space-grotesk), system-ui, sans-serif; }
-.doc__pay p { margin: 0; line-height: 1.6; }
-.doc__payForm { display: flex; flex-direction: column; gap: 12px; }
-.doc__pay .errNote, .doc__pay .warnNote { margin: 0; }
-
-/* The row under the document. */
-.doc__actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0 0; padding-top: 16px; border-top: 1px solid var(--ad-line); }
-.doc__actions .bareBtn { width: auto; min-height: 44px; }
-.doc__body > .doc__hint { margin-top: 10px; }
-
-/* Payment-return page buttons (app/pay/done): the board's pair. */
-.doc--return .doc__actions { justify-content: center; border-top: 0; padding-top: 0; margin-top: 1.1rem; }
-.doc__btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 48px; padding: 0 1.25rem;
-  border: 1px solid var(--ad-fill); border-radius: 12px; background: var(--ad-fill); color: var(--ad-on-fill);
-  font: 600 15px var(--font-body, system-ui, sans-serif); text-decoration: none; cursor: pointer;
-  transition: background .18s, border-color .18s, transform .22s;
+.doc__pay {
+  margin-top: 1.4rem; padding: 1.1rem 1.25rem;
+  border-radius: 14px; border: 1px solid rgba(255, 101, 0, .3);
+  background: rgba(255, 101, 0, .06);
 }
-.doc__btn:hover { background: var(--ad-fill-hover); border-color: var(--ad-fill-hover); }
-.doc__btn:active { transform: scale(.98); }
-.doc__btn--ghost { background: var(--ad-panel); color: var(--ad-ink); border-color: var(--ad-line-2); }
-.doc__btn--ghost:hover { background: var(--ad-hover); border-color: var(--ad-ink); }
-.doc--return .doc__actions:has(> .doc__btn + .doc__btn), .doc--return > .doc__btnRow { display: flex; flex-wrap: wrap; justify-content: center; gap: .6rem; }
+.doc__pay h2 {
+  margin: 0 0 .5rem; font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: 1rem; font-weight: 700;
+}
+.doc__pay p { margin: 0 0 .5rem; line-height: 1.6; }
+.doc__pay a { color: #c95000; font-weight: 600; }
 
-@media (prefers-reduced-motion: reduce) { .doc__btn, .bareBtn { transition: none; } .doc__btn:active, .bareBtn:active { transform: none; } }
+/* ---- paying it ------------------------------------------------------------
 
-.doc__foot { margin-top: 0; padding: 18px 24px 22px; border-top: 1px solid var(--ad-line); display: flex; flex-wrap: wrap; gap: 1.2rem; align-items: center; justify-content: space-between; }
-.doc__foot small { color: var(--ad-dim); font-size: .8rem; line-height: 1.6; max-width: 30rem; }
-.doc__foot a { color: inherit; text-decoration: underline; }
+   THE ONE CONTROL ON A DOCUMENT THAT IS OTHERWISE ALL TYPE. Which is exactly
+   why it reads as a control: filled, large, unmistakably pressable, with a
+   44px floor so it is a comfortable target on the phone most of these are
+   opened on.
+
+   BLACK ON ORANGE. Measured, not chosen: white on #ff6500 is 2.95:1 and fails
+   even the 3:1 large text is allowed; black is 7.11:1. Same rule as every
+   other accent fill on the site, pinned by tests/button-colours.spec.ts. */
+.doc__actions {
+  display: grid; gap: .5rem; justify-items: start;
+  margin: 0 0 .9rem;
+}
+/* On the payment return page the one control sits under a centred slip, so it
+   is centred too. Scoped to that page's own wrapper rather than changed on the
+   shared class, because on an invoice the button is the full width of its
+   panel and must stay left. */
+.doc--return .doc__actions { justify-items: center; margin: 1.1rem 0 0; }
+.doc__btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+  min-height: 44px; padding: .7rem 1.25rem;
+  border: 0; border-radius: 12px;
+  /* White on #b84a00 (5.23:1): the owner's orange for a fill that carries
+     white type, the same pair as the Pay button. */
+  background: #b84a00; color: #fff;
+  font: inherit; font-weight: 700; font-size: 1rem;
+  text-decoration: none; cursor: pointer;
+  transition: transform .16s ease, box-shadow .16s ease, background-color .16s ease;
+}
+.doc__btn:hover { background: #a33c00; }
+.doc__btn:active { transform: translateY(1px); }
+.doc__btn:focus-visible { outline: 3px solid #0e0e2c; outline-offset: 3px; }
+.doc__actions small { color: #5a5a72; font-size: .82rem; }
+/* The second way out beside the main one: the page's ink on white. */
+.doc__btn--ghost { background: #fff; color: #0e0e2c; box-shadow: inset 0 0 0 1.5px #0e0e2c; }
+.doc__btn--ghost:hover { background: #0e0e2c; color: #fff; box-shadow: none; }
+.doc--return .doc__actions:has(> .doc__btn + .doc__btn) { display: flex; flex-wrap: wrap; justify-content: center; gap: .6rem; }
+
+/* THE ONE THING THIS DOCUMENT EXISTS TO GET DONE.
+
+   It was a 44px pill sitting in a row with its own caption beside it, which
+   made it read as one of the options on the page rather than as the page's
+   purpose. It is the only action on an invoice, so it takes the width of the
+   panel and the height of a control somebody is meant to press on a phone
+   without aiming.
+
+   FULL WIDTH IS THE HONEST EMPHASIS HERE, not a flourish. Every checkout worth
+   copying does the same thing for the same reason: the amount and the verb in
+   one block, nothing beside it to weigh it against.
+
+   WHITE ON A DEEPER ORANGE, at the owner's request. White on the brand
+   #ff6500 is 2.95:1 and fails even the 3:1 large text is allowed, so the fill
+   is #b84a00 (white 5.23:1) and deepens to #a33c00 (6.56:1) on hover; the
+   brand orange stays in the glow under it. */
+.doc__btn--pay {
+  --pay-fill: #b84a00;       /* #fff 5.23:1 */
+  --pay-deep: #a33c00;       /* hover, #fff 6.56:1 */
+  position: relative; isolation: isolate;
+  width: 100%; min-height: 3.75rem; padding: 1rem 1.5rem; border-radius: 14px;
+  background: var(--pay-fill); color: #fff;
+  font-size: clamp(1.05rem, .98rem + .35vw, 1.22rem); letter-spacing: -.01em;
+  /* No glow: the owner asked for it gone. The fill carries the button. */
+  box-shadow: none;
+  transition: transform .16s cubic-bezier(.2, .7, .3, 1);
+}
+/* MOTION (artifact "Pay Button Motion": the border trace while Paystack
+   opens, the lean on hover, and the stamp once the invoice is paid). The base .doc__btn:hover paints #e85c00;
+   the pay button deepens with a layer instead, so every tween here is
+   transform or opacity. */
+.doc__btn--pay:hover { background: var(--pay-fill); box-shadow: none; transform: translateY(-1px); }
+.doc__btn--pay:active { transform: translateY(1px) scale(.985); transition-duration: .06s; }
+.doc__btn--pay:focus-visible { outline: 3px solid #0e0e2c; outline-offset: 4px; }
+.doc__btn__shade {
+  position: absolute; inset: 0; z-index: -1; border-radius: inherit;
+  background: var(--pay-deep); opacity: 0; transition: opacity .16s ease; pointer-events: none;
+}
+.doc__btn--pay:is(:hover, :focus-visible) .doc__btn__shade { opacity: 1; }
+/* TWO GLYPHS, TWO JOBS: the card says what this is, the arrow says the press
+   leaves the page for Paystack's own. */
+.doc__btn--pay svg { flex: none; }
+.doc__btn__ic { width: 1.15em; height: 1.15em; margin-right: .15rem; }
+.doc__btn__go { width: 1.1em; height: 1.1em; transition: transform .18s cubic-bezier(.2, .7, .3, 1), opacity .16s ease; }
+.doc__btn--pay:is(:hover, :focus-visible) .doc__btn__go { transform: translateX(4px); }
+
+/* BUSY. PayForm sets data-busy on the form at the first submit. The label and
+   the amount stay; the arrow leaves and the brand orange runs round the edge.
+   No percentage: nobody knows how long Paystack will take. */
+.doc__btn__trace {
+  position: absolute; inset: -5px; padding: 3px; border-radius: 19px;
+  overflow: hidden; pointer-events: none; opacity: 0; transition: opacity .2s ease;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+.doc__btn__trace::before {
+  content: ""; position: absolute; top: 50%; left: 50%; width: 112%; aspect-ratio: 1;
+  background: conic-gradient(transparent 0 58%, rgb(255 101 0 / .25) 70%, #ff6500 90%, #ffc9a3 97%, transparent 100%);
+  transform: translate(-50%, -50%) rotate(0turn);
+}
+form[data-busy] .doc__btn--pay { cursor: progress; transform: none; }
+form[data-busy] .doc__btn__shade { opacity: 1; }
+form[data-busy] .doc__btn__go { transform: translateX(10px); opacity: 0; }
+form[data-busy] .doc__btn__trace { opacity: 1; }
+form[data-busy] .doc__btn__trace::before { animation: pay-trace 1.15s linear infinite; }
+@keyframes pay-trace { to { transform: translate(-50%, -50%) rotate(1turn); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .doc__btn, .doc__btn--pay, .doc__btn__shade, .doc__btn__go, .doc__btn__trace { transition: none; animation: none; }
+  .doc__btn:active, .doc__btn--pay:hover, .doc__btn--pay:active { transform: none; }
+  .doc__btn--pay:is(:hover, :focus-visible) .doc__btn__go { transform: none; }
+  /* The ring stops and becomes solid: still a clear busy state. */
+  form[data-busy] .doc__btn__trace::before { animation: none; background: #ff6500; }
+  .doc__paid { animation: none; }
+}
+
+/* PAID: the stamp (idea G) where the Pay button stood, landing once and then
+   still. White on #1f7a3a is 5.38:1. */
+.doc__pay--paid { display: grid; gap: .9rem; justify-items: center; text-align: center; }
+.doc__paid {
+  display: inline-flex; align-items: center; justify-content: center; gap: .55rem;
+  min-height: 3.75rem; padding: 1rem 1.6rem; border-radius: 14px;
+  background: #1f7a3a; color: #fff; font-weight: 700; font-size: clamp(1.05rem, .98rem + .35vw, 1.22rem);
+  box-shadow: 0 0 0 3px #fff, 0 0 0 5px #1f7a3a;
+  transform: rotate(-2.5deg);
+  animation: pay-stamp .42s cubic-bezier(.2, .9, .25, 1) both;
+}
+.doc__paid svg { width: 1.2em; height: 1.2em; flex: none; }
+@keyframes pay-stamp {
+  0%   { opacity: 0; transform: rotate(-7deg) scale(1.35); }
+  55%  { opacity: 1; transform: rotate(-2.5deg) scale(.97); }
+  100% { opacity: 1; transform: rotate(-2.5deg) scale(1); }
+}
+
+/* Something went wrong on the way to the checkout, said before the button
+   rather than after it. Amber rather than red: nothing has been charged and
+   nothing is broken, there is simply another way to pay. #8a5200 is 5.90:1 on
+   this panel. */
+/* A BORDER ALL THE WAY ROUND, not a bar on one edge. The amber still carries
+   the meaning; it is the shape that changed, so this reads as the same family
+   as every other notice on the site. #8a5200 at full strength on the tinted
+   ground is the border, and #6d4100 is 5.90:1 on it for the text. */
+.doc__warn {
+  margin: 0 0 .7rem; padding: .7rem .9rem;
+  border: 1px solid rgb(138 82 0 / .38); border-radius: 12px;
+  background: rgb(138 82 0 / .07);
+  color: #6d4100; line-height: 1.55;
+}
+
+.doc__foot {
+  margin-top: 1.6rem; padding-top: 1.2rem;
+  border-top: 1px solid rgba(0, 0, 101, .12);
+  display: flex; flex-wrap: wrap; gap: 1.2rem;
+  align-items: center; justify-content: space-between;
+}
+.doc__foot small { color: #5a5a72; font-size: .8rem; line-height: 1.6; max-width: 30rem; }
 /* 160px IS A MEASURED FLOOR, NOT A LOOK.
 
    These codes carry a full absolute URL with a 22-character token, which is a
@@ -146,25 +367,6 @@
 }
 
 @media print {
-  /* PAPER IS LIGHT. The screen colours are tokens that flip with the theme, so
-     on the document they are pinned back to their light values: a printout
-     from a dark session is still dark ink on white. */
-  .bare, .doc {
-    --ad-bg: #fff; --ad-panel: #fff; --ad-panel-2: #f2f3f9; --ad-ink: #0e0e2c; --ad-dim: #5c5c7a;
-    --ad-line: #c9ccdc; --ad-line-2: #c9ccdc; --ad-bad-ink: #c62828;
-    --ad-tone-flat: #e4e6f0; --ad-on-flat: #0e0e2c;
-    --ad-tone-good: #15803d; --ad-tone-warn: #a16207; --ad-tone-bad: #c62828; --ad-tone-brand: #000065; --ad-tone-neutral: #5c5c7a;
-  }
-  .bareTop, .bareFoot, .bareTheme { display: none !important; }
-  .bare { min-height: auto; background: #fff; display: block; }
-  .bareMain { display: block; padding: 0; }
-  .docSheet .dsHead { padding: 0 0 .7rem; }
-  .docSheet .dsBody { padding: 0; }
-  .doc__lines th, .doc__lines td { position: static !important; min-width: 0 !important; }
-  .doc__lines thead th:first-child, .doc__lines tbody td:first-child { background: transparent; }
-  .doc__tot { break-inside: avoid; }
-  .doc__foot { padding-left: 0; padding-right: 0; padding-bottom: 0; }
-  .bareTag, .okNote, .errNote, .warnNote { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   /* THE PAPER IS WHITE, WHATEVER THE PHONE WAS SET TO. The document draws its
      own colours, but the html and body underneath it belong to the site and
      the site remembers a theme. Printed from a dark session with backgrounds
@@ -190,7 +392,7 @@
        empty second sheet because of it. */
     min-height: auto;
   }
-  .doc__sheet, .docSheet.doc__sheet { border: 0; border-radius: 0; max-width: none; padding: 0; overflow: visible; box-shadow: none; }
+  .doc__sheet { border: 0; border-radius: 0; max-width: none; padding: 0; }
   .doc__owed, .doc__pay { background: transparent; }
 
   /* The site's own furniture. The floating corner controls are useful on
@@ -330,33 +532,38 @@
   .doc__lines th, .doc__lines td { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 
+/* A reversed receipt, said in words as well as in the corner stamp. Red is
+   #b3261e on a 6% tint of itself, which stays clear of the surrounding copy
+   without becoming a warning box for something that is simply a fact. */
+.doc__void {
+  margin: 0 0 1.2rem; padding: .85rem 1rem;
+  border: 1px solid rgba(179, 38, 30, .3);
+  border-radius: 12px; background: rgba(179, 38, 30, .06);
+  color: #8f1e18; line-height: 1.6;
+}
+.doc__void b { color: #b3261e; }
+
 /* A payment that came back. Struck through and dimmed, never removed: a
    client reconciling against their bank statement has to see that it arrived
    and then went, and a row that silently disappears is one they will email
    about. */
-.doc__lines tr.is-void td { color: var(--ad-dim); text-decoration: line-through; }
-.doc__lines tr.is-void td small { display: inline-block; text-decoration: none; font-size: .74rem; font-weight: 700; color: var(--ad-bad-ink); }
-/* The receipt link stays readable and clickable: striking it through would
+.doc__lines tr.is-void td { color: #7a7a8c; text-decoration: line-through; }
+.doc__lines tr.is-void td small {
+  display: inline-block; text-decoration: none;
+  font-size: .74rem; font-weight: 600; color: #b3261e; letter-spacing: .02em;
+}
+/* The receipt link stays readable and clickable — striking it through would
    suggest the document itself has gone, and it has not. */
-.doc__lines tr.is-void td a { text-decoration: underline; color: var(--ad-dim); }
+.doc__lines tr.is-void td a { text-decoration: underline; color: #7a7a8c; }
 
 /* The studio's own note (Settings > Studio and invoices), above the fine print. */
 .doc__studioNote { display: block; margin-bottom: .4rem; color: inherit; font-weight: 600; }
 
-.doc__logoDark { display: none; }
-.dark .doc__logoDark { display: block; }
-.dark .doc__logoLight { display: none; }
-@media print { .dark .doc__logoLight { display: block; } .dark .doc__logoDark { display: none; } }
-.doc__note2 svg { flex: none; width: 18px; height: 18px; }
-.doc__lines td:not(:first-child) { white-space: nowrap; }
-/* The watermark is for paper: behind a pinned table column it only looks like a stain. */
-.doc__watermark { display: none; }
-@media print { .doc__watermark { display: block; } }
-.doc__watermark { position: absolute; top: 50%; left: 50%; width: 300px; height: 300px; max-width: 70%; object-fit: contain; transform: translate(-50%, -50%); opacity: .06; pointer-events: none; z-index: -1; }
-.dark .doc__watermark { opacity: .05; filter: invert(1); }
-@media print { .doc__watermark { position: fixed; top: 50%; left: 50%; z-index: -1; filter: none; } }
+.doc__actions{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:24px}.doc__actions :is(button,a){display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:10px 16px;border-radius:10px;text-decoration:none;font:inherit;cursor:pointer}
+@media print{.doc__actions{display:none!important}}
+
+.doc__sheet{position:relative;isolation:isolate}.doc__watermark{position:absolute;top:50%;left:50%;width:300px;height:300px;max-width:70%;object-fit:contain;transform:translate(-50%,-50%);opacity:.06;pointer-events:none;z-index:-1}
+@media print{.doc__watermark{position:fixed;top:50%;left:50%;z-index:-1}}
 
 /* Third-party site furniture never belongs on a printed financial document. */
 @media print { body:has(.doc) iframe, body:has(.doc) [id*="jotform"], body:has(.doc) [class*="jotform"], body:has(.doc) [id*="Jotform"] { display: none !important; } }
-.doc__answer .bareBtn { flex: 1 1 10rem; }
-.doc__lines td a, .doc__meta dd a { display: inline-flex; align-items: center; min-height: 44px; }
