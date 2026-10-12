@@ -115,7 +115,7 @@ a.adCe__chip:hover, a.adCe__mEv:hover { background: var(--ad-hover); }
 .adCe__mNum:hover { background: var(--ad-hover); }
 .adCe__mCell.out .adCe__mNum { color: var(--ad-dim); }
 .adCe__mCell.is-today .adCe__mNum { background: var(--ad-fill); color: var(--ad-on-fill); }
-.adCe__stripD { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 0; border-radius: 12px; font-size: .7rem; font-weight: 600; color: var(--ad-dim); min-height: 3.25rem; background: none; border: 0; cursor: pointer; }
+.adCe__stripD { position: relative; flex: 1 0 2.75rem; min-width: 2.75rem; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 0; border-radius: 12px; font-size: .7rem; font-weight: 600; color: var(--ad-dim); min-height: 3.25rem; background: none; border: 0; cursor: pointer; }
 .adCe__stripN { font: 700 .95rem var(--font-space-grotesk), system-ui, sans-serif; color: var(--ad-ink); }
 .adCe__stripD.is-sel { background: var(--ad-fill); color: var(--ad-on-fill); } .adCe__stripD.is-sel .adCe__stripN { color: var(--ad-on-fill); }
 .adCe__stripD.is-today:not(.is-sel) { box-shadow: inset 0 0 0 1.5px var(--ad-dim); }
@@ -137,7 +137,7 @@ a.adCe__chip:hover, a.adCe__mEv:hover { background: var(--ad-hover); }
   .adCe__head { padding: .75rem .875rem; gap: .5rem; }
   .adCe__ttl h3 { font-size: 1.1rem; }
   .adCe__exp { display: none; }
-  .adCe__strip { display: flex; gap: 4px; padding: .5rem .625rem; border-bottom: 1px solid var(--ad-line); }
+  .adCe__strip { display: flex; gap: 4px; padding: .5rem .625rem; border-bottom: 1px solid var(--ad-line); overflow-x: auto; scrollbar-width: none; }
   .adCe__sum { padding: .65rem .875rem; }
   .adCe__tg.is-day { min-width: 0; }
 }
