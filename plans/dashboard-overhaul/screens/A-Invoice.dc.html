@@ -1152,6 +1152,236 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .docMetaG{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
 .docMetaG dt{font-size:12px;color:var(--ad-dim);margin-bottom:2px}
 
+.signSplit{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);width:100%;max-width:1100px;border:1px solid var(--ad-line);border-radius:24px;overflow:hidden;background:var(--ad-panel);box-shadow:var(--ad-sh-1)}
+.signSplit .bareCard{max-width:none;border:0;border-radius:0;box-shadow:none;justify-content:center;padding:40px 36px}
+.stagePane{background:#000065;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:40px 24px;min-height:520px}
+.dark .stagePane{background:#121238}
+.stageWord{font:600 84px 'Space Grotesk',sans-serif;font-style:italic;letter-spacing:-.03em;line-height:1}.stageLang{font-size:12px;opacity:.8}
+.orb{width:150px;height:150px;border-radius:50%;background:#f4f4f4;display:flex;gap:30px;align-items:center;justify-content:center;box-shadow:0 20px 30px rgba(0,0,0,.35)}.orb i{width:11px;height:30px;border-radius:6px;background:#0e0e0e}
+.stageTag{font-size:13px;opacity:.9}
+@container app (max-width:900px){.signSplit{grid-template-columns:1fr;border:0;background:transparent;box-shadow:none;max-width:440px}.stagePane{display:none}.signSplit .bareCard{border:1px solid var(--ad-line);border-radius:20px;box-shadow:var(--ad-sh-1);padding:28px 24px}}
+
+/* ---------------------------------------------------------------- the calendar engine (parts/cal.html, pages/cal-common.js) */
+.wdc{--cal-1:#000065;--cal-2:#b84a00;--cal-3:#15803d;--cal-4:#c62828;--cal-5:#a16207;--cal-6:#5c5c7a;--cal-7:#6d28d9}
+.wdc.dark{--cal-1:#7377ff;--cal-2:#ff6500;--cal-3:#4ade80;--cal-4:#ff8a8a;--cal-5:#fbbf24;--cal-6:#9b9dc4;--cal-7:#c4a1ff}
+.cal2{display:grid;grid-template-columns:264px minmax(0,1fr);border-top:1px solid var(--ad-line);min-width:0}
+.cal2Side{padding:16px;border-right:1px solid var(--ad-line);display:flex;flex-direction:column;gap:18px;min-width:0}
+.cal2Add{width:100%;justify-content:center}
+.miniHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.miniTitle{font:700 15px 'Space Grotesk',system-ui,sans-serif}
+.miniNav{display:flex;gap:2px}
+.miniBtn{position:relative;width:32px;height:32px;border-radius:10px;display:grid;place-items:center;color:var(--ad-dim);transition:background .15s,color .15s}
+.miniBtn::after{content:"";position:absolute;inset:-6px}
+.miniBtn:hover{background:var(--ad-hover);color:var(--ad-ink)}
+.miniGrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));row-gap:2px}
+.miniH{font-size:11px;font-weight:600;color:var(--ad-dim);text-align:center;padding:2px 0 4px}
+.miniD{position:relative;height:40px;display:grid;place-items:center;font-size:13px;font-variant-numeric:tabular-nums}
+.miniD::after{content:"";position:absolute;inset:-4px -1px}
+.miniD .num{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;transition:background .15s}
+.miniD:hover .num{background:var(--ad-hover)}
+.miniD.out{color:var(--ad-dim);opacity:.7}
+.miniD.is-week{background:var(--ad-hover)}
+.miniD.wk-s{border-radius:12px 0 0 12px}.miniD.wk-e{border-radius:0 12px 12px 0}
+.miniD.is-today:not(.is-sel) .num{box-shadow:inset 0 0 0 1.5px var(--ad-dim);font-weight:700}
+.miniD.is-sel .num{background:var(--ad-fill);color:var(--ad-on-fill);font-weight:700}
+.miniDot{position:absolute;bottom:0;left:50%;width:5px;height:5px;margin-left:-2.5px;border-radius:50%}
+.calList{display:flex;flex-direction:column;border-top:1px solid var(--ad-line);padding-top:12px}
+.calListHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;font-size:14px}
+.calEdit{min-height:44px;padding:0 6px;font-size:13px;font-weight:600;color:var(--ad-accent-ink)}
+.calEdit:hover{text-decoration:underline;text-underline-offset:3px}
+.calRow{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:0 4px;text-align:left;border-radius:10px;transition:background .15s}
+.calRow:hover{background:var(--ad-hover)}
+.calBox{flex:none;width:20px;height:20px;border-radius:6px;border:2px solid var(--c);display:grid;place-items:center;color:transparent;transition:background .15s,color .15s}
+.calRow[aria-checked="true"] .calBox{background:var(--c);color:var(--ad-panel)}
+.calName{flex:1;min-width:0;font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.calN{font-size:12px;color:var(--ad-dim)}
+.cal2Main{min-width:0;display:flex;flex-direction:column}
+.cal2Head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 20px;border-bottom:1px solid var(--ad-line)}
+.cal2Ttl{display:flex;flex-direction:column;min-width:0;margin-right:6px}
+.cal2Ttl h3{font:700 20px/1.15 'Space Grotesk',system-ui,sans-serif}
+.cal2Ttl span{font-size:13px;color:var(--ad-dim)}
+.cal2Nav{display:inline-flex;gap:4px}
+.cal2Strip{display:none}
+.cal2Sum{margin:0;padding:12px 20px;font-size:13px;color:var(--ad-dim);border-top:1px solid var(--ad-line)}
+.tgWrap{overflow:auto;max-height:820px;overscroll-behavior:contain;position:relative}
+.tg{min-width:calc(56px + var(--cols) * 116px)}
+.tgHead,.tgBody{display:grid;grid-template-columns:56px repeat(var(--cols),minmax(0,1fr))}
+.tgHead{position:sticky;top:0;z-index:6;background:var(--ad-panel);border-bottom:1px solid var(--ad-line)}
+.tgGmt{position:sticky;left:0;z-index:7;background:var(--ad-panel);display:flex;align-items:flex-end;padding:0 8px 10px;font-size:11px;color:var(--ad-dim)}
+.tgDay{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;border-left:1px solid var(--ad-line);font-size:12px;font-weight:600;color:var(--ad-dim)}
+.tgNum{font:700 17px/1.2 'Space Grotesk',system-ui,sans-serif;color:var(--ad-ink)}
+.tgDay.is-today{background:var(--ad-hover);color:var(--ad-ink)}
+.tgDay.is-today .tgNum{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--ad-fill);color:var(--ad-on-fill)}
+.tgBody{position:relative;height:var(--gh)}
+.tgHours{position:sticky;left:0;z-index:5;background:var(--ad-panel)}
+.tgHr{position:absolute;right:8px;font-size:11px;color:var(--ad-dim);transform:translateY(-50%)}
+.tgHr:first-child{transform:none;top:4px !important}
+.tgCol{position:relative;border-left:1px solid var(--ad-line);cursor:cell;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent calc(var(--rh) - 1px),var(--ad-line) calc(var(--rh) - 1px),var(--ad-line) var(--rh))}
+.tgCol.is-today{background-color:var(--ad-panel-2)}
+.tgEv{position:absolute;z-index:2;display:flex;flex-direction:column;gap:2px;padding:6px 8px;text-align:left;background:var(--ad-panel);border:1.5px solid var(--c);border-radius:12px;overflow:hidden;box-shadow:var(--ad-sh-1);cursor:pointer;transition:transform .18s var(--ease),box-shadow .18s}
+.tgEv:hover{transform:translateY(-1px);box-shadow:var(--ad-sh-2);z-index:3}
+.tg.is-day .tgEv{max-width:560px}
+.tgEvTop{display:flex;align-items:flex-start;gap:6px;min-width:0}
+.tgEvT{font-size:13px;font-weight:600;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-width:0}
+.tgEv.short .tgEvT{-webkit-line-clamp:1}
+.tgEvTime{font-size:12px;color:var(--ad-dim);line-height:1.2}
+.tgEvSub{font-size:12px;color:var(--ad-dim);line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tgLogo{flex:none;width:20px;height:20px;border-radius:6px;display:grid;place-items:center;color:#fff}
+.tgPeople{display:flex;align-items:center;margin-top:auto;padding-left:6px}
+.tgAv{width:24px;height:24px;border-radius:50%;margin-left:-6px;border:2px solid var(--ad-panel);display:grid;place-items:center;color:#fff;font:700 9px 'Space Grotesk',system-ui,sans-serif}
+.tgMore{margin-left:2px;height:22px;padding:0 7px;border-radius:11px;display:inline-flex;align-items:center;font-size:11px;font-weight:700;background:var(--ad-tone-flat);color:var(--ad-on-flat)}
+.tgTag{align-self:flex-start;height:20px;font-size:11px}
+.tgNow{position:absolute;left:0;right:0;height:2px;background:var(--ad-act);z-index:6;pointer-events:none;display:flex;justify-content:space-between;align-items:center}
+.tgNowPill{position:sticky;left:6px;background:var(--ad-act);color:#fff;font:700 11px/1 'Space Grotesk',system-ui,sans-serif;padding:6px 9px;border-radius:999px;z-index:6}
+.tgNowAdd{position:sticky;right:10px;width:44px;height:44px;border-radius:50%;background:var(--ad-fill);color:var(--ad-on-fill);display:grid;place-items:center;pointer-events:auto;box-shadow:var(--ad-sh-2);transition:transform .2s var(--spring),background .15s}
+.tgNowAdd:hover{background:var(--ad-fill-hover);transform:scale(1.06)}
+.tgNowAdd:active{transform:scale(.96)}
+.cmWrap{overflow:auto;padding:12px 16px 16px}
+.cmGrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));min-width:700px;border:1px solid var(--ad-line);border-radius:16px;overflow:hidden}
+.cmHead{padding:8px;font-size:12px;font-weight:600;color:var(--ad-dim);text-align:center;background:var(--ad-panel-2);border-bottom:1px solid var(--ad-line)}
+.cmCell{min-height:118px;padding:6px;border-right:1px solid var(--ad-line);border-bottom:1px solid var(--ad-line);display:flex;flex-direction:column;gap:3px;min-width:0}
+.cmCell:nth-child(7n){border-right:0}
+.cmCell.out{background:var(--ad-panel-2)}
+.cmNum{position:relative;align-self:flex-start;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:600}
+.cmNum::after{content:"";position:absolute;inset:-8px}
+.cmNum:hover{background:var(--ad-hover)}
+.cmCell.out .cmNum{color:var(--ad-dim)}
+.cmCell.is-today .cmNum{background:var(--ad-fill);color:var(--ad-on-fill)}
+.cmEv{display:block;width:100%;min-height:24px;padding:2px 6px;border-radius:6px;background:var(--ad-panel);border-left:3px solid var(--c);box-shadow:inset 0 0 0 1px var(--ad-line);font-size:12px;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:background .15s}
+.cmEv:hover{background:var(--ad-hover)}
+.cmEvT{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cmMore{min-height:24px;font-size:12px;font-weight:600;color:var(--ad-accent-ink);text-align:left;padding:0 4px}
+.stripD{position:relative;flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;border-radius:12px;font-size:11px;font-weight:600;color:var(--ad-dim);min-height:52px}
+.stripN{font:700 15px 'Space Grotesk',system-ui,sans-serif;color:var(--ad-ink)}
+.stripD.is-sel{background:var(--ad-fill);color:var(--ad-on-fill)}.stripD.is-sel .stripN{color:var(--ad-on-fill)}
+.stripD.is-today:not(.is-sel){box-shadow:inset 0 0 0 1.5px var(--ad-dim)}
+@container card (max-width:1020px){
+  .tg{min-width:calc(56px + var(--cols) * 92px)}
+  .cal2{grid-template-columns:minmax(0,1fr)}
+  .cal2Side{border-right:0;border-bottom:1px solid var(--ad-line);display:grid;grid-template-columns:minmax(220px,300px) minmax(0,1fr);gap:14px 24px;align-items:start}
+  .cal2Add{grid-column:1 / -1}
+  .calList{border-top:0;padding-top:0}
+}
+@container card (max-width:640px){
+  .cal2Side{grid-template-columns:minmax(0,1fr);gap:8px;padding:12px 14px}
+  .miniCal{display:none}
+  .calList{flex-direction:row;flex-wrap:wrap;gap:6px;align-items:center}
+  .calListHead{display:none}
+  .calRow{width:auto;min-height:44px;padding:0 12px 0 10px;border:1px solid var(--ad-line);border-radius:999px}
+  .calN{display:none}
+  .cal2Head{padding:12px 14px;gap:8px}
+  .cal2Ttl h3{font-size:18px}
+  .cal2Exp{display:none}
+  .cal2Strip{display:flex;gap:4px;padding:8px 10px;border-bottom:1px solid var(--ad-line)}
+  .cal2Sum{padding:10px 14px}
+}
+@media (prefers-reduced-motion:reduce){.tgEv,.tgNowAdd,.calRow,.miniD .num{transition:none}.tgEv:hover,.tgNowAdd:hover{transform:none}}
+
+/* Sheet attributes (an icon, a label, then a value, chips or people) and detail tabs. */
+.attrs{margin:0;display:flex;flex-direction:column}
+.attr{display:grid;grid-template-columns:132px minmax(0,1fr);gap:10px;align-items:center;min-height:44px;padding:4px 0;border-bottom:1px solid var(--ad-line)}
+.attr:last-child{border-bottom:0}
+.attr dt{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ad-dim);font-weight:500}
+.attr dt svg{flex:none}
+.attr dd{margin:0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0;font-size:14px;font-weight:500}
+.attrPerson{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 10px 0 4px;border-radius:999px;background:var(--ad-panel-2);box-shadow:inset 0 0 0 1px var(--ad-line);font-size:13px}
+.shTabs{margin:4px -4px 0}
+.shTabBody{display:flex;flex-direction:column;gap:12px;padding-top:12px}
+.tabItem{display:flex;gap:10px;align-items:flex-start}
+@media (max-width:480px){.attr{grid-template-columns:104px minmax(0,1fr)}}
+
+/* The board, as drawn from the project-management references: tags, a note, progress, people and counts on every card. */
+.bBar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:0 20px 12px}
+.bBarL{font-size:13px;color:var(--ad-dim);font-weight:600}
+.bBarN{font-size:13px;font-weight:600}
+.bBarTip{font-size:12px;color:var(--ad-dim)}
+.bCol{padding:10px 10px 12px}
+.bHead{padding:4px 2px 8px}
+.bCount{min-width:24px;height:22px;padding:0 7px;border-radius:99px;display:inline-grid;place-items:center;font-size:12px;font-weight:700;background:var(--ad-tone-flat);color:var(--ad-on-flat)}
+.bPlus{width:32px;height:32px;min-height:32px;position:relative}
+.bPlus::after{content:"";position:absolute;inset:-6px}
+.bCard{gap:7px;padding:12px 12px 10px;box-shadow:var(--ad-sh-1)}
+.bTags{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-right:34px}
+.bTitle{font:700 15px/1.25 'Space Grotesk',system-ui,sans-serif}
+.bClient{font-size:12px;color:var(--ad-dim)}
+.bDesc{font-size:13px;color:var(--ad-dim);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.bProg{display:flex;flex-direction:column;gap:5px;margin-top:2px}
+.bProgL{display:flex;justify-content:space-between;font-size:12px;color:var(--ad-dim)}
+.bProgL .num{font-weight:700;color:var(--ad-ink)}
+.bFoot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:2px;min-width:0}
+.bCrew{display:flex;padding-left:6px;flex:none}
+.bAv{width:26px;height:26px;border-radius:50%;margin-left:-6px;border:2px solid var(--ad-panel);display:grid;place-items:center;color:#fff;font:700 9px 'Space Grotesk',system-ui,sans-serif}
+.bMeta{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--ad-dim);min-width:0;flex-wrap:wrap;justify-content:flex-end}
+.bMeta span{display:inline-flex;align-items:center;gap:3px;white-space:nowrap}
+.bMeta .bDue{font-weight:700}
+.bAdd{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;border-radius:14px;border:1.5px dashed var(--ad-line-2);color:var(--ad-dim);font-weight:600;font-size:13px;transition:background .15s,color .15s,border-color .15s}
+.bAdd:hover{background:var(--ad-hover);color:var(--ad-ink);border-color:var(--ad-ink)}
+.bCardW.dragging .bCard{opacity:.4;border-style:dashed;box-shadow:none}
+.bGhost{position:fixed;top:-9999px;left:-9999px;pointer-events:none}
+.bGhost .bCard{transform:rotate(3deg);border:2px solid var(--ad-ink);box-shadow:var(--ad-sh-3);opacity:1}
+.bGhost .bMove{display:none}
+.board{align-items:start}
+
+.bClient{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.bClient .bDue{font-weight:700;font-size:12px;white-space:nowrap}
+.tlWrap{overflow:auto;margin:0 20px 18px;border:1px solid var(--ad-line);border-radius:16px;max-height:720px;overscroll-behavior:contain}
+.tl{min-width:980px}
+.tlHead,.tlRow{display:grid;grid-template-columns:220px minmax(0,1fr)}
+.tlHead{position:sticky;top:0;z-index:5;background:var(--ad-panel-2);border-bottom:1px solid var(--ad-line)}
+.tlCorner{position:sticky;left:0;z-index:6;background:var(--ad-panel-2);padding:12px 14px;font-size:12px;font-weight:600;color:var(--ad-dim)}
+.tlAxis{display:grid;grid-template-columns:repeat(var(--wk),minmax(0,1fr))}
+.tlWk{padding:12px 8px;font-size:12px;font-weight:600;color:var(--ad-dim);border-left:1px solid var(--ad-line)}
+.tlBody{position:relative}
+.tlRow{border-bottom:1px solid var(--ad-line);min-height:64px}
+.tlRow:last-child{border-bottom:0}
+.tlName{position:sticky;left:0;z-index:3;background:var(--ad-panel);display:flex;flex-direction:column;justify-content:center;gap:1px;text-align:left;padding:8px 14px;border-right:1px solid var(--ad-line)}
+.tlName strong{font-size:14px}.tlName span{font-size:12px;color:var(--ad-dim)}
+.tlName:hover{background:var(--ad-hover)}
+.tlTrack{position:relative;background-image:repeating-linear-gradient(to right,transparent 0,transparent calc(100% / var(--wk) - 1px),var(--ad-line) calc(100% / var(--wk) - 1px),var(--ad-line) calc(100% / var(--wk)))}
+.tl .tlTrack{background-size:100% 100%}
+.tlBar{position:absolute;top:10px;min-width:56px;height:44px;display:flex;flex-direction:column;justify-content:center;gap:6px;text-align:left;border-radius:10px;transition:transform .18s var(--ease)}
+.tlBar::after{content:"";position:absolute;inset:-2px -4px}
+.tlBar:hover{transform:translateY(-1px)}
+.tlBar:hover .tlRail{box-shadow:0 0 0 3px var(--ad-ring)}
+.tlRail{display:block;height:12px;border-radius:99px;background:var(--ad-tone-flat);overflow:hidden;transition:box-shadow .15s}
+.tlFill{display:block;height:100%;border-radius:99px;background:var(--c);transform-origin:left;animation:growx .8s var(--ease) backwards}
+.tlTxt{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tlNone{position:absolute;left:14px;top:22px;font-size:12px;color:var(--ad-dim)}
+.tlToday{position:absolute;top:0;bottom:0;left:calc(220px + (100% - 220px) * var(--today,0));width:0;z-index:4;pointer-events:none;border-left:2px solid var(--ad-act)}
+.tlTodayPill{position:absolute;top:-1px;left:-1px;transform:translateX(-50%);background:var(--ad-act);color:#fff;font:700 11px/1 'Space Grotesk',system-ui,sans-serif;padding:5px 8px;border-radius:0 0 8px 8px}
+
+/* The client's copy as a document: title and number, meta, from and to, a table, totals, note, payment and signature. */
+.docPaper{padding:22px 22px 18px;gap:12px;font-size:13px;line-height:1.45;box-shadow:var(--ad-sh-1)}
+.dpTop{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.dpTitle{margin:0;font:700 26px/1.1 'Space Grotesk',system-ui,sans-serif;letter-spacing:-.02em}
+.dpNo{color:#5c5c7a;font-size:13px}
+.dpMark{font:700 18px 'Space Grotesk',system-ui,sans-serif;letter-spacing:.08em;color:#000065;padding:6px 10px;border:2px solid #000065;border-radius:10px}
+.dpRule{height:1px;background:#e4e6f0}
+.dpMeta2{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.dpMeta2 small,.dpParty small,.dpBottom small{display:block;color:#5c5c7a;font-size:11px;margin-bottom:2px}
+.dpMeta2 b{font-weight:600;overflow-wrap:anywhere}
+.dpParty{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.dpParty div{display:flex;flex-direction:column;min-width:0}.dpParty span{color:#5c5c7a;font-size:12px;overflow-wrap:anywhere}.dpParty .r,.dpBottom .r{text-align:right;align-items:flex-end}
+.dpTbl{display:flex;flex-direction:column;border-radius:10px;overflow:hidden;border:1px solid #e4e6f0}
+.dpTh,.dpTr{display:grid;grid-template-columns:minmax(0,1fr) 44px 92px 100px;gap:8px;padding:8px 12px;align-items:start}
+.dpTh{background:#f2f3f9;color:#5c5c7a;font-size:11px;font-weight:600}
+.dpTr{border-top:1px solid #e4e6f0}.dpTr span:first-child{overflow-wrap:anywhere}
+.dpTbl .n{text-align:right}
+.docPaper .dpTot{display:flex;flex-direction:column;gap:4px;margin-left:auto;width:min(100%,260px)}
+.docPaper .dpTot > div{display:flex;justify-content:space-between;gap:12px;color:#5c5c7a}
+.docPaper .dpTot .tot{color:#0e0e2c;font-weight:700;font-size:15px;border-top:1px solid #c9ccdc;padding-top:6px;margin-top:2px}
+.dpNote{border:1px solid #e4e6f0;border-radius:10px;padding:10px 12px;color:#0e0e2c}
+.dpBottom{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}.dpBottom span{color:#5c5c7a;font-size:12px}
+.dpSign{font:italic 600 18px 'Space Grotesk',system-ui,sans-serif;color:#000065}
+.dpMail{gap:10px}.dpMail small{color:#5c5c7a}.dpMail p{margin:0}
+.dpBtn{align-self:flex-start;padding:10px 16px;border-radius:12px;background:#000065;color:#fff;font-weight:600}
+.layoutWide .railCards .docPaper{min-height:420px}
+@container app (min-width:1181px){
+  .layoutWide{grid-template-columns:minmax(0,1fr) minmax(0,500px)}
+  .layoutWide .railCards{position:sticky;top:12px;align-self:start;max-height:calc(100vh - 24px);overflow:auto;overscroll-behavior:contain}
+}
+@container card (max-width:520px){.dpTh,.dpTr{grid-template-columns:minmax(0,1fr) 34px 78px 84px;padding:8px}.docPaper{padding:16px 14px}.dpTitle{font-size:22px}.dpMeta2{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
 </style>
 </helmet>
 <div class="{{rootCls}}" onClick="{{rootClick}}">
@@ -1253,7 +1483,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
                 <button class="ibtn" data-menu="chores" aria-label="More for this document" aria-haspopup="menu" aria-expanded="{{choresX}}" onClick="{{openChores}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg></button>
               </div>
             </div>
-            <div class="layout">
+            <div class="layout {{layoutCls}}">
               <div class="col" data-tour="new">
                 <sc-if value="{{isView}}" hint-placeholder-val="{{ true }}">
                   <div class="bento rise d1"><sc-for list="{{figs}}" as="k" hint-placeholder-count="3"><div class="card stat" style="padding: 14px 16px; display: flex; flex-direction: column; gap: 6px"><span class="statHd"><span class="statIc" style="background: {{k.tile}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="{{k.ic}}"></path></svg></span><span class="statLbl">{{k.label}}</span></span><span class="num" style="font-size: clamp(22px, 2.4vw, 26px); font-weight: 700">{{k.value}}</span><span style="font-size: 12px; font-weight: 600; color: {{k.col}}">{{k.note}}</span></div></sc-for></div>
@@ -1300,7 +1530,26 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
               </div>
               <aside class="railCards" aria-label="The client’s copy" data-tour="rail">
                 <section class="card rise d2" aria-label="Preview" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 10px"><div style="display: flex; align-items: center; gap: 8px"><h2 style="font-size: 16px; font-weight: 700; flex: 1">The client’s copy</h2><span style="font-size: 12px; color: var(--ad-dim)">{{prevSub}}</span></div>
-                  <div class="docPrev"><div class="dpHead"><strong>WDC Studio</strong><span>{{prevKind}} {{no}}</span></div><div class="dpMeta"><span>{{prevTo}}</span><span>{{prevDates}}</span></div><sc-for list="{{prevLines}}" as="l" hint-placeholder-count="3"><div class="dpLine"><span>{{l.d}}</span><span class="num">{{l.a}}</span></div></sc-for><div class="dpTot"><sc-for list="{{totRows}}" as="t" hint-placeholder-count="3"><div class="{{t.cls}}"><span>{{t.k}}</span><span class="num">{{t.v}}</span></div></sc-for></div><span class="dpFoot">{{prevFoot}}</span></div>
+                  <sc-if value="{{isEdit}}" hint-placeholder-val="{{ false }}"><div class="seg" role="group" aria-label="What to preview" style="--n: 2; --i: {{pvI}}; width: min(100%, 240px)"><span class="pill" aria-hidden="true"></span><button class="{{pvDocCls}}" aria-pressed="{{isPvDoc}}" onClick="{{setPvDoc}}">Document</button><button class="{{pvMailCls}}" aria-pressed="{{isPvMail}}" onClick="{{setPvMail}}">Email</button></div></sc-if>
+                  <sc-if value="{{isPvDoc}}" hint-placeholder-val="{{ true }}">
+                  <div class="docPrev docPaper">
+                    <div class="dpTop"><div><h3 class="dpTitle">{{prevKind}}</h3><span class="dpNo num">#{{no}}</span></div><span class="dpMark" aria-hidden="true">WDC</span></div>
+                    <div class="dpRule"></div>
+                    <div class="dpMeta2"><div><small>Project</small><b>{{pvProject}}</b></div><div><small>Issued</small><b class="num">{{pvIssued}}</b></div><div><small>{{pvDueLabel}}</small><b class="num">{{pvDue}}</b></div></div>
+                    <div class="dpRule"></div>
+                    <div class="dpParty"><div><small>From</small><b>WDC Studio</b><span>hello@wdc.ng</span></div><div class="r"><small>To</small><b>{{pvToName}}</b><span>{{pvToContact}}</span><span>{{pvToMail}}</span><sc-if value="{{hasPvPo}}" hint-placeholder-val="{{ false }}"><span>{{pvPo}}</span></sc-if></div></div>
+                    <div class="dpRule"></div>
+                    <div class="dpTbl"><div class="dpTh"><span>Description</span><span class="n">Qty</span><span class="n">Price</span><span class="n">Amount</span></div>
+                      <sc-for list="{{lineRows}}" as="l" hint-placeholder-count="3"><div class="dpTr"><span>{{l.d}}</span><span class="n num">{{l.q}}</span><span class="n num">{{l.u}}</span><span class="n num">{{l.a}}</span></div></sc-for>
+                      <sc-if value="{{pvNone}}" hint-placeholder-val="{{ false }}"><div class="dpTr"><span style="color: #5c5c7a">Lines appear here as you add them.</span></div></sc-if>
+                    </div>
+                    <div class="dpTot"><sc-for list="{{totRows}}" as="t" hint-placeholder-count="3"><div class="{{t.cls}}"><span>{{t.k}}</span><span class="num">{{t.v}}</span></div></sc-for></div>
+                    <sc-if value="{{hasPvNote}}" hint-placeholder-val="{{ false }}"><div class="dpNote"><b>Note</b> {{pvNote}}</div></sc-if>
+                    <div class="dpBottom"><div><small>Payment</small><span>{{pvAcct}}</span></div><div class="r"><b class="dpSign">WDC Studio</b></div></div>
+                    <span class="dpFoot">{{pvTerms}}</span>
+                  </div>
+                  </sc-if>
+                  <sc-if value="{{isPvMail}}" hint-placeholder-val="{{ false }}"><div class="docPrev docPaper dpMail"><small>To {{pvToName}}</small><strong>{{pvMailSubject}}</strong><p style="white-space: pre-line">{{pvMailBody}}</p><span class="dpBtn">Open {{prevKind}} {{no}}</span></div></sc-if>
                 </section>
                 <sc-if value="{{isEdit}}" hint-placeholder-val="{{ false }}"><section class="card rise d3" aria-label="Ready to send" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 8px"><h2 style="font-size: 16px; font-weight: 700">Ready to send?</h2><sc-for list="{{checks}}" as="ck" hint-placeholder-count="4"><div style="display: flex; align-items: center; gap: 10px"><span class="ebTick {{ck.cls}}"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="{{ck.d}}"></path></svg></span><span style="flex: 1; min-width: 0; font-size: 13px">{{ck.t}}</span></div></sc-for></section></sc-if>
                 <sc-if value="{{hasRem}}" hint-placeholder-val="{{ false }}"><section class="card rise d4" aria-label="Reminders" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 8px"><div style="display: flex; align-items: center; gap: 8px"><h2 style="font-size: 16px; font-weight: 700; flex: 1">Reminders</h2><button class="btn2" style="min-height: 44px" onClick="{{editRem}}">Edit schedule</button></div><p style="font-size: 13px; color: var(--ad-dim)">{{remNote}}</p><sc-for list="{{remRows}}" as="r" hint-placeholder-count="3"><div style="display: flex; align-items: center; gap: 10px; min-height: 44px"><span class="tag" style="background: {{r.tone}}; color: {{r.ink}}">{{r.state}}</span><span style="flex: 1; min-width: 0; font-size: 13px"><strong>{{r.t}}</strong><br><span style="color: var(--ad-dim)">{{r.when}}</span></span></div></sc-for></section></sc-if>
@@ -1419,6 +1668,13 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
             <div class="noticeB" role="status" style="--nt: {{sheet.notice.tone}}"><span class="noticeIc"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="{{sheet.notice.icon}}"></path></svg></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><strong>{{sheet.notice.title}}</strong><span>{{sheet.notice.body}}</span></span><sc-if value="{{sheet.notice.hasAct}}" hint-placeholder-val="{{ false }}"><button class="btn2" style="min-height: 40px" onClick="{{sheet.notice.act}}">{{sheet.notice.actLabel}}</button></sc-if></div>
           </sc-if>
           <sc-if value="{{sheet.hasRows}}" hint-placeholder-val="{{ true }}"><dl class="dl"><sc-for list="{{sheet.rows}}" as="r" hint-placeholder-count="4"><div style="min-width: 0"><dt>{{r.k}}</dt><dd class="num">{{r.v}}</dd></div></sc-for></dl></sc-if>
+          <sc-if value="{{sheet.hasAttrs}}" hint-placeholder-val="{{ false }}"><dl class="attrs"><sc-for list="{{sheet.attrs}}" as="a" hint-placeholder-count="6"><div class="attr"><dt><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="{{a.ic}}"></path></svg>{{a.k}}</dt><dd><sc-if value="{{a.hasText}}" hint-placeholder-val="{{ true }}"><span class="num">{{a.v}}</span></sc-if><sc-for list="{{a.chips}}" as="c" hint-placeholder-count="2"><span class="tag" style="background: {{c.tone}}; color: {{c.ink}}">{{c.t}}</span></sc-for><sc-for list="{{a.people}}" as="pp" hint-placeholder-count="2"><span class="attrPerson"><span class="av0" style="width: 24px; height: 24px; font-size: 9px; background: {{pp.tone}}">{{pp.i}}</span>{{pp.name}}</span></sc-for></dd></div></sc-for></dl></sc-if>
+          <sc-if value="{{sheet.hasTabs}}" hint-placeholder-val="{{ false }}"><div role="tablist" aria-label="Details" class="tabs shTabs"><sc-for list="{{sheet.tabs}}" as="tb" hint-placeholder-count="3"><button role="tab" class="tab {{tb.cls}}" aria-selected="{{tb.sel}}" onClick="{{tb.pick}}">{{tb.t}}<sc-if value="{{tb.hasN}}" hint-placeholder-val="{{ false }}"><span class="tag num" style="background: var(--ad-tone-flat); color: var(--ad-on-flat); height: 20px; padding: 0 7px">{{tb.n}}</span></sc-if></button></sc-for></div>
+            <div class="shTabBody rowIn" style="animation-name: rinA">
+              <sc-if value="{{sheet.hasTabText}}" hint-placeholder-val="{{ true }}"><p style="max-width: 62ch">{{sheet.tabText}}</p></sc-if>
+              <sc-for list="{{sheet.tabItems}}" as="ti" hint-placeholder-count="3"><div class="tabItem"><span class="av0" style="width: 32px; height: 32px; font-size: 11px; background: {{ti.tone}}">{{ti.i}}</span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap"><strong>{{ti.t}}</strong><span style="color: var(--ad-dim); font-size: 12px">{{ti.when}}</span></span><span style="font-size: 14px">{{ti.s}}</span></span></div></sc-for>
+              <sc-if value="{{sheet.hasTabEmpty}}" hint-placeholder-val="{{ false }}"><p style="color: var(--ad-dim)">{{sheet.tabEmpty}}</p></sc-if>
+            </div></sc-if>
           <sc-if value="{{sheet.hasQuick}}" hint-placeholder-val="{{ false }}"><div class="quickRow" role="group" aria-label="More for this item"><sc-for list="{{sheet.quick}}" as="q" hint-placeholder-count="3"><button type="button" class="chip" onClick="{{q.fn}}">{{q.t}}</button></sc-for></div></sc-if>
           <sc-if value="{{sheet.hasBody}}" hint-placeholder-val="{{ true }}"><p style="max-width: 62ch">{{sheet.body}}</p></sc-if>
           <sc-if value="{{sheet.hasPreview}}" hint-placeholder-val="{{ false }}">
@@ -1866,7 +2122,7 @@ class Component extends DCLogic {
     var self = this;
     this.reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
     this.onResize = function () { if (self.state.pop && !self.state.pop.asSheet) self.setState({ pop: null }); self.queueTour(); };
-    this.onScroll = function () { if (self.state.pop && !self.state.pop.asSheet) self.setState({ pop: null }); self.queueTour(); };
+    this.onScroll = function (e) { var t = e && e.target; if (t && t.closest && t.closest('.board, .tgWrap, .tlWrap, .cmWrap')) return; if (self.state.pop && !self.state.pop.asSheet) self.setState({ pop: null }); self.queueTour(); };
     this.onKey = function (e) {
       var k = e.key;
       if ((e.ctrlKey || e.metaKey) && (k === 'k' || k === 'K')) { e.preventDefault(); self.openPalette(); return; }
@@ -1952,7 +2208,7 @@ class Component extends DCLogic {
   open(sh, push) {
     var s = this.state;
     var stack = push && s.sheet ? s.stack.concat([{ sheet: s.sheet, draft: s.draft, reason: s.reason, ack: s.ack, spick: s.spick, ck: s.ck, zoom: s.zoom, form: s.form, lextra: s.lextra, lsel: s.lsel, lq: s.lq, lpg: s.lpg }]) : [];
-    this.setState({ sheet: sh, stack: stack, sheetFull: false, bell: false, pal: false, drawer: false, menu: null, pop: null, tour: -1, draft: sh.draft || '', reason: '', ack: false, ck: {}, spick: sh.pick != null ? sh.pick : -1, vis: sh.vis || 'team', zoom: 1, cmt: '', form: Object.assign({}, sh.form || {}), lq: '', lpg: 0, lcreate: false, lcf: {}, lextra: [], lsel: Object.assign({}, sh.lsel || {}), ui: null, edMode: 'write' });
+    this.setState({ sheet: sh, stack: stack, sheetFull: false, bell: false, pal: false, drawer: false, menu: null, pop: null, tour: -1, draft: sh.draft || '', reason: '', ack: false, ck: {}, spick: sh.pick != null ? sh.pick : -1, vis: sh.vis || 'team', zoom: 1, cmt: '', form: Object.assign({}, sh.form || {}), lq: '', lpg: 0, lcreate: false, lcf: {}, lextra: [], lsel: Object.assign({}, sh.lsel || {}), ui: null, edMode: 'write', shTab: 0 });
   }
   closeSheet(force) {
     var self = this, raw = this.state.sheet;
@@ -2281,7 +2537,10 @@ class Component extends DCLogic {
     if (raw.select && raw.selectRequired !== false && (raw.multi ? ctx.picks.length === 0 : ctx.pick < 0)) { dis = 'y'; reqText = raw.selectWhy || 'Choose one to continue.'; }
     if (raw.primaryDis) { var pd = raw.primaryDis(ctx, s); if (pd) { dis = 'y'; reqText = pd; } }
     var galRaw = typeof raw.gallery === 'function' ? raw.gallery(s) : (raw.gallery || []), galEmpty = typeof raw.galleryEmpty === 'function' ? raw.galleryEmpty(s) : false;
+    var TB = raw.tabs || [], tbi = Math.min(s.shTab || 0, Math.max(0, TB.length - 1)), tbOn = TB[tbi] || {};
     var sheet = Object.assign({}, raw, {
+      hasAttrs: !!(raw.attrs && raw.attrs.length), attrs: (raw.attrs || []).map(function (a) { var ch = a.chips || [], pe = a.people || []; return { ic: a.ic || '', k: a.k, v: a.v || '', hasText: !!a.v && !ch.length && !pe.length, chips: ch, people: pe }; }),
+      hasTabs: TB.length > 0, tabs: TB.map(function (t, i) { var on = i === tbi; return { t: t.t, n: t.items ? t.items.length : (t.n != null ? t.n : ''), hasN: !!(t.items ? t.items.length : t.n), cls: on ? 'on' : '', sel: on ? 'true' : 'false', pick: function () { if (!on) self.setState({ shTab: i }); } }; }), hasTabText: !!tbOn.text, tabText: tbOn.text || '', hasTabItems: !!(tbOn.items && tbOn.items.length), tabItems: tbOn.items || [], tabEmpty: tbOn.items && !tbOn.items.length ? (tbOn.empty || 'Nothing here yet.') : '', hasTabEmpty: !!(tbOn.items && !tbOn.items.length),
       feedTitle: raw.feedTitle || 'History', hasQuick: !!(raw.quick && raw.quick.length), quick: (raw.quick || []).map(function (q) { return { t: q.t, d: q.d || '', fn: function () { if (q.fn) q.fn(); } }; }), hasGallery: galRaw.length > 0, gallery: galRaw, galleryEmpty: galEmpty, back: s.stack.length > 0, hasChip: !!raw.chip, hasIcon: !!raw.icon, icon: raw.icon || '', iconTone: raw.iconTone || 'var(--ad-tone-brand)', hasRows: raw.rows.length > 0, hasBody: !!raw.body, hasPreview: !!raw.preview, preview: raw.preview || {},
       hasList: list.length > 0 || ss.has, list: list, ss: ss, listRole: raw.select ? (raw.multi ? 'group' : 'radiogroup') : 'list', hasChecks: checks.length > 0, checks: checks, checksTitle: raw.checksTitle || 'Checklist', checksDone: ckDone + ' of ' + checks.length, checksPct: checks.length ? Math.round(ckDone / checks.length * 100) : 0,
       hasFeed: raw.feed.length > 0, hasNote: !!raw.note, reason: !!raw.reason, reasonLabel: raw.reason ? raw.reason.label : '', reasonPh: raw.reason ? raw.reason.ph : '', ack: !!raw.ack, ackText: raw.ack || '',
@@ -3534,19 +3793,18 @@ class Component extends DCLogic {
     ];
   }
   projectSheet(pj) {
-    var self = this, I = this.icons(), done = pj.status === 'done';
-    return this.sh({ eyebrow: 'Project · ' + pj.client, title: pj.name, chip: pj.flag || (done ? 'Done' : pj.stage), tone: pj.flag ? (pj.flag === 'Paused' || pj.flag === 'Blocked' ? 'var(--ad-tone-bad)' : 'var(--ad-tone-warn)') : (done ? 'var(--ad-tone-good)' : 'var(--ad-tone-live)'), icon: I.folder,
-      rows: [{ k: 'Service', v: pj.svc }, { k: 'Stage', v: done ? 'Done' : pj.stage + (pj.stages.length > 1 ? ', ' + (pj.cur + 1) + ' of ' + pj.stages.length : '') }, { k: 'Lead', v: pj.lead }, { k: 'Due', v: pj.due }, ].concat(this.hideMoney() ? [{ k: 'Billing', v: this.payChip(pj) }] : [{ k: 'Value', v: pj.value }, { k: 'Payment', v: pj.pay }]),
-      body: 'Next: ' + pj.next + '.',
-      primary: pj.id === 'mira-so' ? 'Open project' : (done ? 'Close' : 'Message ' + pj.lead.split(' ')[0]), secondary: done ? '' : (pj.cid === 'mira' ? 'Open Mira Skincare' : 'Add a task'),
-      onPrimary: function () {
-        if (self.projPageKeys().indexOf(pj.id) >= 0) { window.location.href = self.projPageHref(pj.id); return; }
-        if (done) return;
-        setTimeout(function () { self.open(self.sh({ eyebrow: pj.name + ' · ' + pj.client, title: 'Message ' + pj.lead, icon: I.msg, compose: true, composeLabel: 'Message', required: true, primary: 'Send', onPrimary: function () { self.say('Sent to ' + pj.lead.split(' ')[0] + ' in the project thread.'); } })); }, 30);
-      },
+    var self = this, I = this.icons(), done = pj.status === 'done', team = this.teamData(), tone = pj.flag ? (pj.flag === 'Paused' || pj.flag === 'Blocked' ? 'var(--ad-tone-bad)' : 'var(--ad-tone-warn)') : (done ? 'var(--ad-tone-good)' : 'var(--ad-tone-live)');
+    var hs = 0; for (var ci = 0; ci < pj.id.length; ci++) hs += pj.id.charCodeAt(ci);
+    var crew = [{ name: pj.lead, i: pj.leadI, tone: pj.leadTone }].concat([team[hs % team.length], team[(hs + 2) % team.length]].filter(function (m) { return m && m.name !== pj.lead; }).slice(0, 2).map(function (m) { return { name: m.name, i: m.i, tone: m.tone }; }));
+    var FILES = { 'Branding & Design': ['Logo round 2.pdf', 'Colour and type sheet.png', 'Brand guide draft.pdf'], 'Web & Apps': ['Sitemap.pdf', 'Homepage design.png', 'Launch checklist.pdf'], 'Social & Ads': ['Content pillars.pdf', 'Instagram access guide.pdf'], SEO: ['Audit report.pdf', 'Keyword list.xlsx'], Apps: ['Screens round 1.pdf', 'Build plan.pdf'], 'Software & AI': ['Flow diagram.pdf', 'Test cases.xlsx'] }[pj.svc] || ['Brief.pdf'];
+    var STT = { 'Branding & Design': 'Concepts built from the colours and fonts the client chose.', 'Web & Apps': 'Pages, content and the build, with a recorded handover at the end.', 'Social & Ads': 'A monthly plan of posts the client approves before they go out.', SEO: 'An audit, fixes, and a monthly report on what moved.', Apps: 'Screens, build milestones and store release.', 'Software & AI': 'Scoping, a working build and tests the client signs off.' };
+    return this.sh({ eyebrow: 'Project · ' + pj.client, title: pj.name, chip: pj.flag || (done ? 'Done' : pj.stage), tone: tone, icon: I.folder,
+      attrs: [{ ic: 'M12 8v4l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z', k: 'Status', chips: [{ t: pj.flag || (done ? 'Done' : pj.stage), tone: tone, ink: '#fff' }] }, { ic: 'M4 6h16M4 12h16M4 18h10', k: 'Service', chips: [{ t: pj.svc, tone: 'var(--ad-tone-flat)', ink: 'var(--ad-on-flat)' }] }, { ic: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8', k: 'Team', people: crew }, { ic: 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z', k: 'Due', v: pj.due }, { ic: 'M3 3h7v18H3zM14 3h7v10h-7z', k: 'Stage', v: done ? 'Done' : pj.stage + (pj.stages.length > 1 ? ', ' + (pj.cur + 1) + ' of ' + pj.stages.length : '') }].concat(this.hideMoney() ? [{ ic: 'M2 7h20v10H2zM12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z', k: 'Billing', chips: [{ t: this.payChip(pj), tone: 'var(--ad-tone-flat)', ink: 'var(--ad-on-flat)' }] }] : [{ ic: 'M2 7h20v10H2zM12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z', k: 'Value', v: pj.value }, { ic: 'M20 6 9 17l-5-5', k: 'Payment', v: pj.pay }]),
+      tabs: [{ t: 'Description', text: (STT[pj.svc] || 'Work for this client.') + ' Next: ' + pj.next + '.' }, { t: 'Discussion', items: [{ t: pj.lead, i: pj.leadI, tone: pj.leadTone, when: 'Today, 09:12', s: pj.next + '.' }, { t: 'Client', i: pj.client.split(' ').map(function (w) { return w.charAt(0); }).join('').slice(0, 2).toUpperCase(), tone: 'var(--ad-tone-neutral)', when: 'Yesterday, 16:40', s: 'Thank you, we will look at it today.' }] }, { t: 'Attachments', items: FILES.map(function (f, k) { return { t: f, i: f.split('.').pop().toUpperCase().slice(0, 3), tone: 'var(--ad-tone-bad)', when: ['Today', 'Wed 7 Oct', 'Sat 3 Oct'][k] || 'Sat 3 Oct', s: ['4.2 MB', '1.1 MB', '420 KB'][k] || '300 KB' }; }) }],
+      primary: 'Open project page', secondary: done ? '' : 'Message ' + pj.lead.split(' ')[0],
+      onPrimary: function () { if (self.projPageKeys().indexOf(pj.id) >= 0) window.location.href = self.projPageHref(pj.id); else self.say('The project page opens here.'); },
       onSecondary: function () {
-        if (pj.cid === 'mira') { window.location.href = 'A-Client.dc.html'; return 'stay'; }
-        self.open(self.taskSheet(pj), true); return 'stay';
+        self.open(self.sh({ eyebrow: pj.name + ' · ' + pj.client, title: 'Message ' + pj.lead, icon: I.msg, compose: true, composeLabel: 'Message', required: true, primary: 'Send', onPrimary: function () { self.say('Sent to ' + pj.lead.split(' ')[0] + ' in the project thread.'); } }), true); return 'stay';
       } });
   }
   taskSheet(pj, onAdd) {
@@ -3937,7 +4195,7 @@ class Component extends DCLogic {
   /* ======================= Owner · Invoice and quote document =======================
      One page for both. ?new=invoice or ?new=quote starts a draft, ?no=<number> opens an existing one, &pay=1 opens Record a payment straight away.
      Documents are kept in shared memory, so Money, the client page and the project page all list what is saved here. */
-  pageState() { return { doc: null, mode: '', ra: 0, gone: {}, recorded: {}, voided: {}, refunded: {}, newInv: [], newQ: [], qst: {}, fuMeta: {}, exp: [], expGone: {}, added: [], dirty: false }; }
+  pageState() { return { pvm: 'doc', doc: null, mode: '', ra: 0, gone: {}, recorded: {}, voided: {}, refunded: {}, newInv: [], newQ: [], qst: {}, fuMeta: {}, exp: [], expGone: {}, added: [], dirty: false }; }
   navSection() { return 'Money'; }
   pageName() { var d = this.D(); return this.state.mode === 'edit' && !d.sent ? 'New ' + d.kind : (d.kind === 'quote' ? 'Quote ' : 'Invoice ') + d.no; }
   tourSteps() {
@@ -4189,7 +4447,11 @@ class Component extends DCLogic {
       discChips: chipSet(['None', 'Percent', 'Amount'], function (o) { return (o === 'None' && !discOn) || (o === 'Percent' && d.disc.type === 'pct') || (o === 'Amount' && d.disc.type === 'amt'); }, function (o) { self.upd({ disc: { type: o === 'None' ? 'none' : (o === 'Percent' ? 'pct' : 'amt'), v: 0 } }); }),
       hasDisc: discOn, discLabel: d.disc.type === 'pct' ? 'Discount percent' : 'Discount amount', discV: d.disc.v || '', onDisc: function (e) { var v = parseFloat(String(e.target.value).replace(/,/g, '')) || 0; self.upd({ disc: { type: d.disc.type, v: d.disc.type === 'pct' ? Math.min(100, v) : v } }); }, discHint: d.disc.type === 'pct' ? 'Taken off the subtotal before VAT. Up to 100.' : 'Taken off the subtotal before VAT, in ' + (d.cur === 'USD' ? 'dollars.' : 'naira.'),
       note: d.note, onNote: function (e) { self.upd({ note: e.target.value }, true); }, terms: d.terms, onTerms: function (e) { self.upd({ terms: e.target.value }, true); },
-      prevSub: edit ? 'Updates as you type' : 'As the client sees it', prevKind: isQ ? 'Quote' : 'Invoice', prevTo: d.client ? 'To ' + d.client.name : 'Choose a client', prevDates: 'Issued ' + this.fmtDate(d.issued) + ' · ' + (isQ ? 'Valid until ' + this.fmtDate(d.valid) : 'Due ' + this.fmtDate(d.due)),
+      prevSub: edit ? 'Updates as you type' : 'As the client sees it', prevKind: isQ ? 'Quote' : 'Invoice', layoutCls: edit ? 'layoutWide' : '',
+      pvProject: d.project || 'No project', pvIssued: this.fmtDate(d.issued), pvDueLabel: isQ ? 'Valid until' : 'Due', pvDue: this.fmtDate(isQ ? d.valid : d.due), pvToName: d.client ? d.client.name : 'Choose a client', pvToContact: d.client ? d.client.contact : '', pvToMail: d.client ? d.client.email : '', pvPo: d.po ? 'Reference ' + d.po : '', hasPvPo: !!d.po,
+      pvNote: d.note, hasPvNote: !!(d.note || '').trim(), pvTerms: d.terms, pvAcct: d.cur === 'USD' ? d.acct : 'Paystack or Flutterwave, from the link in the email', pvNone: !d.lines.some(function (l) { return (l.d || '').trim() || +l.u > 0; }),
+      isPvDoc: s.pvm !== 'mail', isPvMail: s.pvm === 'mail', pvI: s.pvm === 'mail' ? 1 : 0, pvDocCls: s.pvm === 'mail' ? '' : 'on', pvMailCls: s.pvm === 'mail' ? 'on' : '', setPvDoc: function () { self.setState({ pvm: 'doc' }); }, setPvMail: function () { self.setState({ pvm: 'mail' }); },
+      pvMailSubject: (isQ ? 'Quote ' : 'Invoice ') + d.no + ' from WDC Studio', pvMailBody: 'Hello ' + (d.client ? d.client.contact.split(' ')[0] : 'there') + ',\n\n' + (isQ ? 'Here is your quote' : 'Here is your invoice') + ' for ' + cur(T.total) + (isQ ? ', valid until ' + this.fmtDate(d.valid) : ', due ' + this.fmtDate(d.due)) + '. The link below opens it, and ' + (isQ ? 'lets you accept it or ask a question.' : 'you can pay it with Paystack or Flutterwave.') + '\n\nThank you,\nWDC Studio', prevTo: d.client ? 'To ' + d.client.name : 'Choose a client', prevDates: 'Issued ' + this.fmtDate(d.issued) + ' · ' + (isQ ? 'Valid until ' + this.fmtDate(d.valid) : 'Due ' + this.fmtDate(d.due)),
       prevLines: d.lines.filter(function (l) { return (l.d || '').trim() || +l.u > 0; }).map(function (l) { return { d: (l.d || 'Untitled line') + ((+l.q || 0) > 1 ? ' × ' + l.q : '') + (l.opt ? ' (optional)' : ''), a: cur((+l.q || 0) * (+l.u || 0)) }; }), prevFoot: d.note || (isQ ? 'Accept in one tap from the email.' : (d.cur === 'USD' ? 'Pay by transfer to the USD account.' : 'Pay with Paystack or Flutterwave from the link in the email.')),
       checks: checks,
       linkTitle: isQ ? 'The client’s link' : 'The payment link', linkNote: isQ ? 'They read the quote and accept in the portal. You are told when it is opened.' : (d.cancelled ? 'The link is switched off because the invoice is cancelled.' : 'One tap to pay with Paystack or Flutterwave. A paid invoice cannot be paid twice.'),

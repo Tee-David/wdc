@@ -48,20 +48,11 @@
       hasStats: true, statsTitle: C.statsTitle, stats: stats, railCards: railCards, isCal: !!T.cal, notCal: !T.cal
     }, CV);
   }
-  /* A month grid for any tab whose items carry an ISO date. The grid shows what is booked, the agenda under it lists the chosen day. */
+  /* A calendar for any tab whose items carry an ISO date: the shared engine, with one calendar per kind of item. */
   hubCal(T, list, rows) {
-    var self = this, s = this.state, I = this.icons(), today = this.today(), base = this.addMonths('2026-10-01', s.hcm), y = +base.slice(0, 4), m = +base.slice(5, 7) - 1;
-    var first = new Date(Date.UTC(y, m, 1)), lead = (first.getUTCDay() + 6) % 7, dim = new Date(Date.UTC(y, m + 1, 0)).getUTCDate(), by = {}, inMonth = 0;
-    list.forEach(function (x) { if (x.date) { (by[x.date] = by[x.date] || []).push(x); if (x.date.slice(0, 7) === base.slice(0, 7)) inMonth++; } });
-    var sel = s.hsel && s.hsel.slice(0, 7) === base.slice(0, 7) ? s.hsel : (today.slice(0, 7) === base.slice(0, 7) ? today : (Object.keys(by).filter(function (k) { return k.slice(0, 7) === base.slice(0, 7); }).sort()[0] || base));
-    var cells = [];
-    for (var ci = 0; ci < Math.ceil((lead + dim) / 7) * 7; ci++) {
-      var dn = ci - lead + 1, inM = dn >= 1 && dn <= dim, iso = inM ? self.isoOf(y, m, dn) : '', ev = inM ? (by[iso] || []) : [];
-      cells.push((function (iso, dn, inM, ev) { return { n: inM ? dn : '', cls: (inM ? '' : 'out') + (iso === today ? ' today' : '') + (iso === sel ? ' sel' : ''), dis: !inM, pressed: iso === sel ? 'true' : 'false', aria: inM ? self.fmtDate(iso) + ', ' + ev.length + (ev.length === 1 ? ' item' : ' items') : '', dots: ev.slice(0, 4).map(function (x) { return x.tone; }), more: ev.length ? ev.length + (ev.length === 1 ? ' item' : ' items') : '', open: function () { self.setState({ hsel: iso, ra: self.state.ra + 1 }); } }; })(iso, dn, inM, ev));
-    }
-    var open = function (x) { return function () { self.open(T.sheet(x)); }; };
-    var ag = (by[sel] || []).slice().sort(function (a, b) { return (a.time || '').localeCompare(b.time || ''); }).map(function (x) { return { kind: x.kindLabel, tone: x.tone, ink: x.ink || '#fff', name: x.name, sub: x.sub, time: x.time || '', open: open(x) }; });
-    return { wkdays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], cells: cells, calLabel: this.monthName(m) + ' ' + y, calSum: inMonth + (inMonth === 1 ? ' thing' : ' things') + ' this month', calAnim: s.ra % 2 ? 'rinA' : 'rinB',
-      calPrev: function () { self.setState({ hcm: s.hcm - 1, hsel: '', ra: self.state.ra + 1 }); }, calNext: function () { self.setState({ hcm: s.hcm + 1, hsel: '', ra: self.state.ra + 1 }); }, calToday: function () { self.setState({ hcm: 0, hsel: today, ra: self.state.ra + 1 }); },
-      agTitle: this.fmtDateLong(sel), agenda: ag, agEmpty: !ag.length, agHint: 'Use the button above to add something.' };
+    var self = this, PAL = ['var(--cal-1)', 'var(--cal-2)', 'var(--cal-3)', 'var(--cal-7)', 'var(--cal-5)', 'var(--cal-6)'], kinds = [], addMin = function (t, m) { var a = t.split(':'), v = (+a[0]) * 60 + (+a[1]) + m; return ('0' + Math.floor(v / 60)).slice(-2) + ':' + ('0' + (v % 60)).slice(-2); };
+    list.forEach(function (x) { if (x.date && kinds.indexOf(x.kind) < 0) kinds.push(x.kind); });
+    var lab = {}; list.forEach(function (x) { lab[x.kind] = x.kindLabel || x.kind; });
+    var events = list.filter(function (x) { return x.date; }).map(function (x) { var st = x.time && /^\d\d:\d\d$/.test(x.time) ? x.time : '09:00'; return { id: x.id, date: (+x.date.slice(5, 7)) + '-' + (+x.date.slice(8)), start: st, end: addMin(st, 60), title: x.calTitle || x.name, sub: x.calSub || x.sub, cal: x.kind, tag: [x.kindLabel || x.kind, x.tone, x.ink || '#fff'], people: [], open: function () { self.open(T.sheet(x)); } }; });
+    return { CALH: this.calView('hcal', { today: '2026-10-12', now: '10:42', date: '2026-10-14', view: 'week', startHour: 7, endHour: 20, rowH: 72, addLabel: T.actLabel || 'Add', sideAdd: false, listTitle: 'Calendars', cals: kinds.map(function (k, i) { return { id: k, label: lab[k], color: PAL[i % PAL.length] }; }), events: events, open: function (e) { e.open(); }, onAdd: function () { if (T.act) T.act(self); }, onSlot: function (d, t) { if (T.act) T.act(self); }, onExport: function () { self.say('Exporting ' + events.length + ' scheduled items as a calendar file.'); } }) };
   }

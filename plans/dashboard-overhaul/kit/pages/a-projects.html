@@ -22,7 +22,7 @@
 
             <section class="card cq rise d2" aria-label="Projects" data-tour="views" style="overflow: hidden">
               <div style="display: flex; align-items: center; gap: 10px; padding: 16px 20px 10px; flex-wrap: wrap">
-                <div class="seg" role="group" aria-label="View" style="--n: 3; --i: {{viewI}}"><span class="pill" aria-hidden="true"></span><sc-for list="{{views}}" as="v" hint-placeholder-count="3"><button class="{{v.cls}}" aria-pressed="{{v.pressed}}" onClick="{{v.pick}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="{{v.d}}"></path></svg>{{v.t}}</button></sc-for></div>
+                <div class="seg" role="group" aria-label="View" style="--n: 4; --i: {{viewI}}"><span class="pill" aria-hidden="true"></span><sc-for list="{{views}}" as="v" hint-placeholder-count="3"><button class="{{v.cls}}" aria-pressed="{{v.pressed}}" onClick="{{v.pick}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="{{v.d}}"></path></svg>{{v.t}}</button></sc-for></div>
                 <span style="flex: 1"></span>
                 <label class="sfield">
                   <svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="color: var(--ad-dim)"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"></path></svg>
@@ -61,41 +61,52 @@
               </sc-if>
 
               <sc-if value="{{isBoard}}" hint-placeholder-val="{{ false }}">
+                <div class="bBar tabIn" style="animation-name: {{viewAnim}}">
+                  <span class="bBarL">Group by</span>
+                  <div class="seg" role="group" aria-label="Group the board by" style="--n: 3; --i: {{groupI}}"><span class="pill" aria-hidden="true"></span><sc-for list="{{groups}}" as="g" hint-placeholder-count="3"><button class="{{g.cls}}" aria-pressed="{{g.pressed}}" onClick="{{g.pick}}">{{g.t}}</button></sc-for></div>
+                  <span style="flex: 1"></span><span class="bBarN num">{{boardCount}}</span><span class="bBarTip">{{boardTip}}</span>
+                </div>
                 <div class="board tabIn" style="animation-name: {{viewAnim}}">
                   <sc-for list="{{cols}}" as="col" hint-placeholder-count="4">
                     <div class="bCol {{col.cls}}" aria-label="{{col.t}}. {{col.hint}}" onDragOver="{{col.over}}" onDragLeave="{{col.leave}}" onDrop="{{col.drop}}">
-                      <div class="bHead"><span class="bDot" style="background: {{col.tone}}"></span><strong>{{col.t}}</strong><span class="tag num" style="background: var(--ad-tone-flat); color: var(--ad-on-flat)">{{col.n}}</span></div>
+                      <div class="bHead"><span class="bDot" style="background: {{col.tone}}"></span><strong>{{col.t}}</strong><span class="bCount num">{{col.n}}</span><sc-if value="{{col.hasAdd}}" hint-placeholder-val="{{ true }}"><button class="ibtn ghostB bPlus" aria-label="{{col.addAria}}" onClick="{{col.add}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button></sc-if></div>
                       <sc-for list="{{col.cards}}" as="c" hint-placeholder-count="2">
-                        <div class="bCardW {{c.dragging}}" draggable="true" onDragStart="{{c.dragStart}}" onDragEnd="{{c.dragEnd}}">
+                        <div class="bCardW {{c.dragging}}" draggable="{{c.drag}}" onDragStart="{{c.dragStart}}" onDragEnd="{{c.dragEnd}}">
                           <button class="bCard lift" onClick="{{c.open}}" aria-label="{{c.aria}}">
-                            <span style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding-right: 34px"><span class="tag" style="background: var(--ad-tone-flat); color: var(--ad-on-flat)">{{c.svc}}</span><sc-if value="{{c.hasFlag}}" hint-placeholder-val="{{ false }}"><span class="tag" style="background: {{c.flagTone}}; color: #fff">{{c.flag}}</span></sc-if></span>
-                            <strong style="font-size: 14px">{{c.name}}</strong>
-                            <span style="font-size: 12px; color: var(--ad-dim)">{{c.client}}</span>
-                            <span class="miniBar" aria-hidden="true"><span style="width: {{c.pct}}%"></span></span>
-                            <span style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ad-dim)"><span class="av0" style="width: 24px; height: 24px; font-size: 9px; background: {{c.leadTone}}">{{c.leadI}}</span><span style="flex: 1">{{c.stage}}</span><span class="num" style="color: {{c.dueCol}}; font-weight: 600">{{c.due}}</span></span>
+                            <span class="bTags"><span class="tag" style="background: var(--ad-tone-flat); color: var(--ad-on-flat)">{{c.svc}}</span><sc-if value="{{c.hasFlag}}" hint-placeholder-val="{{ false }}"><span class="tag" style="background: {{c.flagTone}}; color: #fff">{{c.flag}}</span></sc-if></span>
+                            <strong class="bTitle">{{c.name}}</strong>
+                            <span class="bClient"><span>{{c.client}}</span><span class="bDue num" style="color: {{c.dueCol}}">{{c.due}}</span></span>
+                            <sc-if value="{{c.hasDesc}}" hint-placeholder-val="{{ true }}"><span class="bDesc">{{c.desc}}</span></sc-if>
+                            <span class="bProg"><span class="bProgL"><span>{{c.stage}}</span><span class="num">{{c.pct}}%</span></span><span class="miniBar" aria-hidden="true"><span style="width: {{c.pct}}%"></span></span></span>
+                            <span class="bFoot"><span class="bCrew"><sc-for list="{{c.crew}}" as="m" hint-placeholder-count="3"><span class="bAv" style="background: {{m.tone}}">{{m.i}}</span></sc-for></span><span class="bMeta num"><span title="Tasks done"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>{{c.tasks}}</span><span title="Comments"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>{{c.cmts}}</span><span title="Files"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M21.4 11.6 12.2 20.8a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"></path></svg>{{c.files}}</span></span></span>
                           </button>
-                          <button class="ibtn ghostB bMove" data-menu="move" aria-label="{{c.moveAria}}" aria-haspopup="menu" aria-expanded="{{c.moveX}}" onClick="{{c.moveMenu}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg></button>
+                          <sc-if value="{{c.hasMove}}" hint-placeholder-val="{{ true }}"><button class="ibtn ghostB bMove" data-menu="move" aria-label="{{c.moveAria}}" aria-haspopup="menu" aria-expanded="{{c.moveX}}" onClick="{{c.moveMenu}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg></button></sc-if>
                         </div>
                       </sc-for>
-                      <sc-if value="{{col.empty}}" hint-placeholder-val="{{ false }}"><span class="bEmpty">Nothing here. Drag a project in.</span></sc-if>
+                      <sc-if value="{{col.empty}}" hint-placeholder-val="{{ false }}"><span class="bEmpty">Nothing here.</span></sc-if>
+                      <sc-if value="{{col.hasAdd}}" hint-placeholder-val="{{ true }}"><button class="bAdd" onClick="{{col.add}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Add project</button></sc-if>
                     </div>
                   </sc-for>
                 </div>
               </sc-if>
 
-              <sc-if value="{{isCal}}" hint-placeholder-val="{{ false }}">
-                <div class="tabIn" style="padding: 0 20px 16px; animation-name: {{viewAnim}}">
-                  <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px"><strong style="flex: 1">{{wkLabel}}</strong><button class="ibtn" aria-label="Previous week" onClick="{{wkPrev}}" disabled="{{wkPrevDis}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></button><button class="ibtn" aria-label="Next week" onClick="{{wkNext}}" disabled="{{wkNextDis}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></button></div>
-                  <sc-for list="{{days}}" as="dy" hint-placeholder-count="7">
-                    <div class="dayRow">
-                      <span style="display: flex; flex-direction: column; line-height: 1.2; padding-top: 6px"><span style="font-size: 12px; color: {{dy.dcol}}; font-weight: 600">{{dy.d}}</span><span class="num" style="font-size: 17px; font-weight: 700; color: {{dy.ncol}}">{{dy.n}}</span></span>
-                      <span style="display: flex; flex-direction: column; gap: 6px; min-width: 0">
-                        <sc-for list="{{dy.items}}" as="e" hint-placeholder-count="1"><button class="postPill" onClick="{{e.open}}"><span class="platform" style="background: {{e.tone}}"><svg class="ic" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="{{e.d}}"></path></svg></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><span style="font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{e.t}}</span><span style="font-size: 12px; color: var(--ad-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{e.s}}</span></span><span class="tag" style="background: {{e.tone}}; color: #fff">{{e.kind}}</span></button></sc-for>
-                        <sc-if value="{{dy.empty}}" hint-placeholder-val="{{ false }}"><span style="font-size: 13px; color: var(--ad-dim); padding: 9px 0">Nothing due</span></sc-if>
-                      </span>
+              <sc-if value="{{isTl}}" hint-placeholder-val="{{ false }}">
+                <div class="tlWrap tabIn" style="animation-name: {{viewAnim}}" data-lenis-prevent tabindex="0" aria-label="Timeline, scrolls sideways">
+                  <div class="tl" style="--wk: {{tl.nWeeks}}; --today: {{tl.today}}">
+                    <div class="tlHead"><span class="tlCorner">Project</span><div class="tlAxis"><sc-for list="{{tl.weeks}}" as="w" hint-placeholder-count="8"><span class="tlWk num">{{w}}</span></sc-for></div></div>
+                    <div class="tlBody">
+                      <span class="tlToday" aria-hidden="true"><span class="tlTodayPill num">Today</span></span>
+                      <sc-for list="{{tl.rows}}" as="r" hint-placeholder-count="6">
+                        <div class="tlRow"><button class="tlName" onClick="{{r.open}}"><strong>{{r.name}}</strong><span>{{r.client}}</span></button>
+                          <div class="tlTrack"><sc-if value="{{r.hasBar}}" hint-placeholder-val="{{ true }}"><button class="tlBar" style="left: {{r.left}}%; width: {{r.w}}%; --c: {{r.color}}" onClick="{{r.open}}" aria-label="{{r.aria}}"><span class="tlTxt">{{r.txt}}</span><span class="tlRail"><span class="tlFill" style="width: {{r.pct}}%"></span></span></button></sc-if><sc-if value="{{r.noBar}}" hint-placeholder-val="{{ false }}"><span class="tlNone">{{r.none}}</span></sc-if></div></div>
+                      </sc-for>
                     </div>
-                  </sc-for>
+                  </div>
                 </div>
+              </sc-if>
+
+              <sc-if value="{{isCal}}" hint-placeholder-val="{{ false }}">
+                %%CAL:CALP%%
               </sc-if>
             </section>
             </sc-if>

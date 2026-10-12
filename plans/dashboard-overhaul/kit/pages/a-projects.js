@@ -1,5 +1,5 @@
   /* ======================= Owner · Projects ======================= */
-  pageState() { return { drag: '', dover: -1, view: 'list', va: 0, svc: 'all', ptab: 'live', ppage: 0, pper: 5, q2: '', ra: 0, wk: 0, added: [], trashed: {}, leadOv: {} }; }
+  pageState() { return { bgroup: 'stage', drag: '', dover: -1, view: 'list', va: 0, svc: 'all', ptab: 'live', ppage: 0, pper: 5, q2: '', ra: 0, wk: 0, added: [], trashed: {}, leadOv: {} }; }
   pageName() { return 'Projects'; }
   tourSteps() {
     var I = this.icons();
@@ -100,9 +100,21 @@
     out.push(it('Move to Trash…', I.trash, function () { self.ask({ eyebrow: 'Trash', title: 'Move ' + pj.name + ' to Trash?', body: 'Tasks, files and the content calendar go with it. Invoices stay in Money. Restore it from Settings, Trash, for 30 days.', ok: 'Move to Trash', danger: true, tone: 'var(--ad-tone-bad)', icon: I.trash, onOk: function () { var t = Object.assign({}, self.state.trashed); t[pj.id] = true; self.setState({ trashed: t, ra: self.state.ra + 1 }); self.say(pj.name + ' moved to Trash.', { undo: function () { var u = Object.assign({}, self.state.trashed); delete u[pj.id]; self.setState({ trashed: u, ra: self.state.ra + 1 }); } }); } }); }, { danger: true }));
     return out;
   }
+  cardMenu(pop, I, it) {
+    var self = this, mp = this.allProjects().filter(function (x) { return x.id === pop.id; })[0]; if (!mp) return []; var cur = this.boardCol(mp);
+    var head = [it('Open details', I.eye || I.open, function () { self.open(self.projectSheet(mp)); }), it('Open project page', I.open, function () { self.openProject(mp); }), it('Copy link', I.link || I.open, function () { self.say('Link to ' + mp.name + ' copied.'); }), this.menuSep()];
+    var moves = this.boardCols().map(function (c, ci) { return it('Move to ' + c[0].toLowerCase(), I.layers, function () { self.moveProject(mp, ci); }, { hint: ci === cur ? 'Now' : '', checked: ci === cur, on: ci === cur, role: 'menuitemradio' }); });
+    var rest = this.rowMenu(mp).filter(function (x, i) { return i > 0; });
+    return head.concat(moves, [this.menuSep()], rest);
+  }
   popItems(pop) {
     var self = this, I = this.icons(), it = this.menuItem.bind(this);
-    if (pop.kind === 'move') { var mp = this.allProjects().filter(function (x) { return x.id === pop.id; })[0]; if (!mp) return []; var cur = this.boardCol(mp); return this.boardCols().map(function (c, ci) { return it(c[0], I.layers, function () { self.moveProject(mp, ci); }, { hint: ci === cur ? 'Now' : '', checked: ci === cur, on: ci === cur, role: 'menuitemradio' }); }); }
+    if (pop.kind === 'move') { try { return this.cardMenu(pop, I, it); } catch (er) { console.log('cardMenu failed', er && er.message); return []; } }
+    if (pop.kind === 'moveOld') { var mp = this.allProjects().filter(function (x) { return x.id === pop.id; })[0]; if (!mp) return []; var cur = this.boardCol(mp);
+      var head = [it('Open details', I.eye || I.open, function () { self.open(self.projectSheet(mp)); }), it('Open project page', I.open, function () { self.openProject(mp); }), it('Copy link', I.link || I.open, function () { self.say('Link to ' + mp.name + ' copied.'); }), this.menuSep()];
+      var moves = this.boardCols().map(function (c, ci) { return it('Move to ' + c[0].toLowerCase(), I.layers, function () { self.moveProject(mp, ci); }, { hint: ci === cur ? 'Now' : '', checked: ci === cur, on: ci === cur, role: 'menuitemradio' }); });
+      var rest = this.rowMenu(mp).filter(function (x, i) { return i > 0; });
+      return head.concat(moves, [this.menuSep()], rest); }
     if (pop.kind === 'row') { var pj = this.allProjects().filter(function (x) { return x.id === pop.id; })[0]; return pj ? this.rowMenu(pj) : []; }
     if (pop.kind === 'chores') return [it('Meetings', I.cal, function () { window.location.href = 'A-Meetings.dc.html'; }, { hint: 'Reviews and handovers' }), it('Export projects', I.down, function () { self.exportProjects([], self.allProjects()); }, { hint: 'CSV or Excel' }), it('Stage templates', I.layers, function () { window.location.href = 'A-Settings.dc.html'; }, { hint: 'Settings' }), this.menuSep(), it('Open Trash', I.trash, function () { window.location.href = 'A-Settings.dc.html'; }, { hint: 'Settings' })];
     return [];
@@ -132,16 +144,30 @@
     var tabs = [['live', 'Live'], ['waiting', 'Waiting on client'], ['done', 'Done']].map(function (t) { var on = s.ptab === t[0], n = base.filter(function (x) { return inTab(x, t[0]); }).length; return { label: t[1], n: n, cls: on ? 'on' : '', sel: on ? 'true' : 'false', chip: t[0] === 'waiting' && n ? 'var(--ad-tone-warn)' : 'var(--ad-tone-flat)', chipInk: t[0] === 'waiting' && n ? '#fff' : 'var(--ad-on-flat)', pick: function () { if (!on) self.setState({ ptab: t[0], ppage: 0, ra: self.state.ra + 1 }); } }; });
     var PP = Object.assign(this.pager('projects', list.length, s.pper, pp, function (k) { self.setState({ ppage: k, ra: self.state.ra + 1 }); }, function (n) { self.setState({ pper: n, ppage: 0, ra: self.state.ra + 1 }); }), { all: function () { self.setState({ pper: 20, ppage: 0, ra: self.state.ra + 1 }); } });
     var svcs = [{ t: 'All services', k: 'all' }].concat(SV.map(function (v) { return { t: v, k: v }; })).map(function (c) { var on = s.svc === c.k; return { t: c.t, n: all.filter(function (x) { return x.status !== 'done' && (c.k === 'all' || x.svc === c.k); }).length, cls: on ? 'on' : '', pressed: on ? 'true' : 'false', pick: function () { self.setState({ svc: c.k, ppage: 0, ra: self.state.ra + 1, va: self.state.va + 1 }); } }; });
-    var V = [['list', 'List', 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01'], ['board', 'Board', 'M3 3h7v18H3zM14 3h7v10h-7z'], ['cal', 'Calendar', 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z']], vI = 0;
+    var V = [['list', 'List', 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01'], ['board', 'Board', 'M3 3h7v18H3zM14 3h7v10h-7z'], ['tl', 'Timeline', 'M3 6h10M7 12h14M5 18h9'], ['cal', 'Calendar', 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z']], vI = 0;
     V.forEach(function (v, i) { if (v[0] === s.view) vI = i; });
     var live = base.filter(function (x) { return x.status !== 'done'; });
     var colOf = function (x) { return self.boardCol(x); }, BC = this.boardCols();
-    var mkCard = function (x) { return Object.assign({}, x, { pct: pct(x), hasFlag: !!x.flag, flagTone: x.flag === 'New' ? 'var(--ad-tone-brand)' : (x.flag === 'With client' || x.flag.indexOf('Waiting') === 0 ? 'var(--ad-tone-warn)' : (x.flag === 'Done' ? 'var(--ad-tone-good)' : 'var(--ad-tone-bad)')), dueCol: x.dueHot ? 'var(--ad-accent-ink)' : 'var(--ad-dim)', aria: x.name + ' for ' + x.client + '. Drag to another column, or use its menu to move it.', open: function () { self.openProject(x); }, dragging: s.drag === x.id ? 'dragging' : '', dragStart: function (e) { try { e.dataTransfer.setData('text/plain', x.id); e.dataTransfer.effectAllowed = 'move'; } catch (er) {} self.setState({ drag: x.id }); }, dragEnd: function () { self.setState({ drag: '', dover: -1 }); }, moveAria: 'Move ' + x.name, moveMenu: function (e) { if (e && e.stopPropagation) e.stopPropagation(); self.openPop(e, 'move', x.id, 270, 280, 'Move ' + x.name); }, moveX: self.popOn('move', x.id) }); };
+    var G = s.bgroup || 'stage', team0 = this.teamData(), TONES = ['var(--cal-1)', 'var(--cal-2)', 'var(--cal-3)', 'var(--cal-5)', 'var(--cal-6)', 'var(--cal-7)'];
+    var mkCard = function (x) {
+      var hs = 0; for (var ci = 0; ci < x.id.length; ci++) hs += x.id.charCodeAt(ci);
+      var crew = [{ i: x.leadI, tone: x.leadTone }].concat([team0[hs % team0.length], team0[(hs + 2) % team0.length]].filter(function (m) { return m && m.i !== x.leadI; }).slice(0, 2).map(function (m) { return { i: m.i, tone: m.tone }; }));
+      var tot = 6 + (hs % 9), dn = x.status === 'done' ? tot : Math.min(tot - 1, Math.round(tot * pct(x) / 100));
+      return Object.assign({}, x, { pct: pct(x), crew: crew, tasks: dn + '/' + tot, cmts: 1 + (hs % 6), files: hs % 7, desc: x.next || '', hasDesc: !!x.next, hasFlag: !!x.flag, flagTone: x.flag === 'New' ? 'var(--ad-tone-brand)' : (x.flag === 'With client' || x.flag.indexOf('Waiting') === 0 ? 'var(--ad-tone-warn)' : (x.flag === 'Done' ? 'var(--ad-tone-good)' : 'var(--ad-tone-bad)')), dueCol: x.dueHot ? 'var(--ad-accent-ink)' : 'var(--ad-dim)', aria: x.name + ' for ' + x.client + (G === 'stage' ? '. Drag to another column, or use its menu to move it.' : '.'), open: function () { self.open(self.projectSheet(x)); }, drag: G === 'stage' ? 'true' : 'false', dragging: s.drag === x.id ? 'dragging' : '',
+        dragStart: function (e) { try { e.dataTransfer.setData('text/plain', x.id); e.dataTransfer.effectAllowed = 'move'; var el = e.currentTarget, g = el.cloneNode(true); g.className = 'bCardW bGhost'; g.style.width = el.offsetWidth + 'px'; document.body.appendChild(g); e.dataTransfer.setDragImage(g, 28, 24); setTimeout(function () { if (g.parentNode) g.parentNode.removeChild(g); }, 0); } catch (er) {} self.setState({ drag: x.id }); }, dragEnd: function () { self.setState({ drag: '', dover: -1 }); }, moveAria: 'Actions for ' + x.name, moveMenu: function (e) { if (e && e.stopPropagation) e.stopPropagation(); self.openPop(e, 'move', x.id, 290, 420, 'Actions for ' + x.name); }, moveX: self.popOn('move', x.id), hasMove: G === 'stage' });
+    };
     var board = base.filter(function (x) { return x.status !== 'done' || s.ptab === 'done' || true; });
-    var cols = BC.map(function (c, ci) {
-      var cards = board.filter(function (x) { return colOf(x) === ci; }).map(mkCard);
-      return { t: c[0], tone: c[1], n: cards.length, cards: cards, empty: !cards.length, hint: c[2], cls: s.dover === ci ? 'over' : '', over: function (e) { e.preventDefault(); try { e.dataTransfer.dropEffect = 'move'; } catch (er) {} if (self.state.dover !== ci) self.setState({ dover: ci }); }, leave: function (e) { if (e.currentTarget && e.relatedTarget && e.currentTarget.contains(e.relatedTarget)) return; if (self.state.dover === ci) self.setState({ dover: -1 }); }, drop: function (e) { e.preventDefault(); var id = self.state.drag; try { id = id || e.dataTransfer.getData('text/plain'); } catch (er) {} var pj = self.allProjects().filter(function (z) { return z.id === id; })[0]; self.setState({ drag: '', dover: -1 }); if (pj) self.moveProject(pj, ci); } };
+    var gdefs, gof;
+    if (G === 'service') { gdefs = SV.map(function (v, i) { return [v, TONES[i % 6], 'Projects in ' + v]; }); gof = function (x) { return Math.max(0, SV.indexOf(x.svc)); }; }
+    else if (G === 'lead') { var leads = []; all.forEach(function (x) { if (leads.indexOf(x.lead) < 0) leads.push(x.lead); }); gdefs = leads.map(function (l, i) { return [l, TONES[i % 6], 'Projects led by ' + l]; }); gof = function (x) { return leads.indexOf(x.lead); }; }
+    else { gdefs = BC; gof = colOf; }
+    var cols = gdefs.map(function (c, ci) {
+      var cards = board.filter(function (x) { return gof(x) === ci; }).map(mkCard);
+      return { t: c[0], tone: c[1], n: cards.length, cards: cards, empty: !cards.length, hint: c[2], cls: s.dover === ci && G === 'stage' ? 'over' : '', addAria: 'Add a project to ' + c[0], add: function () { self.newProjectSheet(); }, hasAdd: !self.hideMoney(),
+        over: function (e) { if (G !== 'stage') return; e.preventDefault(); try { e.dataTransfer.dropEffect = 'move'; } catch (er) {} if (self.state.dover !== ci) self.setState({ dover: ci }); }, leave: function (e) { if (e.currentTarget && e.relatedTarget && e.currentTarget.contains(e.relatedTarget)) return; if (self.state.dover === ci) self.setState({ dover: -1 }); }, drop: function (e) { if (G !== 'stage') return; e.preventDefault(); var id = self.state.drag; try { id = id || e.dataTransfer.getData('text/plain'); } catch (er) {} var pj = self.allProjects().filter(function (z) { return z.id === id; })[0]; self.setState({ drag: '', dover: -1 }); if (pj) self.moveProject(pj, ci); } };
     });
+    var GR = [['stage', 'Stage'], ['service', 'Service'], ['lead', 'Lead']], gI = 0; GR.forEach(function (g, i) { if (g[0] === G) gI = i; });
+    var groups = GR.map(function (g) { var on = G === g[0]; return { t: g[1], cls: on ? 'on' : '', pressed: on ? 'true' : 'false', pick: function () { if (!on) self.setState({ bgroup: g[0], dover: -1, va: self.state.va + 1 }); } }; });
     var weeks = [
       { label: 'Next 7 days · 13 to 19 Oct', days: [['Tue', 13, [['lumen-tt', 'Print files due', 'deadline']]], ['Wed', 14, [['mira-br', 'Logo review with Adaeze, 15:30', 'meeting'], ['mira-so', 'Mira deposit due', 'money']]], ['Thu', 15, [['okafor-fl', 'Flyers revision due', 'deadline']]], ['Fri', 16, [['oak-web', 'Handover meeting, 14:00', 'meeting'], ['lumen-ads', 'Ad creatives round 2', 'deadline']]], ['Sat', 17, [['mira-br', 'Final files and brand guide', 'deadline']]], ['Sun', 18, []], ['Mon', 19, []]] },
       { label: 'The 7 days after · 20 to 26 Oct', days: [['Tue', 20, [['halo-ai', 'Milestone 2 invoice', 'money']]], ['Wed', 21, []], ['Thu', 22, [['ade-menu', 'Menu directions review', 'meeting']]], ['Fri', 23, []], ['Sat', 24, [['ade-menu', 'Menu redesign due', 'deadline'], ['okafor-web', 'okaforlaw.ng renews', 'money']]], ['Sun', 25, []], ['Mon', 26, []]] }
@@ -150,6 +176,28 @@
     var byId = {}; all.forEach(function (x) { byId[x.id] = x; });
     var W = weeks[s.wk], days = W.days.map(function (d) { var items = d[2].filter(function (e) { var x = byId[e[0]]; return x && matchS(x) && matchQ(x); }).map(function (e) { var x = byId[e[0]], k = K[e[2]]; return { t: e[1], s: x.name + ' · ' + x.client, kind: k[0], tone: k[1], d: k[2], open: function () { self.openProject(x); } }; }); return { d: d[0], n: d[1], items: items, empty: !items.length, dcol: 'var(--ad-dim)', ncol: 'var(--ad-ink)' }; });
 
+    /* The calendar: deadlines, meetings and payments on the shared engine, with times, people and the line for now. */
+    var addMin = function (t, m) { var a = t.split(':'), v = (+a[0]) * 60 + (+a[1]) + m; return ('0' + Math.floor(v / 60)).slice(-2) + ':' + ('0' + (v % 60)).slice(-2); };
+    var seen = {}, cev = [], pushEv = function (pid, d, label, kind, start, end) { var x = byId[pid]; if (!x || !matchS(x) || !matchQ(x)) return; if (kind === 'money' && self.hideMoney()) return; var k = pid + d + kind + label; if (seen[k]) return; seen[k] = 1; cev.push({ id: k, date: d, start: start, end: end, title: label, sub: x.name + ' · ' + x.client, cal: kind, people: [{ i: x.leadI, tone: x.leadTone }], tag: [K[kind][0], K[kind][1], '#fff'], open: function () { self.openProject(x); } }); };
+    weeks.forEach(function (w) { w.days.forEach(function (d) { d[2].forEach(function (e) { var m = /(\d\d:\d\d)/.exec(e[1]), st = m ? m[1] : (e[2] === 'money' ? '09:00' : '16:00'); pushEv(e[0], '10-' + d[1], e[1], e[2], st, addMin(st, e[2] === 'money' ? 30 : 60)); }); }); });
+    pushEv('mira-br', '10-12', 'Review meeting 1', 'meeting', '10:00', '10:45'); pushEv('kora-app', '10-13', 'Review meeting 2', 'meeting', '14:00', '14:45');
+    all.forEach(function (x) { var m = /(\d{1,2})\s+(Oct|Nov)/.exec(x.due || ''); if (m && x.status !== 'done') { var hs = 0; for (var ci = 0; ci < x.id.length; ci++) hs += x.id.charCodeAt(ci); var at = ['09:30', '11:00', '12:30', '14:00', '15:30', '16:30'][hs % 6]; pushEv(x.id, (m[2] === 'Oct' ? '10-' : '11-') + m[1], x.name + ' due', 'deadline', at, addMin(at, 60)); } });
+    var CALP = this.calView('pcal', { today: '2026-10-12', now: '10:42', date: '2026-10-13', view: 'week', startHour: 8, endHour: 18, rowH: 80, addLabel: 'Book a meeting', listTitle: 'My calendars',
+      cals: [{ id: 'meeting', label: 'Meetings', color: 'var(--cal-1)' }, { id: 'deadline', label: 'Deadlines', color: 'var(--cal-2)' }].concat(self.hideMoney() ? [] : [{ id: 'money', label: 'Payments due', color: 'var(--cal-3)' }]), events: cev,
+      open: function (e) { e.open(); }, onAdd: function () { if (self.bookSheet) self.bookSheet('', true); else self.say('The booking sheet opens here.'); }, onSlot: function (d, t) { self.say('Book a meeting on ' + d + ' at ' + t + '. The booking sheet opens with this time chosen.'); },
+      onExport: function () { self.say('Exporting the calendar as a file you can add to Google Calendar.'); } });
+    /* The timeline: each live project as a bar from its start to its due date, filled to how far along it is. Nine weeks from Mon 5 Oct. */
+    var DAYS = 63, tlWeeks = []; for (var wi = 0; wi < 9; wi++) { var wd = new Date(2026, 9, 5 + wi * 7); tlWeeks.push(wd.getDate() + ' ' + ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][wd.getMonth()]); }
+    var dayOf = function (mo, d) { return Math.round((new Date(2026, mo - 1, +d) - new Date(2026, 9, 5)) / 86400000); };
+    var tlRows = board.filter(function (x) { return x.status !== 'done'; }).map(function (x) {
+      var hs = 0; for (var ci = 0; ci < x.id.length; ci++) hs += x.id.charCodeAt(ci);
+      var m = /(\d{1,2})\s+(Oct|Nov|Dec)/.exec(x.due || ''), st, en;
+      if (m) { en = dayOf({ Oct: 10, Nov: 11, Dec: 12 }[m[2]], m[1]); st = /^Starts/.test(x.due) ? en : en - (14 + hs % 21); if (/^Starts/.test(x.due)) en = st + 28; }
+      var has = m && en >= 0 && st < DAYS; st = has ? Math.max(0, st) : 0; en = has ? Math.min(DAYS, en) : 0;
+      var color = x.flag === 'Paused' || x.flag === 'Blocked' ? 'var(--ad-tone-bad)' : (x.status === 'waiting' ? 'var(--ad-tone-warn)' : 'var(--ad-series-1)');
+      return { name: x.name, client: x.client, hasBar: !!has, noBar: !has, none: x.flag === 'Paused' ? 'Paused, no date' : (/^Monthly/.test(x.due || '') ? 'Monthly retainer, no end date' : 'No date yet'), left: (st / DAYS * 100).toFixed(2), w: Math.max(4, (en - st) / DAYS * 100).toFixed(2), pct: pct(x), color: color, txt: x.stage + ' · ' + pct(x) + '%', aria: x.name + ', ' + x.stage + ', ' + pct(x) + ' percent, due ' + x.due, open: function () { self.open(self.projectSheet(x)); } };
+    });
+    var TLV = { weeks: tlWeeks, nWeeks: 9, today: (dayOf(10, 12) / DAYS).toFixed(4), rows: tlRows };
     var waiting = all.filter(function (x) { return x.status === 'waiting'; }), allLive = all.filter(function (x) { return x.status !== 'done'; });
     var dueWeek = weeks[0].days.reduce(function (a, d) { return a + d[2].filter(function (e) { return byId[e[0]]; }).length; }, 0), kinds = { meeting: 0, money: 0, deadline: 0 }; weeks[0].days.forEach(function (d) { d[2].forEach(function (e) { if (byId[e[0]]) kinds[e[2]]++; }); });
     var stats = [
@@ -161,10 +209,10 @@
     return Object.assign(this.kit(), this.extraVals(), {
       lede: allLive.length + (allLive.length === 1 ? ' live project' : ' live projects') + (self.hideMoney() ? ' in your departments. ' : ' across ' + SV.length + ' services. ') + waiting.length + (waiting.length === 1 ? ' waits' : ' wait') + ' on clients.', canNew: !self.hideMoney(), valueHead: self.hideMoney() ? 'Billing' : 'Payment',
       stats: stats, svcs: svcs, viewI: vI, views: V.map(function (v) { var on = s.view === v[0]; return { t: v[1], d: v[2], cls: on ? 'on' : '', pressed: on ? 'true' : 'false', pick: function () { if (!on) self.setState({ view: v[0], va: self.state.va + 1 }); } }; }),
-      isList: s.view === 'list', isBoard: s.view === 'board', isCal: s.view === 'cal', viewAnim: s.va % 2 ? 'kidIn' : 'kidIn2',
+      isList: s.view === 'list', isBoard: s.view === 'board', isTl: s.view === 'tl', tl: TLV, isCal: s.view === 'cal', viewAnim: s.va % 2 ? 'kidIn' : 'kidIn2',
       tabs: tabs, rows: rows, PP: PP, TPR: TPR, empty: !list.length, emptyTitle: q ? 'No project matches "' + s.q2 + '".' : 'No projects here.', emptyBody: q ? 'Search by project, client or lead, or clear the service filter.' : (s.ptab === 'waiting' ? 'Nothing is waiting on a client in this service.' : 'Try another service or tab.'),
       clearFilters: function () { self.setState({ q2: '', svc: 'all', ppage: 0, ra: self.state.ra + 1 }); },
-      cols: cols, wkLabel: W.label, days: days, wkPrev: function () { self.setState({ wk: 0, va: self.state.va + 1 }); }, wkNext: function () { self.setState({ wk: 1, va: self.state.va + 1 }); }, wkPrevDis: s.wk === 0, wkNextDis: s.wk === 1,
+      CALP: CALP, groups: groups, groupI: gI, boardCount: board.length + (board.length === 1 ? ' project' : ' projects'), boardTip: G === 'stage' ? 'Drag a card to move it to another stage.' : 'Switch to Stage to drag projects between columns.', cols: cols, wkLabel: W.label, days: days, wkPrev: function () { self.setState({ wk: 0, va: self.state.va + 1 }); }, wkNext: function () { self.setState({ wk: 1, va: self.state.va + 1 }); }, wkPrevDis: s.wk === 0, wkNextDis: s.wk === 1,
       q2: s.q2, hasQ2: !!s.q2, onQ2: function (e) { self.setState({ q2: e.target.value, ppage: 0, ra: self.state.ra + 1 }); }, clearQ2: function () { self.setState({ q2: '', ra: self.state.ra + 1 }); },
       newProject: function () { self.newProjectSheet(); }, openChores: function (e) { self.openPop(e, 'chores', 'chores', 240, 180, 'More for projects'); }
     });

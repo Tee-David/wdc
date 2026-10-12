@@ -10,7 +10,7 @@
                 <button class="ibtn" data-menu="chores" aria-label="More for this document" aria-haspopup="menu" aria-expanded="{{choresX}}" onClick="{{openChores}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg></button>
               </div>
             </div>
-            <div class="layout">
+            <div class="layout {{layoutCls}}">
               <div class="col" data-tour="new">
                 <sc-if value="{{isView}}" hint-placeholder-val="{{ true }}">
                   <div class="bento rise d1"><sc-for list="{{figs}}" as="k" hint-placeholder-count="3"><div class="card stat" style="padding: 14px 16px; display: flex; flex-direction: column; gap: 6px"><span class="statHd"><span class="statIc" style="background: {{k.tile}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="{{k.ic}}"></path></svg></span><span class="statLbl">{{k.label}}</span></span><span class="num" style="font-size: clamp(22px, 2.4vw, 26px); font-weight: 700">{{k.value}}</span><span style="font-size: 12px; font-weight: 600; color: {{k.col}}">{{k.note}}</span></div></sc-for></div>
@@ -57,7 +57,26 @@
               </div>
               <aside class="railCards" aria-label="The client’s copy" data-tour="rail">
                 <section class="card rise d2" aria-label="Preview" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 10px"><div style="display: flex; align-items: center; gap: 8px"><h2 style="font-size: 16px; font-weight: 700; flex: 1">The client’s copy</h2><span style="font-size: 12px; color: var(--ad-dim)">{{prevSub}}</span></div>
-                  <div class="docPrev"><div class="dpHead"><strong>WDC Studio</strong><span>{{prevKind}} {{no}}</span></div><div class="dpMeta"><span>{{prevTo}}</span><span>{{prevDates}}</span></div><sc-for list="{{prevLines}}" as="l" hint-placeholder-count="3"><div class="dpLine"><span>{{l.d}}</span><span class="num">{{l.a}}</span></div></sc-for><div class="dpTot"><sc-for list="{{totRows}}" as="t" hint-placeholder-count="3"><div class="{{t.cls}}"><span>{{t.k}}</span><span class="num">{{t.v}}</span></div></sc-for></div><span class="dpFoot">{{prevFoot}}</span></div>
+                  <sc-if value="{{isEdit}}" hint-placeholder-val="{{ false }}"><div class="seg" role="group" aria-label="What to preview" style="--n: 2; --i: {{pvI}}; width: min(100%, 240px)"><span class="pill" aria-hidden="true"></span><button class="{{pvDocCls}}" aria-pressed="{{isPvDoc}}" onClick="{{setPvDoc}}">Document</button><button class="{{pvMailCls}}" aria-pressed="{{isPvMail}}" onClick="{{setPvMail}}">Email</button></div></sc-if>
+                  <sc-if value="{{isPvDoc}}" hint-placeholder-val="{{ true }}">
+                  <div class="docPrev docPaper">
+                    <div class="dpTop"><div><h3 class="dpTitle">{{prevKind}}</h3><span class="dpNo num">#{{no}}</span></div><span class="dpMark" aria-hidden="true">WDC</span></div>
+                    <div class="dpRule"></div>
+                    <div class="dpMeta2"><div><small>Project</small><b>{{pvProject}}</b></div><div><small>Issued</small><b class="num">{{pvIssued}}</b></div><div><small>{{pvDueLabel}}</small><b class="num">{{pvDue}}</b></div></div>
+                    <div class="dpRule"></div>
+                    <div class="dpParty"><div><small>From</small><b>WDC Studio</b><span>hello@wdc.ng</span></div><div class="r"><small>To</small><b>{{pvToName}}</b><span>{{pvToContact}}</span><span>{{pvToMail}}</span><sc-if value="{{hasPvPo}}" hint-placeholder-val="{{ false }}"><span>{{pvPo}}</span></sc-if></div></div>
+                    <div class="dpRule"></div>
+                    <div class="dpTbl"><div class="dpTh"><span>Description</span><span class="n">Qty</span><span class="n">Price</span><span class="n">Amount</span></div>
+                      <sc-for list="{{lineRows}}" as="l" hint-placeholder-count="3"><div class="dpTr"><span>{{l.d}}</span><span class="n num">{{l.q}}</span><span class="n num">{{l.u}}</span><span class="n num">{{l.a}}</span></div></sc-for>
+                      <sc-if value="{{pvNone}}" hint-placeholder-val="{{ false }}"><div class="dpTr"><span style="color: #5c5c7a">Lines appear here as you add them.</span></div></sc-if>
+                    </div>
+                    <div class="dpTot"><sc-for list="{{totRows}}" as="t" hint-placeholder-count="3"><div class="{{t.cls}}"><span>{{t.k}}</span><span class="num">{{t.v}}</span></div></sc-for></div>
+                    <sc-if value="{{hasPvNote}}" hint-placeholder-val="{{ false }}"><div class="dpNote"><b>Note</b> {{pvNote}}</div></sc-if>
+                    <div class="dpBottom"><div><small>Payment</small><span>{{pvAcct}}</span></div><div class="r"><b class="dpSign">WDC Studio</b></div></div>
+                    <span class="dpFoot">{{pvTerms}}</span>
+                  </div>
+                  </sc-if>
+                  <sc-if value="{{isPvMail}}" hint-placeholder-val="{{ false }}"><div class="docPrev docPaper dpMail"><small>To {{pvToName}}</small><strong>{{pvMailSubject}}</strong><p style="white-space: pre-line">{{pvMailBody}}</p><span class="dpBtn">Open {{prevKind}} {{no}}</span></div></sc-if>
                 </section>
                 <sc-if value="{{isEdit}}" hint-placeholder-val="{{ false }}"><section class="card rise d3" aria-label="Ready to send" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 8px"><h2 style="font-size: 16px; font-weight: 700">Ready to send?</h2><sc-for list="{{checks}}" as="ck" hint-placeholder-count="4"><div style="display: flex; align-items: center; gap: 10px"><span class="ebTick {{ck.cls}}"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="{{ck.d}}"></path></svg></span><span style="flex: 1; min-width: 0; font-size: 13px">{{ck.t}}</span></div></sc-for></section></sc-if>
                 <sc-if value="{{hasRem}}" hint-placeholder-val="{{ false }}"><section class="card rise d4" aria-label="Reminders" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 8px"><div style="display: flex; align-items: center; gap: 8px"><h2 style="font-size: 16px; font-weight: 700; flex: 1">Reminders</h2><button class="btn2" style="min-height: 44px" onClick="{{editRem}}">Edit schedule</button></div><p style="font-size: 13px; color: var(--ad-dim)">{{remNote}}</p><sc-for list="{{remRows}}" as="r" hint-placeholder-count="3"><div style="display: flex; align-items: center; gap: 10px; min-height: 44px"><span class="tag" style="background: {{r.tone}}; color: {{r.ink}}">{{r.state}}</span><span style="flex: 1; min-width: 0; font-size: 13px"><strong>{{r.t}}</strong><br><span style="color: var(--ad-dim)">{{r.when}}</span></span></div></sc-for></section></sc-if>
