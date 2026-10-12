@@ -118,7 +118,8 @@ function allowed(role: AdminRole, href: string) {
 }
 function useNav() {
   const role = useContext(RoleContext);
-  return useMemo(() => NAV.filter((item) => allowed(role, item.href)), [role]);
+  /* Staff open to their own day, not the studio's Today. */
+  return useMemo(() => NAV.filter((item) => allowed(role, item.href)).map((item) => (role === "staff" && item.href === "/admin" ? { ...item, label: "My Day" } : item)), [role]);
 }
 const ROLE_LABEL: Record<string, string> = { owner: "Owner", staff: "Staff" };
 
