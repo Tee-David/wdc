@@ -1,0 +1,25 @@
+/* THE INVOICE AND QUOTE BUILDER PAGE: the form, and the paper it becomes. */
+.inv__split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 24rem); gap: 1.25rem; align-items: start; }
+.inv__form { min-width: 0; background: var(--ad-panel); border: 1px solid var(--ad-line); border-radius: 20px; padding: 1.25rem; }
+.inv__side { min-width: 0; position: sticky; top: 5rem; display: grid; gap: .6rem; }
+.inv__sideHead { margin: 0; display: flex; justify-content: space-between; gap: .75rem; font-weight: 700; font-size: .95rem; }
+.inv__sideHead span { color: var(--ad-dim); font-weight: 500; font-size: .8rem; }
+/* The paper stays white in both themes: it is the document, not the dashboard. */
+.inv__paper { background: #fff; color: #0e0e2c; border: 1px solid var(--ad-line-2); border-radius: 16px; padding: 1.25rem; display: grid; gap: 1rem; box-shadow: var(--ad-sh-2); min-width: 0; }
+.inv__paper header { display: flex; justify-content: space-between; align-items: baseline; gap: .75rem; flex-wrap: wrap; }
+.inv__paper header b { font: 700 1.4rem/1.1 var(--font-space-grotesk, "Space Grotesk"), sans-serif; }
+.inv__paper header span { color: #5c5c7a; font-size: .82rem; }
+.inv__meta { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem 1rem; }
+.inv__meta dt { font-size: .72rem; color: #5c5c7a; font-weight: 600; text-transform: none; }
+.inv__meta dd { margin: 0; font-weight: 600; font-size: .9rem; overflow-wrap: anywhere; }
+.inv__tbl { width: 100%; border-collapse: collapse; font-size: .84rem; }
+.inv__tbl th { text-align: left; font-size: .72rem; color: #5c5c7a; font-weight: 600; padding: .4rem 0; border-bottom: 1px solid #c9ccdc; }
+.inv__tbl th:not(:first-child), .inv__tbl td:not(:first-child) { text-align: right; white-space: nowrap; padding-left: .75rem; }
+.inv__tbl td { padding: .55rem 0; border-bottom: 1px solid #e4e6f0; overflow-wrap: anywhere; vertical-align: top; }
+.inv__tbl .inv__none { text-align: left; color: #5c5c7a; }
+.inv__sum { margin: 0; display: grid; gap: .3rem; margin-left: auto; min-width: 12rem; font-size: .86rem; }
+.inv__sum > div { display: flex; justify-content: space-between; gap: 1.2rem; }
+.inv__sum dd { margin: 0; font-variant-numeric: tabular-nums; }
+.inv__sum .is-total { border-top: 1px solid #c9ccdc; padding-top: .4rem; font-weight: 700; font-size: 1rem; }
+@media (max-width: 1180px) { .inv__split { grid-template-columns: minmax(0, 1fr); } .inv__side { position: static; } }
+@media (max-width: 520px) { .inv__form, .inv__paper { padding: 1rem; } }

@@ -39,8 +39,9 @@ test("a filter select opens a list, takes arrows and letters, and posts the valu
 
 test("the calendar picks a date from the keyboard inside a dialog, and Escape closes only the calendar", async ({ page }) => {
   await open(page, "/admin/money");
-  await page.getByRole("button", { name: /New invoice/ }).filter({ visible: true }).first().click();
-  const dialog = page.locator("dialog[open]");
+  await page.getByRole("link", { name: /New invoice/ }).filter({ visible: true }).first().click();
+  await page.waitForURL(/money\/new/);
+  const dialog = page.locator(".inv__form");
   const due = dialog.getByLabel(/^Due/);
   const before = await dialog.locator('input[name="due"]').inputValue();
   expect(before).toMatch(/^\d{4}-\d{2}-\d{2}$/);
@@ -67,8 +68,9 @@ test("the calendar picks a date from the keyboard inside a dialog, and Escape cl
 
 test("the title walks up to months and years, so a date years away is four clicks", async ({ page }) => {
   await open(page, "/admin/money");
-  await page.getByRole("button", { name: /New invoice/ }).filter({ visible: true }).first().click();
-  const dialog = page.locator("dialog[open]");
+  await page.getByRole("link", { name: /New invoice/ }).filter({ visible: true }).first().click();
+  await page.waitForURL(/money\/new/);
+  const dialog = page.locator(".inv__form");
   await dialog.getByLabel(/^Due/).click();
   const cal = page.locator(".adPick__pop.adCal");
   await cal.locator(".adCal__title").click();
@@ -88,8 +90,9 @@ test("the title walks up to months and years, so a date years away is four click
 
 test("on a phone the calendar is a sheet with no sideways scroll", async ({ page }) => {
   await open(page, "/admin/money", 320);
-  await page.getByRole("button", { name: /New invoice/ }).filter({ visible: true }).first().click();
-  await page.locator("dialog[open]").getByLabel(/^Due/).click();
+  await page.getByRole("link", { name: /New invoice/ }).filter({ visible: true }).first().click();
+  await page.waitForURL(/money\/new/);
+  await page.locator(".inv__form").getByLabel(/^Due/).click();
   const sheet = page.locator(".adPick__pop.adCal");
   await expect(sheet).toBeVisible();
   const box = await sheet.boundingBox();

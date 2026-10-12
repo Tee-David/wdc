@@ -10,9 +10,8 @@ test.skip(!TOKEN, "Needs BONEYARD_CAPTURE_TOKEN set on the dev server under test
 test.use({ extraHTTPHeaders: { "x-boneyard-capture": TOKEN ?? "" } });
 
 async function openBillTo(page: import("@playwright/test").Page) {
-  await page.goto("/admin/money", { waitUntil: "networkidle" });
-  await page.getByRole("button", { name: "New invoice" }).first().click();
-  const dialog = page.locator("dialog[open]");
+  await page.goto("/admin/money/new", { waitUntil: "networkidle" });
+  const dialog = page.locator(".inv__form");
   await dialog.getByRole("button", { name: /^Bill to/ }).first().click();
   return dialog;
 }

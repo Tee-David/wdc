@@ -1011,7 +1011,7 @@ body:has(.adDrawer[open]) .st { display: none; }
   border: 1px solid var(--ad-line); border-radius: 8px;
   background: var(--ad-bg); color: var(--ad-ink);
 }
-.ad__lnF input:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 1px; }
+.ad__lnF input:focus-visible { outline: none; border-color: var(--ad-ink); box-shadow: 0 0 0 4px var(--ad-ring); }
 .ad__lnF--n input { text-align: right; font-variant-numeric: tabular-nums; }
 
 .ad__lineT {
