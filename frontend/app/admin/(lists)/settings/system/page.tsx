@@ -1,3 +1,4 @@
+import { Head } from "@/components/admin/settings/kit";
 import { adminRole } from "@/lib/admin/guard";
 import { can } from "@/lib/admin/permissions";
 import { lastProbes, PROBES, SLOW, type ProbeName } from "@/lib/system/probes";
@@ -77,7 +78,7 @@ export default async function SystemPage() {
 
   return (
     <>
-      <div className="ad__head"><div><h1>System health</h1><p>Is everything answering?</p></div></div>
+      <Head title="System health" line="Is everything answering?" />
       <div className="ad__stack">
         <Panel title="Services">
           <div className="ad__scroll">

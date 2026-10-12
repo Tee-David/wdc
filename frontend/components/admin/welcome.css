@@ -1,0 +1,25 @@
+/* THE WELCOME CHECKLIST (components/admin/welcome.tsx). */
+.adWl { display: grid; gap: 1.25rem; min-width: 0; }
+.adWl__hero { padding: 1.4rem 1.5rem; border-radius: 24px; background: var(--ad-hero); color: #fff; display: grid; gap: .8rem; }
+.adWl__heroTop { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.adWl__heroTop h2 { margin: 0; font-size: 1.35rem; font-weight: 700; }
+.adWl__heroTop .ad__num { font-weight: 700; }
+.adWl__bar { height: 10px; border-radius: 999px; background: rgb(255 255 255 / .22); overflow: hidden; }
+.adWl__bar span { display: block; height: 100%; border-radius: 999px; background: #fff; transform-origin: left; transform: scaleX(var(--w, 0)); animation: adBarGrow .8s var(--ad-ease) backwards; }
+.adWl__hero p { margin: 0; color: var(--ad-hero-dim); font-size: .95rem; }
+.adWl__finish { display: flex; }
+.adWl__finish .ad__btn { background: #fff; color: #000065; border-color: #fff; }
+.adWl__steps { list-style: none; margin: 0; padding: 0; border-radius: 20px; background: var(--ad-panel); border: 1px solid var(--ad-line); box-shadow: var(--ad-sh-1); overflow: hidden; }
+.adWl__step { display: grid; grid-template-columns: 2.9rem minmax(0, 1fr) auto auto; gap: 1rem; align-items: center; padding: 1rem 1.25rem; border-top: 1px solid var(--ad-line); }
+.adWl__step:first-child { border-top: 0; }
+.adWl__ic { width: 2.9rem; height: 2.9rem; display: grid; place-items: center; border-radius: 14px; background: var(--ad-tone-brand); color: var(--ad-on-brand); }
+.adWl__ic svg { width: 1.2rem; height: 1.2rem; }
+.adWl__txt { display: grid; gap: .1rem; min-width: 0; color: var(--ad-dim); font-size: .88rem; }
+.adWl__txt b { color: var(--ad-ink); font-size: 1rem; }
+.adWl__step .ad__btn { min-height: 2.75rem; }
+@media (max-width: 720px) {
+  .adWl__step { grid-template-columns: 2.9rem minmax(0, 1fr); }
+  .adWl__step .ad__pill { justify-self: start; grid-column: 2; }
+  .adWl__step .ad__btn { grid-column: 2; justify-self: start; }
+}
+@media (prefers-reduced-motion: reduce) { .adWl__bar span { animation: none; } }

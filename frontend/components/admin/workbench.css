@@ -80,6 +80,7 @@ a.adRc__row:hover, button.adRc__row:hover, a.adRc__row.on, button.adRc__row.on {
 .adRc__ic svg { width: .9rem; height: .9rem; }
 .adRc__split { display: flex; gap: .65rem; align-items: center; min-width: 0; }
 .adRc__split > span:last-child { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: .3rem; }
+.adRc__split > span.ad__pill:last-child { flex: none; display: inline-flex; flex-direction: row; gap: .35rem; }
 
 /* ---- mini bar: a share of the largest, a transform so it can grow in ------ */
 .adBar { display: block; height: 6px; border-radius: 6px; background: var(--ad-line-2); overflow: hidden; }
