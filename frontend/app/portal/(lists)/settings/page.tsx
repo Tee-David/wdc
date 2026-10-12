@@ -3,6 +3,7 @@ import { PersonalNotificationPreferences } from "@/components/workspace/personal
 import { ClientProfilePreference } from "@/components/client/profile-preference";
 import { getPortalRequest } from "@/lib/portal/session";
 import { Panel } from "@/components/admin/bits";
+import { PageHead } from "@/components/admin/page-head";
 import { NotifyForm, ProfileForm, SignInCard } from "@/components/client/settings-forms";
 import { db } from "@/lib/db/pool";
 import { listDevices } from "@/lib/auth/devices";
@@ -30,13 +31,8 @@ export default async function PortalSettings() {
   const devices = userId && !support ? await listDevices(userId, (session as { session?: { id?: string } } | null)?.session?.id) : [];
 
   return (
-    <div className="adDash">
-      <header className="adDash__head">
-        <div>
-          <h1>Settings</h1>
-          <p>Your details and how we reach you.</p>
-        </div>
-      </header>
+    <>
+      <PageHead title="Settings" lede="Your details and how we reach you." />
 
       <div className="pSet">
         {isPrimaryContact ? <Panel title="Profile">
@@ -56,6 +52,6 @@ export default async function PortalSettings() {
           </Panel>
         </div>
       </div>
-    </div>
+    </>
   );
 }

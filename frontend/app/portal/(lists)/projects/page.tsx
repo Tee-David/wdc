@@ -1,5 +1,8 @@
 import Link from "next/link";
-import { ListSearch } from "@/components/admin/list-search";
+import { PageHead } from "@/components/admin/page-head";
+import { Tabs } from "@/components/admin/tabs";
+import { UrlSearch } from "@/components/admin/url-search";
+import { Pager, readPer } from "@/components/admin/pager";
 import { projectGlyph, projectTileStyle } from "@/components/client/service-glyph";
 import { Clock, FileCheck2, FolderKanban } from "lucide-react";
 import { getPortalRequest } from "@/lib/portal/session";
@@ -10,6 +13,7 @@ import { Empty, StagePill, when } from "@/components/admin/bits";
 import { initials } from "@/lib/admin/client-mark";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 import "@/components/client/portal.css";
+import "@/components/admin/project-page.css";
 
 export const metadata = { title: "Projects" };
 
@@ -19,40 +23,47 @@ export const metadata = { title: "Projects" };
  * client if anything is. Active and delivered are two tabs so a finished
  * project stays findable without crowding the ones still moving.
  */
-export default async function PortalProjects({ searchParams }: { searchParams: Promise<{ show?: string }> }) {
+export default async function PortalProjects({ searchParams }: { searchParams: Promise<{ show?: string; q?: string; page?: string; per?: string }> }) {
   await syncStore();
   persistSoon();
   const { client, allowedProjectIds, reviewProjectIds, isPrimaryContact } = await getPortalRequest();
   if (!client) return null;
-  const { show } = await searchParams;
+  const sp = await searchParams;
+  const show = sp.show;
 
   const all = getProjects(true).filter(p => allowedProjectIds.includes(p.id));
   const isDone = (p: (typeof all)[number]) => p.archived || p.stage === "Delivered";
   const active = all.filter((p) => !isDone(p));
   const delivered = all.filter(isDone);
   const tab = show === "delivered" ? "delivered" : "active";
-  const projects = tab === "delivered" ? delivered : active;
+  const needle = String(sp.q ?? "").trim().slice(0, 80).toLocaleLowerCase();
+  const matching = (tab === "delivered" ? delivered : active).filter((p) => !needle || `${p.title} ${p.owner}`.toLocaleLowerCase().includes(needle));
+  const per = readPer(sp.per);
+  const page = Math.min(Math.max(1, Math.ceil(matching.length / per)), Math.max(1, Number.parseInt(sp.page ?? "1", 10) || 1));
+  const projects = matching.slice((page - 1) * per, page * per);
+  const href = (patch: { show?: string; page?: string; per?: string }) => {
+    const n = new URLSearchParams();
+    for (const [k, v] of Object.entries({ show: tab === "delivered" ? "delivered" : "", q: sp.q, per: sp.per, ...patch })) if (v) n.set(k, v);
+    const q = n.toString();
+    return `/portal/projects${q ? `?${q}` : ""}`;
+  };
 
   return (
-    <div className="adDash">
-      <header className="adDash__head">
-        <div>
-          <h1>Your projects</h1>
-          <p>{isPrimaryContact ? `Everything we are making for ${client.company}, and where each one is.` : "The projects you have been invited to, and where each one is."}</p>
-        </div>
-        <nav className="ad__switch" aria-label="Which projects">
-          <Link href="/portal/projects" aria-current={tab === "active" ? "true" : undefined}>Active {active.length}</Link>
-          <Link href="/portal/projects?show=delivered" aria-current={tab === "delivered" ? "true" : undefined}>Delivered {delivered.length}</Link>
-        </nav>
-      </header>
-
-      {projects.length ? <ListSearch target="portal-projects-list" placeholder="Search projects" noun="projects" /> : null}
+    <>
+      <PageHead title="Projects" lede={isPrimaryContact ? `Everything we are making for ${client.company}, and where each one is.` : "The projects you have been invited to, and where each one is."} />
+      <div className="adPg__tabs">
+        <Tabs label="Which projects" current={tab} items={[
+          { key: "active", label: "Active", href: href({ show: undefined, page: undefined }), count: active.length },
+          { key: "delivered", label: "Delivered", href: href({ show: "delivered", page: undefined }), count: delivered.length },
+        ]} />
+      </div>
+      {all.length ? <div style={{ margin: "0 0 1rem" }}><UrlSearch label="Search projects" placeholder="Search projects" /></div> : null}
 
       {/* The tour's target wraps both the cards and the empty state, so a new
           client's tour lands on what they actually see. */}
       <div data-tour="portal-projects">
       {projects.length ? (
-        <div className="pProj" id="portal-projects-list">
+        <><div className="pProj" id="portal-projects-list">
           {projects.map((project) => {
             const service = SERVICES.find((s) => s.slug === project.service);
             const at = STAGES.indexOf(project.stage);
@@ -106,9 +117,11 @@ export default async function PortalProjects({ searchParams }: { searchParams: P
             );
           })}
         </div>
+        <div className="adList" style={{ marginTop: "1rem" }}><Pager label="Project pages" total={matching.length} page={page} per={per} noun={matching.length === 1 ? "project" : "projects"}
+          href={(patch) => href({ page: patch.page && patch.page > 1 ? String(patch.page) : undefined, per: patch.per ? String(patch.per) : sp.per })} /></div></>
       ) : (
         <div className="ad__panel">
-          {tab === "delivered"
+          {needle ? <Empty title="No project matches" icon={FolderKanban} action={<Link className="ad__btn" href={href({ page: undefined, per: undefined }).replace(/[?&]q=[^&]*/, "")}>Clear search</Link>}>Try fewer words.</Empty> : tab === "delivered"
             ? <Empty title="Nothing delivered yet" icon={FolderKanban}>Finished projects move here, with everything we handed over.</Empty>
             : delivered.length
               ? <Empty title="Nothing in progress right now" icon={FolderKanban}
@@ -119,6 +132,6 @@ export default async function PortalProjects({ searchParams }: { searchParams: P
         </div>
       )}
       </div>
-    </div>
+    </>
   );
 }
