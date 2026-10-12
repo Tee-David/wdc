@@ -141,7 +141,7 @@ export default function FontsField({ id, value, onChange, describedBy }: {
             <Shuffle aria-hidden="true" /> Shuffle for more pairings
           </button>
           <div className="obCol__options">
-            <button type="button" className="obCol__opt" onClick={() => setOwn(true)}>I already know mine</button>
+            <button type="button" className="obCol__opt" onClick={() => setOwn(true)}>I know my fonts</button>
             <button type="button" className={`obCol__opt${notSure ? " is-on" : ""}`}
               onClick={() => onChange(notSure ? "" : UNSURE)}>Choose for me</button>
           </div>

@@ -7,7 +7,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getClient, getInvoiceByToken, getPaymentsFor } from "@/lib/admin/store";
 import { invoiceStatus, invoiceTotals, lineTotal } from "@/lib/admin/types";
-import { DocumentShell, DocNote, DocTotals, docDay, daysFromToday, invoiceUrl, type DocTag } from "@/components/money/document";
+import { DocumentShell, Headline, invoiceUrl } from "@/components/money/document";
 import { CONTACT_EMAIL } from "@/lib/site";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 
@@ -94,25 +94,12 @@ export default async function PublicInvoice({
      the books can follow. */
   const canCheckout = ["NGN","USD"].includes(currencyOf(inv)) && !settled && !inv.voided && Boolean(client?.email?.trim());
 
-  const day = docDay;
-  /* WHOLE DAYS FROM TODAY TO THE DUE DATE, for the tag: "Due in 4 days" or
-     "3 days late". Dates are calendar days, so both ends are cut to a day. */
-  const away = daysFromToday(inv.due);
-  const late = Math.max(1, -away);
-  const tag: DocTag =
-    inv.voided ? { text: "Cancelled", tone: "flat" }
-      : settled ? { text: "Paid", tone: "good" }
-        : status === "Overdue" ? { text: `${late} ${late === 1 ? "day" : "days"} late`, tone: "bad" }
-          : status === "Part paid" ? { text: "Part paid", tone: "warn" }
-            : { text: away <= 0 ? "Due today" : `Due in ${away} ${away === 1 ? "day" : "days"}`, tone: away <= 7 ? "warn" : "flat" };
-
   return (
     <DocumentShell
       kind="Invoice"
       number={inv.number}
       url={invoiceUrl(inv.token)}
       qrLabel={`Reopen invoice ${inv.number}`}
-      tag={tag}
       /* NO STAMP ON AN INVOICE THAT IS SIMPLY WAITING. Settled, part paid and
          overdue are all facts worth pressing into the corner; "sent, not yet
          due" is the default state of every invoice and stamping it would make
@@ -125,7 +112,8 @@ export default async function PublicInvoice({
                 : undefined
       }
     >
-      {/* A STRUCK INVOICE STILL OPENS, AND SAYS SO ON ITS FACE.
+
+      <ReceiptControls token={inv.token} kind="Invoice" />      {/* A STRUCK INVOICE STILL OPENS, AND SAYS SO ON ITS FACE.
 
           The alternative was a 404, and a 404 on a document somebody is
           holding reads as the studio having made it disappear. The number
@@ -134,39 +122,52 @@ export default async function PublicInvoice({
           The reason is shown too, because "why does this say void" is the
           question they will ask next. */}
       {inv.voided ? (
-        <DocNote tone="warn">
+        <p className="doc__void" role="status">
           <b>This invoice has been cancelled.</b> Nothing is owed on it and no
           payment should be made against it
           {inv.voided.reason ? `: ${inv.voided.reason}` : "."} If you were
           expecting a bill for this work, one will follow under a new number.
-        </DocNote>
-      ) : settled && t.total > 0 ? (
-        <DocNote>Paid in full, {naira(t.total)}. Thank you. Each payment is listed below with its receipt.</DocNote>
-      ) : status === "Part paid" ? (
-        <DocNote tone="warn">{naira(inv.paid)} is paid. {naira(t.due)} is still open.</DocNote>
-      ) : status === "Overdue" ? (
-        /* ORANGE, NOT RED, WAS THE OLD RULE: an invoice past its date is a
-           nudge, not a failure. The board's red is for the tag only when the
-           invoice really is late; the sentence stays kind and says what to do. */
-        <DocNote tone="bad">This invoice is {late} {late === 1 ? "day" : "days"} late. You can pay it below in one step.</DocNote>
+        </p>
       ) : null}
 
-      <dl className="doc__meta docMetaG">
+      <Headline
+        currency={currencyOf(inv)}
+        label={inv.voided ? "Cancelled, nothing owed" : settled ? "Paid in full" : "Amount due"}
+        amount={inv.voided ? 0 : settled ? t.total : t.due}
+        clear={settled && !inv.voided}
+        pill={
+          inv.voided
+            ? { text: "Cancelled", tone: "bad" }
+            : settled
+            ? { text: "Settled", tone: "good" }
+            /* ORANGE, NOT RED. Red is where something has gone wrong -- a
+               reversed payment, a failed charge. An invoice past its date is
+               not a failure, it is a nudge, and the studio has to send these
+               to people it wants to keep working with. */
+            : status === "Overdue"
+              ? { text: "Past its due date", tone: "due" }
+              : status === "Part paid"
+                ? { text: `${naira(inv.paid)} received so far`, tone: "warn" }
+                : undefined
+        }
+      />
+
+      <dl className="doc__meta">
         <div>
           <dt>Billed to</dt>
-          <dd><strong>{client?.company ?? "–"}</strong></dd>
+          <dd>{client?.company ?? "–"}</dd>
         </div>
         <div>
           <dt>Issued</dt>
-          <dd>{day(inv.issued)}</dd>
+          <dd>{new Date(inv.issued).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}</dd>
         </div>
         <div>
           <dt>Due</dt>
-          <dd><strong className={status === "Overdue" ? "doc__late" : undefined}>{day(inv.due)}</strong></dd>
+          <dd>{new Date(inv.due).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}</dd>
         </div>
       </dl>
 
-      <div className="doc__scroll" tabIndex={0} aria-label="Lines, scrolls sideways">
+      <div className="doc__scroll">
         <table className="doc__lines">
           <thead>
             {/* A RUNNING HEAD, PRINT ONLY.
@@ -182,45 +183,57 @@ export default async function PublicInvoice({
               </th>
             </tr>
             <tr>
-              <th scope="col">Description</th>
-              <th scope="col" className="n">Qty</th>
-              <th scope="col" className="n">Unit</th>
-              <th scope="col" className="n">Amount</th>
+              <th>What for</th>
+              <th className="n">Qty</th>
+              <th className="n">Unit</th>
+              <th className="n">Total</th>
             </tr>
           </thead>
           <tbody>
             {inv.lines.map((l, n) => (
               <tr key={n}>
-                <td><strong>{l.description}</strong></td>
+                <td>{l.description}</td>
                 <td className="n">{l.qty}</td>
                 <td className="n">{naira(l.unit)}</td>
                 <td className="n">{naira(lineTotal(l))}</td>
               </tr>
             ))}
           </tbody>
+          {/* EVERY FIGURE RECOMPUTED FROM THE LINES, never read from a stored
+              total. A stored total is a second source of truth, and the day it
+              disagrees with the first is the day somebody is billed wrong. */}
+          <tfoot>
+            <tr>
+              <td colSpan={3} className="n">Subtotal</td>
+              <td className="n">{naira(t.subtotal)}</td>
+            </tr>
+            <tr>
+              <td colSpan={3} className="n">VAT at {inv.vatRate}%</td>
+              <td className="n">{naira(t.vat)}</td>
+            </tr>
+            {inv.paid > 0 ? (
+              <tr>
+                <td colSpan={3} className="n">Received</td>
+                <td className="n">−{naira(inv.paid)}</td>
+              </tr>
+            ) : null}
+            <tr>
+              <td colSpan={3} className="n">{settled ? "Total" : "Due"}</td>
+              <td className="n">{naira(settled ? t.total : t.due)}</td>
+            </tr>
+          </tfoot>
         </table>
       </div>
-      {/* EVERY FIGURE RECOMPUTED FROM THE LINES, never read from a stored
-          total. A stored total is a second source of truth, and the day it
-          disagrees with the first is the day somebody is billed wrong. */}
-      <DocTotals
-        rows={[
-          { k: "Subtotal", v: naira(t.subtotal) },
-          { k: `VAT ${inv.vatRate}%`, v: naira(t.vat) },
-          ...(inv.paid > 0 ? [{ k: "Received", v: `−${naira(inv.paid)}` }] : []),
-          { k: settled ? "Total" : "Balance", v: naira(settled ? t.total : t.due), strong: true },
-        ]}
-      />
 
       {payments.length ? (
         <>
           <h2 className="doc__sub">
             Payments received
           </h2>
-          <div className="doc__scroll" tabIndex={0} aria-label="Payments, scrolls sideways">
+          <div className="doc__scroll">
             <table className="doc__lines">
               <thead>
-                <tr><th scope="col">Receipt</th><th scope="col">When</th><th scope="col">How</th><th scope="col" className="n">Amount</th></tr>
+                <tr><th>Receipt</th><th>When</th><th>How</th><th className="n">Amount</th></tr>
               </thead>
               <tbody>
                 {/* REVERSED ROWS STAY, STRUCK THROUGH. A client comparing this
@@ -231,7 +244,7 @@ export default async function PublicInvoice({
                 {payments.map((p) => (
                   <tr key={p.id} className={p.reversed ? "is-void" : undefined}>
                     <td><a href={`/r/${p.token}`}>{p.receiptNo}</a></td>
-                    <td>{day(p.at)}</td>
+                    <td>{new Date(p.at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</td>
                     <td>
                       {p.method}
                       {p.reversed ? <><br /><small>Reversed, not counted</small></> : null}
@@ -258,8 +271,8 @@ export default async function PublicInvoice({
               last attempt and the payer is standing here wondering whether
               they have been charged. Each of these is a different answer and
               none of them is "an error occurred". */}
-          {problem ? <div className="errNote" role="alert"><span>{problem}</span></div> : null}
-          {currencyOf(inv)==="NGN" && !settled && paymentMode !== "live" ? <div className="warnNote" role="status"><span>{paymentMode === "test" ? "Paystack is in test mode. A test payment leaves this invoice unpaid. Choose Flutterwave or use the bank details for a real payment." : "Paystack is temporarily unavailable. Choose Flutterwave or use the bank details below."}</span></div> : null}
+          {problem ? <p className="doc__warn">{problem}</p> : null}
+          {currencyOf(inv)==="NGN" && !settled && paymentMode !== "live" ? <p className="doc__warn">{paymentMode === "test" ? "Paystack is in test mode. A test payment leaves this invoice unpaid. Choose Flutterwave or use the bank details for a real payment." : "Paystack is temporarily unavailable. Choose Flutterwave or use the bank details below."}</p> : null}
 
           {/* A REAL FORM, A REAL POST. Not a fetch and not a link: a link that
               spends money can be followed by a prefetcher or a mail scanner,
@@ -268,10 +281,43 @@ export default async function PublicInvoice({
               come off the token in the URL, because a form field is a number
               the payer can edit. */}
           {canCheckout ? (
-            <PayForm currency={currencyOf(inv)} action={`/api/pay/${inv.token}`} className="doc__payForm" amount={naira(t.due)}>
-              <p className="doc__hint">
-                You pay the studio, and the studio never holds your card details. A receipt is emailed the moment it clears. A paid invoice cannot be paid twice.
-              </p>
+            <PayForm currency={currencyOf(inv)} action={`/api/pay/${inv.token}`} className="doc__actions">
+              {/* THE AMOUNT AND THE VERB, AND NOTHING ELSE IN THE LABEL. It
+                  used to carry "by card or transfer" as well, which is a
+                  sentence about method inside a control whose job is the
+                  figure. The method moved to the line under it, where it
+                  reassures without competing.
+
+                  A CARD ON THE LEFT AND AN ARROW ON THE RIGHT, and the two do
+                  different jobs. The card says what kind of thing this is
+                  before the label is read, which is most of what an icon on a
+                  button is for. The arrow says the press LEAVES the page,
+                  which on a payment button is worth saying: the payer lands on
+                  Paystack's domain, and a person who was not expecting that is
+                  a person who abandons a checkout.
+
+                  Drawn inline rather than pulled from lucide, because these
+                  are two paths on a document that otherwise ships no icon set,
+                  and an icon package for eight lines of SVG is a dependency
+                  for a small effect. Both are `aria-hidden`: the label already
+                  says "Pay ₦377,250.00", and a screen reader announcing "credit
+                  card, arrow right" around it adds nothing. */}
+              <button className="doc__btn doc__btn--pay" type="submit">
+                <span className="doc__btn__trace" aria-hidden="true" />
+                <span className="doc__btn__shade" aria-hidden="true" />
+                <svg className="doc__btn__ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="2" y="5" width="20" height="14" rx="2.5" />
+                  <path d="M2 10h20" />
+                  <path d="M6 15h3" />
+                </svg>
+                Pay {naira(t.due)}
+                <svg className="doc__btn__go" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M5 12h14M13 6l6 6-6 6" />
+                </svg>
+              </button>
+              <small>
+                Continue to your selected provider?s secure checkout.
+              </small>
             </PayForm>
           ) : null}
 
@@ -295,7 +341,7 @@ export default async function PublicInvoice({
             /* The method is already said under the button. This is the other
                half: what to do when the button does not work, which is the
                only thing left for this panel to answer. */
-            <p className="doc__hint">
+            <p>
               Anything that goes wrong, write to{" "}
               <a href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(inv.number)}`}>{CONTACT_EMAIL}</a>{" "}
               quoting <b>{inv.number}</b> and we will sort it out.
@@ -311,9 +357,17 @@ export default async function PublicInvoice({
           )}
         </section>
       ) : null}
-
-      <ReceiptControls token={inv.token} kind="Invoice" number={inv.number} />
-      <p className="doc__hint">Questions about this invoice? Reply to the email it came with, or use Need help.</p>
+      {/* PAID IN FULL: the stamp where the Pay button stood, so the answer to
+          "do I still owe anything" is the first thing seen in that place. */}
+      {settled && !inv.voided && t.total > 0 ? (
+        <section className="doc__pay doc__pay--paid">
+          <p className="doc__paid" role="status">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11" /></svg>
+            Paid {naira(t.total)}
+          </p>
+          <p>Nothing is owed on this invoice. Each payment is listed above with its receipt.</p>
+        </section>
+      ) : null}
     </DocumentShell>
   );
 }
