@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Banknote, FileSignature, FileText, Plus, Save, Send, Trash2,
 } from "lucide-react";
@@ -113,6 +114,25 @@ export function EstimateBuilder({
 const NEW = "__new";
 
 /**
+ * The builder on its own page, with the document beside it. The same
+ * `Builder`, so the page and the dialogs cannot disagree about a figure; only
+ * what surrounds it differs. Saving returns to Money, where the new document
+ * is at the top of its list.
+ */
+export function BuilderPage({ estimate, clientId, defaultVatRate, defaultDueInDays, credits, noEmail }: {
+  estimate?: boolean; clientId?: string; defaultVatRate?: number; defaultDueInDays?: number;
+  credits?: Record<string, number>; noEmail?: Record<string, string>;
+}) {
+  const router = useRouter();
+  return (
+    <Builder
+      page estimate={estimate} clientId={clientId} close={() => router.push(estimate ? "/admin/money?tab=quotes" : "/admin/money")}
+      defaultVatRate={defaultVatRate} defaultDueInDays={defaultDueInDays} credits={credits} noEmail={noEmail}
+    />
+  );
+}
+
+/**
  * The edit sheet's contents, for a menu that is not the invoice page: the same
  * builder, locked to the invoice's own client. A draft, or an issued invoice
  * that is unpaid or part paid; the server refuses a total below what has been
@@ -125,7 +145,7 @@ export function EditInvoiceForm({ invoice, clientName, projectTitle, close }: {
 }
 
 function Builder({
-  invoice, clientName, projectTitle, clientId, close, estimate = false,
+  invoice, clientName, projectTitle, clientId, close, estimate = false, page = false,
   defaultVatRate, defaultDueInDays, credits, noEmail,
 }: {
   invoice?: Invoice;
@@ -135,6 +155,8 @@ function Builder({
   close: () => void;
   /** Build an estimate rather than an invoice. */
   estimate?: boolean;
+  /** On its own page: the document grows beside the form, and saving goes back to Money. */
+  page?: boolean;
   defaultVatRate?: number;
   defaultDueInDays?: number;
   credits?: Record<string, number>;
@@ -167,6 +189,9 @@ function Builder({
   const [vat, setVat] = useState(String(invoice?.vatRate ?? defaultVatRate ?? 7.5));
   const [who, setWho] = useState(invoice?.clientId ?? clientId ?? "");
   const [proj, setProj] = useState(invoice?.projectId ?? "");
+  const [whoName, setWhoName] = useState(clientName ?? "");
+  const [projName, setProjName] = useState(projectTitle ?? "");
+  const [dates, setDates] = useState(() => ({ issued: (invoice?.issued ?? new Date().toISOString()).slice(0, 10), due: estimate ? plusDays(30).slice(0, 10) : (invoice?.due ?? plusDays(defaultDueInDays ?? 30)).slice(0, 10) }));
   /* Already paid, or paid ahead? Only when raising a new invoice. */
   const [settle, setSettle] = useState<"" | "paid" | "credit">("");
 
@@ -192,7 +217,7 @@ function Builder({
   /* A client typed in as new has no record to read yet: the server decides. */
   const cannotEmail = who && who !== NEW ? noEmail?.[who] : undefined;
 
-  return (
+  const form = (
     <Form action={estimate ? createEstimate : invoice ? updateInvoice : createInvoice} onDone={() => close()}>
       {invoice ? <Hidden name="id" value={invoice.id} /> : null}
       {issued ? (
@@ -215,7 +240,7 @@ function Builder({
             <Wrap name="clientId" label="Bill to" required half>
               {(id) => (
                 <RemotePick id={id} kind="clients" value={who} placeholder="Pick a client" label="Bill to"
-                  onChange={(v) => { setWho(v); setProj(""); }} defaultLabel={clientName}
+                  onChange={(v, l) => { setWho(v); setProj(""); setWhoName(v === NEW ? "" : l); setProjName(""); }} defaultLabel={clientName}
                   lead={invoice ? [] : [{ value: NEW, label: "+ Add a new client" }]} />
               )}
             </Wrap>
@@ -227,7 +252,7 @@ function Builder({
           {(id) => (
             /* Disabled until a client is chosen: without one the search would offer every project. */
             <RemotePick id={id} kind="projects" scope={{ clientId: who }} value={proj} placeholder="No particular project" label="Against"
-              onChange={setProj} defaultLabel={projectTitle} disabled={!who}
+              onChange={(v, l) => { setProj(v); setProjName(v === NEW ? "" : l); }} defaultLabel={projectTitle} disabled={!who}
               lead={who && !invoice ? [{ value: NEW, label: "+ Open a new project" }] : []} />
           )}
         </Wrap>
@@ -421,6 +446,41 @@ function Builder({
         )}
       </Actions>
     </Form>
+  );
+  if (!page) return form;
+  const lines = rows.map((r) => ({ key: r.key, d: r.description.trim(), q: Number(r.qty) || 0, t: Math.round((Number(r.qty) || 0) * Math.round((Number(r.unit.replace(/[₦,\s]/g, "")) || 0) * 100)) })).filter((l) => l.d || l.t);
+  const day = (v: string) => (v ? new Date(`${v}T00:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }) : "");
+  return (
+    <div className="inv__split" onInput={(e) => { const t = e.target as HTMLInputElement; if (t.name === "issued" || t.name === "due" || t.name === "expires") setDates((d) => ({ ...d, [t.name === "expires" ? "due" : t.name]: t.value })); }}>
+      <div className="inv__form">{form}</div>
+      <aside className="inv__side" aria-label="Live preview of the document">
+        <p className="inv__sideHead">Preview <span>Updates as you type</span></p>
+        <article className="inv__paper">
+          <header>
+            <b>{estimate ? "Quote" : "Invoice"}</b>
+            <span>{estimate ? "EST-… on save" : "INV-… on save"}</span>
+          </header>
+          <dl className="inv__meta">
+            <div><dt>Bill to</dt><dd>{whoName || "Pick a client"}</dd></div>
+            {projName ? <div><dt>For</dt><dd>{projName}</dd></div> : null}
+            <div><dt>Issued</dt><dd>{day(dates.issued)}</dd></div>
+            <div><dt>{estimate ? "Holds until" : "Due"}</dt><dd>{day(dates.due)}</dd></div>
+          </dl>
+          <table className="inv__tbl">
+            <thead><tr><th>Item</th><th>Qty</th><th>Amount</th></tr></thead>
+            <tbody>
+              {lines.length ? lines.map((l) => <tr key={l.key}><td>{l.d || "Untitled line"}</td><td>{l.q}</td><td>{format(l.t)}</td></tr>) : <tr><td colSpan={3} className="inv__none">Add a line and it appears here.</td></tr>}
+            </tbody>
+          </table>
+          <dl className="inv__sum">
+            <div><dt>Subtotal</dt><dd>{format(subtotal)}</dd></div>
+            {cut > 0 ? <div><dt>Discount</dt><dd>−{format(cut)}</dd></div> : null}
+            <div><dt>VAT at {rate}%</dt><dd>{format(tax)}</dd></div>
+            <div className="is-total"><dt>Total</dt><dd>{format(net + tax)}</dd></div>
+          </dl>
+        </article>
+      </aside>
+    </div>
   );
 }
 

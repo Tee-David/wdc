@@ -21,7 +21,7 @@ import {
 } from "@/components/admin/row-actions";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
 import { CashflowChart } from "@/components/admin/cashflow-chart";
-import { AlertTriangle, Clock, CreditCard, TrendingUp, Wallet } from "lucide-react";
+import { AlertTriangle, Clock, CreditCard, Plus, TrendingUp, Wallet } from "lucide-react";
 import "@/components/admin/dashboard.css";
 import { Pager, readPer } from "@/components/admin/pager";
 import { ExampleNote } from "@/components/admin/example-note";
@@ -174,11 +174,7 @@ export default async function MoneyPage({
         </div>
         <div className="ad__row">
           <PageTourButton />
-          <InvoiceBuilder
-            dataTour="money-add"
-            defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays}
-            credits={credits} noEmail={noEmail}
-          />
+          <Link href="/admin/money/new" className="ad__btn ad__btn--primary" data-tour="money-add"><Plus aria-hidden="true" /> New invoice</Link>
         </div>
       </div>
 
