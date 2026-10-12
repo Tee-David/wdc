@@ -136,3 +136,28 @@
 .rp__insIc--good { background: var(--ad-tone-good); }
 .rp__insIc--warn { background: var(--ad-tone-warn); }
 .rp__insIc--bad { background: var(--ad-tone-bad); }
+/* Table search */
+.rp__tfind { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; padding: .6rem 1.25rem; border-bottom: 1px solid var(--ad-line); }
+.rp__tfind label { position: relative; flex: 1 1 14rem; min-width: 0; display: block; }
+.rp__tfind label svg { position: absolute; left: .8rem; top: 50%; transform: translateY(-50%); width: 1.05rem; height: 1.05rem; color: var(--ad-dim); pointer-events: none; }
+.rp__tfind input[type="search"] { width: 100%; min-height: 2.75rem; padding: 0 .85rem 0 2.4rem; border: 1px solid var(--ad-line-2); border-radius: 12px; background: var(--ad-panel); color: var(--ad-ink); font: inherit; }
+.rp__tfind input[type="search"]:focus { outline: none; border-color: var(--ad-ink); box-shadow: 0 0 0 4px var(--ad-ring); }
+/* Two cards across on desktop, one on a phone */
+.rp__kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 560px) { .rp__kpis { grid-template-columns: minmax(0, 1fr); gap: .6rem; } }
+/* The flow chart fits the width it has. Past about a dozen periods it scrolls inside its own box. */
+.rp__plot .rp__cols li { min-width: 0; }
+.rp__plot .rp__cols { min-width: 0; overflow-x: clip; }
+.rp__plot .rp__cols--dense { gap: 2px; }
+@media (max-width: 760px) {
+  .rp__flow { padding: .85rem .9rem .4rem; }
+  .rp__plot .rp__cols small { font-size: .66rem; }
+  .rp__plot .rp__cols--dense li:nth-child(even) small { visibility: hidden; }
+}
+@media (min-width: 761px) { .rp__plot .rp__cols--dense li { min-width: 1.6rem; } .rp__plot .rp__cols { overflow-x: auto; } }
+@media (max-width: 760px) {
+  .rp__barRow--b, .rp__seg { flex-wrap: nowrap; }
+  .rp__seg { overflow-x: auto; width: 100%; scrollbar-width: none; overscroll-behavior-x: contain; }
+  .rp__seg > * { flex: none; }
+  .rp__seg a { white-space: nowrap; }
+}
