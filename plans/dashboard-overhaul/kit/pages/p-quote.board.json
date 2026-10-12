@@ -1,1 +1,1 @@
-{"file":"P-Quote.dc.html","title":"Quote, public page","role":0,"bare":true,"html":"pub-doc.html","js":["ra-common.js","pub-common.js","a-pub-quote.js","a-pub-doc.js"]}
+{"file": "P-Quote.dc.html", "title": "Quote, public page", "role": 0, "bare": true, "html": "pub-doc.html", "js": ["ra-common.js", "pub-common.js", "a-pub-quote.js", "a-pub-doc.js"], "css": ["doc-mark.css", "pub-doc.css"]}
