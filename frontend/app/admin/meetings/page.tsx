@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CalendarCheck, CalendarClock, Hourglass, PhoneOff, Plus } from "lucide-react";
+import { CalendarCheck, CalendarClock, Hourglass, PhoneOff } from "lucide-react";
 import { adminRole } from "@/lib/admin/guard";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 import { meetingList } from "@/lib/meetings/store";
@@ -20,7 +20,7 @@ import { ClickRow } from "@/components/admin/click-row";
 import { Pager, readPer } from "@/components/admin/pager";
 import { PickAll, RowPick } from "@/components/admin/bulk";
 import { Empty } from "@/components/admin/bits";
-import { MeetingSheet, MeetingsBulk, MeetingsChores } from "@/components/meetings/meetings-parts";
+import { BookForClient, MeetingSheet, MeetingsBulk, MeetingsChores } from "@/components/meetings/meetings-parts";
 
 export const metadata = { title: "Meetings" };
 
@@ -137,7 +137,7 @@ export default async function MeetingsPage({ searchParams }: { searchParams: Pro
     <>
       <PageHead
         title="Meetings" lede={lede}
-        action={<Link className="ad__btn ad__btn--primary" href="/meet"><Plus aria-hidden="true" />Book a meeting</Link>}
+        action={<BookForClient />}
         chores={<MeetingsChores owner />}
       />
       {failed ? (
@@ -221,7 +221,7 @@ export default async function MeetingsPage({ searchParams }: { searchParams: Pro
             ) : (
               <Empty
                 title={needle ? `No meeting matches “${q.q?.trim()}”` : tab === "requests" ? "No requests are waiting" : tab === "past" ? "No past meetings yet" : "No meetings are coming up"}
-                action={needle ? <Link className="ad__btn" href={href({ q: undefined })}>Clear search</Link> : <Link className="ad__btn" href="/meet">Book a meeting</Link>}
+                action={needle ? <Link className="ad__btn" href={href({ q: undefined })}>Clear search</Link> : <BookForClient label="Book a meeting" />}
               >
                 {needle ? "Search by attendee name, email or meeting title." : tab === "requests" ? "A request appears here when someone asks for a time that needs your approval." : tab === "past" ? "Meetings that took place or were cancelled are kept here." : "Share the booking link and people can ask for a time."}
               </Empty>
