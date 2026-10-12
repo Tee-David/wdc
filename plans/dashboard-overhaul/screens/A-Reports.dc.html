@@ -1404,7 +1404,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .rpOnChip svg{width:16px;height:16px}
 .rpOnChip:hover{background:var(--ad-tone-bad);color:#fff}
 .rpClear{display:inline-flex;align-items:center;min-height:44px;padding:0 8px;color:var(--ad-accent-ink);font-weight:650;font-size:14px}
-.rpKpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0}
+.rpKpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0}
 .rpKpi{padding:14px 16px;display:grid;gap:6px;min-width:0}
 .rpKpi dt{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;color:var(--ad-dim);font-weight:600;margin:0}
 .rpKpi dd{margin:0;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font:700 24px/1.1 'Space Grotesk',sans-serif;color:var(--ad-ink)}
@@ -1463,6 +1463,11 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .rpAge2,.rpAge3{background:var(--ad-series-2)}
 .rpAge4{background:var(--ad-tone-bad)}
 @media(max-width:760px){.rpSeg{flex-wrap:nowrap;overflow-x:auto;width:100%;scrollbar-width:none;overscroll-behavior-x:contain}.rpSeg>*{flex:none}}
+
+.rpTfind{padding:10px 20px;border-bottom:1px solid var(--ad-line)}
+.rpTfind .input{width:100%}
+@media(max-width:560px){.rpKpis{grid-template-columns:minmax(0,1fr)}.rpTfind{padding:10px 16px}}
+@media(max-width:760px){.rpCols--dense li:nth-child(even) small{visibility:hidden}.rpCols small{font-size:10.5px}.rpCols li{min-width:0}.rpCols{overflow-x:clip}}
 
 </style>
 </helmet>
@@ -1601,13 +1606,13 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
                 <sc-for list="{{panels}}" as="pn" hint-placeholder-count="5">
                   <section class="card rise d3 rpPanel" aria-label="{{pn.title}}" style="padding: 0">
                     <div class="rpPanelHead"><h2>{{pn.title}}</h2><sc-if value="{{pn.hasSub}}" hint-placeholder-val="{{ false }}"><span>{{pn.sub}}</span></sc-if></div>
-                    <sc-if value="{{pn.isFlow}}" hint-placeholder-val="{{ false }}"><div class="rpPlot"><ul class="rpCols" style="--n: {{pn.n}}"><sc-for list="{{pn.points}}" as="p" hint-placeholder-count="12"><li><span class="rpPair" role="img" aria-label="{{p.aria}}"><i class="rpIn" style="height: {{p.hin}}%"></i><i class="rpOut" style="height: {{p.hout}}%"></i></span><small>{{p.t}}</small></li></sc-for></ul></div><p class="rpKey"><span><i class="rpIn"></i> Collected</span><span><i class="rpOut"></i> Spent</span><span class="num">Running net ends at {{pn.endNet}}</span></p></sc-if>
+                    <sc-if value="{{pn.isFlow}}" hint-placeholder-val="{{ false }}"><div class="rpPlot"><ul class="rpCols {{pn.dense}}" style="--n: {{pn.n}}"><sc-for list="{{pn.points}}" as="p" hint-placeholder-count="12"><li><span class="rpPair" role="img" aria-label="{{p.aria}}"><i class="rpIn" style="height: {{p.hin}}%"></i><i class="rpOut" style="height: {{p.hout}}%"></i></span><small>{{p.t}}</small></li></sc-for></ul></div><p class="rpKey"><span><i class="rpIn"></i> Collected</span><span><i class="rpOut"></i> Spent</span><span class="num">Running net ends at {{pn.endNet}}</span></p></sc-if>
                     <sc-if value="{{pn.isHl}}" hint-placeholder-val="{{ false }}"><ul class="rpHl"><sc-for list="{{pn.rows}}" as="r" hint-placeholder-count="5"><li><span class="rpHlTop"><b>{{r.t}}</b><span class="num">{{r.v}}</span></span><span class="rpTrack" aria-hidden="true"><i style="width: {{r.w}}%"></i></span><small>{{r.s}}</small></li></sc-for></ul></sc-if>
                     <sc-if value="{{pn.isCols}}" hint-placeholder-val="{{ false }}"><ul class="rpCols rpFew" style="--n: {{pn.n}}"><sc-for list="{{pn.items}}" as="c" hint-placeholder-count="5"><li><b class="num">{{c.v}}</b><span class="rpPair one" role="img" aria-label="{{c.aria}}"><i class="{{c.cls}}" style="height: {{c.h}}%"></i></span><small>{{c.t}}</small></li></sc-for></ul></sc-if>
                     <sc-if value="{{pn.isList}}" hint-placeholder-val="{{ false }}"><ul class="rpHeld"><sc-for list="{{pn.rows}}" as="r" hint-placeholder-count="3"><li><span><b>{{r.t}}</b><small>{{r.s}}</small></span><b class="num">{{r.v}}</b></li></sc-for></ul></sc-if>
                     <sc-if value="{{pn.isFunnel}}" hint-placeholder-val="{{ false }}"><ol class="rpHl"><sc-for list="{{pn.rows}}" as="r" hint-placeholder-count="3"><li><span class="rpHlTop"><b>{{r.t}}</b><span class="num">{{r.v}}</span></span><span class="rpTrack" aria-hidden="true"><i style="width: {{r.w}}%"></i></span><small>{{r.s}}</small></li></sc-for></ol></sc-if>
                     <sc-if value="{{pn.isNames}}" hint-placeholder-val="{{ false }}"><ul class="rpNames"><sc-for list="{{pn.rows}}" as="r" hint-placeholder-count="3"><li>{{r}}</li></sc-for></ul></sc-if>
-                    <sc-if value="{{pn.isTable}}" hint-placeholder-val="{{ false }}"><div class="tblWrap" tabindex="0" aria-label="{{pn.title}} table, scrolls sideways"><table class="tbl"><thead><tr><sc-for list="{{pn.head}}" as="h" hint-placeholder-count="5"><th scope="col" class="{{h.cls}}">{{h.t}}</th></sc-for></tr></thead><tbody><sc-for list="{{pn.rows}}" as="r" hint-placeholder-count="5"><tr><sc-for list="{{r.cells}}" as="c" hint-placeholder-count="5"><td class="{{c.cls}}">{{c.t}}</td></sc-for></tr></sc-for></tbody></table></div></sc-if>
+                    <sc-if value="{{pn.hasSearch}}" hint-placeholder-val="{{ false }}"><div class="rpTfind"><label class="input ssIn"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"></path></svg><span class="sr">{{pn.searchLabel}}</span><input value="{{pn.q}}" placeholder="{{pn.searchLabel}}" autocomplete="off" onChange="{{pn.onQ}}" onInput="{{pn.onQ}}"><sc-if value="{{pn.hasQ}}" hint-placeholder-val="{{ false }}"><button type="button" class="ssX" aria-label="Clear the search" onClick="{{pn.clearQ}}"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></sc-if></label></div></sc-if><sc-if value="{{pn.isTable}}" hint-placeholder-val="{{ false }}"><div class="tblWrap" tabindex="0" aria-label="{{pn.title}} table, scrolls sideways"><table class="tbl"><thead><tr><sc-for list="{{pn.head}}" as="h" hint-placeholder-count="5"><th scope="col" class="{{h.cls}}">{{h.t}}</th></sc-for></tr></thead><tbody><sc-for list="{{pn.rows}}" as="r" hint-placeholder-count="5"><tr><sc-for list="{{r.cells}}" as="c" hint-placeholder-count="5"><td class="{{c.cls}}">{{c.t}}</td></sc-for></tr></sc-for></tbody></table></div></sc-if>
                     <sc-if value="{{pn.hasNote}}" hint-placeholder-val="{{ false }}"><p class="rpNote">{{pn.note}}</p></sc-if>
                     <sc-if value="{{pn.isEmpty}}" hint-placeholder-val="{{ false }}"><p class="rpEmpty">{{pn.empty}}</p></sc-if>
                   </section>
@@ -2027,7 +2032,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
             </sc-for></div>
           </sc-if>
           <sc-if value="{{sheet.hasChipSets}}" hint-placeholder-val="{{ false }}">
-            <sc-for list="{{sheet.chipSets}}" as="cs" hint-placeholder-count="1"><div class="field {{sheet.chipsCls}}"><span>{{cs.label}}</span><div class="chips" role="{{cs.role}}" aria-label="{{cs.label}}"><sc-for list="{{cs.opts}}" as="o" hint-placeholder-count="4"><button class="chip {{o.cls}}" role="{{o.role}}" aria-checked="{{o.checked}}" onClick="{{o.pick}}">{{o.t}}</button></sc-for></div><sc-if value="{{cs.hasHint}}" hint-placeholder-val="{{ false }}"><span class="hint">{{cs.hint}}</span></sc-if></div></sc-for>
+            <sc-for list="{{sheet.chipSets}}" as="cs" hint-placeholder-count="1"><div class="field {{sheet.chipsCls}}"><span>{{cs.label}}</span><sc-if value="{{cs.searchable}}" hint-placeholder-val="{{ false }}"><label class="input ssIn"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"></path></svg><span class="sr">Search {{cs.label}}</span><input value="{{cs.q}}" placeholder="Search {{cs.label}}" autocomplete="off" onChange="{{cs.onQ}}" onInput="{{cs.onQ}}"><sc-if value="{{cs.hasQ}}" hint-placeholder-val="{{ false }}"><button type="button" class="ssX" aria-label="Clear the search" onClick="{{cs.clearQ}}"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></sc-if></label></sc-if><div class="chips" role="{{cs.role}}" aria-label="{{cs.label}}"><sc-for list="{{cs.opts}}" as="o" hint-placeholder-count="4"><button class="chip {{o.cls}}" role="{{o.role}}" aria-checked="{{o.checked}}" onClick="{{o.pick}}">{{o.t}}</button></sc-for></div><sc-if value="{{cs.noMatch}}" hint-placeholder-val="{{ false }}"><span class="hint">Nothing matches. Clear the search to see everything.</span></sc-if><sc-if value="{{cs.hasHint}}" hint-placeholder-val="{{ false }}"><span class="hint">{{cs.hint}}</span></sc-if></div></sc-for>
           </sc-if>
           <sc-if value="{{sheet.hasChecks}}" hint-placeholder-val="{{ false }}">
             <div style="display: flex; flex-direction: column; gap: 8px">
@@ -2587,7 +2592,9 @@ class Component extends DCLogic {
     var fields = this.fieldViews(raw, s);
     var chipSets = (typeof raw.chipSets === 'function' ? raw.chipSets(s) : (raw.chipSets || [])).map(function (cs) {
       var cur = F[cs.key] != null ? F[cs.key] : (cs.multi ? [] : '');
-      return { label: cs.label, hint: cs.hint || '', hasHint: !!cs.hint, role: cs.multi ? 'group' : 'radiogroup', opts: cs.opts.map(function (o) {
+      var cq = (F['~q' + cs.key] || '').toLowerCase(), srch = cs.search !== false && cs.opts.length >= 5;
+      var shownOpts = cs.opts.filter(function (o) { return !srch || !cq || o.toLowerCase().indexOf(cq) >= 0 || (cs.multi ? cur.indexOf(o) >= 0 : cur === o); });
+      return { label: cs.label, hint: cs.hint || '', hasHint: !!cs.hint, role: cs.multi ? 'group' : 'radiogroup', searchable: srch, q: F['~q' + cs.key] || '', hasQ: !!F['~q' + cs.key], noMatch: srch && !!cq && shownOpts.every(function (o) { return o.toLowerCase().indexOf(cq) < 0; }), onQ: function (e) { setF('~q' + cs.key, e.target.value); }, clearQ: function () { setF('~q' + cs.key, ''); }, opts: shownOpts.map(function (o) {
         var on = cs.multi ? cur.indexOf(o) >= 0 : cur === o;
         return { t: o, cls: on ? 'on' : '', checked: on ? 'true' : 'false', role: cs.multi ? 'checkbox' : 'radio', pick: function () { var c = self.state.form[cs.key] != null ? self.state.form[cs.key] : (cs.multi ? [] : ''); if (cs.multi) { c = c.indexOf(o) >= 0 ? c.filter(function (x) { return x !== o; }) : c.concat([o]); } else c = o; setF(cs.key, c); } };
       }) };
@@ -3887,7 +3894,7 @@ class Component extends DCLogic {
      than a month is the month spread over its days, so every total below is a sum of what the table under it shows. */
   pageName() { return 'Reports'; }
   navSection() { return 'Reports'; }
-  pageState() { return { range: 'ytd', cmp: 'prev', by: 'auto', tab: 0, f: { svc: [], dept: [], staff: [], method: [], status: [], min: '', max: '' }, ra: 0 }; }
+  pageState() { return { range: 'ytd', cmp: 'prev', by: 'auto', tab: 0, f: { svc: [], dept: [], client: [], staff: [], method: [], status: [], min: '', max: '' }, ra: 0 }; }
   tourSteps() {
     var I = this.icons();
     return [
@@ -3917,8 +3924,8 @@ class Component extends DCLogic {
   }
   /* Factor from the filters: the share of the studio each chosen service, department, person and method carries. */
   repFactor() {
-    var f = this.state.f, share = { svc: { 'Branding & Design': .22, 'Web & Apps': .3, 'Social & Ads': .16, SEO: .06, Apps: .08, 'Software & AI': .18 }, dept: { 'Branding & Design': .26, 'Web & Apps': .34, 'Social & Ads': .2, Finance: .02, SEO: .08, 'Software & AI': .1 }, staff: { 'Ifeanyi N.': .34, 'Chiamaka A.': .28, 'Daniel E.': .26, 'Funmi K.': .12 }, method: { Paystack: .35, Flutterwave: .35, Transfer: .29, Cash: .01 } }, k = 1;
-    ['svc', 'dept', 'staff', 'method'].forEach(function (key) { if (f[key].length) k *= Math.min(1, f[key].reduce(function (a, v) { return a + (share[key][v] || .1); }, 0)); });
+    var f = this.state.f, share = { svc: { 'Branding & Design': .22, 'Web & Apps': .3, 'Social & Ads': .16, SEO: .06, Apps: .08, 'Software & AI': .18 }, dept: { 'Branding & Design': .26, 'Web & Apps': .34, 'Social & Ads': .2, Finance: .02, SEO: .08, 'Software & AI': .1 }, staff: { 'Ifeanyi N.': .3, 'Chiamaka A.': .26, 'Daniel E.': .24, 'Funmi K.': .1, 'Tobi A.': .06, 'Zainab M.': .04 }, client: { 'Halo Clinics': .31, 'Oak and Ivy Interiors': .19, 'Mira Skincare': .14, 'Lumen Fitness': .1, 'Bloom Pharmacy': .09, 'Kora Logistics': .08, 'Ade’s Kitchen': .05, 'Tunde Okafor Law': .04 }, method: { Paystack: .35, Flutterwave: .35, Transfer: .29, Cash: .01 } }, k = 1;
+    ['svc', 'dept', 'client', 'staff', 'method'].forEach(function (key) { if (f[key] && f[key].length) k *= Math.min(1, f[key].reduce(function (a, v) { return a + (share[key][v] || .1); }, 0)); });
     if (f.status.length && f.status.length < 4) k *= f.status.length * 0.25 + 0.15;
     return Math.max(0.03, k);
   }
@@ -3953,9 +3960,9 @@ class Component extends DCLogic {
   pHl(title, rows, o) { o = o || {}; var self = this, peak = Math.max.apply(null, rows.map(function (r) { return r[1]; }).concat([1])), tot = rows.reduce(function (a, r) { return a + r[1]; }, 0); return { title: title, sub: o.sub || '', hasSub: !!o.sub, isHl: true, rows: rows.map(function (r) { return { t: r[0], v: o.count ? String(r[1]) : self.nf(r[1]), w: Math.max(r[1] ? 2 : 0, Math.round(r[1] / peak * 100)), s: [o.count ? '' : Math.round(r[1] / (tot || 1) * 100) + '% of the total', r[2] || ''].filter(Boolean).join(' · ') }; }), hasNote: !!o.note, note: o.note || '', isEmpty: !rows.length, empty: o.empty || 'Nothing in these days.' }; }
   pCols(title, items, o) { o = o || {}; var self = this, peak = Math.max.apply(null, items.map(function (r) { return r[1]; }).concat([1])); return { title: title, isCols: true, n: items.length, items: items.map(function (r, i) { return { t: r[0], v: o.count ? String(r[1]) : self.ns(r[1]), h: Math.max(r[1] ? 4 : 0, Math.round(r[1] / peak * 100)), cls: o.age ? 'rpAge rpAge' + Math.min(i, 4) : 'rpIn', aria: r[0] + ': ' + (o.count ? r[1] : self.nf(r[1])) }; }), hasNote: !!o.note, note: o.note || '' }; }
   pList(title, rows) { return { title: title, isList: true, rows: rows.map(function (r) { return { t: r[0], s: r[2] || '', v: r[1] }; }) }; }
-  pTable(title, head, rows, num, note) { num = num || []; return { title: title, isTable: true, head: head.map(function (h, i) { return { t: h, cls: num.indexOf(i) >= 0 ? 'r' : '' }; }), rows: rows.map(function (r) { return { cells: r.map(function (c, j) { return { t: c, cls: (num.indexOf(j) >= 0 ? 'r num' : '') + (j === 0 ? ' rpFirst' : '') }; }) }; }), isEmpty: !rows.length, empty: 'Nothing matches these filters.', hasNote: !!note, note: note || '' }; }
+  pTable(title, head, rows, num, note) { num = num || []; var self = this, tq = this.state.tq || {}, q = tq[title] || '', kept = q ? rows.filter(function (r) { return r.join(' ').toLowerCase().indexOf(q.toLowerCase()) >= 0; }) : rows, setQ = function (v) { var m = Object.assign({}, self.state.tq || {}); m[title] = v; self.setState({ tq: m }); }; return { title: title, isTable: !!kept.length, hasSearch: rows.length >= 5, q: q, hasQ: !!q, onQ: function (e) { setQ(e.target.value); }, clearQ: function () { setQ(''); }, searchLabel: 'Search ' + title.toLowerCase(), head: head.map(function (h, i) { return { t: h, cls: num.indexOf(i) >= 0 ? 'r' : '' }; }), rows: kept.map(function (r) { return { cells: r.map(function (c, j) { return { t: c, cls: (num.indexOf(j) >= 0 ? 'r num' : '') + (j === 0 ? ' rpFirst' : '') }; }) }; }), isEmpty: !kept.length, empty: rows.length ? 'Nothing in this table matches “' + q + '”. Clear the search to see all ' + rows.length + '.' : 'Nothing matches these filters.', hasNote: !!note, note: note || '' }; }
   pFunnel(title, steps, note) { var top = Math.max(1, steps[0][1]); return { title: title, isFunnel: true, rows: steps.map(function (s, i) { return { t: s[0], v: String(s[1]), w: Math.max(s[1] ? 2 : 0, Math.round(s[1] / top * 100)), s: (i > 0 && steps[i - 1][1] ? Math.round(s[1] / steps[i - 1][1] * 100) + '% of the step before' : '') + (s[2] ? (i > 0 ? ' · ' : '') + s[2] : '') }; }), hasNote: !!note, note: note || '' }; }
-  pFlow(pts) { var peak = Math.max.apply(null, pts.map(function (p) { return Math.max(p.col, p.sp); }).concat([1])), self = this; return { title: 'Money in and out', isFlow: true, sub: 'By ' + (this.state.by === 'auto' ? (this.repRange().daily ? 'day' : 'month') : this.state.by), n: pts.length, points: pts.map(function (p) { return { t: p.t, hin: Math.max(p.col ? 3 : 0, Math.round(p.col / peak * 100)), hout: Math.max(p.sp ? 3 : 0, Math.round(p.sp / peak * 100)), aria: p.t + ': collected ' + self.nf(p.col) + ', spent ' + self.nf(p.sp) }; }), endNet: this.ns(pts.length ? pts[pts.length - 1].cum : 0), isEmpty: !pts.length, empty: 'Nothing in these days.' }; }
+  pFlow(pts) { var peak = Math.max.apply(null, pts.map(function (p) { return Math.max(p.col, p.sp); }).concat([1])), self = this; return { title: 'Money in and out', dense: pts.length > 8 ? 'rpCols--dense' : '', isFlow: true, sub: 'By ' + (this.state.by === 'auto' ? (this.repRange().daily ? 'day' : 'month') : this.state.by), n: pts.length, points: pts.map(function (p) { return { t: p.t, hin: Math.max(p.col ? 3 : 0, Math.round(p.col / peak * 100)), hout: Math.max(p.sp ? 3 : 0, Math.round(p.sp / peak * 100)), aria: p.t + ': collected ' + self.nf(p.col) + ', spent ' + self.nf(p.sp) }; }), endNet: this.ns(pts.length ? pts[pts.length - 1].cum : 0), isEmpty: !pts.length, empty: 'Nothing in these days.' }; }
   /* ---------- the nine tabs ---------- */
   repTab(key) {
     var self = this, T = this.repTotals(), t = T.t, b = T.b, k = T.k, pts = T.pts, I = this.icons(), D = function (a, c, g) { return self.delta(a, c, g); }, sc = function (n) { return Math.round(n * k); };
@@ -4016,7 +4023,7 @@ class Component extends DCLogic {
   }
   repOn() {
     var self = this, f = this.state.f, out = [], push = function (label, fn) { out.push({ t: label, off: fn }); };
-    ['svc', 'dept', 'staff', 'method', 'status'].forEach(function (key) { f[key].forEach(function (v) { push(({ svc: 'Service', dept: 'Department', staff: 'Person', method: 'Method', status: 'Status' })[key] + ': ' + v, function () { var n = Object.assign({}, self.state.f); n[key] = n[key].filter(function (x) { return x !== v; }); self.setState({ f: n, ra: self.state.ra + 1 }); }); }); });
+    ['svc', 'dept', 'client', 'staff', 'method', 'status'].forEach(function (key) { (f[key] || []).forEach(function (v) { push(({ svc: 'Service', dept: 'Department', client: 'Client', staff: 'Person', method: 'Method', status: 'Status' })[key] + ': ' + v, function () { var n = Object.assign({}, self.state.f); n[key] = n[key].filter(function (x) { return x !== v; }); self.setState({ f: n, ra: self.state.ra + 1 }); }); }); });
     if (f.min) push('At least ' + f.min, function () { var n = Object.assign({}, self.state.f, { min: '' }); self.setState({ f: n, ra: self.state.ra + 1 }); });
     if (f.max) push('At most ' + f.max, function () { var n = Object.assign({}, self.state.f, { max: '' }); self.setState({ f: n, ra: self.state.ra + 1 }); });
     return out;
@@ -4027,12 +4034,12 @@ class Component extends DCLogic {
   }
   filterSheet() {
     var self = this, I = this.icons(), f = this.state.f;
-    return this.sh({ wide: true, eyebrow: 'Reports', title: 'Filter this report', icon: I.filter || I.gear, keepOpen: true, body: 'None ticked means no limit. The period, comparison and grouping stay on the bar.', form: { svc: f.svc, dept: f.dept, staff: f.staff, method: f.method, status: f.status, min: f.min, max: f.max },
+    return this.sh({ wide: true, eyebrow: 'Reports', title: 'Filter this report', icon: I.filter || I.gear, keepOpen: true, body: 'None ticked means no limit. The period, comparison and grouping stay on the bar.', form: { svc: f.svc, dept: f.dept, client: f.client || [], staff: f.staff, method: f.method, status: f.status, min: f.min, max: f.max },
       fields: [{ key: 'min', label: 'Invoice or expense at least', ph: 'No minimum' }, { key: 'max', label: 'Invoice or expense at most', ph: 'No maximum' }],
-      chipSets: [{ key: 'svc', label: 'Service', multi: true, opts: ['Branding & Design', 'Web & Apps', 'Social & Ads', 'SEO', 'Apps', 'Software & AI'] }, { key: 'dept', label: 'Department', multi: true, opts: ['Branding & Design', 'Web & Apps', 'Social & Ads', 'SEO', 'Software & AI', 'Finance'] }, { key: 'staff', label: 'Person leading the work', multi: true, opts: ['Ifeanyi N.', 'Chiamaka A.', 'Daniel E.', 'Funmi K.'] }, { key: 'method', label: 'How the money moved', multi: true, opts: ['Paystack', 'Flutterwave', 'Transfer', 'Cash'] }, { key: 'status', label: 'Invoice status', multi: true, opts: ['Sent', 'Part paid', 'Paid', 'Overdue'] }],
+      chipSets: [{ key: 'svc', label: 'Service', multi: true, opts: ['Branding & Design', 'Web & Apps', 'Social & Ads', 'SEO', 'Apps', 'Software & AI'] }, { key: 'dept', label: 'Department', multi: true, opts: ['Branding & Design', 'Web & Apps', 'Social & Ads', 'SEO', 'Software & AI', 'Finance'] }, { key: 'staff', label: 'Person leading the work', multi: true, opts: ['Ifeanyi N.', 'Chiamaka A.', 'Daniel E.', 'Funmi K.', 'Tobi A.', 'Zainab M.'] }, { key: 'client', label: 'Client', multi: true, opts: ['Halo Clinics', 'Oak and Ivy Interiors', 'Mira Skincare', 'Lumen Fitness', 'Bloom Pharmacy', 'Kora Logistics', 'Ade’s Kitchen', 'Tunde Okafor Law'] }, { key: 'method', label: 'How the money moved', multi: true, opts: ['Paystack', 'Flutterwave', 'Transfer', 'Cash'] }, { key: 'status', label: 'Invoice status', multi: true, opts: ['Sent', 'Part paid', 'Paid', 'Overdue'] }],
       primary: 'Apply filters', secondary: 'Clear filters',
-      onPrimary: function (ctx) { var x = ctx.form; self.setState({ f: { svc: x.svc || [], dept: x.dept || [], staff: x.staff || [], method: x.method || [], status: x.status || [], min: (x.min || '').trim(), max: (x.max || '').trim() }, ra: self.state.ra + 1, sheet: null, stack: [] }); self.say('Filters applied. Every figure on every tab follows them.'); },
-      onSecondary: function () { self.setState({ f: { svc: [], dept: [], staff: [], method: [], status: [], min: '', max: '' }, ra: self.state.ra + 1 }); self.say('Filters cleared.'); } });
+      onPrimary: function (ctx) { var x = ctx.form; self.setState({ f: { svc: x.svc || [], dept: x.dept || [], client: x.client || [], staff: x.staff || [], method: x.method || [], status: x.status || [], min: (x.min || '').trim(), max: (x.max || '').trim() }, ra: self.state.ra + 1, sheet: null, stack: [] }); self.say('Filters applied. Every figure on every tab follows them.'); },
+      onSecondary: function () { self.setState({ f: { svc: [], dept: [], client: [], staff: [], method: [], status: [], min: '', max: '' }, ra: self.state.ra + 1 }); self.say('Filters cleared.'); } });
   }
   popItems(pop) {
     var self = this, I = this.icons(), it = this.menuItem.bind(this);
@@ -4040,7 +4047,7 @@ class Component extends DCLogic {
     return [];
   }
   renderVals() {
-    var s = this.state, self = this, I = this.icons(), f = s.f, T = this.repTab(s.tab), R = this.repRange(), TT = this.repTotals(), nOn = ['svc', 'dept', 'staff', 'method', 'status'].reduce(function (a, k) { return a + f[k].length; }, 0) + (f.min ? 1 : 0) + (f.max ? 1 : 0);
+    var s = this.state, self = this, I = this.icons(), f = s.f, T = this.repTab(s.tab), R = this.repRange(), TT = this.repTotals(), nOn = ['svc', 'dept', 'client', 'staff', 'method', 'status'].reduce(function (a, k) { return a + (f[k] || []).length; }, 0) + (f.min ? 1 : 0) + (f.max ? 1 : 0);
     var RS = [['today', 'Today'], ['7d', '7 days'], ['30d', '30 days'], ['mtd', 'This month'], ['lastmonth', 'Last month'], ['qtd', 'This quarter'], ['ytd', 'This year'], ['12m', '12 months']];
     var tabs = ['Overview', 'Money', 'Owed to us', 'We owe', 'Sales', 'Recurring', 'Work', 'Team', 'Clients'].map(function (t, i) { var on = i === s.tab; return { t: t, cls: on ? 'on' : '', sel: on ? 'true' : 'false', pick: function () { if (!on) self.setState({ tab: i, ra: s.ra + 1 }); } }; });
     var seg = function (arr, key) { return arr.map(function (a) { var on = s[key] === a[0]; return { t: a[1], pressed: on ? 'true' : 'false', pick: function () { var o = {}; o[key] = a[0]; o.ra = s.ra + 1; self.setState(o); } }; }); };
@@ -4049,7 +4056,7 @@ class Component extends DCLogic {
       startTour: function () { self.startTour ? self.startTour('page') : self.setState({ tour: 0, tourKind: 'page' }); },
       openExport: function (e) { self.openPop(e, 'exp', 'exp', 260, 250, 'Export'); }, expX: this.popOn('exp', 'exp'),
       ranges: RS.map(function (r) { var on = s.range === r[0]; return { t: r[1], pressed: on ? 'true' : 'false', pick: function () { self.setState({ range: r[0], ra: s.ra + 1 }); } }; }), customOn: 'false', customLabel: 'Custom dates', pickCustom: function () { self.say('The site’s own calendar opens here for a custom pair of dates.'); },
-      openFilters: function () { self.open(self.filterSheet()); }, hasFilters: nOn > 0, filterN: nOn, onChips: this.repOn(), clearAll: function () { self.setState({ f: { svc: [], dept: [], staff: [], method: [], status: [], min: '', max: '' }, ra: s.ra + 1 }); },
+      openFilters: function () { self.open(self.filterSheet()); }, hasFilters: nOn > 0, filterN: nOn, onChips: this.repOn(), clearAll: function () { self.setState({ f: { svc: [], dept: [], client: [], staff: [], method: [], status: [], min: '', max: '' }, ra: s.ra + 1 }); },
       cmps: seg([['prev', 'Previous period'], ['yoy', 'Same days last year'], ['none', 'No comparison']], 'cmp'), groups: seg([['auto', 'Auto'], ['day', 'Day'], ['week', 'Week'], ['month', 'Month'], ['quarter', 'Quarter']], 'by'),
       tabs: tabs, kpis: T.kpis, panels: T.panels, rules: T.rules, hasInsights: T.insights.length > 0, insights: T.insights, quick: this.repQuick()
     });

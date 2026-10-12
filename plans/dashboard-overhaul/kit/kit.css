@@ -1391,7 +1391,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .rpOnChip svg{width:16px;height:16px}
 .rpOnChip:hover{background:var(--ad-tone-bad);color:#fff}
 .rpClear{display:inline-flex;align-items:center;min-height:44px;padding:0 8px;color:var(--ad-accent-ink);font-weight:650;font-size:14px}
-.rpKpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0}
+.rpKpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0}
 .rpKpi{padding:14px 16px;display:grid;gap:6px;min-width:0}
 .rpKpi dt{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;color:var(--ad-dim);font-weight:600;margin:0}
 .rpKpi dd{margin:0;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font:700 24px/1.1 'Space Grotesk',sans-serif;color:var(--ad-ink)}
@@ -1450,3 +1450,16 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .rpAge2,.rpAge3{background:var(--ad-series-2)}
 .rpAge4{background:var(--ad-tone-bad)}
 @media(max-width:760px){.rpSeg{flex-wrap:nowrap;overflow-x:auto;width:100%;scrollbar-width:none;overscroll-behavior-x:contain}.rpSeg>*{flex:none}}
+
+.rpTfind{padding:10px 20px;border-bottom:1px solid var(--ad-line)}
+.rpTfind .input{width:100%}
+@media(max-width:560px){.rpKpis{grid-template-columns:minmax(0,1fr)}.rpTfind{padding:10px 16px}}
+@media(max-width:760px){.rpCols--dense li:nth-child(even) small{visibility:hidden}.rpCols small{font-size:10.5px}.rpCols li{min-width:0}.rpCols{overflow-x:clip}}
+
+/* The document keeps what the real one has: a centred watermark, the QR code and the stamp. */
+.docPaper{position:relative;isolation:isolate;overflow:hidden}
+.dpWater{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-12deg);z-index:-1;font:700 clamp(72px,22cqw,150px)/1 'Space Grotesk',system-ui,sans-serif;letter-spacing:.06em;color:#000065;opacity:.06;pointer-events:none;user-select:none}
+.dpQrRow{display:flex;align-items:center;gap:12px;color:#5c5c7a;font-size:11.5px;min-width:0}
+.dpQrRow span:not(.dpStamp){flex:1 1 0;min-width:0}
+.dpQr{flex:none;border:1px solid #c9ccdc;border-radius:8px;padding:4px;background:#fff}
+.dpStamp{flex:none;font:700 15px/1 'Space Grotesk',system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#15803d;border:3px solid #15803d;border-radius:8px;padding:8px 12px;transform:rotate(-8deg)}

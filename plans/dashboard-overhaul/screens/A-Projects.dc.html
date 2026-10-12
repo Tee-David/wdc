@@ -1350,6 +1350,125 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .tlToday{position:absolute;top:0;bottom:0;left:calc(220px + (100% - 220px) * var(--today,0));width:0;z-index:4;pointer-events:none;border-left:2px solid var(--ad-act)}
 .tlTodayPill{position:absolute;top:-1px;left:-1px;transform:translateX(-50%);background:var(--ad-act);color:#fff;font:700 11px/1 'Space Grotesk',system-ui,sans-serif;padding:5px 8px;border-radius:0 0 8px 8px}
 
+/* The client's copy as a document: title and number, meta, from and to, a table, totals, note, payment and signature. */
+.docPaper{padding:22px 22px 18px;gap:12px;font-size:13px;line-height:1.45;box-shadow:var(--ad-sh-1)}
+.dpTop{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.dpTitle{margin:0;font:700 26px/1.1 'Space Grotesk',system-ui,sans-serif;letter-spacing:-.02em}
+.dpNo{color:#5c5c7a;font-size:13px}
+.dpMark{font:700 18px 'Space Grotesk',system-ui,sans-serif;letter-spacing:.08em;color:#000065;padding:6px 10px;border:2px solid #000065;border-radius:10px}
+.dpRule{height:1px;background:#e4e6f0}
+.dpMeta2{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.dpMeta2 small,.dpParty small,.dpBottom small{display:block;color:#5c5c7a;font-size:11px;margin-bottom:2px}
+.dpMeta2 b{font-weight:600;overflow-wrap:anywhere}
+.dpParty{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.dpParty div{display:flex;flex-direction:column;min-width:0}.dpParty span{color:#5c5c7a;font-size:12px;overflow-wrap:anywhere}.dpParty .r,.dpBottom .r{text-align:right;align-items:flex-end}
+.dpTbl{display:flex;flex-direction:column;border-radius:10px;overflow:hidden;border:1px solid #e4e6f0}
+.dpTh,.dpTr{display:grid;grid-template-columns:minmax(0,1fr) 44px 92px 100px;gap:8px;padding:8px 12px;align-items:start}
+.dpTh{background:#f2f3f9;color:#5c5c7a;font-size:11px;font-weight:600}
+.dpTr{border-top:1px solid #e4e6f0}.dpTr span:first-child{overflow-wrap:anywhere}
+.dpTbl .n{text-align:right}
+.docPaper .dpTot{display:flex;flex-direction:column;gap:4px;margin-left:auto;width:min(100%,260px)}
+.docPaper .dpTot > div{display:flex;justify-content:space-between;gap:12px;color:#5c5c7a}
+.docPaper .dpTot .tot{color:#0e0e2c;font-weight:700;font-size:15px;border-top:1px solid #c9ccdc;padding-top:6px;margin-top:2px}
+.dpNote{border:1px solid #e4e6f0;border-radius:10px;padding:10px 12px;color:#0e0e2c}
+.dpBottom{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}.dpBottom span{color:#5c5c7a;font-size:12px}
+.dpSign{font:italic 600 18px 'Space Grotesk',system-ui,sans-serif;color:#000065}
+.dpMail{gap:10px}.dpMail small{color:#5c5c7a}.dpMail p{margin:0}
+.dpBtn{align-self:flex-start;padding:10px 16px;border-radius:12px;background:#000065;color:#fff;font-weight:600}
+.layoutWide .railCards .docPaper{min-height:420px}
+@container app (min-width:1181px){
+  .layoutWide{grid-template-columns:minmax(0,1fr) minmax(0,500px)}
+  .layoutWide .railCards{position:sticky;top:12px;align-self:start;max-height:calc(100vh - 24px);overflow:auto;overscroll-behavior:contain}
+}
+@container card (max-width:520px){.dpTh,.dpTr{grid-template-columns:minmax(0,1fr) 34px 78px 84px;padding:8px}.docPaper{padding:16px 14px}.dpTitle{font-size:22px}.dpMeta2{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* ===== Reports page ===== */
+.rpBar{padding:16px 20px;display:grid;gap:12px;overflow:visible}
+.rpRow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-width:0}
+.rpRow2{gap:12px 24px}
+.rpChips{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}
+.rpChip{display:inline-flex;align-items:center;min-height:44px;padding:0 15px;border-radius:999px;border:1px solid var(--ad-line-2);background:var(--ad-panel);color:var(--ad-ink);font-weight:600;font-size:14px;transition:background .14s,border-color .14s,color .14s,transform .2s var(--spring)}
+.rpChip:hover{background:var(--ad-hover)}
+.rpChip:active{transform:scale(.97)}
+.rpChip[aria-pressed="true"]{background:var(--ad-ink);border-color:var(--ad-ink);color:var(--ad-panel)}
+.rpChip:focus-visible,.rpSeg button:focus-visible,.rpOnChip:focus-visible,.rpClear:focus-visible{outline:2px solid var(--ad-focus);outline-offset:2px}
+.rpSeg{display:inline-flex;align-items:center;gap:4px;flex-wrap:wrap}
+.rpSegL{font-size:13px;color:var(--ad-dim);font-weight:600;margin-right:4px}
+.rpSeg button{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border-radius:12px;color:var(--ad-dim);font-weight:600;font-size:14px}
+.rpSeg button:hover{background:var(--ad-hover);color:var(--ad-ink)}
+.rpSeg button[aria-pressed="true"]{background:var(--ad-hover);color:var(--ad-ink);box-shadow:inset 0 0 0 1.5px var(--ad-ink)}
+.rpFilterBtn{gap:8px}
+.rpBadge{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:var(--ad-tone-live);color:#fff;font-size:12px;font-weight:700}
+.rpOn{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding-top:12px;border-top:1px solid var(--ad-line)}
+.rpOnChip{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 10px 0 14px;border-radius:999px;background:var(--ad-tone-flat);color:var(--ad-on-flat);font-size:13px;font-weight:600;transition:background .14s,color .14s}
+.rpOnChip svg{width:16px;height:16px}
+.rpOnChip:hover{background:var(--ad-tone-bad);color:#fff}
+.rpClear{display:inline-flex;align-items:center;min-height:44px;padding:0 8px;color:var(--ad-accent-ink);font-weight:650;font-size:14px}
+.rpKpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0}
+.rpKpi{padding:14px 16px;display:grid;gap:6px;min-width:0}
+.rpKpi dt{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;color:var(--ad-dim);font-weight:600;margin:0}
+.rpKpi dd{margin:0;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font:700 24px/1.1 'Space Grotesk',sans-serif;color:var(--ad-ink)}
+.rpKpi small{color:var(--ad-dim);font-size:12.5px}
+.rpIc{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:10px;color:#fff;flex:none}
+.rpDelta{font:600 12px/1 'Outfit',sans-serif;padding:4px 8px}
+.rpPanelHead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:16px 20px 4px}
+.rpPanelHead h2{font-size:17px;font-weight:700;margin:0}
+.rpPanelHead span{font-size:13px;color:var(--ad-dim)}
+.rpEmpty{margin:0;padding:20px;color:var(--ad-dim);font-size:14.5px}
+.rpNote{margin:0;padding:0 20px 16px;color:var(--ad-dim);font-size:13.5px}
+.rpPlot{position:relative;height:208px;padding:16px 20px 8px}
+.rpCols{list-style:none;margin:0;padding:0;display:flex;align-items:flex-end;gap:clamp(4px,1vw,12px);height:100%;overflow-x:auto;scrollbar-width:thin}
+.rpCols li{flex:1 1 0;min-width:38px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px}
+.rpPair{width:100%;max-width:56px;flex:1 1 auto;display:flex;align-items:flex-end;gap:3px;min-height:0}
+.rpPair i{display:block;flex:1 1 0;border-radius:5px 5px 0 0;transform-origin:bottom}
+.rpPair.one i{border-radius:8px 8px 0 0}
+.rpIn{background:var(--ad-series-1)}
+.rpOut{background:var(--ad-series-2)}
+.rpCols small{color:var(--ad-dim);font-size:11.5px;white-space:nowrap}
+.rpCols b{font-size:13px}
+.rpFew{height:176px;padding:16px 20px 12px;overflow:visible}
+.rpKey{display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:8px 20px 14px;font-size:13px;color:var(--ad-dim)}
+.rpKey span{display:inline-flex;align-items:center;gap:6px}
+.rpKey i{width:13px;height:13px;border-radius:3px;display:inline-block}
+.rpHl{list-style:none;margin:0;padding:10px 20px 18px;display:grid;gap:14px}
+.rpHl li{display:grid;gap:5px;min-width:0}
+.rpHlTop{display:flex;justify-content:space-between;gap:16px;align-items:baseline;min-width:0}
+.rpHlTop b{overflow-wrap:anywhere}
+.rpHlTop .num{white-space:nowrap;font-weight:600}
+.rpTrack{display:block;height:9px;border-radius:99px;background:var(--ad-tone-flat);overflow:hidden}
+.rpTrack i{display:block;height:100%;border-radius:99px;background:var(--ad-series-1);transform-origin:left}
+.rpHl small{color:var(--ad-dim);font-size:12.5px}
+.rpHeld{list-style:none;margin:0;padding:6px 20px 16px;display:grid}
+.rpHeld li{display:flex;justify-content:space-between;gap:16px;align-items:center;padding:11px 0;border-bottom:1px solid var(--ad-line);min-width:0}
+.rpHeld li:last-child{border-bottom:0}
+.rpHeld li>span{display:grid;min-width:0}
+.rpHeld small{color:var(--ad-dim);font-size:12.5px}
+.rpNames{list-style:none;margin:0;padding:10px 20px 18px;display:flex;flex-wrap:wrap;gap:6px}
+.rpNames li{padding:6px 13px;border-radius:999px;background:var(--ad-tone-flat);color:var(--ad-on-flat);font-size:13.5px;font-weight:600}
+.rpRules{margin:0;padding:6px 0 4px 18px;list-style:disc;display:grid;gap:9px;color:var(--ad-dim);font-size:13.5px}
+.rpRules b{color:var(--ad-ink)}
+.rpQuick{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--ad-line);min-width:0;flex-wrap:wrap}
+.rpQuick:last-child{border-bottom:0}
+.rpQuick>span:first-child{display:grid;min-width:0;flex:1 1 140px}
+.rpQuick small{color:var(--ad-dim);font-size:12.5px}
+.rpQuickActs{display:flex;gap:6px}
+@media(prefers-reduced-motion:no-preference){.rpPair i{animation:rpGrow .6s cubic-bezier(.2,.7,.2,1) backwards}.rpTrack i{animation:rpGrowX .7s cubic-bezier(.2,.7,.2,1) backwards}}
+@keyframes rpGrow{from{transform:scaleY(0)}}
+@keyframes rpGrowX{from{transform:scaleX(0)}}
+@media(max-width:1180px){.rpKpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.rpBar{padding:14px 16px}.rpChips{flex-wrap:nowrap;overflow-x:auto;width:100%;padding-bottom:4px;scrollbar-width:none;overscroll-behavior-x:contain}.rpChips>*{flex:none}}
+@media(max-width:420px){.rpKpis{gap:8px}.rpKpi dd{font-size:21px}}
+.rpAge{background:var(--ad-series-1)}
+.rpAge1{background:var(--ad-tone-warn)}
+.rpAge2,.rpAge3{background:var(--ad-series-2)}
+.rpAge4{background:var(--ad-tone-bad)}
+@media(max-width:760px){.rpSeg{flex-wrap:nowrap;overflow-x:auto;width:100%;scrollbar-width:none;overscroll-behavior-x:contain}.rpSeg>*{flex:none}}
+
+.rpTfind{padding:10px 20px;border-bottom:1px solid var(--ad-line)}
+.rpTfind .input{width:100%}
+@media(max-width:560px){.rpKpis{grid-template-columns:minmax(0,1fr)}.rpTfind{padding:10px 16px}}
+@media(max-width:760px){.rpCols--dense li:nth-child(even) small{visibility:hidden}.rpCols small{font-size:10.5px}.rpCols li{min-width:0}.rpCols{overflow-x:clip}}
+
 </style>
 </helmet>
 <div class="{{rootCls}}" onClick="{{rootClick}}">
@@ -2066,7 +2185,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
             </sc-for></div>
           </sc-if>
           <sc-if value="{{sheet.hasChipSets}}" hint-placeholder-val="{{ false }}">
-            <sc-for list="{{sheet.chipSets}}" as="cs" hint-placeholder-count="1"><div class="field {{sheet.chipsCls}}"><span>{{cs.label}}</span><div class="chips" role="{{cs.role}}" aria-label="{{cs.label}}"><sc-for list="{{cs.opts}}" as="o" hint-placeholder-count="4"><button class="chip {{o.cls}}" role="{{o.role}}" aria-checked="{{o.checked}}" onClick="{{o.pick}}">{{o.t}}</button></sc-for></div><sc-if value="{{cs.hasHint}}" hint-placeholder-val="{{ false }}"><span class="hint">{{cs.hint}}</span></sc-if></div></sc-for>
+            <sc-for list="{{sheet.chipSets}}" as="cs" hint-placeholder-count="1"><div class="field {{sheet.chipsCls}}"><span>{{cs.label}}</span><sc-if value="{{cs.searchable}}" hint-placeholder-val="{{ false }}"><label class="input ssIn"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"></path></svg><span class="sr">Search {{cs.label}}</span><input value="{{cs.q}}" placeholder="Search {{cs.label}}" autocomplete="off" onChange="{{cs.onQ}}" onInput="{{cs.onQ}}"><sc-if value="{{cs.hasQ}}" hint-placeholder-val="{{ false }}"><button type="button" class="ssX" aria-label="Clear the search" onClick="{{cs.clearQ}}"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></sc-if></label></sc-if><div class="chips" role="{{cs.role}}" aria-label="{{cs.label}}"><sc-for list="{{cs.opts}}" as="o" hint-placeholder-count="4"><button class="chip {{o.cls}}" role="{{o.role}}" aria-checked="{{o.checked}}" onClick="{{o.pick}}">{{o.t}}</button></sc-for></div><sc-if value="{{cs.noMatch}}" hint-placeholder-val="{{ false }}"><span class="hint">Nothing matches. Clear the search to see everything.</span></sc-if><sc-if value="{{cs.hasHint}}" hint-placeholder-val="{{ false }}"><span class="hint">{{cs.hint}}</span></sc-if></div></sc-for>
           </sc-if>
           <sc-if value="{{sheet.hasChecks}}" hint-placeholder-val="{{ false }}">
             <div style="display: flex; flex-direction: column; gap: 8px">
@@ -2626,7 +2745,9 @@ class Component extends DCLogic {
     var fields = this.fieldViews(raw, s);
     var chipSets = (typeof raw.chipSets === 'function' ? raw.chipSets(s) : (raw.chipSets || [])).map(function (cs) {
       var cur = F[cs.key] != null ? F[cs.key] : (cs.multi ? [] : '');
-      return { label: cs.label, hint: cs.hint || '', hasHint: !!cs.hint, role: cs.multi ? 'group' : 'radiogroup', opts: cs.opts.map(function (o) {
+      var cq = (F['~q' + cs.key] || '').toLowerCase(), srch = cs.search !== false && cs.opts.length >= 5;
+      var shownOpts = cs.opts.filter(function (o) { return !srch || !cq || o.toLowerCase().indexOf(cq) >= 0 || (cs.multi ? cur.indexOf(o) >= 0 : cur === o); });
+      return { label: cs.label, hint: cs.hint || '', hasHint: !!cs.hint, role: cs.multi ? 'group' : 'radiogroup', searchable: srch, q: F['~q' + cs.key] || '', hasQ: !!F['~q' + cs.key], noMatch: srch && !!cq && shownOpts.every(function (o) { return o.toLowerCase().indexOf(cq) < 0; }), onQ: function (e) { setF('~q' + cs.key, e.target.value); }, clearQ: function () { setF('~q' + cs.key, ''); }, opts: shownOpts.map(function (o) {
         var on = cs.multi ? cur.indexOf(o) >= 0 : cur === o;
         return { t: o, cls: on ? 'on' : '', checked: on ? 'true' : 'false', role: cs.multi ? 'checkbox' : 'radio', pick: function () { var c = self.state.form[cs.key] != null ? self.state.form[cs.key] : (cs.multi ? [] : ''); if (cs.multi) { c = c.indexOf(o) >= 0 ? c.filter(function (x) { return x !== o; }) : c.concat([o]); } else c = o; setF(cs.key, c); } };
       }) };
@@ -2715,7 +2836,7 @@ class Component extends DCLogic {
   roleNav() {
     var I = this.icons(), c = this.navCounts ? this.navCounts() : {};
     var R = {
-      admin: [['Today', I.home, 'D-Admin.dc.html'], ['Clients', I.users, 'A-Clients.dc.html'], ['Projects', I.folder, 'A-Projects.dc.html'], ['Money', I.wallet, 'A-Money.dc.html'], ['Messages', I.msg, 'A-Messages.dc.html'], ['Marketing', I.mail, 'A-Email.dc.html'], ['Forms', I.inbox, 'A-Forms.dc.html'], ['Blog', I.pen, 'A-Blog.dc.html'], ['Settings', I.gear, 'A-Settings.dc.html'], ['Support', I.life, 'A-Support.dc.html', 1]],
+      admin: [['Today', I.home, 'D-Admin.dc.html'], ['Clients', I.users, 'A-Clients.dc.html'], ['Projects', I.folder, 'A-Projects.dc.html'], ['Money', I.wallet, 'A-Money.dc.html'], ['Reports', I.chart, 'A-Reports.dc.html'], ['Messages', I.msg, 'A-Messages.dc.html'], ['Marketing', I.mail, 'A-Email.dc.html'], ['Forms', I.inbox, 'A-Forms.dc.html'], ['Blog', I.pen, 'A-Blog.dc.html'], ['Settings', I.gear, 'A-Settings.dc.html'], ['Support', I.life, 'A-Support.dc.html', 1]],
       staff: [['My Day', I.home, 'D-Staff.dc.html'], ['Projects', I.folder, 'S-Projects.dc.html'], ['Clients', I.users, 'S-Clients.dc.html'], ['Messages', I.msg, 'S-Messages.dc.html'], ['Settings', I.gear, 'S-Settings.dc.html'], ['Support', I.life, 'S-Support.dc.html', 1]],
       client: [['Home', I.home, 'D-Client.dc.html'], ['Projects', I.folder, 'C-Projects.dc.html'], ['Billing', I.card, 'C-Billing.dc.html'], ['Messages', I.msg, 'C-Messages.dc.html'], ['Settings', I.gear, 'C-Settings.dc.html'], ['Support', I.life, 'C-Support.dc.html', 1]]
     }[this.role()];
@@ -3575,10 +3696,14 @@ class Component extends DCLogic {
   /* The studio's projects: 14 live (Branding 4, Social 3, Web 3, SEO 2, Apps 1, Software & AI 1), 2 waiting on clients, as on Today. */
   bookSheet(client, push, onBooked) {
     var self = this, I = this.icons(), slots = [['Wed 14 Oct, 11:00', 'Daniel is free · 60 min'], ['Thu 15 Oct, 15:00', 'Daniel is free · 60 min'], ['Fri 16 Oct, 14:00', 'Daniel and you are free · 60 min']];
-    this.open(this.sh({ eyebrow: 'Handover meeting · ' + client, title: 'Pick a time to offer', icon: I.cal, iconTone: 'var(--ad-tone-brand)', body: 'We send ' + client + ' a booking link with these times. The Google Meet is recorded and the handover document goes out after it.', listTitle: 'Times that suit the team', select: true, pick: 2, list: slots.map(function (x) { return { t: x[0], s: x[1] }; }),
-      primary: function (ctx) { return ctx.pick >= 0 ? 'Offer ' + slots[ctx.pick][0] : 'Offer this time'; }, selectWhy: 'Choose a time to offer.', secondary: 'Let them choose any time', sToast: 'Booking link sent with all open times.',
-      onPrimary: function (ctx) { var sl = slots[ctx.pick]; if (onBooked) onBooked(sl[0]); } }), push);
+    var D = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], M = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    var own = function (f) { if (!f || !f.own) return ''; var p = f.own.split('-'), d = new Date(+p[0], +p[1] - 1, +p[2]); return D[d.getDay()] + ' ' + d.getDate() + ' ' + M[d.getMonth()] + ', ' + (f.ownT || '09:00'); };
+    this.open(this.sh({ eyebrow: 'Handover meeting · ' + client, title: 'Pick a time to offer', icon: I.cal, iconTone: 'var(--ad-tone-brand)', body: 'We send ' + client + ' a booking link with the time you choose. The Google Meet is recorded and the handover document goes out after it.', listTitle: 'Times that suit the team', select: true, pick: 2, list: slots.map(function (x) { return { t: x[0], s: x[1] }; }),
+      form: { own: '', ownT: '' }, fields: [{ key: 'own', type: 'datetime', label: 'Or suggest your own time', hint: 'Any day and time. We check it against the studio calendar before the link goes out.', clearable: true }],
+      primary: function (ctx) { var o = own(ctx.form); return o ? 'Offer ' + o : (ctx.pick >= 0 ? 'Offer ' + slots[ctx.pick][0] : 'Offer this time'); }, selectWhy: 'Choose a time to offer, or set your own.', secondary: 'Let them choose any time', sToast: 'Booking link sent with all open times.',
+      onPrimary: function (ctx) { var o = own(ctx.form), sl = slots[ctx.pick]; if (onBooked) onBooked(o || (sl && sl[0])); } }), push);
   }
+
   clearId(id, how, label, msg, opt) { var it = this.deck().filter(function (d) { return d.id === id; })[0]; if (it && !this.state.gone[id] && !this.state.snoozed[id]) this.clear(it, how, label, msg, opt); else if (msg) this.say(msg); }
   hideMoney() { return false; }
   projScope(p) { return true; }

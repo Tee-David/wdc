@@ -418,7 +418,9 @@
     var fields = this.fieldViews(raw, s);
     var chipSets = (typeof raw.chipSets === 'function' ? raw.chipSets(s) : (raw.chipSets || [])).map(function (cs) {
       var cur = F[cs.key] != null ? F[cs.key] : (cs.multi ? [] : '');
-      return { label: cs.label, hint: cs.hint || '', hasHint: !!cs.hint, role: cs.multi ? 'group' : 'radiogroup', opts: cs.opts.map(function (o) {
+      var cq = (F['~q' + cs.key] || '').toLowerCase(), srch = cs.search !== false && cs.opts.length >= 5;
+      var shownOpts = cs.opts.filter(function (o) { return !srch || !cq || o.toLowerCase().indexOf(cq) >= 0 || (cs.multi ? cur.indexOf(o) >= 0 : cur === o); });
+      return { label: cs.label, hint: cs.hint || '', hasHint: !!cs.hint, role: cs.multi ? 'group' : 'radiogroup', searchable: srch, q: F['~q' + cs.key] || '', hasQ: !!F['~q' + cs.key], noMatch: srch && !!cq && shownOpts.every(function (o) { return o.toLowerCase().indexOf(cq) < 0; }), onQ: function (e) { setF('~q' + cs.key, e.target.value); }, clearQ: function () { setF('~q' + cs.key, ''); }, opts: shownOpts.map(function (o) {
         var on = cs.multi ? cur.indexOf(o) >= 0 : cur === o;
         return { t: o, cls: on ? 'on' : '', checked: on ? 'true' : 'false', role: cs.multi ? 'checkbox' : 'radio', pick: function () { var c = self.state.form[cs.key] != null ? self.state.form[cs.key] : (cs.multi ? [] : ''); if (cs.multi) { c = c.indexOf(o) >= 0 ? c.filter(function (x) { return x !== o; }) : c.concat([o]); } else c = o; setF(cs.key, c); } };
       }) };

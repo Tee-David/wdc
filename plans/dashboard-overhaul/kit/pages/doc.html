@@ -60,6 +60,7 @@
                   <sc-if value="{{isEdit}}" hint-placeholder-val="{{ false }}"><div class="seg" role="group" aria-label="What to preview" style="--n: 2; --i: {{pvI}}; width: min(100%, 240px)"><span class="pill" aria-hidden="true"></span><button class="{{pvDocCls}}" aria-pressed="{{isPvDoc}}" onClick="{{setPvDoc}}">Document</button><button class="{{pvMailCls}}" aria-pressed="{{isPvMail}}" onClick="{{setPvMail}}">Email</button></div></sc-if>
                   <sc-if value="{{isPvDoc}}" hint-placeholder-val="{{ true }}">
                   <div class="docPrev docPaper">
+                    <span class="dpWater" aria-hidden="true">WDC</span>
                     <div class="dpTop"><div><h3 class="dpTitle">{{prevKind}}</h3><span class="dpNo num">#{{no}}</span></div><span class="dpMark" aria-hidden="true">WDC</span></div>
                     <div class="dpRule"></div>
                     <div class="dpMeta2"><div><small>Project</small><b>{{pvProject}}</b></div><div><small>Issued</small><b class="num">{{pvIssued}}</b></div><div><small>{{pvDueLabel}}</small><b class="num">{{pvDue}}</b></div></div>
@@ -73,6 +74,7 @@
                     <div class="dpTot"><sc-for list="{{totRows}}" as="t" hint-placeholder-count="3"><div class="{{t.cls}}"><span>{{t.k}}</span><span class="num">{{t.v}}</span></div></sc-for></div>
                     <sc-if value="{{hasPvNote}}" hint-placeholder-val="{{ false }}"><div class="dpNote"><b>Note</b> {{pvNote}}</div></sc-if>
                     <div class="dpBottom"><div><small>Payment</small><span>{{pvAcct}}</span></div><div class="r"><b class="dpSign">WDC Studio</b></div></div>
+                    <div class="dpQrRow"><svg class="dpQr" viewBox="0 0 21 21" width="64" height="64" role="img" aria-label="QR code that opens this document online"><path fill="#0e0e2c" d="M0 0h7v7H0zM14 0h7v7h-7zM0 14h7v7H0zM2 2v3h3V2zM16 2v3h3V2zM2 16v3h3v-3zM9 0h2v2H9zM9 3h3v2H9zM8 6h2v2H8zM11 8h2v2h-2zM8 9h2v3H8zM14 9h3v2h-3zM18 9h3v2h-3zM9 13h2v3H9zM12 13h2v2h-2zM15 13h2v2h-2zM18 14h3v3h-3zM12 17h3v4h-3zM9 18h2v3H9zM16 18h2v3h-2zM19 19h2v2h-2z"></path></svg><span>Scan to open this {{prevKind}} online and see its latest state.</span><sc-if value="{{hasPvStamp}}" hint-placeholder-val="{{ false }}"><span class="dpStamp">{{pvStamp}}</span></sc-if></div>
                     <span class="dpFoot">{{pvTerms}}</span>
                   </div>
                   </sc-if>
