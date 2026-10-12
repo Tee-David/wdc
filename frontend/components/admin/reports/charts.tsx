@@ -19,7 +19,7 @@ export function FlowChart({ points, cur }: { points: Point[]; cur: string }) {
   return (
     <figure className="rp__flow" aria-label="Money in, money out and running net">
       <div className="rp__plot">
-        <ul className="rp__cols" style={{ ["--n" as string]: points.length }}>
+        <ul className={`rp__cols${points.length > 8 ? " rp__cols--dense" : ""}`} style={{ ["--n" as string]: points.length }}>
           {points.map((p) => (
             <li key={p.key}>
               <span className="rp__pair" role="img" aria-label={`${p.label}: collected ${full(p.collected, cur)}, spent ${full(p.spent, cur)}, net ${full(p.net, cur)}`}>
