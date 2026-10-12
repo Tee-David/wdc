@@ -35,3 +35,11 @@
 .meetWrap .ad__tabsNav{margin-top:8px}
 @media(max-width:640px){.meetAlert,.meetBlockers{padding:12px 16px}.meetBlockers li .ad__btn{width:100%}}
 .bareMain > .meetPublic { margin: 0 auto; }
+
+/* The meeting sheet: title, when, state, then who. */
+.meetSheet { display: grid; gap: .75rem; }
+.meetSheet h3 { margin: 0; font-size: 1.15rem; }
+.meetSheet p { margin: 0; }
+.meetSheet__who { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+.meetSheet__who li { display: grid; gap: .1rem; padding: .6rem .8rem; border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel-2); min-width: 0; overflow-wrap: anywhere; }
+.meetSheet__who small { color: var(--ad-dim); }
