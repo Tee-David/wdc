@@ -1,10 +1,10 @@
-import { Skeleton, SkPanel, SkTable } from "@/components/admin/skeleton";
+import { Skeleton, SkFilters, SkPanel, SkRows, SkSplit, SkTable } from "@/components/admin/skeleton";
 
-/* Support's skeleton, shaped like the page on a desktop and a phone. */
+/* Messages: head, the conversations card and the "talk to us" rail. */
 export default function Loading() {
   return (
-    <Skeleton title="Support" actions={1}>
-      <SkPanel><SkTable rows={4} cols={2} avatar={false} /></SkPanel>
+    <Skeleton title="Messages" actions={1}>
+      <SkSplit main={<SkPanel head={false}><SkFilters selects={0} /><SkTable rows={4} cols={2} avatar={false} /></SkPanel>} rail={<SkPanel><SkRows n={3} /></SkPanel>} />
     </Skeleton>
   );
 }
