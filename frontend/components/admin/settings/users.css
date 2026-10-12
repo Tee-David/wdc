@@ -23,3 +23,7 @@
   .adUsers__person span:last-child { max-width:138px; }
   .adUsers__person small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 }
+.adUsers__tools { padding-top: .25rem; }
+.adUsers__roleForm { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+.adUsers__roleForm .adPick { min-width: 9rem; }
+.adUsers__roleForm .ad__btn { min-height: 2.75rem; }
