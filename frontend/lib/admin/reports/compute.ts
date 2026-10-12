@@ -430,3 +430,35 @@ export function compare(now: number, before: number | null, goodWhenUp = true) {
 }
 
 export { refundedTotal };
+
+/* ---------------------------------------------------------------- insights */
+
+export type Insight = { tone: "good" | "warn" | "bad"; title: string; body: string; href?: string };
+
+/**
+ * A few plain-language things worth a look, each read straight off the same
+ * figures as the page. A line appears only when its rule fires; there is no
+ * filler, so an empty list is a quiet month.
+ */
+export function insights(s: Scope, span: Span, prev: Span | null, fmt: (kobo: number) => string): Insight[] {
+  const out: Insight[] = [];
+  const r = receivables(s);
+  const worst = r.open.find((o) => o.late > 0);
+  if (r.overdue > 0 && worst) {
+    out.push({ tone: "bad", title: `${fmt(r.overdue)} is late`, body: `${worst.client} owes ${fmt(worst.due$)} and is ${worst.late} day${worst.late === 1 ? "" : "s"} past due.`, href: "/admin/money?tab=invoices" });
+  }
+  const t = totals(s, span), p = prev ? totals(s, prev) : null;
+  if (p && p.spent > 0 && t.spent > 0) {
+    const ch = change(t.spent, p.spent);
+    const top = spentBy(s, span, "category")[0];
+    if (ch != null && Math.abs(ch) >= 15) {
+      out.push({ tone: ch > 0 ? "warn" : "good", title: `Spending is ${ch > 0 ? "up" : "down"} ${Math.abs(ch)}% on the period before`, body: top ? `${top.label} is ${Math.round((top.share ?? 0) * 100)}% of it.` : "Compared with the days just before." });
+    }
+  }
+  if (t.net < 0) out.push({ tone: "bad", title: "More went out than came in", body: `Net is ${fmt(t.net)} for these days.` });
+  const byClient = collectedBy(s, span, "client"), top3 = byClient.slice(0, 3);
+  if (byClient.length >= 3 && top3[0] && (top3[0].share ?? 0) >= 0.3) {
+    out.push({ tone: "warn", title: `${top3[0].label} is ${Math.round((top3[0].share ?? 0) * 100)}% of money collected`, body: `The top ${top3.length} client${top3.length === 1 ? "" : "s"} are ${Math.round(top3.reduce((a, x) => a + (x.share ?? 0), 0) * 100)}%.` });
+  }
+  return out.slice(0, 4);
+}

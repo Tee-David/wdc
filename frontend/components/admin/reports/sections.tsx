@@ -1,11 +1,11 @@
 import Link from "next/link";
 import {
-  Banknote, CalendarClock, CircleDollarSign, Clock, FileText, Handshake, Hourglass, Landmark, Percent, PiggyBank,
+  Banknote, CalendarClock, CircleAlert, CircleCheck, TriangleAlert, CircleDollarSign, Clock, FileText, Handshake, Hourglass, Landmark, Percent, PiggyBank,
   Receipt, Repeat, ShieldCheck, TrendingUp, UserPlus, Users, Wallet, Zap,
 } from "lucide-react";
 import { Panel, Tile, when } from "@/components/admin/bits";
 import {
-  clientInsights, collectedBy, compare, creditsHeld, departments, held, invoicedBy, latePayers, payDays, receivables,
+  clientInsights, collectedBy, compare, creditsHeld, departments, held, insights, invoicedBy, latePayers, payDays, receivables,
   recurring, refundsIn, reversalsIn, sales, series, spentBy, team, totals, vat, work,
 } from "@/lib/admin/reports/compute";
 import { REPORTS } from "@/lib/admin/reports/datasets";
@@ -53,6 +53,7 @@ export function Overview({ s, f, span, prev, sp }: Ctx) {
   const t = totals(s, span), p = prev ? totals(s, prev) : null, r = receivables(s), h = held(s), pd = payDays(s, span), sl = sales(s, span), rc = recurring(s), w = work(s, span);
   const pts = series(s, span, f.group);
   const cur = f.cur;
+  const look = insights(s, span, prev, (k) => short(k, cur));
   return (
     <div className="adFlow__grid">
       <div className="adFlow__main">
@@ -88,6 +89,17 @@ export function Overview({ s, f, span, prev, sp }: Ctx) {
         </Panel>
       </div>
       <Rail f={f}>
+        {look.length ? (
+          <Panel title="Worth a look" action={<span className="rp__sub">From these figures</span>} dataTour="reports-insights">
+            <ul className="rp__ins">
+              {look.map((x) => {
+                const Ic = x.tone === "good" ? CircleCheck : x.tone === "warn" ? TriangleAlert : CircleAlert;
+                const inner = (<><span className={`rp__insIc rp__insIc--${x.tone}`} aria-hidden="true"><Ic size={16} /></span><span><b>{x.title}</b><small>{x.body}</small></span></>);
+                return <li key={x.title}>{x.href ? <Link href={x.href}>{inner}</Link> : <div>{inner}</div>}</li>;
+              })}
+            </ul>
+          </Panel>
+        ) : null}
         <Panel title="How this is counted">
           <ul className="rp__rules">
             <li><b>Money in</b> is what was paid in these days, less refunds and payments reversed.</li>

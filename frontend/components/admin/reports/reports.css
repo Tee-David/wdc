@@ -123,3 +123,16 @@
   .rp__exportMenu { right: auto; left: 0; }
 }
 @media (max-width: 420px) { .rp__kpis { gap: .5rem; } .rp__pair2 { grid-template-columns: minmax(0, 1fr); } }
+/* Worth a look */
+.rp__ins { list-style: none; margin: 0; padding: .35rem 1.25rem 1rem; display: grid; }
+.rp__ins li { border-bottom: 1px solid var(--ad-line); }
+.rp__ins li:last-child { border-bottom: 0; }
+.rp__ins a, .rp__ins li > div { display: flex; gap: .75rem; align-items: flex-start; padding: .8rem 0; min-height: 2.75rem; color: var(--ad-ink); text-decoration: none; min-width: 0; }
+.rp__ins a:hover b { text-decoration: underline; text-underline-offset: 3px; }
+.rp__ins a:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; border-radius: 8px; }
+.rp__ins span:last-child { display: grid; gap: .15rem; min-width: 0; }
+.rp__ins small { color: var(--ad-dim); font-size: .82rem; }
+.rp__insIc { flex: none; display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 10px; color: #fff; }
+.rp__insIc--good { background: var(--ad-tone-good); }
+.rp__insIc--warn { background: var(--ad-tone-warn); }
+.rp__insIc--bad { background: var(--ad-tone-bad); }
