@@ -219,3 +219,7 @@ a.adRc__row:hover, button.adRc__row:hover, a.adRc__row.on, button.adRc__row.on {
 .adPh__crumb a { min-height: 2.75rem; margin-block: -.6rem; }
 .adList .ad__t td > a { display: inline-flex; align-items: center; min-height: 2.75rem; }
 .adSt { position: relative; }
+
+/* A tick inside a list keeps its small look and gets a 44px hit area. */
+.adList .ad__tick { position: relative; }
+.adList .ad__tick::after { content: ""; position: absolute; inset: -9px; }
