@@ -20,20 +20,28 @@ const STAGE_OPTIONS = STAGES.map((s) => ({ value: s, label: s }));
 const CHANNEL_OPTIONS = CHANNELS.map((c) => ({ value: c, label: c }));
 
 export function AddProject({
-  hasClients = true, clientId, dataTour,
+  hasClients = true, clientId, dataTour, label = "New project",
 }: {
   /** Whether there is anyone to open a project for. The clients themselves are searched on the server as the person types. */
   hasClients?: boolean;
   /** Fixed when opened from a client's own page, chosen otherwise. */
   clientId?: string;
   dataTour?: string;
+  label?: string;
 }) {
+  return (
+    <DialogButton label={label} title="Open a project" icon={Plus} wide dataTour={dataTour}>
+      {/* createProject redirects to the project it opened. */}
+      {() => <OpenProjectForm clientId={clientId} hasClients={hasClients} />}
+    </DialogButton>
+  );
+}
+
+/** The form behind "New project", for a menu or a sheet that opens it. */
+export function OpenProjectForm({ hasClients = true, clientId }: { hasClients?: boolean; clientId?: string }) {
   const money = can(useAdminRole(), "money");
   const [who, setWho] = useState("");
-  return (
-    <DialogButton label="New project" title="Open a project" icon={Plus} wide dataTour={dataTour}>
-      {/* createProject redirects to the project it opened. */}
-      {() => (!clientId && !hasClients ? <NoClientsYet what="project" /> :
+  return !clientId && !hasClients ? <NoClientsYet what="project" /> : (
         <Form action={createProject}>
           <Fields>
             {clientId ? (
@@ -91,8 +99,6 @@ export function AddProject({
             <Submit icon={Plus}>Open it</Submit>
           </Actions>
         </Form>
-      )}
-    </DialogButton>
   );
 }
 

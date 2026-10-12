@@ -1,5 +1,10 @@
 import Link from "next/link";
-import PageTourButton from "@/components/admin/tour/page-tour-button";
+import { PageHead } from "@/components/admin/page-head";
+import { ChoresMenu } from "@/components/admin/chores-menu";
+import { Deck, type DeckItem } from "@/components/admin/deck";
+import { StatTiles } from "@/components/admin/workbench";
+import { AlertTriangle, Folder, HardDrive, Trash2 } from "lucide-react";
+import { when } from "@/components/admin/bits";
 import { redirect } from "next/navigation";
 import { LayoutGrid, List } from "lucide-react";
 import { AdminState } from "@/components/admin/admin-state";
@@ -63,7 +68,7 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
   if (!mediaDatabaseConfigured()) {
     return (
       <>
-        <Head />
+        <PageHead title="Media library" lede="Pictures, videos and files for the site and the blog." />
         <section className="ad__panel">
           <AdminState kind="error" title="The content database is not connected"
             description="There is nowhere for uploads to be listed until it is. Settings › Integrations says what it needs." />
@@ -96,6 +101,21 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
     sum = null;
   }
   const failed = !sum;
+  /* WHAT NEEDS YOU: pictures with no description, newest first. A screen reader
+     says nothing for them, and search engines read the description too. */
+  let undescribed: MediaAsset[] = [];
+  if (sum?.needsAlt && !archived) {
+    try { undescribed = (await listMedia({ archived: false, q: "", page: 1, per: 4, kind: "image", sort: "new", month: "", by: "", needsAlt: true, folder: "", deep: false })).items; } catch { undescribed = []; }
+  }
+  const folderName = (id: string | null) => (id ? tree.folders.find((f) => f.id === id)?.name ?? "A folder" : "Unsorted");
+  const deckItems: DeckItem[] = undescribed.map((m) => ({
+    id: `alt-${m.id}`, kind: "Description", tone: "warn", urgency: "Not described", label: "Library",
+    title: `${m.filename} has no description`,
+    body: "People using a screen reader hear nothing for it. Search engines also read the description, so it helps the page be found.",
+    facts: [{ k: "File", v: m.filename }, { k: "Folder", v: folderName(m.folderId) }, { k: "Added", v: when(m.uploadedAt) }],
+    why: "Add one short sentence, or mark the picture as decorative if it carries no information.",
+    primary: { label: "Show pictures to describe", href: href({ needs: "1", show: "", kind: "image", page: 1 }) },
+  }));
 
   /* A page past the end (a file archived since the link was made): the last
      page that exists, rather than an empty library. */
@@ -118,12 +138,34 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
 
   return (
     <UploadProvider folder={current ? current.id : null} disabled={failed ? "The library could not be read just now, so uploads are paused." : blocked}>
-      <Head>
-        <UploadButton />
-      </Head>
+      <PageHead
+        title="Media library"
+        lede={sum ? <>{sum.live} {sum.live === 1 ? "file" : "files"}{sum.needsAlt ? `, ${sum.needsAlt} ${sum.needsAlt === 1 ? "needs" : "need"} a description` : ""}. <strong>Pictures, videos and files for the site and the blog.</strong></> : "Pictures, videos and files for the site and the blog."}
+        action={<UploadButton />}
+        chores={<ChoresMenu label="media, more" items={[
+          { label: "Blog posts", href: "/admin/blog", icon: "file" },
+          { label: "Case studies", href: "/admin/blog/work", icon: "layers" },
+          { label: "Open the Trash", href: href({ show: "archived", kind: "", needs: "", page: 1 }), icon: "trash" },
+        ]} />}
+      />
       {blocked ? (
         <p className="adMedia__off" id="adMediaOff">{blocked} <Link href="/admin/settings/integrations">Connections and health</Link></p>
       ) : null}
+
+      <Deck id="media" title="The library this week" items={deckItems}
+        emptyTitle="The library is looked after."
+        emptyBody="Every picture has a description."
+        emptyNext={{ label: "Upload files", href: "/admin/settings/media" }} />
+
+      {/* This page sits inside the settings layout, which already takes a column,
+          so the figures run across the top instead of in a rail. */}
+      {sum ? <StatTiles items={[
+            { label: "Files", value: String(sum.live), note: `${readableBytes(used)} in all`, icon: Folder, tone: "brand", href: href({ show: "", kind: "", needs: "", page: 1 }) },
+            { label: "Need a description", value: String(sum.needsAlt), note: sum.needsAlt ? "Read aloud by screen readers" : "Every picture is described", noteTone: sum.needsAlt ? "accent" : undefined, icon: AlertTriangle, tone: sum.needsAlt ? "live" : "good", href: href({ needs: "1", show: "", kind: "image", page: 1 }) },
+            { label: "Storage", value: `${Math.round((used / budget) * 100)}%`, note: `${readableBytes(used)} of ${readableBytes(budget)}`, icon: HardDrive, tone: "neutral" },
+            { label: "In the Trash", value: String(sum.archived), note: "Kept until you delete them", icon: Trash2, tone: "bad", href: href({ show: "archived", kind: "", needs: "", page: 1 }) },
+          ]} /> : null}
+
 
       <DropArea>
         <section className="ad__panel adMedia">
@@ -251,17 +293,5 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
         </section>
       </DropArea>
     </UploadProvider>
-  );
-}
-
-function Head({ children }: { children?: React.ReactNode }) {
-  return (
-    <div className="ad__head">
-      <div>
-        <h1>Media library</h1>
-        <p>Pictures, videos and files for the site and the blog.</p>
-      </div>
-      <div className="ad__row"><PageTourButton />{children}</div>
-    </div>
   );
 }

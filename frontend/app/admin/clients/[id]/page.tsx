@@ -1,20 +1,20 @@
+import { nowMs } from "@/lib/admin/when";
 import CurrencyBalances from "@/components/money/currency-balances";
-import {moneySummary} from "@/lib/money/summary";
-import {currencyOf,money as formatMoney} from "@/lib/money/currency";
+import { currencyOf, money as formatMoney } from "@/lib/money/currency";
 import type { Metadata } from "next";
-import { hydrateSettings } from "@/lib/settings/store";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CalendarDays, FileText, FolderKanban, Mail, MessageSquareWarning, Phone, Users, Wallet } from "lucide-react";
 import { SERVICES } from "@/lib/services";
+import { hydrateSettings } from "@/lib/settings/store";
 import {
-  creditBalance, financeDefaults, findDuplicateClient, getClient, getClients, getCreditsFor, getDeliverablesFor, getInvoicesFor, getPaymentsFor, getProjects, getProjectsFor, getSubmissions,
+  creditBalance, financeDefaults, findDuplicateClient, getClient, getClients, getCreditsFor, getDeliverablesFor, getEstimatesFor, getInvoicesFor, getPaymentsFor, getProjectsFor, getSubmissions, getTasks, getTicketsFor,
 } from "@/lib/admin/store";
 import { noticeBlock, reconcileClient } from "@/lib/admin/money-rules";
 import ClientReconciliation from "@/components/admin/reconciliation";
-import { invoiceStatus, invoiceTotals, paymentNet, paymentState } from "@/lib/admin/types";
-import { ApprovalPill, Empty, InvoicePill, Panel, StagePill, when } from "@/components/admin/bits";
+import { STAGES, estimateState, estimateTotals, invoiceStatus, invoiceTotals, naira,  paymentNet, paymentState, projectAttention, type Project } from "@/lib/admin/types";
+import { ApprovalPill, Empty, InvoicePill, Panel } from "@/components/admin/bits";
 import { InvoiceMenu, ProjectMenu } from "@/components/admin/row-actions";
-import { EditClient, MergeClient } from "@/components/admin/client-form";
 import { AddProject } from "@/components/admin/project-forms";
 import { InvoiceBuilder, RecordAnyPayment } from "@/components/admin/money-forms";
 import CommsLog from "@/components/admin/comms-log";
@@ -22,30 +22,34 @@ import CreditPanel from "@/components/admin/credit-panel";
 import TicketPanel from "@/components/admin/ticket-panel";
 import { listDepartments } from "@/lib/departments";
 import { ClientDepartments } from "@/components/admin/departments";
-import { ArchiveClient } from "@/components/admin/client-archive";
 import AuditLog from "@/components/admin/audit-log";
 import PortalAccess from "@/components/admin/portal-access";
 import { adminRole } from "@/lib/admin/guard";
 import { can } from "@/lib/admin/permissions";
-import PageTourButton from "@/components/admin/tour/page-tour-button";
-import { ProfileCard } from "@/components/admin/profile-card";
 import { CopyText } from "@/components/admin/copy-text";
+import { MessageActions } from "@/components/admin/log-message";
+import { whatsappLink } from "@/lib/admin/whatsapp";
 import { SITE_URL } from "@/lib/site";
-import { Mail, Phone, Tag, User } from "lucide-react";
+import { nairaTile } from "@/lib/admin/short-money";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
+import { avTone, initials } from "@/lib/admin/client-mark";
+import { PageHead } from "@/components/admin/page-head";
+import { RailCard, StatTiles, Workbench } from "@/components/admin/workbench";
+import { Tabs } from "@/components/admin/tabs";
+import { Chips } from "@/components/admin/chips";
+import { Stepper } from "@/components/admin/stepper";
+import { ClientChores } from "@/components/admin/client-chores";
+import { RemindButton } from "@/components/admin/client-bits";
+import { SavedToast } from "@/components/admin/saved-toast";
+import { activityFeed } from "@/lib/admin/activity-feed";
+import { dateTimeWords, dateWords, daysFrom, monthYear } from "@/lib/admin/when";
+import { portalMaps } from "@/lib/admin/client-signals";
+import { meetingList } from "@/lib/meetings/store";
+import { projectGlyph, projectTileStyle } from "@/components/client/service-glyph";
 
 /* NO generateStaticParams. The client list is written to now, and a route
    prerendered from the list as it stood at build time would 404 on the client
    added a minute ago. The admin layout is force-dynamic for the same reason. */
-
-/* EVERY DETAIL PAGE ON THIS SITE HAD THE SAME TAB TITLE: the layout's own
-   default, "Admin | We Dig Creativity", because none of the four dynamic
-   admin routes set their own. Five clients open in five tabs were five
-   identical tabs -- the one thing a tab title exists to prevent.
-   `notFound()` is called here as well as in the body so a missing client
-   gets the not-found title too. It is NOT what makes the status a 404: that
-   was the loading boundary above this page, which streamed a 200 first, and
-   it moved into `app/admin/(lists)` for exactly that reason. */
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   await syncStore();
   const { id } = await params;
@@ -54,160 +58,262 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   return { title: `${c.company} · Client` };
 }
 
-export default async function ClientPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ act?: string }> }) {
+type Q = { tab?: string; only?: string; act?: string; saved?: string };
+const TABS = ["overview", "money", "files", "people", "activity"] as const;
+type Tab = (typeof TABS)[number];
+
+/**
+ * ONE CLIENT, five tabs (the approved board): Overview (their projects as
+ * steppers, what changed, with money, the next meeting and people in the
+ * rail), Money (invoices, payments, credit, reconciliation), Files (versioned
+ * deliverables), People (contacts, portal access, onboarding, departments,
+ * notes) and Activity (what changed, what we sent, what they raised). The tab
+ * is in the address so a reload and a shared link keep it. Staff see the
+ * relationship and the work, never the books: no Money tab, no amounts.
+ */
+export default async function ClientPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Q> }) {
   await syncStore();
   persistSoon();
   const { id } = await params;
-  /* Activity opens on the five newest; "Show more" asks for ten more, up to 200. */
-  const shown = Math.min(200, Math.max(5, Math.floor(Number((await searchParams).act)) || 5));
+  const query = await searchParams;
+  const shown = Math.min(200, Math.max(5, Math.floor(Number(query.act)) || 5));
   const c = getClient(id);
   if (!c) notFound();
   await hydrateSettings();
   const finance = financeDefaults();
-  /* Staff see the relationship and the work, not the books, and do not get
-     the controls that cannot be undone here (lib/admin/permissions.ts). */
   const role = await adminRole();
   const money = can(role, "money");
   const destructive = can(role, "destructive");
   const departments = await listDepartments();
+  const now = nowMs();
 
   const projects = getProjectsFor(c.id);
   const invoices = getInvoicesFor(c.id);
   const forms = getSubmissions().filter((s) => s.clientId === c.id);
+  const tickets = getTicketsFor(c.id);
   const payments = invoices
     .flatMap((invoice) => getPaymentsFor(invoice.id).map((payment) => ({ invoice, payment })))
     .sort((a, b) => b.payment.at.localeCompare(a.payment.at));
-  const deliverables = projects.flatMap((project) => (
-    getDeliverablesFor(project.id).map((deliverable) => ({ deliverable, project }))
-  ));
-  const relatedAuditIds = [
-    c.id,
-    ...projects.map((project) => project.id),
-    ...(money ? invoices.map((invoice) => invoice.id) : []),
-    ...(money ? payments.map(({ payment }) => payment.id) : []),
-    ...deliverables.map(({ deliverable }) => deliverable.id),
-    ...forms.map((form) => form.id),
-  ];
-  const billed = invoices.filter((i) => i.status !== "Draft");
-  const owed = billed.reduce((n, i) => n + invoiceTotals(i).due, 0);
+  const deliverables = projects.flatMap((project) => getDeliverablesFor(project.id).map((deliverable) => ({ deliverable, project })));
+  const versions = deliverables.reduce((n, d) => n + d.deliverable.versions.length, 0);
+  const billed = invoices.filter((i) => i.status !== "Draft" && !i.voided);
+  const ngn = billed.filter((i) => currencyOf(i) === "NGN");
+  const invoicedN = ngn.reduce((n, i) => n + invoiceTotals(i).total, 0);
+  const paidN = ngn.reduce((n, i) => n + i.paid, 0);
+  const owedN = ngn.reduce((n, i) => n + invoiceTotals(i).due, 0);
   const overdue = billed.some((i) => invoiceStatus(i) === "Overdue");
-  /* Two small facts the money forms need about this one client: what they hold
-     on account (to offer "use their credit"), and why they cannot be emailed,
-     if they cannot. And the reconciliation, summed from the same rows. */
+  const nextDue = ngn.filter((i) => invoiceTotals(i).due > 0).sort((a, b) => a.due.localeCompare(b.due))[0];
   const held = creditBalance(c.id);
   const credits = held > 0 ? { [c.id]: held } : undefined;
   const why = noticeBlock(c);
   const noEmail = why ? { [c.id]: why } : undefined;
   const recon = money ? reconcileClient(invoices, payments.map((x) => x.payment), getCreditsFor(c.id)) : null;
-  const clientProjects = getProjects().filter((p) => p.clientId === c.id);
+  const tasks = getTasks();
+
+  const asked: Tab = TABS.find((t) => t === query.tab) ?? "overview";
+  const tab: Tab = asked === "money" && !money ? "overview" : asked;
+  const people = [{ name: c.name, role: "Main contact", email: c.email, phone: c.phone }, ...(c.contacts ?? []).map((x) => ({ name: x.name, role: x.role ?? "Contact", email: x.email ?? "", phone: x.phone ?? "" }))];
+  const portal = await portalMaps();
+  const hasAccount = portal.accounts.has(c.email.trim().toLowerCase());
+  const invited = portal.invites.has(c.email.trim().toLowerCase());
+  const first = c.name.trim().split(/\s+/)[0];
+
+  const tabHref = (t: Tab) => `/admin/clients/${c.id}${t === "overview" ? "" : `?tab=${t}`}`;
+  const tabItems = [
+    { key: "overview", label: "Overview", href: tabHref("overview") },
+    ...(money ? [{ key: "money", label: "Money", href: tabHref("money"), count: invoices.length, tone: overdue ? ("bad" as const) : undefined }] : []),
+    { key: "files", label: "Files", href: tabHref("files"), count: versions },
+    { key: "people", label: "People", href: tabHref("people"), count: people.length },
+    { key: "activity", label: "Activity", href: tabHref("activity") },
+  ];
+
+  const likely = getClients().filter((x) => x.id !== c.id && findDuplicateClient(x.email, x.phone, x.id)?.id === c.id).map((x) => ({ id: x.id, company: x.company }));
+  const state = c.archived ? (c.mergedInto ? "Merged" : "Archived") : "Active";
+
+  /* A staff member sees whether the deposit is in, never the figure. */
+  const chipFor = (p: Project) => {
+    const mine = invoices.filter((i) => i.projectId === p.id && i.status !== "Draft" && !i.voided);
+    if (!mine.length) return "Not billed";
+    return mine.some((i) => i.paid > 0) ? "Deposit paid" : "Awaiting deposit";
+  };
+  const svc = (p: Project) => SERVICES.find((s) => s.slug === p.service)?.short ?? p.service;
+
+  /* NEXT MEETING, from the bookings the studio holds: a booking whose attendee
+     is this client's address. A missing table or provider is "none booked". */
+  let meeting: Awaited<ReturnType<typeof meetingList>>[number] | undefined;
+  if (tab === "overview") {
+    try {
+      const emails = new Set(people.map((p) => p.email.trim().toLowerCase()).filter(Boolean));
+      const list = await meetingList(new Date(now).toISOString(), new Date(now + 90 * 86_400_000).toISOString());
+      meeting = list.find((b) => ["accepted", "confirmed", "pending"].includes(b.status.toLowerCase()) && (b.attendees ?? []).some((a) => emails.has(a.email.trim().toLowerCase())));
+    } catch { meeting = undefined; }
+  }
+
+  const projectIds = projects.map((p) => p.id);
+  const moneyIds = [...invoices.map((i) => i.id), ...payments.map(({ payment }) => payment.id)];
+  const workIds = [c.id, ...projectIds, ...deliverables.map(({ deliverable }) => deliverable.id), ...forms.map((f) => f.id)];
+  const only = query.only === "money" && money ? "money" : query.only === "work" ? "work" : "all";
+  const auditIds = only === "money" ? moneyIds : only === "work" ? workIds : [...workIds, ...(money ? moneyIds : [])];
+  const feed = tab === "overview" ? await activityFeed({ money, subjectIds: [...workIds, ...(money ? moneyIds : [])], limit: 4 }) : [];
 
   return (
     <>
-      <ProfileCard
+      {query.saved ? <SavedToast message={`Saved. ${c.company} is on the books.`} /> : null}
+      <PageHead
         crumbs={[{ href: "/admin/clients", label: "Clients" }]}
-        initials={initials(c.company)}
         title={c.company}
-        pills={<>
-          <span className={`ad__pill ad__pill--${c.archived ? "flat" : "good"}`}>{c.mergedInto ? "Merged" : c.archived ? "Archived" : "Active"}</span>
+        mark={initials(c.company)}
+        markTone={avTone(c.company)}
+        lede={<>{c.name} · {c.email}{c.phone ? ` · ${c.phone}` : ""} · client since {monthYear(c.since)}{hasAccount ? " · has a portal account" : invited ? " · portal invitation sent" : ""}</>}
+        action={<MessageActions clientId={c.id} clientName={c.name} waHref={whatsappLink(c.phone, `Hi ${first}, it's We Dig Creativity.`)} />}
+        chores={<ClientChores client={c} likely={likely} hasOthers={destructive && getClients().some((x) => x.id !== c.id)} />}
+      >
+        <p className="adT__row" style={{ marginTop: ".6rem" }}>
+          <span className={`ad__pill ad__pill--${c.archived ? "flat" : "good"}`}>{state}</span>
           {overdue && money ? <span className="ad__pill ad__pill--bad">Overdue</span> : null}
-        </>}
-        lines={<>
-          <span><User aria-hidden="true" />{c.name}</span>
-          <a href={`mailto:${c.email}`}><Mail aria-hidden="true" />{c.email}</a>
-          {c.phone ? <a href={`tel:${c.phone.replace(/\s/g, "")}`}><Phone aria-hidden="true" />{c.phone}</a> : null}
-          {c.sector ? <span><Tag aria-hidden="true" />{c.sector}</span> : null}
-        </>}
-        tags={c.services.length || c.tags?.length ? <>
           {c.services.map((s) => <span key={s} className="ad__pill ad__pill--flat">{SERVICES.find((x) => x.slug === s)?.short ?? s}</span>)}
           {(c.tags ?? []).map((t) => <span key={t} className="ad__pill ad__pill--flat">{t}</span>)}
-        </> : undefined}
-        actions={<>
-          <PageTourButton />
-          {destructive ? <ArchiveClient client={c} /> : null}
-          {c.mergedInto || !destructive ? null : (
-            <MergeClient keepId={c.id} keepName={c.company}
-              hasOthers={getClients().some((x) => x.id !== c.id)}
-              likely={getClients()
-                .filter((x) => x.id !== c.id && findDuplicateClient(x.email, x.phone, x.id)?.id === c.id)
-                .map((x) => ({ id: x.id, company: x.company }))} />
-          )}
-          <EditClient client={c} />
-          <AddProject clientId={c.id} />
-          {money ? (
-            <InvoiceBuilder
-              clientId={c.id}
-              defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays}
-              credits={credits} noEmail={noEmail}
-            />
-          ) : null}
-        </>}
-        stats={[
-          { label: "Client since", value: when(c.since) },
-          { label: "Projects", value: String(projects.length), badge: { label: `${projects.filter((p) => p.stage !== "Delivered").length} live`, tone: "flat" } },
-          ...(money ? [
-            { label: "Paid to date", value: moneySummary(billed,i=>i.paid) },
-            { label: "Outstanding", value: owed ? moneySummary(billed,i=>invoiceTotals(i).due) : "Nil", badge: overdue ? { label: "Overdue", tone: "bad" as const } : undefined },
-          ] : []),
-        ]}
-      />
+        </p>
+      </PageHead>
 
       {c.mergedInto ? (
-        <p className="ad__banner" role="status">
+        <p className="ad__banner" role="status" style={{ marginBottom: "1rem" }}>
           <Link href={`/admin/clients/${c.mergedInto}`}>
             <b>This record was merged into {getClient(c.mergedInto)?.company ?? "another client"}.</b> Its work moved there; open that record.
           </Link>
         </p>
       ) : null}
 
-      {c.contacts?.length ? (
-        <section className="ad__panel" style={{ marginBottom: ".9rem" }}>
-          <div className="ad__panelH"><h2>Other contacts</h2></div>
-          <ul className="ad__contacts">
-            {c.contacts.map((x, i) => (
-              <li key={`${x.name}-${i}`}>
-                <b>{x.name}</b>{x.role ? <span className="ad__dim"> · {x.role}</span> : null}
-                {x.email ? <> · <a href={`mailto:${x.email}`}>{x.email}</a></> : null}
-                {x.phone ? <> · <a href={`tel:${x.phone.replace(/\s/g, "")}`}>{x.phone}</a></> : null}
-              </li>
-            ))}
-          </ul>
-        </section>
+      <div style={{ marginBottom: "1.25rem" }}><Tabs label="Client sections" items={tabItems} current={tab} /></div>
+
+      {tab === "overview" ? (
+        <Workbench
+          railLabel="Money, meeting and people"
+          rail={<>
+            {money ? (
+              <RailCard title="Money" link={{ href: tabHref("money"), label: "Invoices" }}>
+                {invoicedN ? (
+                  <div className="adRc__split">
+                    <span className="adRing" style={{ "--p": Math.round((paidN / invoicedN) * 100) } as React.CSSProperties} role="img" aria-label={`${Math.round((paidN / invoicedN) * 100)} percent paid`}>
+                      <b>{Math.round((paidN / invoicedN) * 100)}%<small>paid</small></b>
+                    </span>
+                    <span style={{ display: "grid" }}><small className="ad__dim">Paid so far</small><b style={{ fontFamily: "var(--font-space-grotesk)", fontSize: "1.4rem" }}>{nairaTile(paidN)}</b><small className="ad__dim">of {naira(invoicedN)} invoiced</small></span>
+                  </div>
+                ) : <p className="ad__dim" style={{ margin: 0 }}>Nothing is invoiced yet. Raise the first invoice from the Money tab.</p>}
+                {nextDue ? (
+                  <div className="adNote" style={{ alignItems: "center" }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <b>{naira(invoiceTotals(nextDue).due)} {invoiceStatus(nextDue) === "Overdue" ? "was due" : "due"} {dateWords(nextDue.due, now)}</b>
+                      <p style={{ margin: 0 }}>{nextDue.number}</p>
+                    </div>
+                    <RemindButton invoiceId={nextDue.id} />
+                  </div>
+                ) : null}
+              </RailCard>
+            ) : null}
+            <RailCard title="Next meeting" aside={meeting ? (daysFrom(meeting.start, now) <= 0 ? "Today" : `In ${daysFrom(meeting.start, now)} days`) : undefined}>
+              {meeting ? (
+                <div className="adRc__split">
+                  <span className="adDate" aria-hidden="true"><span>{new Date(Date.parse(meeting.start) + 3_600_000).toLocaleString("en-GB", { month: "short", timeZone: "UTC" }).toUpperCase()}</span><b>{new Date(Date.parse(meeting.start) + 3_600_000).getUTCDate()}</b></span>
+                  <span style={{ display: "grid" }}><b>{dateTimeWords(meeting.start, now)}</b><small className="ad__dim">{meeting.title}</small></span>
+                </div>
+              ) : <p className="ad__dim" style={{ margin: 0 }}>No meeting is booked with {c.company}.</p>}
+              <Link className="adRc__foot" href="/admin/meetings">{meeting ? "Open meetings" : "Open meetings to book one"}</Link>
+            </RailCard>
+            <RailCard title="People" link={{ href: tabHref("people"), label: `All ${people.length}` }}>
+              {people.slice(0, 2).map((p, i) => (
+                <div key={`${p.name}-${i}`} className="adPpl">
+                  <span className={`adMk adMk--${avTone(p.name)}`} aria-hidden="true">{initials(p.name)}</span>
+                  <div><b>{p.name}</b><small>{p.role}</small></div>
+                  {i === 0 ? <span className={`ad__pill ad__pill--${hasAccount ? "good" : invited ? "warn" : "flat"}`}>{hasAccount ? "Active" : invited ? "Invited" : "No account"}</span> : null}
+                </div>
+              ))}
+            </RailCard>
+          </>}
+        >
+          <section className="adList" aria-label="Projects" data-tour="client-projects">
+            <div className="adList__hd"><h2>Projects</h2><span className="adList__n">{projects.length}</span><span className="adList__sp" />{c.archived ? null : <AddProject clientId={c.id} />}</div>
+            <div className="adPanelPad">
+              {projects.length ? projects.map((p) => {
+                const at = STAGES.indexOf(p.stage);
+                const reasons = projectAttention(p, tasks);
+                const last = p.events.slice().sort((a, b) => b.at.localeCompare(a.at))[0];
+                const extra = reasons.map((r) => r.label).filter((l) => l !== p.health);
+                const headline = extra.length ? extra.join(", ") : last ? last.text : "Nothing waiting";
+                const ownerName = p.owner || "Studio";
+                return (
+                  <article key={p.id} className="adPj">
+                    <div className="adPj__hd">
+                      <span className="adRc__ic" style={projectTileStyle(p)} aria-hidden="true">{projectGlyph(p)}</span>
+                      <div>
+                        <h3><Link href={`/admin/projects/${p.id}`}>{p.title}</Link></h3>
+                        <span className="adPj__sub">{svc(p)}{money && p.budget ? ` · ${naira(p.budget)}` : ""}{p.due ? ` · due ${dateWords(p.due, now)}` : ""}</span>
+                      </div>
+                      <span className={`ad__pill ${p.stage === "Delivered" ? "ad__pill--good" : p.health === "On track" ? "ad__pill--flat" : p.health === "Blocked" ? "ad__pill--bad" : "ad__pill--warn"}`}>{p.stage === "Delivered" ? "Delivered" : p.health}</span>
+                      {!money ? <span className="ad__pill ad__pill--flat">{chipFor(p)}</span> : null}
+                      <ProjectMenu project={p} clientName={c.company} />
+                    </div>
+                    <Stepper steps={STAGES} at={at} done={p.stage === "Delivered"} label={`${p.title} stages`} />
+                    <div className="adPj__ft">
+                      <span className={`adMk adMk--sm adMk--${avTone(ownerName)}`} aria-hidden="true">{initials(ownerName)}</span>
+                      <span>{headline}</span>
+                    </div>
+                  </article>
+                );
+              }) : (
+                <Empty title="No projects yet" action={c.archived ? undefined : <AddProject clientId={c.id} />}>
+                  Open a project for {c.company} to track its stage, files and updates.
+                </Empty>
+              )}
+            </div>
+          </section>
+
+          <section className="adList" aria-label="Recent activity">
+            <div className="adList__hd"><h2>Recent activity</h2><span className="adList__sp" /><Link className="ad__btn" href={tabHref("activity")}>All activity</Link></div>
+            <div className="adPanelPad">
+              {feed.length ? (
+                <ol className="adTl">
+                  {feed.map((f) => (
+                    <li key={f.id}>
+                      <span className={`adMk adMk--sm adMk--${avTone(f.who)}`} aria-hidden="true">{initials(f.who)}</span>
+                      <span className="adTl__b"><span><strong>{f.who}</strong> {f.what}</span></span>
+                      <span className="adTl__w">{f.when}</span>
+                    </li>
+                  ))}
+                </ol>
+              ) : <p className="ad__dim" style={{ margin: 0 }}>Nothing has changed for {c.company} yet. Every change to their work, money and records shows here.</p>}
+            </div>
+          </section>
+        </Workbench>
       ) : null}
 
-
-      <div className="ad__grid2">
-        <div className="ad__stack">
-          <Panel title="Projects" dataTour="client-projects">
-            {projects.length ? (
-              <div className="ad__scroll">
-                <table className="ad__t">
-                  <thead><tr><th>Project</th><th>Service</th><th>Stage</th><th>Due</th><th className="ad__rmH"><span className="ad__sr">Actions</span></th></tr></thead>
-                  <tbody>
-                    {projects.map((p) => (
-                      <tr key={p.id}>
-                        <td><Link href={`/admin/projects/${p.id}`}><b>{p.title}</b></Link></td>
-                        <td>{SERVICES.find((x) => x.slug === p.service)?.short}</td>
-                        <td><StagePill stage={p.stage} /></td>
-                        <td className="num">{when(p.due)}</td>
-                        <td className="ad__rmC">
-                          <ProjectMenu project={p} clientName={c.company} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <Empty title="No projects yet" action={<AddProject clientId={c.id} />}>
-                Open a project for {c.company} to track its stage, files and updates.
-              </Empty>
-            )}
-          </Panel>
-
-          {money ? <CurrencyBalances invoices={invoices}/> : null}
-          {money ? <Panel title="Invoices" dataTour="client-invoices">
+      {tab === "money" && money ? (
+        <Workbench
+          railLabel="Money figures"
+          rail={<>
+            <StatTiles items={[
+              { label: "Invoiced", value: nairaTile(invoicedN), note: `${billed.length} ${billed.length === 1 ? "invoice" : "invoices"}`, icon: FileText, tone: "brand" },
+              { label: "Paid", value: nairaTile(paidN), note: invoicedN ? `${Math.round((paidN / invoicedN) * 100)}% of invoiced` : "Nothing invoiced", icon: Wallet, tone: "good" },
+              { label: "Outstanding", value: owedN ? nairaTile(owedN) : "Nil", note: overdue ? "Something is overdue" : owedN ? "Not yet due" : "Nothing owed", noteTone: overdue ? "bad" : undefined, icon: Wallet, tone: overdue ? "bad" : "neutral" },
+              { label: "Credit held", value: nairaTile(held), note: held ? "Applies to their next invoice" : "None on account", icon: Wallet, tone: "live" },
+            ]} />
+            <RailCard title="Quotes">
+              {getEstimatesFor(c.id).length ? getEstimatesFor(c.id).map((e) => (
+                <Link key={e.id} href="/admin/money" className="adRc__row">
+                  <span className="adRc__line"><strong>{e.number}</strong><span className="ad__num">{naira(estimateTotals(e).total)}</span></span>
+                  <span className="adRc__sub">{estimateState(e)}{e.state === "Sent" ? `, stands until ${dateWords(e.expires, now)}` : ""}</span>
+                </Link>
+              )) : <p className="ad__dim" style={{ margin: 0 }}>No quote has been sent to {c.company}.</p>}
+            </RailCard>
+          </>}
+        >
+          <CurrencyBalances invoices={invoices} />
+          <section className="adList" aria-label="Invoices" data-tour="client-invoices">
+            <div className="adList__hd"><h2>Invoices</h2><span className="adList__n">{invoices.length}</span><span className="adList__sp" />
+              <InvoiceBuilder clientId={c.id} defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays} credits={credits} noEmail={noEmail} />
+            </div>
             {invoices.length ? (
-              <div className="ad__scroll">
+              <div className="ad__scroll" tabIndex={0} role="region" aria-label="Invoices table, scrolls sideways" data-lenis-prevent>
                 <table className="ad__t">
                   <thead><tr><th>Number</th><th>Status</th><th>Due</th><th className="num">Total</th><th className="num">Owed</th><th className="ad__rmH"><span className="ad__sr">Actions</span></th></tr></thead>
                   <tbody>
@@ -217,13 +323,10 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
                         <tr key={i.id}>
                           <td><Link href={`/admin/money/${i.id}`}><b>{i.number}</b></Link></td>
                           <td><InvoicePill status={invoiceStatus(i)} /></td>
-                          <td className="num">{when(i.due)}</td>
-                          <td className="num">{formatMoney(t.total,currencyOf(i))}</td>
-                          <td className="num">{t.due ? formatMoney(t.due,currencyOf(i)) : <span className="ad__dim">Nil</span>}</td>
-                          <td className="ad__rmC">
-                            <InvoiceMenu invoice={i} noReceipt={why}
-                              edit={{ clientName: c.company, projectTitle: clientProjects.find((p) => p.id === i.projectId)?.title }} />
-                          </td>
+                          <td className="num">{dateWords(i.due, now, false)}</td>
+                          <td className="num">{formatMoney(t.total, currencyOf(i))}</td>
+                          <td className="num">{t.due ? formatMoney(t.due, currencyOf(i)) : <span className="ad__dim">Nil</span>}</td>
+                          <td className="ad__rmC"><InvoiceMenu invoice={i} noReceipt={why} edit={{ clientName: c.company, projectTitle: projects.find((p) => p.id === i.projectId)?.title }} /></td>
                         </tr>
                       );
                     })}
@@ -231,171 +334,146 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
                 </table>
               </div>
             ) : (
-              <Empty title="Nothing invoiced yet" action={
-                <InvoiceBuilder clientId={c.id}
-                  defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays} credits={credits} noEmail={noEmail} />}>
+              <Empty title="Nothing invoiced yet" action={<InvoiceBuilder clientId={c.id} defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays} credits={credits} noEmail={noEmail} />}>
                 Raise an invoice for {c.company}. It gets a pay link they can use without signing in.
               </Empty>
             )}
-          </Panel> : null}
-        </div>
+          </section>
 
-        <div className="ad__stack">
-
-          <PortalAccess clientId={c.id} email={c.email} />
-
-          <Panel title="Onboarding">
-            {forms.length ? (
-              <div style={{ padding: ".5rem 1rem .8rem" }}>
-                {forms.map((f) => (
-                  <div key={f.id} style={{ padding: ".4rem 0" }}>
-                    <Link href={`/admin/forms/${f.id}`}>
-                      <b>{SERVICES.find((x) => x.slug === f.service)?.short}</b>
-                    </Link>
-                    <small className="ad__dim">
-                      {f.status === "Submitted" ? `Sent ${when(f.submittedAt)}` : "Still filling it in"}
-                    </small>
-                  </div>
-                ))}
+          <section className="adList" aria-label="Payment history" data-tour="client-payments">
+            <div className="adList__hd"><h2>Payment history</h2><span className="adList__sp" /><RecordAnyPayment clientId={c.id} /></div>
+            {payments.length ? (
+              <div className="ad__scroll" tabIndex={0} role="region" aria-label="Payments table, scrolls sideways" data-lenis-prevent>
+                <table className="ad__t">
+                  <thead><tr><th>Receipt</th><th>Invoice</th><th>Method</th><th>Status</th><th>Date</th><th className="num">Received</th><th className="num">Kept</th></tr></thead>
+                  <tbody>
+                    {payments.map(({ invoice, payment }) => {
+                      const st = paymentState(payment);
+                      return (
+                        <tr key={payment.id}>
+                          <td><Link href={`/r/${payment.token}`}><b>{payment.receiptNo}</b></Link></td>
+                          <td><Link href={`/admin/money/${invoice.id}`}>{invoice.number}</Link></td>
+                          <td>{payment.method}</td>
+                          <td><span className={`ad__pill ${st === "Received" ? "ad__pill--good" : "ad__pill--flat"}`}>{st}</span></td>
+                          <td className="num">{dateWords(payment.at, now, false)}</td>
+                          <td className="num">{formatMoney(payment.amount, currencyOf(invoice))}</td>
+                          <td className="num">{formatMoney(paymentNet(payment), currencyOf(invoice))}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
-            ) : (
-              <Empty title="No brief yet" action={<CopyText text={`${SITE_URL}/onboarding`} label="Copy the onboarding link" />}>
-                Send them the onboarding form. Their answers link here once they send it.
-              </Empty>
-            )}
-          </Panel>
-
-          {departments?.length ? (
-            <Panel title="Departments">
-              <div style={{ padding: ".8rem 1rem" }}>
-                <ClientDepartments clientId={c.id} all={departments.map((d) => ({ id: d.id, name: d.name }))} current={c.departments ?? []} />
-              </div>
-            </Panel>
-          ) : null}
-
-          {c.notes ? (
-            <Panel title="Notes">
-              <p style={{ padding: ".8rem 1rem", margin: 0 }}>{c.notes}</p>
-            </Panel>
-          ) : null}
-        </div>
-      </div>
-
-      {recon ? (
-        <div style={{ marginTop: ".9rem" }}>
-          <ClientReconciliation recon={recon} />
-        </div>
+            ) : <Empty title="No payments recorded">Payments appear here with their receipt, method, reversals and refunds kept intact.</Empty>}
+          </section>
+          <CreditPanel clientId={c.id} />
+          {recon ? <ClientReconciliation recon={recon} /> : null}
+        </Workbench>
       ) : null}
 
-      <div className="ad__grid2" style={{ marginTop: ".9rem" }}>
-        {money ? <Panel title="Payment history" dataTour="client-payments"
-          action={<RecordAnyPayment clientId={c.id} />}>
-          {payments.length ? (
-            <div className="ad__scroll">
-              <table className="ad__t">
-                <thead>
-                  <tr><th>Receipt</th><th>Invoice</th><th>Method</th><th>Status</th><th>Date</th><th className="num">Received</th><th className="num">Kept</th></tr>
-                </thead>
-                <tbody>
-                  {payments.map(({ invoice, payment }) => {
-                    const kept = paymentNet(payment);
-                    const state = paymentState(payment);
-                    return (
-                      <tr key={payment.id}>
-                        <td><Link href={`/r/${payment.token}`}><b>{payment.receiptNo}</b></Link></td>
-                        <td><Link href={`/admin/money/${invoice.id}`}>{invoice.number}</Link></td>
-                        <td>{payment.method}</td>
-                        <td><span className={`ad__pill ${state === "Received" ? "ad__pill--good" : "ad__pill--flat"}`}>{state}</span></td>
-                        <td className="num">{when(payment.at)}</td>
-                        <td className="num">{formatMoney(payment.amount,currencyOf(invoice))}</td>
-                        <td className="num">{formatMoney(kept,currencyOf(invoice))}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <Empty title="No payments recorded">
-              Payments appear here with their receipt, method, reversals and refunds kept intact.
-            </Empty>
-          )}
-        </Panel> : null}
-
-        <Panel title="Files and deliverables">
-          {deliverables.length ? (
-            <div className="ad__scroll">
-              <table className="ad__t">
-                <thead><tr><th>Deliverable</th><th>Project</th><th>Version</th><th>Added</th><th>File</th></tr></thead>
-                <tbody>
-                  {deliverables.flatMap(({ deliverable, project }) => (
-                    deliverable.versions.map((version, index) => (
+      {tab === "files" ? (
+        <Workbench
+          railLabel="File figures"
+          rail={<StatTiles items={[
+            { label: "Files", value: String(versions), note: `${deliverables.length} ${deliverables.length === 1 ? "deliverable" : "deliverables"}`, icon: FileText, tone: "brand" },
+            { label: "Awaiting approval", value: String(deliverables.filter((d) => d.deliverable.approval === "Awaiting client").length), note: "With the client now", icon: CalendarDays, tone: "warn" },
+            { label: "Changes asked for", value: String(deliverables.filter((d) => d.deliverable.approval === "Revision requested").length), note: "Waiting on us", noteTone: "accent", icon: MessageSquareWarning, tone: "live" },
+            { label: "Projects", value: String(projects.length), note: "Files live under their project", icon: FolderKanban, tone: "neutral" },
+          ]} />}
+        >
+          <section className="adList" aria-label="Files and deliverables">
+            <div className="adList__hd"><h2>Files and deliverables</h2><span className="adList__n">{versions}</span></div>
+            {deliverables.length ? (
+              <div className="ad__scroll" tabIndex={0} role="region" aria-label="Files table, scrolls sideways" data-lenis-prevent>
+                <table className="ad__t">
+                  <thead><tr><th>Deliverable</th><th>Project</th><th>Version</th><th>Added</th><th>File</th></tr></thead>
+                  <tbody>
+                    {deliverables.flatMap(({ deliverable, project }) => deliverable.versions.map((version, index) => (
                       <tr key={`${deliverable.id}-${version.v}`}>
-                        <td>
-                          <Link href={`/admin/projects/${project.id}`}><b>{deliverable.name}</b></Link>{" "}
-                          {index === 0 ? <ApprovalPill approval={deliverable.approval} /> : null}
-                        </td>
+                        <td><Link href={`/admin/projects/${project.id}?tab=files`}><b>{deliverable.name}</b></Link>{" "}{index === 0 ? <ApprovalPill approval={deliverable.approval} /> : null}</td>
                         <td>{project.title}</td>
                         <td>v{version.v}</td>
-                        <td className="num">{when(version.at)}</td>
-                        <td>
-                          {version.url ? (
-                            /* A link, not an inline embed -- see the note
-                               beside `svg` in
-                               app/api/onboarding/upload/route.ts. */
-                            <a href={version.url} target="_blank" rel="noopener noreferrer">Open file</a>
-                          ) : <span className="ad__dim">Not linked</span>}
-                        </td>
+                        <td className="num">{dateWords(version.at, now, false)}</td>
+                        <td>{version.url ? <a href={version.url} target="_blank" rel="noopener noreferrer">Open file</a> : <span className="ad__dim">Not linked</span>}</td>
                       </tr>
-                    ))
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <Empty title="No deliverables yet">
-              Versioned project files will appear here without replacing earlier work or approvals.
-            </Empty>
-          )}
-        </Panel>
-      </div>
-
-      {/* WHAT WE OWE THEM, which is the other direction from everything above.
-          Renders nothing at all for a client who has never had a balance,
-          which is almost all of them. */}
-      {money ? (
-        <div style={{ marginTop: ".9rem" }}>
-          <CreditPanel clientId={c.id} />
-        </div>
+                    )))}
+                  </tbody>
+                </table>
+              </div>
+            ) : <Empty title="No deliverables yet">Versioned project files will appear here without replacing earlier work or approvals.</Empty>}
+          </section>
+        </Workbench>
       ) : null}
 
-      {/* THE OTHER DIRECTION AGAIN: what THEY have raised with US, from their
-          own portal. Renders nothing for a client with no conversations,
-          same convention as the credit panel above. */}
-      <div style={{ marginTop: ".9rem" }}>
-        <TicketPanel clientId={c.id} />
-      </div>
+      {tab === "people" ? (
+        <Workbench
+          railLabel="Access and onboarding"
+          rail={<>
+            <PortalAccess clientId={c.id} email={c.email} />
+            <Panel title="Onboarding">
+              {forms.length ? (
+                <div className="adPanelPad">
+                  {forms.map((f) => (
+                    <div key={f.id} className="adRc__row">
+                      <Link href={`/admin/forms/${f.id}`}><b>{SERVICES.find((x) => x.slug === f.service)?.short}</b></Link>
+                      <small className="ad__dim">{f.status === "Submitted" ? `Sent ${dateWords(f.submittedAt ?? f.startedAt, now)}` : "Still filling it in"}</small>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <Empty title="No brief yet" action={<CopyText text={`${SITE_URL}/onboarding`} label="Copy the onboarding link" />}>
+                  Send them the onboarding form. Their answers link here once they send it.
+                </Empty>
+              )}
+            </Panel>
+          </>}
+        >
+          <section className="adList" aria-label="People">
+            <div className="adList__hd"><h2>People</h2><span className="adList__n">{people.length}</span></div>
+            <div className="adPanelPad">
+              {people.map((p, i) => (
+                <div key={`${p.name}-${i}`} className="adPpl">
+                  <span className={`adMk adMk--${avTone(p.name)}`} aria-hidden="true">{initials(p.name)}</span>
+                  <div>
+                    <b>{p.name}</b>
+                    <small>{p.role}</small>
+                    <span className="adT__row" style={{ marginTop: ".25rem" }}>
+                      {p.email ? <a href={`mailto:${p.email}`} className="adRc__foot" style={{ minHeight: "2.75rem" }}><Mail aria-hidden="true" />{p.email}</a> : null}
+                      {p.phone ? <a href={`tel:${p.phone.replace(/\s/g, "")}`} className="adRc__foot" style={{ minHeight: "2.75rem" }}><Phone aria-hidden="true" />{p.phone}</a> : null}
+                    </span>
+                  </div>
+                  {i === 0 ? <span className={`ad__pill ad__pill--${hasAccount ? "good" : invited ? "warn" : "flat"}`}>{hasAccount ? "Active" : invited ? "Invited" : "No account"}</span> : null}
+                </div>
+              ))}
+            </div>
+          </section>
+          {departments?.length ? (
+            <Panel title="Departments">
+              <div className="adPanelPad"><ClientDepartments clientId={c.id} all={departments.map((d) => ({ id: d.id, name: d.name }))} current={c.departments ?? []} /></div>
+            </Panel>
+          ) : null}
+          {c.notes ? <Panel title="Notes"><p style={{ padding: ".8rem 1.25rem", margin: 0 }}>{c.notes}</p></Panel> : null}
+        </Workbench>
+      ) : null}
 
-      {/* WHAT HAS BEEN SAID TO THEM, in one place and across every channel.
-          The question "did anybody actually chase this" is asked about a
-          client rather than about an invoice, and until now the only answer
-          was somebody's memory. */}
-      <div style={{ marginTop: ".9rem" }}>
-        <CommsLog clientId={c.id} title="What we have sent them" />
-      </div>
-
-      <div style={{ marginTop: ".9rem" }} id="activity">
-        <AuditLog
-          subjectIds={relatedAuditIds}
-          limit={shown}
-          title="Activity"
-          more={`/admin/clients/${c.id}?act=${shown + 10}#activity`}
-        />
-      </div>
+      {tab === "activity" ? (
+        <div className="adWb__work" id="activity">
+          <Chips label="Show" current={only} items={[
+            { key: "all", label: "All", href: `${tabHref("activity")}` },
+            ...(money ? [{ key: "money", label: "Money", href: `${tabHref("activity")}&only=money` }] : []),
+            { key: "work", label: "Work", href: `${tabHref("activity")}&only=work` },
+          ]} />
+          <AuditLog
+            subjectIds={auditIds}
+            limit={shown}
+            title="Activity"
+            more={`${tabHref("activity")}${only === "all" ? "" : `&only=${only}`}&act=${shown + 10}#activity`}
+          />
+          <CommsLog clientId={c.id} title="What we have sent them" />
+          <TicketPanel clientId={c.id} />
+          {!tickets.length ? null : <p className="ad__dim" style={{ margin: 0 }}><Users aria-hidden="true" style={{ width: ".9rem", verticalAlign: "-2px" }} /> {tickets.length} support {tickets.length === 1 ? "conversation" : "conversations"} with {c.company}.</p>}
+        </div>
+      ) : null}
     </>
   );
-}
-
-function initials(name: string) {
-  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("");
 }

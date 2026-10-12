@@ -1,14 +1,20 @@
 import Link from "next/link";
-import { BlogTabs } from "@/components/admin/blog-tabs";
 import { BulkBar, PickAll, RowPick } from "@/components/admin/bulk";
-import { CalendarClock, Download, FilePlus2, Globe, Newspaper, PencilLine, SearchCheck, Trash2 } from "lucide-react";
+import { CalendarClock, FilePlus2, Globe, Newspaper, PencilLine, SearchCheck, Trash2 } from "lucide-react";
 import { POST_TRASH_DAYS, postsForAdmin, trashedPostCount, trashedPosts, type AdminPost } from "@/lib/blog-db";
 import { adminRole } from "@/lib/admin/guard";
 import { SERVICES } from "@/lib/services";
-import { Empty, Panel, Tile, when } from "@/components/admin/bits";
+import { Empty, Panel, when } from "@/components/admin/bits";
 import { AdminState } from "@/components/admin/admin-state";
 import { BlogPostMenu, TrashedPostMenu } from "@/components/admin/blog-menu";
-import PageTourButton from "@/components/admin/tour/page-tour-button";
+import { PageHead } from "@/components/admin/page-head";
+import { ChoresMenu } from "@/components/admin/chores-menu";
+import { Deck, type DeckItem } from "@/components/admin/deck";
+import { Chips } from "@/components/admin/chips";
+import { UrlSearch } from "@/components/admin/url-search";
+import { ClickRow } from "@/components/admin/click-row";
+import { RailCard, RailHead, StatTiles, Workbench } from "@/components/admin/workbench";
+import { RailRows } from "@/components/admin/rail-list";
 import { Pager, readPer } from "@/components/admin/pager";
 import { DateRange } from "@/components/admin/date-range";
 import { FilterPick } from "@/components/admin/pick";
@@ -35,8 +41,9 @@ function queryHref(query: BlogQuery, changes: Partial<BlogQuery>) {
 }
 
 /* Read the clock outside the render, where the purity rule wants it. */
+function staleCutoff() { return Date.now() - 30 * 86_400_000; }
 function staleDrafts(posts: AdminPost[]) {
-  const monthAgo = Date.now() - 30 * 86_400_000;
+  const monthAgo = staleCutoff();
   return posts.filter((p) => stateOf(p) === "draft" && (!p.savedAt || Date.parse(p.savedAt) < monthAgo)).length;
 }
 
@@ -88,23 +95,54 @@ export default async function BlogPostsPage({ searchParams }: { searchParams: Pr
   const isOwner = (await adminRole()) === "owner";
   const trashRows = trash.filter((p) => !search || [p.title, p.slug].some((v) => v.toLocaleLowerCase().includes(search)));
 
+  /* WHAT NEEDS YOU: posts waiting for a decision first (oldest first), then
+     drafts nobody has touched in a month. */
+  const monthAgo = staleCutoff();
+  const deckItems: DeckItem[] = [
+    ...(posts ?? []).filter((p) => stateOf(p) === "review").sort((x, y) => Date.parse(x.submittedAt ?? "0") - Date.parse(y.submittedAt ?? "0")).slice(0, 4).map((p): DeckItem => ({
+      id: `review-${p.id}`, kind: "Review", tone: "live", urgency: p.submittedAt ? `Sent ${when(p.submittedAt)}` : "In review", label: SERVICES.find((s) => s.slug === p.topic)?.short ?? p.topic,
+      title: `“${p.title}” is waiting for review`,
+      body: p.submittedBy ? `${p.submittedBy} sent it for review. ${isOwner ? "Publish it, schedule it or send it back with a note." : "The owner publishes it or sends it back with a note."}` : "It is waiting for a decision.",
+      facts: [{ k: "Address", v: `/blog/${p.slug}` }, ...(p.submittedBy ? [{ k: "From", v: p.submittedBy }] : [])],
+      why: "A post that waits for review is one that is not ranking yet.",
+      primary: { label: isOwner ? "Review the post" : "Open the post", href: `/admin/blog/${p.id}` },
+    })),
+    ...(posts ?? []).filter((p) => stateOf(p) === "draft" && (!p.savedAt || Date.parse(p.savedAt) < monthAgo)).slice(0, 3).map((p): DeckItem => ({
+      id: `stale-${p.id}`, kind: "Draft", tone: "neutral", urgency: p.savedAt ? `Last saved ${when(p.savedAt)}` : "Never saved here", label: SERVICES.find((s) => s.slug === p.topic)?.short ?? p.topic,
+      title: `Finish “${p.title}”`, body: "Nobody has touched this draft in over a month.",
+      facts: [{ k: "Address", v: `/blog/${p.slug}` }],
+      why: "One post a week keeps a blog ranking; a draft that sits does nothing.",
+      primary: { label: "Open the editor", href: `/admin/blog/${p.id}` },
+    })),
+  ];
+  const nextOut = queued[0];
+  const lede = posts ? <>
+    {counts.published} {counts.published === 1 ? "post" : "posts"} live, {counts.draft} {counts.draft === 1 ? "draft" : "drafts"}, {counts.scheduled} scheduled.{" "}
+    {nextOut ? <strong>Next goes out {when(nextOut)}.</strong> : counts.review ? <strong>{counts.review} waiting for review.</strong> : null}
+  </> : "Write, schedule and unpublish posts.";
+  const recent = [...(posts ?? [])].filter((p) => stateOf(p) === "published" && p.publishedAt).sort((x, y) => Date.parse(y.publishedAt!) - Date.parse(x.publishedAt!)).slice(0, 3);
+  const upcoming = [...(posts ?? [])].filter((p) => stateOf(p) === "scheduled" && p.publishedAt).sort((x, y) => Date.parse(x.publishedAt!) - Date.parse(y.publishedAt!)).slice(0, 3);
+  const stateChips = [
+    { key: "", label: "All", href: queryHref(query, { state: undefined, page: undefined }), count: (posts ?? []).length },
+    { key: "draft", label: "Drafts", href: queryHref(query, { state: "draft", page: undefined }), count: counts.draft },
+    { key: "scheduled", label: "Scheduled", href: queryHref(query, { state: "scheduled", page: undefined }), count: counts.scheduled },
+    { key: "review", label: "In review", href: queryHref(query, { state: "review", page: undefined }), count: counts.review },
+    { key: "published", label: "Published", href: queryHref(query, { state: "published", page: undefined }), count: counts.published },
+  ];
+
   return (
     <>
-      <div className="ad__head">
-        <div>
-          <h1>Blog</h1>
-          <p>Write, schedule and unpublish posts. What you save here is what /blog shows.</p>
-        </div>
-        <div className="ad__row">
-          <PageTourButton />
-          {/* A file download, not a page, so a plain link: client navigation
-              would try to render the CSV as a route. */}
-          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-          {posts ? <a className="ad__btn" href="/admin/blog/export"><Download aria-hidden="true" /> Export CSV</a> : null}
-          {posts ? <Link className="ad__btn ad__btn--primary" href="/admin/blog/new" data-tour="blog-new"><FilePlus2 aria-hidden="true" /> New post</Link> : null}
-        </div>
-      </div>
-      <BlogTabs on="posts" />
+      <PageHead
+        title="Blog"
+        lede={lede}
+        action={posts ? <Link className="ad__btn ad__btn--primary" href="/admin/blog/new" data-tour="blog-new"><FilePlus2 aria-hidden="true" /> New post</Link> : undefined}
+        chores={posts ? <ChoresMenu label="blog, more" items={[
+          { label: "Case studies", href: "/admin/blog/work", icon: "file" },
+          { label: "Media library", href: "/admin/settings/media", icon: "image" },
+          { label: "Export posts as CSV", href: "/admin/blog/export", icon: "download", external: true },
+          ...(trashCount ? [{ label: `Trash (${trashCount})`, href: "/admin/blog?state=trash", icon: "trash" as const }] : []),
+        ]} /> : undefined}
+      />
 
       {!configured ? (
         <section className="ad__panel">
@@ -149,106 +187,116 @@ export default async function BlogPostsPage({ searchParams }: { searchParams: Pr
             secondaryAction={trashCount ? <Link className="ad__btn" href="/admin/blog?state=trash"><Trash2 aria-hidden="true" /> Trash ({trashCount})</Link> : undefined} />
         </section>
       ) : (
-        <>
-          <dl className="ad__tiles">
-            <Tile label="Published" value={String(counts.published)} icon={Globe} iconTone="good" note={live.length ? `Last one ${when(live[live.length - 1])}` : "Nothing live yet"} />
-            <Tile label="In review" value={String(counts.review)} icon={SearchCheck} iconTone="live" tone={counts.review ? "accent" : undefined} note={isOwner ? "Waiting for you to publish or send back" : "Waiting for the owner"} />
-            <Tile label="Scheduled" value={String(counts.scheduled)} icon={CalendarClock} iconTone="warn" note={queued.length ? `Next goes out ${when(queued[0])}` : "Nothing waiting on a date"} />
-            <Tile label="Drafts" value={String(counts.draft)} icon={PencilLine} note={stale ? `${stale} not touched in a month` : "Only you can see these"} />
-          </dl>
+        <Workbench
+          railLabel="Blog pulse"
+          rail={<>
+            <RailHead title="Blog pulse" />
+            <StatTiles items={[
+              { label: "Published", value: String(counts.published), note: live.length ? `Last one ${when(live[live.length - 1])}` : "Nothing live yet", icon: Globe, tone: "good", href: queryHref(query, { state: "published", page: undefined }) },
+              { label: "Drafts", value: String(counts.draft), note: stale ? `${stale} not touched in a month` : "Only you can see these", noteTone: stale ? "accent" : undefined, icon: PencilLine, tone: "live", href: queryHref(query, { state: "draft", page: undefined }) },
+              { label: "Scheduled", value: String(counts.scheduled), note: queued.length ? `Next ${when(queued[0])}` : "Nothing waiting on a date", icon: CalendarClock, tone: "brand", href: queryHref(query, { state: "scheduled", page: undefined }) },
+              { label: "In review", value: String(counts.review), note: isOwner ? "Waiting for you" : "Waiting for the owner", noteTone: counts.review ? "accent" : undefined, icon: SearchCheck, tone: counts.review ? "live" : "neutral", href: queryHref(query, { state: "review", page: undefined }) },
+            ]} />
+            <RailCard title="Coming up" aside="Scheduled posts" link={{ href: "/admin/email?tab=calendar", label: "Calendar" }}>
+              <RailRows empty="Nothing is waiting on a date. Schedule a draft from its row." rows={upcoming.map((p) => ({ key: p.id, title: p.title, sub: `${when(p.publishedAt)} · ${SERVICES.find((s) => s.slug === p.topic)?.short ?? p.topic}`, icon: CalendarClock, tone: "brand" as const, href: `/admin/blog/${p.id}`, tag: { text: "Booked", tone: "good" as const } }))} />
+            </RailCard>
+            <RailCard title="Latest posts" aside="Published">
+              <RailRows empty="Nothing has been published yet." rows={recent.map((p) => ({ key: p.id, title: p.title, sub: `${when(p.publishedAt)} · ${SERVICES.find((s) => s.slug === p.topic)?.short ?? p.topic}`, icon: Globe, tone: "good" as const, href: `/admin/blog/${p.id}` }))} />
+            </RailCard>
+          </>}
+        >
+          <Deck id="blog" title="The blog this week" items={deckItems}
+            emptyTitle="The blog is looked after."
+            emptyBody="Nothing is waiting for review and no draft has gone cold."
+            emptyNext={{ label: "Write a post", href: "/admin/blog/new" }} />
 
-          <div style={{ marginTop: ".9rem" }}>
-            <Panel title={filtered ? `${rows.length} of ${posts.length} posts` : `${posts.length} post${posts.length === 1 ? "" : "s"}`}>
-              <div className="ad__filterBar" data-tour="blog-filters">
-              {/* The range is its own form, beside this one: a form cannot hold another. */}
-              <form className="ad__filterForm" method="get" action="/admin/blog#post-list" aria-label="Filter posts">
-                <label className="ad__filterSearch">
-                  <span className="ad__sr">Search posts</span>
-                  <input name="q" type="search" defaultValue={query.q} placeholder="Search title, address, excerpt or tag" />
-                </label>
-                <FilterPick label="State" hideLabel name="state" defaultValue={wanted ?? ""} placeholder="Every state"
-                            options={[{ value: "published", label: "Published" }, { value: "scheduled", label: "Scheduled" },
-                                      { value: "review", label: "In review" }, { value: "draft", label: "Drafts" }]} />
-                <FilterPick label="Service" hideLabel name="service" defaultValue={service ?? ""} placeholder="Every service"
-                            options={SERVICES.map((s) => ({ value: s.slug, label: s.short }))} />
+          <section className="adList" aria-label="All posts" data-tour="blog-table">
+            <div className="adList__hd">
+              <h2>{filtered ? "Posts" : "All posts"}</h2>
+              <span className="adList__n">{filtered ? `${rows.length} of ${posts.length}` : posts.length}</span>
+              <span className="adList__sp" />
+              <UrlSearch label="Search posts" placeholder="Title, address or tag" />
+            </div>
+            <div className="adList__pad"><Chips label="State" items={stateChips} current={wanted ?? ""} /></div>
+            <div className="adList__tools" data-tour="blog-filters">
+              <form className="ad__filterForm" method="get" action="/admin/blog#post-list" aria-label="Filter by service">
+                {query.q ? <input type="hidden" name="q" value={query.q} /> : null}
+                {wanted ? <input type="hidden" name="state" value={wanted} /> : null}
                 {from ? <input type="hidden" name="from" value={from} /> : null}
                 {to ? <input type="hidden" name="to" value={to} /> : null}
                 {query.per ? <input type="hidden" name="per" value={per} /> : null}
-                <button type="submit" className="ad__btn ad__btn--primary">Apply</button>
+                <FilterPick label="Service" hideLabel name="service" defaultValue={service ?? ""} placeholder="Every service"
+                            options={SERVICES.map((s) => ({ value: s.slug, label: s.short }))} />
+                <button type="submit" className="ad__btn">Apply</button>
               </form>
-                <DateRange
-                  label="Date shown"
-                  value={{ from, to }}
-                  href={(r) => queryHref(query, { from: r.from, to: r.to, page: undefined })}
-                  keep={{ q: query.q, state: query.state, service: query.service, per: query.per }}
-                  action="/admin/blog#post-list"
-                />
-                {filtered ? <Link className="ad__btn" href="/admin/blog">Clear filters</Link> : null}
-                {trashCount ? <Link className="ad__btn" href="/admin/blog?state=trash"><Trash2 aria-hidden="true" /> Trash ({trashCount})</Link> : null}
+              <DateRange
+                label="Date shown"
+                value={{ from, to }}
+                href={(r) => queryHref(query, { from: r.from, to: r.to, page: undefined })}
+                keep={{ q: query.q, state: query.state, service: query.service, per: query.per }}
+                action="/admin/blog#post-list"
+              />
+              <span className="adSp" />
+              {filtered ? <Link className="ad__btn" href="/admin/blog">Clear filters</Link> : null}
+            </div>
+            {rows.length ? (
+              <>
+              {/* Publishing and unpublishing are the owner's; the Trash takes
+                  drafts only, and says so for any live post in the selection. */}
+              <BulkBar target="post-list" noun="posts"
+                actions={[
+                  ...(isOwner ? [{ kind: "posts:publish", label: "Publish", icon: "publish" as const, confirm: "Publish {n} posts now? Each goes live on the blog straight away." }] : []),
+                  { kind: "posts:trash", label: "Move to Trash", icon: "trash" as const, danger: true, confirm: "Move {n} drafts to the Trash? They stay there 30 days and can be put back." },
+                ]}
+                more={isOwner ? [{ kind: "posts:draft", label: "Move to draft", confirm: "Take {n} posts off the blog and back to draft?" }] : []} />
+              <div className="ad__scroll" id="post-list" tabIndex={0} role="region" aria-label="Posts table, scrolls sideways" data-lenis-prevent>
+                <table className="ad__t">
+                  <thead>
+                    <tr>
+                      <th><span className="ad__pickRow"><PickAll label="Select every post" />Post</span></th><th>State</th><th>Service</th><th>Date shown</th><th>Last saved</th>
+                      <th className="ad__rmH"><span className="ad__sr">Actions</span></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {shown.map((p) => {
+                      const state = stateOf(p);
+                      return (
+                        <ClickRow key={p.id} href={`/admin/blog/${p.id}`} label={`${p.title}, ${PILL[state].label}. Press Enter to open.`}>
+                          <td>
+                            <span className="ad__pickRow"><RowPick id={p.id} label={p.title} /><span><Link href={`/admin/blog/${p.id}`}><b>{p.title}</b></Link>
+                            <small>/blog/{p.slug}</small></span></span>
+                          </td>
+                          <td><span className={`ad__pill ${PILL[state].tone}`}>{PILL[state].label}</span></td>
+                          <td>{SERVICES.find((s) => s.slug === p.topic)?.short ?? p.topic}</td>
+                          <td className="ad__dim ad__num">{p.publishedAt ? when(p.publishedAt) : "Not set"}</td>
+                          <td className="ad__dim">{p.savedAt ? `${when(p.savedAt)}${p.savedBy ? ` by ${p.savedBy}` : ""}` : "Imported"}</td>
+                          <td className="ad__rmC"><BlogPostMenu post={{ id: p.id, title: p.title, slug: p.slug, state }} canPublish={isOwner} /></td>
+                        </ClickRow>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
-              <div data-tour="blog-table">
-              {rows.length ? (
-                <>
-                {/* Publishing and unpublishing are the owner's; the Trash takes
-                    drafts only, and says so for any live post in the selection. */}
-                <BulkBar target="post-list" noun="posts"
-                  actions={[
-                    ...(isOwner ? [{ kind: "posts:publish", label: "Publish", icon: "publish" as const, confirm: "Publish {n} posts now? Each goes live on the blog straight away." }] : []),
-                    { kind: "posts:trash", label: "Move to Trash", icon: "trash" as const, danger: true, confirm: "Move {n} drafts to the Trash? They stay there 30 days and can be put back." },
-                  ]}
-                  more={isOwner ? [{ kind: "posts:draft", label: "Move to draft", confirm: "Take {n} posts off the blog and back to draft?" }] : []} />
-                <div className="ad__scroll" id="post-list">
-                  <table className="ad__t">
-                    <thead>
-                      <tr>
-                        <th><span className="ad__pickRow"><PickAll label="Select every post" />Post</span></th><th>State</th><th>Service</th><th>Date shown</th><th>Last saved</th>
-                        <th className="ad__rmH"><span className="ad__sr">Actions</span></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {shown.map((p) => {
-                        const state = stateOf(p);
-                        return (
-                          <tr key={p.id}>
-                            <td>
-                              <span className="ad__pickRow"><RowPick id={p.id} label={p.title} /><span><Link href={`/admin/blog/${p.id}`}><b>{p.title}</b></Link>
-                              <small>/blog/{p.slug}</small></span></span>
-                            </td>
-                            <td><span className={`ad__pill ${PILL[state].tone}`}>{PILL[state].label}</span></td>
-                            <td>{SERVICES.find((s) => s.slug === p.topic)?.short ?? p.topic}</td>
-                            <td className="ad__dim ad__num">{p.publishedAt ? when(p.publishedAt) : "Not set"}</td>
-                            <td className="ad__dim">{p.savedAt ? `${when(p.savedAt)}${p.savedBy ? ` by ${p.savedBy}` : ""}` : "Imported"}</td>
-                            <td className="ad__rmC"><BlogPostMenu post={{ id: p.id, title: p.title, slug: p.slug, state }} canPublish={isOwner} /></td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-                </>
-              ) : (
-                <Empty title="No posts match these filters" icon={Newspaper}
-                  action={<Link className="ad__btn" href="/admin/blog">Clear filters</Link>}>
-                  Try a broader search, or clear the filters to see every post.
-                </Empty>
-              )}
-              </div>
-              {rows.length ? (
-                <Pager
-                  label="Post pages"
-                  total={rows.length}
-                  page={page}
-                  per={per}
-                  noun={rows.length === 1 ? "post" : "posts"}
-                  href={(patch) => queryHref(query, {
-                    page: patch.page && patch.page > 1 ? String(patch.page) : undefined,
-                    per: patch.per ? String(patch.per) : query.per,
-                  })}
-                />
-              ) : null}
-            </Panel>
-          </div>
-        </>
+              <Pager
+                label="Post pages"
+                total={rows.length}
+                page={page}
+                per={per}
+                noun={rows.length === 1 ? "post" : "posts"}
+                href={(patch) => queryHref(query, {
+                  page: patch.page && patch.page > 1 ? String(patch.page) : undefined,
+                  per: patch.per ? String(patch.per) : query.per,
+                })}
+              />
+              </>
+            ) : (
+              <Empty title={search ? `No post matches “${query.q?.trim()}”` : "No posts match these filters"} icon={Newspaper}
+                action={<Link className="ad__btn" href="/admin/blog">Clear filters</Link>}>
+                Try a broader search, or clear the filters to see every post.
+              </Empty>
+            )}
+          </section>
+        </Workbench>
       )}
     </>
   );
