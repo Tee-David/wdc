@@ -29,8 +29,7 @@ test("a saved VAT default pre-fills a new invoice, and setting it back restores 
   await bar(page).getByRole("button", { name: "Save changes" }).click();
   await expect(bar(page)).toBeHidden({ timeout: 20_000 });
 
-  await page.goto("/admin/money", { waitUntil: "networkidle" });
-  await page.getByRole("button", { name: "New invoice" }).click();
+  await page.goto("/admin/money/new", { waitUntil: "networkidle" });
   await expect(page.getByRole("textbox", { name: "VAT %" })).toHaveValue("12");
   await page.keyboard.press("Escape");
 
@@ -39,8 +38,7 @@ test("a saved VAT default pre-fills a new invoice, and setting it back restores 
   await bar(page).getByRole("button", { name: "Save changes" }).click();
   await expect(bar(page)).toBeHidden({ timeout: 20_000 });
 
-  await page.goto("/admin/money", { waitUntil: "networkidle" });
-  await page.getByRole("button", { name: "New invoice" }).click();
+  await page.goto("/admin/money/new", { waitUntil: "networkidle" });
   await expect(page.getByRole("textbox", { name: "VAT %" })).toHaveValue("7.5");
 });
 
@@ -54,8 +52,7 @@ test("with VAT switched off a new invoice starts at 0%, and a bad rate is refuse
   await bar(page).getByRole("button", { name: "Save changes" }).click();
   await expect(bar(page)).toBeHidden({ timeout: 20_000 });
 
-  await page.goto("/admin/money", { waitUntil: "networkidle" });
-  await page.getByRole("button", { name: "New invoice" }).click();
+  await page.goto("/admin/money/new", { waitUntil: "networkidle" });
   await expect(page.getByRole("textbox", { name: "VAT %" })).toHaveValue("0");
   await page.keyboard.press("Escape");
 
