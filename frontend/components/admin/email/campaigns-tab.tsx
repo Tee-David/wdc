@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { Ban, Eye, LayoutTemplate, MailX, Mail, MousePointerClick, Send } from "lucide-react";
-import { Empty, Tile, when } from "../bits";
+import { Ban, Mail, Send } from "lucide-react";
+import { Empty, when } from "../bits";
 import { FilterPick } from "../pick";
 import { Pager, readPer } from "../pager";
 import { NewCampaign } from "./campaign-ui";
@@ -32,27 +32,11 @@ function Rate({ n, of, label }: { n: number; of: number; label: string }) {
 }
 
 /** Opens can be counted for "full" and "anonymous"; clicks per person only for "full". */
-const opensOf = (c: Campaign, r?: Rates) => (r && c.track !== "off" ? r.sent : 0);
-const clicksOf = (c: Campaign, r?: Rates) => (r && c.track === "full" ? r.sent : 0);
+export const opensOf = (c: Campaign, r?: Rates) => (r && c.track !== "off" ? r.sent : 0);
+export const clicksOf = (c: Campaign, r?: Rates) => (r && c.track === "full" ? r.sent : 0);
 
-export async function CampaignsTab({ sp }: { sp: SP }) {
-  const list = await listCampaigns();
-  if (!list) return <Empty title="Campaigns are not set up yet" icon={Mail}>Apply migration 0046 in Settings › System, then reload.</Empty>;
-  return <CampaignsView list={list} rates={await ratesFor(list)} sp={sp} />;
-}
-
-/** The tab itself, from data already read: nothing here touches the database. */
-export function CampaignsView({ list, rates, sp }: { list: Campaign[]; rates: Map<string, Rates> | null; sp: SP }) {
-
-  const per = readPer(sp.per);
-  const q = (sp.q ?? "").trim().toLowerCase().slice(0, 120);
-  const status = (FILTERS as readonly string[]).includes(sp.status ?? "") ? (sp.status as string) : "";
-  const shown = list.filter((c) => (!status || c.status === status) && (!q || `${c.title} ${c.design.subject}`.toLowerCase().includes(q)));
-  const page = Math.min(Math.max(1, Number(sp.page) || 1), Math.max(1, Math.ceil(shown.length / per)));
-  const rows = shown.slice((page - 1) * per, page * per);
-  const filtered = Boolean(q || status);
-
-  /* The four figures, over every campaign that has gone out. */
+/** The figures over every campaign that has gone out. Opens are approximate and counted only where tracking allows. */
+export function campaignPulse(list: Campaign[], rates: Map<string, Rates> | null) {
   let sent = 0, opened = 0, openOf = 0, clicked = 0, clickOf = 0, bounced = 0, went = 0;
   for (const c of list) {
     const r = rates?.get(c.id);
@@ -61,8 +45,30 @@ export function CampaignsView({ list, rates, sp }: { list: Campaign[]; rates: Ma
     if (opensOf(c, r)) { opened += r.opened; openOf += r.sent; }
     if (clicksOf(c, r)) { clicked += r.clickers; clickOf += r.sent; }
   }
-  const pct = (n: number, of: number) => (of ? `${Math.round((n / of) * 100)}%` : "–");
-  const scheduled = list.filter((c) => c.status === "scheduled").length;
+  return {
+    sent, went, bounced, openRate: openOf ? Math.round((opened / openOf) * 100) : null, clickRate: clickOf ? Math.round((clicked / clickOf) * 100) : null,
+    scheduled: list.filter((c) => c.status === "scheduled").length, drafts: list.filter((c) => c.status === "draft").length,
+    sentCount: list.filter((c) => c.status === "sent").length,
+  };
+}
+
+export async function CampaignsTab({ sp }: { sp: SP }) {
+  const list = await listCampaigns();
+  if (!list) return <Empty title="Campaigns are not set up yet" icon={Mail}>Apply migration 0046 in Settings › System, then reload.</Empty>;
+  return <CampaignsView list={list} rates={await ratesFor(list)} sp={sp} />;
+}
+
+/** The tab itself, from data already read: nothing here touches the database. */
+export function CampaignsView({ list, rates, sp, unavailable }: { list: Campaign[]; rates: Map<string, Rates> | null; sp: SP; unavailable?: boolean }) {
+  if (unavailable) return <Empty title="Campaigns are not set up yet" icon={Mail}>Apply migration 0046 in Settings › System, then reload.</Empty>;
+
+  const per = readPer(sp.per);
+  const q = (sp.q ?? "").trim().toLowerCase().slice(0, 120);
+  const status = (FILTERS as readonly string[]).includes(sp.status ?? "") ? (sp.status as string) : "";
+  const shown = list.filter((c) => (!status || c.status === status) && (!q || `${c.title} ${c.design.subject}`.toLowerCase().includes(q)));
+  const page = Math.min(Math.max(1, Number(sp.page) || 1), Math.max(1, Math.ceil(shown.length / per)));
+  const rows = shown.slice((page - 1) * per, page * per);
+  const filtered = Boolean(q || status);
 
   const href = (patch: { page?: number; per?: number }) => {
     const u = new URLSearchParams({ tab: "campaigns" });
@@ -76,24 +82,6 @@ export function CampaignsView({ list, rates, sp }: { list: Campaign[]; rates: Ma
 
   return (
     <div className="ad__stack" data-tour="email-campaigns">
-      <div className="adCp__head">
-        <div>
-          <h2>Campaigns</h2>
-          <p className="ad__dim">{list.length} {list.length === 1 ? "campaign" : "campaigns"}{scheduled ? ` · ${scheduled} scheduled` : ""}. Only people who asked to hear from you are emailed.</p>
-        </div>
-        <div className="ad__row">
-          <Link className="ad__btn" href="/admin/email?tab=templates"><LayoutTemplate aria-hidden="true" /> Templates</Link>
-          <NewCampaign />
-        </div>
-      </div>
-
-      <dl className="ad__tiles ad__tiles--4">
-        <Tile label="Sent" value={sent ? sent.toLocaleString("en-NG") : "–"} icon={Send} iconTone="brand" note={went ? `People emailed, across ${went} ${went === 1 ? "campaign" : "campaigns"}` : "Nothing has gone out yet"} />
-        <Tile label="Opened" value={pct(opened, openOf)} icon={Eye} iconTone="live" note="Approximate: mail apps load images early. A click counts as an open." />
-        <Tile label="Clicked" value={pct(clicked, clickOf)} icon={MousePointerClick} iconTone="good" note="People who clicked, where clicks are tracked per person" />
-        <Tile label="Bounced" value={sent ? bounced.toLocaleString("en-NG") : "–"} icon={MailX} iconTone="bad" tone={bounced ? "bad" : undefined} note="Reported back by the mail provider; never emailed again" />
-      </dl>
-
       {list.length ? (
         <section className="ad__panel" aria-label="All campaigns">
           <form method="get" action="/admin/email" className="ad__filters" style={{ padding: ".9rem 1rem" }}>
