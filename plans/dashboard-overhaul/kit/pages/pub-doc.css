@@ -1,0 +1,8 @@
+
+.docSheet{position:relative;isolation:isolate;overflow:hidden}
+.docSheet .dpWater{width:min(300px,70%);aspect-ratio:1;font-size:0;color:transparent;opacity:.06}
+.dsFoot{display:flex;align-items:center;justify-content:space-between;gap:16px;border-top:1px solid var(--ad-line);padding-top:14px}
+.dsFootTxt{display:flex;flex-direction:column;gap:2px;font-size:12.5px;color:var(--ad-dim);min-width:0}
+.dsFoot .dpQr{flex:none;border:1px solid #c9ccdc;border-radius:8px;padding:4px;background:#fff}
+.dsStamp{position:absolute;right:22px;bottom:104px;transform:rotate(-8deg);font:700 15px/1 'Space Grotesk',system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;border:3px solid;border-radius:8px;padding:8px 12px;background:transparent;pointer-events:none}
+@media print{.dsStamp{position:static;display:inline-block;margin:0 22px 12px auto}}
