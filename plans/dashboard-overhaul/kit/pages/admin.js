@@ -29,10 +29,14 @@
   /* ---------- sheets with real follow through ---------- */
   bookSheet(client, push, onBooked) {
     var self = this, I = this.icons(), slots = [['Wed 14 Oct, 11:00', 'Daniel is free · 60 min'], ['Thu 15 Oct, 15:00', 'Daniel is free · 60 min'], ['Fri 16 Oct, 14:00', 'Daniel and you are free · 60 min']];
-    this.open(this.sh({ eyebrow: 'Handover meeting · ' + client, title: 'Pick a time to offer', icon: I.cal, iconTone: 'var(--ad-tone-brand)', body: 'We send ' + client + ' a booking link with these times. The Google Meet is recorded and the handover document goes out after it.', listTitle: 'Times that suit the team', select: true, pick: 2, list: slots.map(function (x) { return { t: x[0], s: x[1] }; }),
-      primary: function (ctx) { return ctx.pick >= 0 ? 'Offer ' + slots[ctx.pick][0] : 'Offer this time'; }, selectWhy: 'Choose a time to offer.', secondary: 'Let them choose any time', sToast: 'Booking link sent with all open times.',
-      onPrimary: function (ctx) { var sl = slots[ctx.pick]; if (onBooked) onBooked(sl[0]); } }), push);
+    var D = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], M = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    var own = function (f) { if (!f || !f.own) return ''; var p = f.own.split('-'), d = new Date(+p[0], +p[1] - 1, +p[2]); return D[d.getDay()] + ' ' + d.getDate() + ' ' + M[d.getMonth()] + ', ' + (f.ownT || '09:00'); };
+    this.open(this.sh({ eyebrow: 'Handover meeting · ' + client, title: 'Pick a time to offer', icon: I.cal, iconTone: 'var(--ad-tone-brand)', body: 'We send ' + client + ' a booking link with the time you choose. The Google Meet is recorded and the handover document goes out after it.', listTitle: 'Times that suit the team', select: true, pick: 2, list: slots.map(function (x) { return { t: x[0], s: x[1] }; }),
+      form: { own: '', ownT: '' }, fields: [{ key: 'own', type: 'datetime', label: 'Or suggest your own time', hint: 'Any day and time. We check it against the studio calendar before the link goes out.', clearable: true }],
+      primary: function (ctx) { var o = own(ctx.form); return o ? 'Offer ' + o : (ctx.pick >= 0 ? 'Offer ' + slots[ctx.pick][0] : 'Offer this time'); }, selectWhy: 'Choose a time to offer, or set your own.', secondary: 'Let them choose any time', sToast: 'Booking link sent with all open times.',
+      onPrimary: function (ctx) { var o = own(ctx.form), sl = slots[ctx.pick]; if (onBooked) onBooked(o || (sl && sl[0])); } }), push);
   }
+
   sheets() {
     var S = this.sh.bind(this), self = this, I = this.icons();
     var payouts = [['Tolu, motion design', 'Mira reel · 20 seconds', 120000], ['Kemi, copywriting', "Ade's Kitchen captions", 60000]];
