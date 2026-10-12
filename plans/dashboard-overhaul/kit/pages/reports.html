@@ -1,0 +1,49 @@
+<div class="pageHead rise">
+              <div>
+                <h1 class="h1">Reports</h1>
+                <p class="lede">{{rangeText}} <strong style="color: var(--ad-ink)">Added up from the books as they stand.</strong></p>
+              </div>
+              <div class="headActs">
+                <button class="btn2" style="min-height: 44px" onClick="{{startTour}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM16 8l-2 6-6 2 2-6z"></path></svg>Tour this page</button>
+                <button class="btn" data-menu="exp" aria-haspopup="menu" aria-expanded="{{expX}}" onClick="{{openExport}}" data-tour="export"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>Export<svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
+              </div>
+            </div>
+            %%SKEL%%
+            <sc-if value="{{ready}}" hint-placeholder-val="{{ true }}">
+            <section class="card rise d1 rpBar" aria-label="Report filters" data-tour="bar">
+              <div class="rpRow">
+                <div class="rpChips" role="group" aria-label="Period"><sc-for list="{{ranges}}" as="r" hint-placeholder-count="8"><button class="rpChip" aria-pressed="{{r.pressed}}" onClick="{{r.pick}}">{{r.t}}</button></sc-for><button class="rpChip" aria-pressed="{{customOn}}" onClick="{{pickCustom}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path></svg>{{customLabel}}</button></div>
+              </div>
+              <div class="rpRow rpRow2">
+                <button class="btn2 rpFilterBtn" style="min-height: 44px" onClick="{{openFilters}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0M14 4v4M8 10v4M16 16v4"></path></svg>Filters<sc-if value="{{hasFilters}}" hint-placeholder-val="{{ false }}"><span class="rpBadge num">{{filterN}}</span></sc-if></button>
+                <div class="rpSeg" role="group" aria-label="Compare with"><span class="rpSegL">Compare</span><sc-for list="{{cmps}}" as="c" hint-placeholder-count="3"><button aria-pressed="{{c.pressed}}" onClick="{{c.pick}}">{{c.t}}</button></sc-for></div>
+                <div class="rpSeg" role="group" aria-label="Group by"><span class="rpSegL">Group by</span><sc-for list="{{groups}}" as="g" hint-placeholder-count="5"><button aria-pressed="{{g.pressed}}" onClick="{{g.pick}}">{{g.t}}</button></sc-for></div>
+              </div>
+              <sc-if value="{{hasFilters}}" hint-placeholder-val="{{ false }}"><div class="rpOn"><sc-for list="{{onChips}}" as="o" hint-placeholder-count="2"><button class="rpOnChip" onClick="{{o.off}}" aria-label="Remove filter {{o.t}}">{{o.t}}<svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></sc-for><button class="rpClear" onClick="{{clearAll}}">Clear all</button></div></sc-if>
+            </section>
+            <div role="tablist" aria-label="Reports" class="tabs rise d2" data-tour="tabs"><sc-for list="{{tabs}}" as="tb" hint-placeholder-count="9"><button role="tab" class="tab {{tb.cls}}" aria-selected="{{tb.sel}}" onClick="{{tb.pick}}">{{tb.t}}</button></sc-for></div>
+            <div class="layout">
+              <div class="col" style="gap: 16px">
+                <dl class="rpKpis rise d2" data-tour="tiles"><sc-for list="{{kpis}}" as="k" hint-placeholder-count="8"><div class="card rpKpi"><dt><span>{{k.label}}</span><span class="rpIc" style="background: {{k.tone}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="{{k.ic}}"></path></svg></span></dt><dd class="num">{{k.value}}<sc-if value="{{k.hasBadge}}" hint-placeholder-val="{{ false }}"><span class="tag rpDelta" style="background: {{k.bTone}}; color: #fff">{{k.badge}}</span></sc-if></dd><small>{{k.note}}</small></div></sc-for></dl>
+                <sc-for list="{{panels}}" as="pn" hint-placeholder-count="5">
+                  <section class="card rise d3 rpPanel" aria-label="{{pn.title}}" style="padding: 0">
+                    <div class="rpPanelHead"><h2>{{pn.title}}</h2><sc-if value="{{pn.hasSub}}" hint-placeholder-val="{{ false }}"><span>{{pn.sub}}</span></sc-if></div>
+                    <sc-if value="{{pn.isFlow}}" hint-placeholder-val="{{ false }}"><div class="rpPlot"><ul class="rpCols" style="--n: {{pn.n}}"><sc-for list="{{pn.points}}" as="p" hint-placeholder-count="12"><li><span class="rpPair" role="img" aria-label="{{p.aria}}"><i class="rpIn" style="height: {{p.hin}}%"></i><i class="rpOut" style="height: {{p.hout}}%"></i></span><small>{{p.t}}</small></li></sc-for></ul></div><p class="rpKey"><span><i class="rpIn"></i> Collected</span><span><i class="rpOut"></i> Spent</span><span class="num">Running net ends at {{pn.endNet}}</span></p></sc-if>
+                    <sc-if value="{{pn.isHl}}" hint-placeholder-val="{{ false }}"><ul class="rpHl"><sc-for list="{{pn.rows}}" as="r" hint-placeholder-count="5"><li><span class="rpHlTop"><b>{{r.t}}</b><span class="num">{{r.v}}</span></span><span class="rpTrack" aria-hidden="true"><i style="width: {{r.w}}%"></i></span><small>{{r.s}}</small></li></sc-for></ul></sc-if>
+                    <sc-if value="{{pn.isCols}}" hint-placeholder-val="{{ false }}"><ul class="rpCols rpFew" style="--n: {{pn.n}}"><sc-for list="{{pn.items}}" as="c" hint-placeholder-count="5"><li><b class="num">{{c.v}}</b><span class="rpPair one" role="img" aria-label="{{c.aria}}"><i class="{{c.cls}}" style="height: {{c.h}}%"></i></span><small>{{c.t}}</small></li></sc-for></ul></sc-if>
+                    <sc-if value="{{pn.isList}}" hint-placeholder-val="{{ false }}"><ul class="rpHeld"><sc-for list="{{pn.rows}}" as="r" hint-placeholder-count="3"><li><span><b>{{r.t}}</b><small>{{r.s}}</small></span><b class="num">{{r.v}}</b></li></sc-for></ul></sc-if>
+                    <sc-if value="{{pn.isFunnel}}" hint-placeholder-val="{{ false }}"><ol class="rpHl"><sc-for list="{{pn.rows}}" as="r" hint-placeholder-count="3"><li><span class="rpHlTop"><b>{{r.t}}</b><span class="num">{{r.v}}</span></span><span class="rpTrack" aria-hidden="true"><i style="width: {{r.w}}%"></i></span><small>{{r.s}}</small></li></sc-for></ol></sc-if>
+                    <sc-if value="{{pn.isNames}}" hint-placeholder-val="{{ false }}"><ul class="rpNames"><sc-for list="{{pn.rows}}" as="r" hint-placeholder-count="3"><li>{{r}}</li></sc-for></ul></sc-if>
+                    <sc-if value="{{pn.isTable}}" hint-placeholder-val="{{ false }}"><div class="tblWrap" tabindex="0" aria-label="{{pn.title}} table, scrolls sideways"><table class="tbl"><thead><tr><sc-for list="{{pn.head}}" as="h" hint-placeholder-count="5"><th scope="col" class="{{h.cls}}">{{h.t}}</th></sc-for></tr></thead><tbody><sc-for list="{{pn.rows}}" as="r" hint-placeholder-count="5"><tr><sc-for list="{{r.cells}}" as="c" hint-placeholder-count="5"><td class="{{c.cls}}">{{c.t}}</td></sc-for></tr></sc-for></tbody></table></div></sc-if>
+                    <sc-if value="{{pn.hasNote}}" hint-placeholder-val="{{ false }}"><p class="rpNote">{{pn.note}}</p></sc-if>
+                    <sc-if value="{{pn.isEmpty}}" hint-placeholder-val="{{ false }}"><p class="rpEmpty">{{pn.empty}}</p></sc-if>
+                  </section>
+                </sc-for>
+              </div>
+              <aside class="railCards" aria-label="Report notes and files" data-tour="rail">
+                <sc-if value="{{hasInsights}}" hint-placeholder-val="{{ false }}"><section class="card rise d2" aria-label="Worth a look" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 6px"><div style="display: flex; align-items: center; gap: 8px"><h2 style="font-size: 16px; font-weight: 700; flex: 1">Worth a look</h2><span style="font-size: 12px; color: var(--ad-dim)">From these figures</span></div><sc-for list="{{insights}}" as="r" hint-placeholder-count="3"><button class="rowh" onClick="{{r.open}}" style="display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 12px; width: 100%; text-align: left; min-height: 44px"><span class="svcIc" style="background: {{r.tone}}"><svg class="ic" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="{{r.d}}"></path></svg></span><span style="flex: 1; min-width: 0; font-size: 13px"><strong>{{r.t}}</strong><br><span style="color: var(--ad-dim)">{{r.s}}</span></span></button></sc-for></section></sc-if>
+                <section class="card rise d3" aria-label="How this is counted" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 6px"><h2 style="font-size: 16px; font-weight: 700">How this is counted</h2><ul class="rpRules"><sc-for list="{{rules}}" as="r" hint-placeholder-count="3"><li>{{r}}</li></sc-for></ul></section>
+                <section class="card rise d4" aria-label="Quick generate" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 6px" data-tour="quick"><h2 style="font-size: 16px; font-weight: 700">Quick generate</h2><sc-for list="{{quick}}" as="q" hint-placeholder-count="8"><div class="rpQuick"><span><b>{{q.t}}</b><small>{{q.s}}</small></span><span class="rpQuickActs"><button class="btn2" style="min-height: 44px" onClick="{{q.csv}}">CSV</button><button class="btn2" style="min-height: 44px" onClick="{{q.xlsx}}">Excel</button></span></div></sc-for></section>
+              </aside>
+            </div>
+            </sc-if>
