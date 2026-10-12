@@ -1,4 +1,5 @@
 import { AdminDashboardView } from "@/components/admin/dashboard-view";
+import { StaffDay } from "@/components/admin/staff-day";
 import { getAdminRequest } from "@/lib/admin/session";
 import { adminRole } from "@/lib/admin/guard";
 import { can } from "@/lib/admin/permissions";
@@ -12,7 +13,10 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
   persistSoon();
   const { session } = await getAdminRequest();
   const firstName = session?.user.name?.trim().split(/\s+/)[0];
-  const money = can(await adminRole(), "money");
+  const role = await adminRole();
+  const money = can(role, "money");
+  /* Staff open on My Day: their own tasks first, never an amount. */
+  if (role === "staff" && session?.user) return <StaffDay me={{ id: session.user.id, name: session.user.name ?? "" }} params={params} firstName={firstName} />;
 
   return (
     <AdminDashboardView firstName={firstName} money={money} params={params} me={session?.user ? { id: session.user.id, name: session.user.name ?? "" } : undefined} />
