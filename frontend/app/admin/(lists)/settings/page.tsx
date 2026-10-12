@@ -9,7 +9,7 @@ import { config as meetingConfig } from "@/lib/meetings/store";
 import { meetingsStatusLabel } from "@/lib/meetings/errors";
 import { SETTINGS_SECTIONS } from "@/lib/settings/sections";
 import { SettingsOverview } from "@/components/admin/settings/settings-overview";
-import PageTourButton from "@/components/admin/tour/page-tour-button";
+import { Head } from "@/components/admin/settings/kit";
 
 export const metadata = { title: "Settings" };
 
@@ -53,13 +53,7 @@ export default async function SettingsPage() {
   }
   return (
     <>
-      <div className="ad__head">
-        <div>
-          <h1>Settings</h1>
-          <p>{owner ? "How the studio, the site and the admin run." : "The FAQ and the media library are yours to edit."}</p>
-        </div>
-        <div className="ad__row"><PageTourButton /></div>
-      </div>
+      <Head title="Settings" line={owner ? "How the studio, the site and the admin run." : "The help centre and the media library are yours to edit."} />
       <SettingsOverview sections={sections} values={values} />
     </>
   );

@@ -1,3 +1,4 @@
+import { Head } from "@/components/admin/settings/kit";
 import Link from "next/link";
 import { adminRole } from "@/lib/admin/guard";
 import { can } from "@/lib/admin/permissions";
@@ -64,20 +65,13 @@ export default async function MessageLogPage({ searchParams }: Props) {
 
   return (
     <>
-      <div className="ad__head">
-        <div>
-          <p className="ad__dim"><Link href="/admin/settings/email">Email</Link></p>
-          <h1>Message log</h1>
-          <p>Every email the site sent, kept {days} days.</p>
-        </div>
-        <div className="ad__row adLog__acts">
-          {/* Retrying can only fail again with no mail server, so it is only
-              offered once there is one; the reasons line says what to do
-              otherwise. */}
-          {failed && mail ? <RetryFailed count={failed} /> : null}
-          <LogMore />
-        </div>
-      </div>
+      <Head title="Message log" line={`Every email the site sent, kept ${days} days.`}>
+        {/* Retrying can only fail again with no mail server, so it is only
+            offered once there is one; the reasons line says what to do
+            otherwise. */}
+        {failed && mail ? <RetryFailed count={failed} /> : null}
+        <LogMore />
+      </Head>
 
       <div className="ad__stack">
         {failed && reasons.length ? (

@@ -1,3 +1,4 @@
+import { Head } from "@/components/admin/settings/kit";
 import { siteFaqs } from "@/lib/site-content";
 import { SERVICES } from "@/lib/services";
 import { when } from "@/components/admin/bits";
@@ -7,7 +8,7 @@ import { FaqHistory } from "@/components/admin/revisions";
 import { contentHistory } from "@/lib/revisions";
 import "@/components/admin/blog-editor.css";
 
-export const metadata = { title: "FAQ" };
+export const metadata = { title: "Help centre" };
 
 /**
  * The questions on the homepage, /contact and every service page.
@@ -21,14 +22,7 @@ export default async function FaqPage() {
   const { faqs, edited } = await siteFaqs();
   return (
     <>
-      <div className="ad__head">
-        <div>
-          <h1>FAQ</h1>
-          <p>
-            {edited ? `Edited ${when(edited.at)} by ${edited.by}.` : "Showing the questions that shipped with the site."}
-                      </p>
-        </div>
-      </div>
+      <Head title="Help centre" line={edited ? `Edited ${when(edited.at)} by ${edited.by}.` : "Showing the questions that shipped with the site."} />
       {configured ? (
         <>
           <section className="ad__panel" style={{ padding: "1rem" }}>

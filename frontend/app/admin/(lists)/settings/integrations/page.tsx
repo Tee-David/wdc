@@ -1,3 +1,4 @@
+import { Head } from "@/components/admin/settings/kit";
 import { adminRole } from "@/lib/admin/guard";
 import { can } from "@/lib/admin/permissions";
 import { AdminState } from "@/components/admin/admin-state";
@@ -17,7 +18,7 @@ export default async function IntegrationsPage() {
   try { mode=await selectedPaystackMode(); } catch { return <AdminState kind="error" title="Payment settings unavailable" description="Check the database before changing payment mode." back={{href:"/admin/settings/system",label:"Open system health"}} />; }
   return (
     <>
-      <div className="ad__head"><div><h1>Integrations</h1><p>Keys live in the hosting environment, never here.</p></div></div>
+      <Head title="Integrations" line="Keys live in the hosting environment, never here." />
       <IntegrationsPanel />
       <PaystackForm mode={mode} testReady={paystackConfig("test").ok} liveReady={paystackConfig("live").ok} />
     </>

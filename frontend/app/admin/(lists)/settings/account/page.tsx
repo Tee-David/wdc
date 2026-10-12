@@ -1,3 +1,4 @@
+import { Head } from "@/components/admin/settings/kit";
 import Link from "next/link";
 import { SecurityEmailPreference } from "@/components/admin/settings/security-email-preference";
 import { adminRole } from "@/lib/admin/guard";
@@ -29,7 +30,7 @@ export default async function AccountPage() {
     return <section className="ad__panel"><AdminState kind="forbidden" action={<Link className="ad__btn ad__btn--primary" href="/login?redirect=%2Fadmin%2Fsettings%2Faccount">Log in</Link>} title="Sign in to see your account" description="This page is about the account you are signed in with." /></section>;
   }
   const { capture, session } = await getAdminRequest();
-  const head = <div className="ad__head"><div><h1>My account</h1><p>Your profile, password and devices.</p></div></div>;
+  const head = <Head title="My account" line="Your profile, password and devices." />;
   if (capture || !session?.session) {
     return <>{head}<section className="ad__panel"><AdminState kind="forbidden" action={<Link className="ad__btn" href="/admin/settings">Back to settings</Link>} title="This is a preview session" description="There is no real account behind it, so there is nothing to change. Sign in to manage your own." /></section></>;
   }
