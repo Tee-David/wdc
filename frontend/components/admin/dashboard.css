@@ -145,6 +145,16 @@
 
 .adDash__actions { padding: .25rem 1.25rem 1.25rem; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
 .adDash__actions .ad__btn { width: 100%; min-width: 0; min-height: 3.25rem; justify-content: flex-start; white-space: normal; text-align: left; overflow-wrap: anywhere; }
+/* ONE LOOK FOR EVERY QUICK ACTION: a calm panel button with a solid navy icon chip. The coloured fill is kept for the
+   one primary action on a page, and a list of six actions has none. */
+.adDash__actions .ad__btn, .adDash__actions .ad__btn--primary, .adDash__actions .ad__btn--plain {
+  background: var(--ad-panel-2); border: 1px solid var(--ad-line); color: var(--ad-ink); box-shadow: none; gap: .75rem; font-weight: 600;
+}
+.adDash__actions .ad__btn:hover, .adDash__actions .ad__btn--primary:hover { background: var(--ad-hover); border-color: var(--ad-line-2); color: var(--ad-ink); }
+.adDash__actions .ad__btn > svg:first-child {
+  flex: none; box-sizing: content-box; width: 1.05rem; height: 1.05rem; padding: .4rem; border-radius: 10px;
+  background: var(--ad-tone-brand); color: var(--ad-on-brand, #fff);
+}
 .adDash__compactList { display: grid; }
 /* Icon, text, then however many trailing items the row has (a date, or a
    pill and an arrow) each in its own auto column on the same line. A fixed

@@ -118,8 +118,6 @@
 @media (max-width: 760px) {
   .rp__split { grid-template-columns: minmax(0, 1fr); }
   .rp__bar { padding: .85rem 1rem; }
-  .rp__chips { flex-wrap: nowrap; overflow-x: auto; width: 100%; padding-bottom: .25rem; scrollbar-width: none; overscroll-behavior-x: contain; }
-  .rp__chips > * { flex: none; }
   .rp__exportMenu { right: auto; left: 0; }
 }
 @media (max-width: 420px) { .rp__kpis { gap: .5rem; } .rp__pair2 { grid-template-columns: minmax(0, 1fr); } }
@@ -155,9 +153,24 @@
   .rp__plot .rp__cols--dense li:nth-child(even) small { visibility: hidden; }
 }
 @media (min-width: 761px) { .rp__plot .rp__cols--dense li { min-width: 1.6rem; } .rp__plot .rp__cols { overflow-x: auto; } }
+
+/* THE FILTER BAR ON A PHONE: every choice is a full-size chip that wraps, so nothing is cut off and nothing hides
+   behind a sideways scroll. Each group has its label on its own line. */
 @media (max-width: 760px) {
-  .rp__barRow--b, .rp__seg { flex-wrap: nowrap; }
-  .rp__seg { overflow-x: auto; width: 100%; scrollbar-width: none; overscroll-behavior-x: contain; }
-  .rp__seg > * { flex: none; }
-  .rp__seg a { white-space: nowrap; }
+  .rp__chips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .45rem; width: 100%; overflow: visible; }
+  .rp__chips > .rp__chip { justify-content: center; padding: 0 .4rem; min-width: 0; text-align: center; white-space: normal; line-height: 1.15; }
+  .rp__chips > .rp__chip:last-child:nth-child(3n + 1) { grid-column: 1 / -1; }
+  .rp__barRow, .rp__barRow--b { display: grid; gap: .85rem; }
+  .rp__filterBtn { width: 100%; justify-content: center; }
+  .rp__seg { display: grid; gap: .4rem; width: 100%; }
+  .rp__segL { margin: 0; }
+  .rp__seg a { border: 1px solid var(--ad-line-2); background: var(--ad-panel); justify-content: center; text-align: center; white-space: normal; line-height: 1.15; padding: 0 .6rem; }
+  .rp__seg a[aria-current="true"] { background: var(--ad-ink); border-color: var(--ad-ink); color: var(--ad-panel); box-shadow: none; }
+  .rp__seg { grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); }
+  .rp__seg .rp__segL { grid-column: 1 / -1; }
+}
+@media (max-width: 760px) {
+  .rp__bar .rp__barRow, .rp__bar .rp__barRow--b { grid-template-columns: minmax(0, 1fr); justify-content: stretch; }
+  .rp__bar .rp__chips > .ad__range { grid-column: 1 / -1; width: 100%; min-width: 0; }
+  .rp__bar .rp__chips > .ad__range > summary, .rp__bar .rp__chips > .ad__range > button { width: 100%; justify-content: center; min-height: 2.75rem; }
 }

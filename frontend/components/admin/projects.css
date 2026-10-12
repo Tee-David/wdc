@@ -31,3 +31,4 @@
   .adPl__hd .ad__switch svg { display: none; }
 }
 .adPl__hd .ad__switch a { min-width: 2.75rem; justify-content: center; }
+@media (max-width: 400px) { .adPl__hd .ad__switch a { padding: 0 .15rem; font-size: .8rem; } .adPl__hd .ad__switch { gap: .1rem; } }
