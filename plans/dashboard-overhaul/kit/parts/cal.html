@@ -1,0 +1,71 @@
+<div class="cal2 rowIn" style="animation-name: {{KEY.anim}}" data-tour="cal">
+  <aside class="cal2Side" aria-label="Calendar tools">
+    <sc-if value="{{KEY.sideAdd}}" hint-placeholder-val="{{ true }}"><button class="btn cal2Add" onClick="{{KEY.add}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>{{KEY.addLabel}}</button></sc-if>
+    <div class="miniCal">
+      <div class="miniHead"><strong class="miniTitle num">{{KEY.mini.title}}</strong><span class="miniNav"><button class="miniBtn" aria-label="Previous month" onClick="{{KEY.mini.prev}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></button><button class="miniBtn" aria-label="Next month" onClick="{{KEY.mini.next}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></button></span></div>
+      <div class="miniGrid" role="grid" aria-label="{{KEY.mini.title}}">
+        <sc-for list="{{KEY.mini.heads}}" as="h" hint-placeholder-count="7"><span class="miniH" role="columnheader">{{h}}</span></sc-for>
+        <sc-for list="{{KEY.mini.cells}}" as="c" hint-placeholder-count="35"><button class="miniD {{c.cls}}" role="gridcell" aria-label="{{c.aria}}" aria-pressed="{{c.pressed}}" onClick="{{c.pick}}"><span class="num">{{c.n}}</span><span class="miniDot" style="background: {{c.dot}}"></span></button></sc-for>
+      </div>
+    </div>
+    <section class="calList" aria-label="{{KEY.listTitle}}">
+      <div class="calListHead"><strong>{{KEY.listTitle}}</strong><button class="calEdit" onClick="{{KEY.editCals}}">Edit</button></div>
+      <sc-for list="{{KEY.cals}}" as="c" hint-placeholder-count="4"><button class="calRow" role="checkbox" aria-checked="{{c.on}}" onClick="{{c.tog}}" style="--c: {{c.color}}"><span class="calBox"><svg class="ic" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span><span class="calName">{{c.label}}</span><span class="num calN">{{c.n}}</span></button></sc-for>
+    </section>
+  </aside>
+
+  <div class="cal2Main">
+    <header class="cal2Head">
+      <div class="cal2Ttl"><h3>{{KEY.title}}</h3><span class="num">{{KEY.range}}</span></div>
+      <span class="cal2Nav"><button class="ibtn" aria-label="Previous" onClick="{{KEY.prev}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></button><button class="ibtn" aria-label="Next" onClick="{{KEY.next}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></button></span>
+      <button class="btn2" style="min-height: 44px" onClick="{{KEY.today}}">Today</button>
+      <span style="flex: 1"></span>
+      <div class="seg" role="group" aria-label="Calendar view" style="--n: 3; --i: {{KEY.viewI}}"><span class="pill" aria-hidden="true"></span><button class="{{KEY.cDay}}" aria-pressed="{{KEY.pDay}}" onClick="{{KEY.setDay}}">Day</button><button class="{{KEY.cWeek}}" aria-pressed="{{KEY.pWeek}}" onClick="{{KEY.setWeek}}">Week</button><button class="{{KEY.cMonth}}" aria-pressed="{{KEY.pMonth}}" onClick="{{KEY.setMonth}}">Month</button></div>
+      <button class="btn2 cal2Exp" style="min-height: 44px" onClick="{{KEY.export}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>Export</button>
+    </header>
+
+    <div class="cal2Strip" role="group" aria-label="Days this week"><sc-for list="{{KEY.strip}}" as="d" hint-placeholder-count="7"><button class="stripD {{d.cls}}" aria-pressed="{{d.pressed}}" aria-label="{{d.aria}}" onClick="{{d.pick}}"><span>{{d.d}}</span><span class="num stripN">{{d.n}}</span></button></sc-for></div>
+
+    <sc-if value="{{KEY.isGrid}}" hint-placeholder-val="{{ true }}">
+      <div class="tgWrap" tabindex="0" aria-label="Schedule, scrolls sideways and down" data-lenis-prevent>
+        <div class="tg {{KEY.tgCls}}" style="--cols: {{KEY.nCols}}; --gh: {{KEY.gridH}}px; --rh: {{KEY.rowH}}px">
+          <div class="tgHead"><span class="tgGmt">{{KEY.tz}}</span><sc-for list="{{KEY.cols}}" as="c" hint-placeholder-count="7"><span class="tgDay {{c.cls}}"><span class="tgDn">{{c.d}}</span><span class="num tgNum">{{c.n}}</span></span></sc-for></div>
+          <div class="tgBody">
+            <div class="tgHours" aria-hidden="true"><sc-for list="{{KEY.hours}}" as="h" hint-placeholder-count="12"><span class="tgHr num" style="top: {{h.top}}px">{{h.label}}</span></sc-for></div>
+            <sc-for list="{{KEY.cols}}" as="c" hint-placeholder-count="7">
+              <div class="tgCol {{c.cls}}" onClick="{{c.slot}}">
+                <sc-for list="{{c.events}}" as="e" hint-placeholder-count="2">
+                  <button class="tgEv {{e.cls}}" style="top: {{e.top}}px; height: {{e.h}}px; left: {{e.left}}; width: {{e.w}}; --c: {{e.color}}" aria-label="{{e.aria}}" onClick="{{e.open}}">
+                    <span class="tgEvTop"><sc-if value="{{e.hasLogo}}" hint-placeholder-val="{{ false }}"><span class="tgLogo" style="background: {{e.logoBg}}"><svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true" fill="currentColor"><path d="{{e.logoD}}"></path></svg></span></sc-if><strong class="tgEvT">{{e.title}}</strong></span>
+                    <span class="num tgEvTime">{{e.time}}</span>
+                    <sc-if value="{{e.hasSub}}" hint-placeholder-val="{{ false }}"><span class="tgEvSub">{{e.sub}}</span></sc-if>
+                    <sc-if value="{{e.hasPeople}}" hint-placeholder-val="{{ false }}"><span class="tgPeople"><sc-for list="{{e.people}}" as="a" hint-placeholder-count="2"><span class="tgAv" style="background: {{a.tone}}">{{a.i}}</span></sc-for><sc-if value="{{e.hasMore}}" hint-placeholder-val="{{ false }}"><span class="tgMore num">{{e.more}}</span></sc-if></span></sc-if>
+                    <sc-if value="{{e.hasTag}}" hint-placeholder-val="{{ false }}"><span class="tag tgTag" style="background: {{e.tagTone}}; color: {{e.tagInk}}">{{e.tag}}</span></sc-if>
+                  </button>
+                </sc-for>
+              </div>
+            </sc-for>
+            <sc-if value="{{KEY.nowShow}}" hint-placeholder-val="{{ false }}"><div class="tgNow" style="top: {{KEY.nowTop}}px"><span class="tgNowPill num">{{KEY.nowLabel}}</span><sc-if value="{{KEY.canAdd}}" hint-placeholder-val="{{ true }}"><button class="tgNowAdd" aria-label="{{KEY.addLabel}} now" onClick="{{KEY.add}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button></sc-if></div></sc-if>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{KEY.isMonth}}" hint-placeholder-val="{{ false }}">
+      <div class="cmWrap" data-lenis-prevent>
+        <div class="cmGrid" role="grid" aria-label="{{KEY.title}}">
+          <sc-for list="{{KEY.wkdays}}" as="wd" hint-placeholder-count="7"><span class="cmHead" role="columnheader">{{wd}}</span></sc-for>
+          <sc-for list="{{KEY.cells}}" as="c" hint-placeholder-count="35">
+            <div class="cmCell {{c.cls}}" role="gridcell" aria-label="{{c.aria}}">
+              <button class="cmNum num" aria-label="Open {{c.aria}}" onClick="{{c.pick}}">{{c.n}}</button>
+              <sc-for list="{{c.items}}" as="e" hint-placeholder-count="2"><button class="cmEv" style="--c: {{e.color}}" onClick="{{e.open}}" aria-label="{{e.aria}}"><span class="cmEvT">{{e.title}}</span></button></sc-for>
+              <sc-if value="{{c.hasMore}}" hint-placeholder-val="{{ false }}"><button class="cmMore" onClick="{{c.pick}}">{{c.more}}</button></sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <p class="cal2Sum">{{KEY.summary}}</p>
+  </div>
+</div>

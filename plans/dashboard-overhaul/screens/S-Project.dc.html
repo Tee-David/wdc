@@ -1152,6 +1152,204 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .docMetaG{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
 .docMetaG dt{font-size:12px;color:var(--ad-dim);margin-bottom:2px}
 
+.signSplit{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);width:100%;max-width:1100px;border:1px solid var(--ad-line);border-radius:24px;overflow:hidden;background:var(--ad-panel);box-shadow:var(--ad-sh-1)}
+.signSplit .bareCard{max-width:none;border:0;border-radius:0;box-shadow:none;justify-content:center;padding:40px 36px}
+.stagePane{background:#000065;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:40px 24px;min-height:520px}
+.dark .stagePane{background:#121238}
+.stageWord{font:600 84px 'Space Grotesk',sans-serif;font-style:italic;letter-spacing:-.03em;line-height:1}.stageLang{font-size:12px;opacity:.8}
+.orb{width:150px;height:150px;border-radius:50%;background:#f4f4f4;display:flex;gap:30px;align-items:center;justify-content:center;box-shadow:0 20px 30px rgba(0,0,0,.35)}.orb i{width:11px;height:30px;border-radius:6px;background:#0e0e0e}
+.stageTag{font-size:13px;opacity:.9}
+@container app (max-width:900px){.signSplit{grid-template-columns:1fr;border:0;background:transparent;box-shadow:none;max-width:440px}.stagePane{display:none}.signSplit .bareCard{border:1px solid var(--ad-line);border-radius:20px;box-shadow:var(--ad-sh-1);padding:28px 24px}}
+
+/* ---------------------------------------------------------------- the calendar engine (parts/cal.html, pages/cal-common.js) */
+.wdc{--cal-1:#000065;--cal-2:#b84a00;--cal-3:#15803d;--cal-4:#c62828;--cal-5:#a16207;--cal-6:#5c5c7a;--cal-7:#6d28d9}
+.wdc.dark{--cal-1:#7377ff;--cal-2:#ff6500;--cal-3:#4ade80;--cal-4:#ff8a8a;--cal-5:#fbbf24;--cal-6:#9b9dc4;--cal-7:#c4a1ff}
+.cal2{display:grid;grid-template-columns:264px minmax(0,1fr);border-top:1px solid var(--ad-line);min-width:0}
+.cal2Side{padding:16px;border-right:1px solid var(--ad-line);display:flex;flex-direction:column;gap:18px;min-width:0}
+.cal2Add{width:100%;justify-content:center}
+.miniHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.miniTitle{font:700 15px 'Space Grotesk',system-ui,sans-serif}
+.miniNav{display:flex;gap:2px}
+.miniBtn{position:relative;width:32px;height:32px;border-radius:10px;display:grid;place-items:center;color:var(--ad-dim);transition:background .15s,color .15s}
+.miniBtn::after{content:"";position:absolute;inset:-6px}
+.miniBtn:hover{background:var(--ad-hover);color:var(--ad-ink)}
+.miniGrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));row-gap:2px}
+.miniH{font-size:11px;font-weight:600;color:var(--ad-dim);text-align:center;padding:2px 0 4px}
+.miniD{position:relative;height:40px;display:grid;place-items:center;font-size:13px;font-variant-numeric:tabular-nums}
+.miniD::after{content:"";position:absolute;inset:-4px -1px}
+.miniD .num{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;transition:background .15s}
+.miniD:hover .num{background:var(--ad-hover)}
+.miniD.out{color:var(--ad-dim);opacity:.7}
+.miniD.is-week{background:var(--ad-hover)}
+.miniD.wk-s{border-radius:12px 0 0 12px}.miniD.wk-e{border-radius:0 12px 12px 0}
+.miniD.is-today:not(.is-sel) .num{box-shadow:inset 0 0 0 1.5px var(--ad-dim);font-weight:700}
+.miniD.is-sel .num{background:var(--ad-fill);color:var(--ad-on-fill);font-weight:700}
+.miniDot{position:absolute;bottom:0;left:50%;width:5px;height:5px;margin-left:-2.5px;border-radius:50%}
+.calList{display:flex;flex-direction:column;border-top:1px solid var(--ad-line);padding-top:12px}
+.calListHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;font-size:14px}
+.calEdit{min-height:44px;padding:0 6px;font-size:13px;font-weight:600;color:var(--ad-accent-ink)}
+.calEdit:hover{text-decoration:underline;text-underline-offset:3px}
+.calRow{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:0 4px;text-align:left;border-radius:10px;transition:background .15s}
+.calRow:hover{background:var(--ad-hover)}
+.calBox{flex:none;width:20px;height:20px;border-radius:6px;border:2px solid var(--c);display:grid;place-items:center;color:transparent;transition:background .15s,color .15s}
+.calRow[aria-checked="true"] .calBox{background:var(--c);color:var(--ad-panel)}
+.calName{flex:1;min-width:0;font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.calN{font-size:12px;color:var(--ad-dim)}
+.cal2Main{min-width:0;display:flex;flex-direction:column}
+.cal2Head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 20px;border-bottom:1px solid var(--ad-line)}
+.cal2Ttl{display:flex;flex-direction:column;min-width:0;margin-right:6px}
+.cal2Ttl h3{font:700 20px/1.15 'Space Grotesk',system-ui,sans-serif}
+.cal2Ttl span{font-size:13px;color:var(--ad-dim)}
+.cal2Nav{display:inline-flex;gap:4px}
+.cal2Strip{display:none}
+.cal2Sum{margin:0;padding:12px 20px;font-size:13px;color:var(--ad-dim);border-top:1px solid var(--ad-line)}
+.tgWrap{overflow:auto;max-height:820px;overscroll-behavior:contain;position:relative}
+.tg{min-width:calc(56px + var(--cols) * 116px)}
+.tgHead,.tgBody{display:grid;grid-template-columns:56px repeat(var(--cols),minmax(0,1fr))}
+.tgHead{position:sticky;top:0;z-index:6;background:var(--ad-panel);border-bottom:1px solid var(--ad-line)}
+.tgGmt{position:sticky;left:0;z-index:7;background:var(--ad-panel);display:flex;align-items:flex-end;padding:0 8px 10px;font-size:11px;color:var(--ad-dim)}
+.tgDay{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;border-left:1px solid var(--ad-line);font-size:12px;font-weight:600;color:var(--ad-dim)}
+.tgNum{font:700 17px/1.2 'Space Grotesk',system-ui,sans-serif;color:var(--ad-ink)}
+.tgDay.is-today{background:var(--ad-hover);color:var(--ad-ink)}
+.tgDay.is-today .tgNum{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--ad-fill);color:var(--ad-on-fill)}
+.tgBody{position:relative;height:var(--gh)}
+.tgHours{position:sticky;left:0;z-index:5;background:var(--ad-panel)}
+.tgHr{position:absolute;right:8px;font-size:11px;color:var(--ad-dim);transform:translateY(-50%)}
+.tgHr:first-child{transform:none;top:4px !important}
+.tgCol{position:relative;border-left:1px solid var(--ad-line);cursor:cell;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent calc(var(--rh) - 1px),var(--ad-line) calc(var(--rh) - 1px),var(--ad-line) var(--rh))}
+.tgCol.is-today{background-color:var(--ad-panel-2)}
+.tgEv{position:absolute;z-index:2;display:flex;flex-direction:column;gap:2px;padding:6px 8px;text-align:left;background:var(--ad-panel);border:1.5px solid var(--c);border-radius:12px;overflow:hidden;box-shadow:var(--ad-sh-1);cursor:pointer;transition:transform .18s var(--ease),box-shadow .18s}
+.tgEv:hover{transform:translateY(-1px);box-shadow:var(--ad-sh-2);z-index:3}
+.tg.is-day .tgEv{max-width:560px}
+.tgEvTop{display:flex;align-items:flex-start;gap:6px;min-width:0}
+.tgEvT{font-size:13px;font-weight:600;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-width:0}
+.tgEv.short .tgEvT{-webkit-line-clamp:1}
+.tgEvTime{font-size:12px;color:var(--ad-dim);line-height:1.2}
+.tgEvSub{font-size:12px;color:var(--ad-dim);line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tgLogo{flex:none;width:20px;height:20px;border-radius:6px;display:grid;place-items:center;color:#fff}
+.tgPeople{display:flex;align-items:center;margin-top:auto;padding-left:6px}
+.tgAv{width:24px;height:24px;border-radius:50%;margin-left:-6px;border:2px solid var(--ad-panel);display:grid;place-items:center;color:#fff;font:700 9px 'Space Grotesk',system-ui,sans-serif}
+.tgMore{margin-left:2px;height:22px;padding:0 7px;border-radius:11px;display:inline-flex;align-items:center;font-size:11px;font-weight:700;background:var(--ad-tone-flat);color:var(--ad-on-flat)}
+.tgTag{align-self:flex-start;height:20px;font-size:11px}
+.tgNow{position:absolute;left:0;right:0;height:2px;background:var(--ad-act);z-index:6;pointer-events:none;display:flex;justify-content:space-between;align-items:center}
+.tgNowPill{position:sticky;left:6px;background:var(--ad-act);color:#fff;font:700 11px/1 'Space Grotesk',system-ui,sans-serif;padding:6px 9px;border-radius:999px;z-index:6}
+.tgNowAdd{position:sticky;right:10px;width:44px;height:44px;border-radius:50%;background:var(--ad-fill);color:var(--ad-on-fill);display:grid;place-items:center;pointer-events:auto;box-shadow:var(--ad-sh-2);transition:transform .2s var(--spring),background .15s}
+.tgNowAdd:hover{background:var(--ad-fill-hover);transform:scale(1.06)}
+.tgNowAdd:active{transform:scale(.96)}
+.cmWrap{overflow:auto;padding:12px 16px 16px}
+.cmGrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));min-width:700px;border:1px solid var(--ad-line);border-radius:16px;overflow:hidden}
+.cmHead{padding:8px;font-size:12px;font-weight:600;color:var(--ad-dim);text-align:center;background:var(--ad-panel-2);border-bottom:1px solid var(--ad-line)}
+.cmCell{min-height:118px;padding:6px;border-right:1px solid var(--ad-line);border-bottom:1px solid var(--ad-line);display:flex;flex-direction:column;gap:3px;min-width:0}
+.cmCell:nth-child(7n){border-right:0}
+.cmCell.out{background:var(--ad-panel-2)}
+.cmNum{position:relative;align-self:flex-start;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:600}
+.cmNum::after{content:"";position:absolute;inset:-8px}
+.cmNum:hover{background:var(--ad-hover)}
+.cmCell.out .cmNum{color:var(--ad-dim)}
+.cmCell.is-today .cmNum{background:var(--ad-fill);color:var(--ad-on-fill)}
+.cmEv{display:block;width:100%;min-height:24px;padding:2px 6px;border-radius:6px;background:var(--ad-panel);border-left:3px solid var(--c);box-shadow:inset 0 0 0 1px var(--ad-line);font-size:12px;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:background .15s}
+.cmEv:hover{background:var(--ad-hover)}
+.cmEvT{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cmMore{min-height:24px;font-size:12px;font-weight:600;color:var(--ad-accent-ink);text-align:left;padding:0 4px}
+.stripD{position:relative;flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;border-radius:12px;font-size:11px;font-weight:600;color:var(--ad-dim);min-height:52px}
+.stripN{font:700 15px 'Space Grotesk',system-ui,sans-serif;color:var(--ad-ink)}
+.stripD.is-sel{background:var(--ad-fill);color:var(--ad-on-fill)}.stripD.is-sel .stripN{color:var(--ad-on-fill)}
+.stripD.is-today:not(.is-sel){box-shadow:inset 0 0 0 1.5px var(--ad-dim)}
+@container card (max-width:1020px){
+  .tg{min-width:calc(56px + var(--cols) * 92px)}
+  .cal2{grid-template-columns:minmax(0,1fr)}
+  .cal2Side{border-right:0;border-bottom:1px solid var(--ad-line);display:grid;grid-template-columns:minmax(220px,300px) minmax(0,1fr);gap:14px 24px;align-items:start}
+  .cal2Add{grid-column:1 / -1}
+  .calList{border-top:0;padding-top:0}
+}
+@container card (max-width:640px){
+  .cal2Side{grid-template-columns:minmax(0,1fr);gap:8px;padding:12px 14px}
+  .miniCal{display:none}
+  .calList{flex-direction:row;flex-wrap:wrap;gap:6px;align-items:center}
+  .calListHead{display:none}
+  .calRow{width:auto;min-height:44px;padding:0 12px 0 10px;border:1px solid var(--ad-line);border-radius:999px}
+  .calN{display:none}
+  .cal2Head{padding:12px 14px;gap:8px}
+  .cal2Ttl h3{font-size:18px}
+  .cal2Exp{display:none}
+  .cal2Strip{display:flex;gap:4px;padding:8px 10px;border-bottom:1px solid var(--ad-line)}
+  .cal2Sum{padding:10px 14px}
+}
+@media (prefers-reduced-motion:reduce){.tgEv,.tgNowAdd,.calRow,.miniD .num{transition:none}.tgEv:hover,.tgNowAdd:hover{transform:none}}
+
+/* Sheet attributes (an icon, a label, then a value, chips or people) and detail tabs. */
+.attrs{margin:0;display:flex;flex-direction:column}
+.attr{display:grid;grid-template-columns:132px minmax(0,1fr);gap:10px;align-items:center;min-height:44px;padding:4px 0;border-bottom:1px solid var(--ad-line)}
+.attr:last-child{border-bottom:0}
+.attr dt{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ad-dim);font-weight:500}
+.attr dt svg{flex:none}
+.attr dd{margin:0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0;font-size:14px;font-weight:500}
+.attrPerson{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 10px 0 4px;border-radius:999px;background:var(--ad-panel-2);box-shadow:inset 0 0 0 1px var(--ad-line);font-size:13px}
+.shTabs{margin:4px -4px 0}
+.shTabBody{display:flex;flex-direction:column;gap:12px;padding-top:12px}
+.tabItem{display:flex;gap:10px;align-items:flex-start}
+@media (max-width:480px){.attr{grid-template-columns:104px minmax(0,1fr)}}
+
+/* The board, as drawn from the project-management references: tags, a note, progress, people and counts on every card. */
+.bBar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:0 20px 12px}
+.bBarL{font-size:13px;color:var(--ad-dim);font-weight:600}
+.bBarN{font-size:13px;font-weight:600}
+.bBarTip{font-size:12px;color:var(--ad-dim)}
+.bCol{padding:10px 10px 12px}
+.bHead{padding:4px 2px 8px}
+.bCount{min-width:24px;height:22px;padding:0 7px;border-radius:99px;display:inline-grid;place-items:center;font-size:12px;font-weight:700;background:var(--ad-tone-flat);color:var(--ad-on-flat)}
+.bPlus{width:32px;height:32px;min-height:32px;position:relative}
+.bPlus::after{content:"";position:absolute;inset:-6px}
+.bCard{gap:7px;padding:12px 12px 10px;box-shadow:var(--ad-sh-1)}
+.bTags{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-right:34px}
+.bTitle{font:700 15px/1.25 'Space Grotesk',system-ui,sans-serif}
+.bClient{font-size:12px;color:var(--ad-dim)}
+.bDesc{font-size:13px;color:var(--ad-dim);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.bProg{display:flex;flex-direction:column;gap:5px;margin-top:2px}
+.bProgL{display:flex;justify-content:space-between;font-size:12px;color:var(--ad-dim)}
+.bProgL .num{font-weight:700;color:var(--ad-ink)}
+.bFoot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:2px;min-width:0}
+.bCrew{display:flex;padding-left:6px;flex:none}
+.bAv{width:26px;height:26px;border-radius:50%;margin-left:-6px;border:2px solid var(--ad-panel);display:grid;place-items:center;color:#fff;font:700 9px 'Space Grotesk',system-ui,sans-serif}
+.bMeta{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--ad-dim);min-width:0;flex-wrap:wrap;justify-content:flex-end}
+.bMeta span{display:inline-flex;align-items:center;gap:3px;white-space:nowrap}
+.bMeta .bDue{font-weight:700}
+.bAdd{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;border-radius:14px;border:1.5px dashed var(--ad-line-2);color:var(--ad-dim);font-weight:600;font-size:13px;transition:background .15s,color .15s,border-color .15s}
+.bAdd:hover{background:var(--ad-hover);color:var(--ad-ink);border-color:var(--ad-ink)}
+.bCardW.dragging .bCard{opacity:.4;border-style:dashed;box-shadow:none}
+.bGhost{position:fixed;top:-9999px;left:-9999px;pointer-events:none}
+.bGhost .bCard{transform:rotate(3deg);border:2px solid var(--ad-ink);box-shadow:var(--ad-sh-3);opacity:1}
+.bGhost .bMove{display:none}
+.board{align-items:start}
+
+.bClient{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.bClient .bDue{font-weight:700;font-size:12px;white-space:nowrap}
+.tlWrap{overflow:auto;margin:0 20px 18px;border:1px solid var(--ad-line);border-radius:16px;max-height:720px;overscroll-behavior:contain}
+.tl{min-width:980px}
+.tlHead,.tlRow{display:grid;grid-template-columns:220px minmax(0,1fr)}
+.tlHead{position:sticky;top:0;z-index:5;background:var(--ad-panel-2);border-bottom:1px solid var(--ad-line)}
+.tlCorner{position:sticky;left:0;z-index:6;background:var(--ad-panel-2);padding:12px 14px;font-size:12px;font-weight:600;color:var(--ad-dim)}
+.tlAxis{display:grid;grid-template-columns:repeat(var(--wk),minmax(0,1fr))}
+.tlWk{padding:12px 8px;font-size:12px;font-weight:600;color:var(--ad-dim);border-left:1px solid var(--ad-line)}
+.tlBody{position:relative}
+.tlRow{border-bottom:1px solid var(--ad-line);min-height:64px}
+.tlRow:last-child{border-bottom:0}
+.tlName{position:sticky;left:0;z-index:3;background:var(--ad-panel);display:flex;flex-direction:column;justify-content:center;gap:1px;text-align:left;padding:8px 14px;border-right:1px solid var(--ad-line)}
+.tlName strong{font-size:14px}.tlName span{font-size:12px;color:var(--ad-dim)}
+.tlName:hover{background:var(--ad-hover)}
+.tlTrack{position:relative;background-image:repeating-linear-gradient(to right,transparent 0,transparent calc(100% / var(--wk) - 1px),var(--ad-line) calc(100% / var(--wk) - 1px),var(--ad-line) calc(100% / var(--wk)))}
+.tl .tlTrack{background-size:100% 100%}
+.tlBar{position:absolute;top:10px;min-width:56px;height:44px;display:flex;flex-direction:column;justify-content:center;gap:6px;text-align:left;border-radius:10px;transition:transform .18s var(--ease)}
+.tlBar::after{content:"";position:absolute;inset:-2px -4px}
+.tlBar:hover{transform:translateY(-1px)}
+.tlBar:hover .tlRail{box-shadow:0 0 0 3px var(--ad-ring)}
+.tlRail{display:block;height:12px;border-radius:99px;background:var(--ad-tone-flat);overflow:hidden;transition:box-shadow .15s}
+.tlFill{display:block;height:100%;border-radius:99px;background:var(--c);transform-origin:left;animation:growx .8s var(--ease) backwards}
+.tlTxt{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tlNone{position:absolute;left:14px;top:22px;font-size:12px;color:var(--ad-dim)}
+.tlToday{position:absolute;top:0;bottom:0;left:calc(220px + (100% - 220px) * var(--today,0));width:0;z-index:4;pointer-events:none;border-left:2px solid var(--ad-act)}
+.tlTodayPill{position:absolute;top:-1px;left:-1px;transform:translateX(-50%);background:var(--ad-act);color:#fff;font:700 11px/1 'Space Grotesk',system-ui,sans-serif;padding:5px 8px;border-radius:0 0 8px 8px}
+
 </style>
 </helmet>
 <div class="{{rootCls}}" onClick="{{rootClick}}">
@@ -1351,31 +1549,82 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
             </sc-if>
 
             <sc-if value="{{isCal}}" hint-placeholder-val="{{ false }}">
-              <section class="card cq tabIn" aria-label="Content calendar" data-tour="cal" style="padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; animation-name: {{tabAnim}}">
-                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+              <section class="card cq tabIn" aria-label="Content calendar" style="overflow: hidden; animation-name: {{tabAnim}}">
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 16px 20px 14px">
                   <span style="flex: 1 1 180px; min-width: 0; display: flex; flex-direction: column"><h2 style="font-size: 17px; font-weight: 700">Content calendar</h2><span style="font-size: 13px; color: var(--ad-dim)">{{calSummary}}</span></span>
-                  <div class="seg" role="group" aria-label="Calendar view" style="--n: 2; --i: {{calViewI}}"><span class="pill" aria-hidden="true"></span><button class="{{cWeek}}" aria-pressed="{{cWeekP}}" onClick="{{setWeek}}">Week</button><button class="{{cMonth}}" aria-pressed="{{cMonthP}}" onClick="{{setMonth}}">Month</button></div>
-                  <sc-if value="{{canPlan}}" hint-placeholder-val="{{ true }}"><button class="btn2" onClick="{{planPost}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Plan a post</button></sc-if>
                 </div>
-                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
-                  <div class="seg" role="group" aria-label="Platform" style="--n: 4; --i: {{platI}}"><span class="pill" aria-hidden="true"></span><sc-for list="{{plats}}" as="pl" hint-placeholder-count="4"><button class="{{pl.cls}}" aria-pressed="{{pl.pressed}}" aria-label="{{pl.aria}}" onClick="{{pl.pick}}" style="padding: 0 10px"><sc-if value="{{pl.hasLogo}}" hint-placeholder-val="{{ false }}"><svg class="logo" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="color: {{pl.c}}"><path d="{{pl.d}}"></path></svg></sc-if><sc-if value="{{pl.isAll}}" hint-placeholder-val="{{ true }}">All</sc-if></button></sc-for></div>
-                  <span style="flex: 1"></span>
-                  <button class="ibtn" aria-label="Previous" onClick="{{calPrev}}" disabled="{{calPrevDis}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></button>
-                  <span class="num" style="font-weight: 600; font-size: 14px; min-width: 128px; text-align: center" aria-live="polite">{{calLabel}}</span>
-                  <button class="ibtn" aria-label="Next" onClick="{{calNext}}" disabled="{{calNextDis}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></button>
-                </div>
-                <sc-if value="{{isWeek}}" hint-placeholder-val="{{ true }}">
-                  <div class="rowIn" style="animation-name: {{calAnim}}">
-                    <sc-for list="{{days}}" as="dy" hint-placeholder-count="7"><div class="dayRow"><span style="display: flex; flex-direction: column; line-height: 1.2; padding-top: 6px"><span style="font-size: 12px; color: {{dy.dcol}}; font-weight: 600">{{dy.d}}</span><span class="num" style="font-size: 17px; font-weight: 700; color: {{dy.ncol}}">{{dy.n}}</span></span><span style="display: flex; flex-direction: column; gap: 6px; min-width: 0"><sc-for list="{{dy.items}}" as="e" hint-placeholder-count="1"><button class="postPill" onClick="{{e.open}}" aria-label="{{e.aria}}"><span class="platform" style="background: {{e.pc}}"><svg class="logo" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="{{e.pd}}"></path></svg></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><span style="font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{e.t}}</span><span class="num" style="font-size: 12px; color: var(--ad-dim)">{{e.time}}</span></span><span class="tag" style="background: {{e.tone}}; color: {{e.ink}}; height: 22px; font-size: 11px">{{e.st}}</span></button></sc-for><sc-if value="{{dy.empty}}" hint-placeholder-val="{{ false }}"><span style="font-size: 13px; color: var(--ad-dim); padding: 9px 0">Nothing planned</span></sc-if></span></div></sc-for>
-                  </div>
-                </sc-if>
-                <sc-if value="{{isMonth}}" hint-placeholder-val="{{ false }}">
-                  <div class="monthGrid rowIn" style="animation-name: {{calAnim}}" role="grid" aria-label="{{calLabel}}">
-                    <sc-for list="{{wkdays}}" as="wd" hint-placeholder-count="7"><span class="mgHead" role="columnheader">{{wd}}</span></sc-for>
-                    <sc-for list="{{cells}}" as="c" hint-placeholder-count="35"><button class="mgCell {{c.cls}}" role="gridcell" aria-label="{{c.aria}}" onClick="{{c.open}}" disabled="{{c.dis}}"><span class="num mgN">{{c.n}}</span><span class="mgDots"><sc-for list="{{c.dots}}" as="dt" hint-placeholder-count="2"><span class="mgDot" style="background: {{dt}}"></span></sc-for></span><span class="mgMore">{{c.more}}</span></button></sc-for>
-                  </div>
-                </sc-if>
-                <div style="display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--ad-dim)"><sc-for list="{{legend}}" as="lg" hint-placeholder-count="4"><span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: {{lg.c}}"></span>{{lg.t}}</span></sc-for></div>
+                <div class="cal2 rowIn" style="animation-name: {{CALC.anim}}" data-tour="cal">
+  <aside class="cal2Side" aria-label="Calendar tools">
+    <sc-if value="{{CALC.sideAdd}}" hint-placeholder-val="{{ true }}"><button class="btn cal2Add" onClick="{{CALC.add}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>{{CALC.addLabel}}</button></sc-if>
+    <div class="miniCal">
+      <div class="miniHead"><strong class="miniTitle num">{{CALC.mini.title}}</strong><span class="miniNav"><button class="miniBtn" aria-label="Previous month" onClick="{{CALC.mini.prev}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></button><button class="miniBtn" aria-label="Next month" onClick="{{CALC.mini.next}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></button></span></div>
+      <div class="miniGrid" role="grid" aria-label="{{CALC.mini.title}}">
+        <sc-for list="{{CALC.mini.heads}}" as="h" hint-placeholder-count="7"><span class="miniH" role="columnheader">{{h}}</span></sc-for>
+        <sc-for list="{{CALC.mini.cells}}" as="c" hint-placeholder-count="35"><button class="miniD {{c.cls}}" role="gridcell" aria-label="{{c.aria}}" aria-pressed="{{c.pressed}}" onClick="{{c.pick}}"><span class="num">{{c.n}}</span><span class="miniDot" style="background: {{c.dot}}"></span></button></sc-for>
+      </div>
+    </div>
+    <section class="calList" aria-label="{{CALC.listTitle}}">
+      <div class="calListHead"><strong>{{CALC.listTitle}}</strong><button class="calEdit" onClick="{{CALC.editCals}}">Edit</button></div>
+      <sc-for list="{{CALC.cals}}" as="c" hint-placeholder-count="4"><button class="calRow" role="checkbox" aria-checked="{{c.on}}" onClick="{{c.tog}}" style="--c: {{c.color}}"><span class="calBox"><svg class="ic" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span><span class="calName">{{c.label}}</span><span class="num calN">{{c.n}}</span></button></sc-for>
+    </section>
+  </aside>
+
+  <div class="cal2Main">
+    <header class="cal2Head">
+      <div class="cal2Ttl"><h3>{{CALC.title}}</h3><span class="num">{{CALC.range}}</span></div>
+      <span class="cal2Nav"><button class="ibtn" aria-label="Previous" onClick="{{CALC.prev}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></button><button class="ibtn" aria-label="Next" onClick="{{CALC.next}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></button></span>
+      <button class="btn2" style="min-height: 44px" onClick="{{CALC.today}}">Today</button>
+      <span style="flex: 1"></span>
+      <div class="seg" role="group" aria-label="Calendar view" style="--n: 3; --i: {{CALC.viewI}}"><span class="pill" aria-hidden="true"></span><button class="{{CALC.cDay}}" aria-pressed="{{CALC.pDay}}" onClick="{{CALC.setDay}}">Day</button><button class="{{CALC.cWeek}}" aria-pressed="{{CALC.pWeek}}" onClick="{{CALC.setWeek}}">Week</button><button class="{{CALC.cMonth}}" aria-pressed="{{CALC.pMonth}}" onClick="{{CALC.setMonth}}">Month</button></div>
+      <button class="btn2 cal2Exp" style="min-height: 44px" onClick="{{CALC.export}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>Export</button>
+    </header>
+
+    <div class="cal2Strip" role="group" aria-label="Days this week"><sc-for list="{{CALC.strip}}" as="d" hint-placeholder-count="7"><button class="stripD {{d.cls}}" aria-pressed="{{d.pressed}}" aria-label="{{d.aria}}" onClick="{{d.pick}}"><span>{{d.d}}</span><span class="num stripN">{{d.n}}</span></button></sc-for></div>
+
+    <sc-if value="{{CALC.isGrid}}" hint-placeholder-val="{{ true }}">
+      <div class="tgWrap" tabindex="0" aria-label="Schedule, scrolls sideways and down" data-lenis-prevent>
+        <div class="tg {{CALC.tgCls}}" style="--cols: {{CALC.nCols}}; --gh: {{CALC.gridH}}px; --rh: {{CALC.rowH}}px">
+          <div class="tgHead"><span class="tgGmt">{{CALC.tz}}</span><sc-for list="{{CALC.cols}}" as="c" hint-placeholder-count="7"><span class="tgDay {{c.cls}}"><span class="tgDn">{{c.d}}</span><span class="num tgNum">{{c.n}}</span></span></sc-for></div>
+          <div class="tgBody">
+            <div class="tgHours" aria-hidden="true"><sc-for list="{{CALC.hours}}" as="h" hint-placeholder-count="12"><span class="tgHr num" style="top: {{h.top}}px">{{h.label}}</span></sc-for></div>
+            <sc-for list="{{CALC.cols}}" as="c" hint-placeholder-count="7">
+              <div class="tgCol {{c.cls}}" onClick="{{c.slot}}">
+                <sc-for list="{{c.events}}" as="e" hint-placeholder-count="2">
+                  <button class="tgEv {{e.cls}}" style="top: {{e.top}}px; height: {{e.h}}px; left: {{e.left}}; width: {{e.w}}; --c: {{e.color}}" aria-label="{{e.aria}}" onClick="{{e.open}}">
+                    <span class="tgEvTop"><sc-if value="{{e.hasLogo}}" hint-placeholder-val="{{ false }}"><span class="tgLogo" style="background: {{e.logoBg}}"><svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true" fill="currentColor"><path d="{{e.logoD}}"></path></svg></span></sc-if><strong class="tgEvT">{{e.title}}</strong></span>
+                    <span class="num tgEvTime">{{e.time}}</span>
+                    <sc-if value="{{e.hasSub}}" hint-placeholder-val="{{ false }}"><span class="tgEvSub">{{e.sub}}</span></sc-if>
+                    <sc-if value="{{e.hasPeople}}" hint-placeholder-val="{{ false }}"><span class="tgPeople"><sc-for list="{{e.people}}" as="a" hint-placeholder-count="2"><span class="tgAv" style="background: {{a.tone}}">{{a.i}}</span></sc-for><sc-if value="{{e.hasMore}}" hint-placeholder-val="{{ false }}"><span class="tgMore num">{{e.more}}</span></sc-if></span></sc-if>
+                    <sc-if value="{{e.hasTag}}" hint-placeholder-val="{{ false }}"><span class="tag tgTag" style="background: {{e.tagTone}}; color: {{e.tagInk}}">{{e.tag}}</span></sc-if>
+                  </button>
+                </sc-for>
+              </div>
+            </sc-for>
+            <sc-if value="{{CALC.nowShow}}" hint-placeholder-val="{{ false }}"><div class="tgNow" style="top: {{CALC.nowTop}}px"><span class="tgNowPill num">{{CALC.nowLabel}}</span><sc-if value="{{CALC.canAdd}}" hint-placeholder-val="{{ true }}"><button class="tgNowAdd" aria-label="{{CALC.addLabel}} now" onClick="{{CALC.add}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button></sc-if></div></sc-if>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{CALC.isMonth}}" hint-placeholder-val="{{ false }}">
+      <div class="cmWrap" data-lenis-prevent>
+        <div class="cmGrid" role="grid" aria-label="{{CALC.title}}">
+          <sc-for list="{{CALC.wkdays}}" as="wd" hint-placeholder-count="7"><span class="cmHead" role="columnheader">{{wd}}</span></sc-for>
+          <sc-for list="{{CALC.cells}}" as="c" hint-placeholder-count="35">
+            <div class="cmCell {{c.cls}}" role="gridcell" aria-label="{{c.aria}}">
+              <button class="cmNum num" aria-label="Open {{c.aria}}" onClick="{{c.pick}}">{{c.n}}</button>
+              <sc-for list="{{c.items}}" as="e" hint-placeholder-count="2"><button class="cmEv" style="--c: {{e.color}}" onClick="{{e.open}}" aria-label="{{e.aria}}"><span class="cmEvT">{{e.title}}</span></button></sc-for>
+              <sc-if value="{{c.hasMore}}" hint-placeholder-val="{{ false }}"><button class="cmMore" onClick="{{c.pick}}">{{c.more}}</button></sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <p class="cal2Sum">{{CALC.summary}}</p>
+  </div>
+</div>
+
               </section>
             </sc-if>
 
@@ -1572,6 +1821,13 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
             <div class="noticeB" role="status" style="--nt: {{sheet.notice.tone}}"><span class="noticeIc"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="{{sheet.notice.icon}}"></path></svg></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><strong>{{sheet.notice.title}}</strong><span>{{sheet.notice.body}}</span></span><sc-if value="{{sheet.notice.hasAct}}" hint-placeholder-val="{{ false }}"><button class="btn2" style="min-height: 40px" onClick="{{sheet.notice.act}}">{{sheet.notice.actLabel}}</button></sc-if></div>
           </sc-if>
           <sc-if value="{{sheet.hasRows}}" hint-placeholder-val="{{ true }}"><dl class="dl"><sc-for list="{{sheet.rows}}" as="r" hint-placeholder-count="4"><div style="min-width: 0"><dt>{{r.k}}</dt><dd class="num">{{r.v}}</dd></div></sc-for></dl></sc-if>
+          <sc-if value="{{sheet.hasAttrs}}" hint-placeholder-val="{{ false }}"><dl class="attrs"><sc-for list="{{sheet.attrs}}" as="a" hint-placeholder-count="6"><div class="attr"><dt><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="{{a.ic}}"></path></svg>{{a.k}}</dt><dd><sc-if value="{{a.hasText}}" hint-placeholder-val="{{ true }}"><span class="num">{{a.v}}</span></sc-if><sc-for list="{{a.chips}}" as="c" hint-placeholder-count="2"><span class="tag" style="background: {{c.tone}}; color: {{c.ink}}">{{c.t}}</span></sc-for><sc-for list="{{a.people}}" as="pp" hint-placeholder-count="2"><span class="attrPerson"><span class="av0" style="width: 24px; height: 24px; font-size: 9px; background: {{pp.tone}}">{{pp.i}}</span>{{pp.name}}</span></sc-for></dd></div></sc-for></dl></sc-if>
+          <sc-if value="{{sheet.hasTabs}}" hint-placeholder-val="{{ false }}"><div role="tablist" aria-label="Details" class="tabs shTabs"><sc-for list="{{sheet.tabs}}" as="tb" hint-placeholder-count="3"><button role="tab" class="tab {{tb.cls}}" aria-selected="{{tb.sel}}" onClick="{{tb.pick}}">{{tb.t}}<sc-if value="{{tb.hasN}}" hint-placeholder-val="{{ false }}"><span class="tag num" style="background: var(--ad-tone-flat); color: var(--ad-on-flat); height: 20px; padding: 0 7px">{{tb.n}}</span></sc-if></button></sc-for></div>
+            <div class="shTabBody rowIn" style="animation-name: rinA">
+              <sc-if value="{{sheet.hasTabText}}" hint-placeholder-val="{{ true }}"><p style="max-width: 62ch">{{sheet.tabText}}</p></sc-if>
+              <sc-for list="{{sheet.tabItems}}" as="ti" hint-placeholder-count="3"><div class="tabItem"><span class="av0" style="width: 32px; height: 32px; font-size: 11px; background: {{ti.tone}}">{{ti.i}}</span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap"><strong>{{ti.t}}</strong><span style="color: var(--ad-dim); font-size: 12px">{{ti.when}}</span></span><span style="font-size: 14px">{{ti.s}}</span></span></div></sc-for>
+              <sc-if value="{{sheet.hasTabEmpty}}" hint-placeholder-val="{{ false }}"><p style="color: var(--ad-dim)">{{sheet.tabEmpty}}</p></sc-if>
+            </div></sc-if>
           <sc-if value="{{sheet.hasQuick}}" hint-placeholder-val="{{ false }}"><div class="quickRow" role="group" aria-label="More for this item"><sc-for list="{{sheet.quick}}" as="q" hint-placeholder-count="3"><button type="button" class="chip" onClick="{{q.fn}}">{{q.t}}</button></sc-for></div></sc-if>
           <sc-if value="{{sheet.hasBody}}" hint-placeholder-val="{{ true }}"><p style="max-width: 62ch">{{sheet.body}}</p></sc-if>
           <sc-if value="{{sheet.hasPreview}}" hint-placeholder-val="{{ false }}">
@@ -2019,7 +2275,7 @@ class Component extends DCLogic {
     var self = this;
     this.reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
     this.onResize = function () { if (self.state.pop && !self.state.pop.asSheet) self.setState({ pop: null }); self.queueTour(); };
-    this.onScroll = function () { if (self.state.pop && !self.state.pop.asSheet) self.setState({ pop: null }); self.queueTour(); };
+    this.onScroll = function (e) { var t = e && e.target; if (t && t.closest && t.closest('.board, .tgWrap, .tlWrap, .cmWrap')) return; if (self.state.pop && !self.state.pop.asSheet) self.setState({ pop: null }); self.queueTour(); };
     this.onKey = function (e) {
       var k = e.key;
       if ((e.ctrlKey || e.metaKey) && (k === 'k' || k === 'K')) { e.preventDefault(); self.openPalette(); return; }
@@ -2105,7 +2361,7 @@ class Component extends DCLogic {
   open(sh, push) {
     var s = this.state;
     var stack = push && s.sheet ? s.stack.concat([{ sheet: s.sheet, draft: s.draft, reason: s.reason, ack: s.ack, spick: s.spick, ck: s.ck, zoom: s.zoom, form: s.form, lextra: s.lextra, lsel: s.lsel, lq: s.lq, lpg: s.lpg }]) : [];
-    this.setState({ sheet: sh, stack: stack, sheetFull: false, bell: false, pal: false, drawer: false, menu: null, pop: null, tour: -1, draft: sh.draft || '', reason: '', ack: false, ck: {}, spick: sh.pick != null ? sh.pick : -1, vis: sh.vis || 'team', zoom: 1, cmt: '', form: Object.assign({}, sh.form || {}), lq: '', lpg: 0, lcreate: false, lcf: {}, lextra: [], lsel: Object.assign({}, sh.lsel || {}), ui: null, edMode: 'write' });
+    this.setState({ sheet: sh, stack: stack, sheetFull: false, bell: false, pal: false, drawer: false, menu: null, pop: null, tour: -1, draft: sh.draft || '', reason: '', ack: false, ck: {}, spick: sh.pick != null ? sh.pick : -1, vis: sh.vis || 'team', zoom: 1, cmt: '', form: Object.assign({}, sh.form || {}), lq: '', lpg: 0, lcreate: false, lcf: {}, lextra: [], lsel: Object.assign({}, sh.lsel || {}), ui: null, edMode: 'write', shTab: 0 });
   }
   closeSheet(force) {
     var self = this, raw = this.state.sheet;
@@ -2434,7 +2690,10 @@ class Component extends DCLogic {
     if (raw.select && raw.selectRequired !== false && (raw.multi ? ctx.picks.length === 0 : ctx.pick < 0)) { dis = 'y'; reqText = raw.selectWhy || 'Choose one to continue.'; }
     if (raw.primaryDis) { var pd = raw.primaryDis(ctx, s); if (pd) { dis = 'y'; reqText = pd; } }
     var galRaw = typeof raw.gallery === 'function' ? raw.gallery(s) : (raw.gallery || []), galEmpty = typeof raw.galleryEmpty === 'function' ? raw.galleryEmpty(s) : false;
+    var TB = raw.tabs || [], tbi = Math.min(s.shTab || 0, Math.max(0, TB.length - 1)), tbOn = TB[tbi] || {};
     var sheet = Object.assign({}, raw, {
+      hasAttrs: !!(raw.attrs && raw.attrs.length), attrs: (raw.attrs || []).map(function (a) { var ch = a.chips || [], pe = a.people || []; return { ic: a.ic || '', k: a.k, v: a.v || '', hasText: !!a.v && !ch.length && !pe.length, chips: ch, people: pe }; }),
+      hasTabs: TB.length > 0, tabs: TB.map(function (t, i) { var on = i === tbi; return { t: t.t, n: t.items ? t.items.length : (t.n != null ? t.n : ''), hasN: !!(t.items ? t.items.length : t.n), cls: on ? 'on' : '', sel: on ? 'true' : 'false', pick: function () { if (!on) self.setState({ shTab: i }); } }; }), hasTabText: !!tbOn.text, tabText: tbOn.text || '', hasTabItems: !!(tbOn.items && tbOn.items.length), tabItems: tbOn.items || [], tabEmpty: tbOn.items && !tbOn.items.length ? (tbOn.empty || 'Nothing here yet.') : '', hasTabEmpty: !!(tbOn.items && !tbOn.items.length),
       feedTitle: raw.feedTitle || 'History', hasQuick: !!(raw.quick && raw.quick.length), quick: (raw.quick || []).map(function (q) { return { t: q.t, d: q.d || '', fn: function () { if (q.fn) q.fn(); } }; }), hasGallery: galRaw.length > 0, gallery: galRaw, galleryEmpty: galEmpty, back: s.stack.length > 0, hasChip: !!raw.chip, hasIcon: !!raw.icon, icon: raw.icon || '', iconTone: raw.iconTone || 'var(--ad-tone-brand)', hasRows: raw.rows.length > 0, hasBody: !!raw.body, hasPreview: !!raw.preview, preview: raw.preview || {},
       hasList: list.length > 0 || ss.has, list: list, ss: ss, listRole: raw.select ? (raw.multi ? 'group' : 'radiogroup') : 'list', hasChecks: checks.length > 0, checks: checks, checksTitle: raw.checksTitle || 'Checklist', checksDone: ckDone + ' of ' + checks.length, checksPct: checks.length ? Math.round(ckDone / checks.length * 100) : 0,
       hasFeed: raw.feed.length > 0, hasNote: !!raw.note, reason: !!raw.reason, reasonLabel: raw.reason ? raw.reason.label : '', reasonPh: raw.reason ? raw.reason.ph : '', ack: !!raw.ack, ackText: raw.ack || '',
@@ -3401,19 +3660,18 @@ class Component extends DCLogic {
     ];
   }
   projectSheet(pj) {
-    var self = this, I = this.icons(), done = pj.status === 'done';
-    return this.sh({ eyebrow: 'Project · ' + pj.client, title: pj.name, chip: pj.flag || (done ? 'Done' : pj.stage), tone: pj.flag ? (pj.flag === 'Paused' || pj.flag === 'Blocked' ? 'var(--ad-tone-bad)' : 'var(--ad-tone-warn)') : (done ? 'var(--ad-tone-good)' : 'var(--ad-tone-live)'), icon: I.folder,
-      rows: [{ k: 'Service', v: pj.svc }, { k: 'Stage', v: done ? 'Done' : pj.stage + (pj.stages.length > 1 ? ', ' + (pj.cur + 1) + ' of ' + pj.stages.length : '') }, { k: 'Lead', v: pj.lead }, { k: 'Due', v: pj.due }, ].concat(this.hideMoney() ? [{ k: 'Billing', v: this.payChip(pj) }] : [{ k: 'Value', v: pj.value }, { k: 'Payment', v: pj.pay }]),
-      body: 'Next: ' + pj.next + '.',
-      primary: pj.id === 'mira-so' ? 'Open project' : (done ? 'Close' : 'Message ' + pj.lead.split(' ')[0]), secondary: done ? '' : (pj.cid === 'mira' ? 'Open Mira Skincare' : 'Add a task'),
-      onPrimary: function () {
-        if (self.projPageKeys().indexOf(pj.id) >= 0) { window.location.href = self.projPageHref(pj.id); return; }
-        if (done) return;
-        setTimeout(function () { self.open(self.sh({ eyebrow: pj.name + ' · ' + pj.client, title: 'Message ' + pj.lead, icon: I.msg, compose: true, composeLabel: 'Message', required: true, primary: 'Send', onPrimary: function () { self.say('Sent to ' + pj.lead.split(' ')[0] + ' in the project thread.'); } })); }, 30);
-      },
+    var self = this, I = this.icons(), done = pj.status === 'done', team = this.teamData(), tone = pj.flag ? (pj.flag === 'Paused' || pj.flag === 'Blocked' ? 'var(--ad-tone-bad)' : 'var(--ad-tone-warn)') : (done ? 'var(--ad-tone-good)' : 'var(--ad-tone-live)');
+    var hs = 0; for (var ci = 0; ci < pj.id.length; ci++) hs += pj.id.charCodeAt(ci);
+    var crew = [{ name: pj.lead, i: pj.leadI, tone: pj.leadTone }].concat([team[hs % team.length], team[(hs + 2) % team.length]].filter(function (m) { return m && m.name !== pj.lead; }).slice(0, 2).map(function (m) { return { name: m.name, i: m.i, tone: m.tone }; }));
+    var FILES = { 'Branding & Design': ['Logo round 2.pdf', 'Colour and type sheet.png', 'Brand guide draft.pdf'], 'Web & Apps': ['Sitemap.pdf', 'Homepage design.png', 'Launch checklist.pdf'], 'Social & Ads': ['Content pillars.pdf', 'Instagram access guide.pdf'], SEO: ['Audit report.pdf', 'Keyword list.xlsx'], Apps: ['Screens round 1.pdf', 'Build plan.pdf'], 'Software & AI': ['Flow diagram.pdf', 'Test cases.xlsx'] }[pj.svc] || ['Brief.pdf'];
+    var STT = { 'Branding & Design': 'Concepts built from the colours and fonts the client chose.', 'Web & Apps': 'Pages, content and the build, with a recorded handover at the end.', 'Social & Ads': 'A monthly plan of posts the client approves before they go out.', SEO: 'An audit, fixes, and a monthly report on what moved.', Apps: 'Screens, build milestones and store release.', 'Software & AI': 'Scoping, a working build and tests the client signs off.' };
+    return this.sh({ eyebrow: 'Project · ' + pj.client, title: pj.name, chip: pj.flag || (done ? 'Done' : pj.stage), tone: tone, icon: I.folder,
+      attrs: [{ ic: 'M12 8v4l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z', k: 'Status', chips: [{ t: pj.flag || (done ? 'Done' : pj.stage), tone: tone, ink: '#fff' }] }, { ic: 'M4 6h16M4 12h16M4 18h10', k: 'Service', chips: [{ t: pj.svc, tone: 'var(--ad-tone-flat)', ink: 'var(--ad-on-flat)' }] }, { ic: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8', k: 'Team', people: crew }, { ic: 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z', k: 'Due', v: pj.due }, { ic: 'M3 3h7v18H3zM14 3h7v10h-7z', k: 'Stage', v: done ? 'Done' : pj.stage + (pj.stages.length > 1 ? ', ' + (pj.cur + 1) + ' of ' + pj.stages.length : '') }].concat(this.hideMoney() ? [{ ic: 'M2 7h20v10H2zM12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z', k: 'Billing', chips: [{ t: this.payChip(pj), tone: 'var(--ad-tone-flat)', ink: 'var(--ad-on-flat)' }] }] : [{ ic: 'M2 7h20v10H2zM12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z', k: 'Value', v: pj.value }, { ic: 'M20 6 9 17l-5-5', k: 'Payment', v: pj.pay }]),
+      tabs: [{ t: 'Description', text: (STT[pj.svc] || 'Work for this client.') + ' Next: ' + pj.next + '.' }, { t: 'Discussion', items: [{ t: pj.lead, i: pj.leadI, tone: pj.leadTone, when: 'Today, 09:12', s: pj.next + '.' }, { t: 'Client', i: pj.client.split(' ').map(function (w) { return w.charAt(0); }).join('').slice(0, 2).toUpperCase(), tone: 'var(--ad-tone-neutral)', when: 'Yesterday, 16:40', s: 'Thank you, we will look at it today.' }] }, { t: 'Attachments', items: FILES.map(function (f, k) { return { t: f, i: f.split('.').pop().toUpperCase().slice(0, 3), tone: 'var(--ad-tone-bad)', when: ['Today', 'Wed 7 Oct', 'Sat 3 Oct'][k] || 'Sat 3 Oct', s: ['4.2 MB', '1.1 MB', '420 KB'][k] || '300 KB' }; }) }],
+      primary: 'Open project page', secondary: done ? '' : 'Message ' + pj.lead.split(' ')[0],
+      onPrimary: function () { if (self.projPageKeys().indexOf(pj.id) >= 0) window.location.href = self.projPageHref(pj.id); else self.say('The project page opens here.'); },
       onSecondary: function () {
-        if (pj.cid === 'mira') { window.location.href = 'A-Client.dc.html'; return 'stay'; }
-        self.open(self.taskSheet(pj), true); return 'stay';
+        self.open(self.sh({ eyebrow: pj.name + ' · ' + pj.client, title: 'Message ' + pj.lead, icon: I.msg, compose: true, composeLabel: 'Message', required: true, primary: 'Send', onPrimary: function () { self.say('Sent to ' + pj.lead.split(' ')[0] + ' in the project thread.'); } }), true); return 'stay';
       } });
   }
   taskSheet(pj, onAdd) {
@@ -3424,6 +3682,93 @@ class Component extends DCLogic {
       form: { who: pj.lead, due: 'Sat 17 Oct' },
       primary: 'Add task', secondary: 'Cancel', primaryDis: function (ctx) { return (ctx.form.t || '').trim() ? '' : 'Name the task.'; },
       onPrimary: function (ctx) { if (onAdd) onAdd(ctx.form); self.say('Task added. It is on ' + ctx.form.who.split(' ')[0] + '’s My Day, due ' + ctx.form.due.toLowerCase() + '.'); } });
+  }
+
+  /* ======================= The calendar engine, one for every calendar in the product =======================
+     Day, week and month on one set of events. A mini month with the shown week highlighted, a list of calendars
+     that switch on and off, a time grid with outlined cards, today's column, and a line for now with an add button.
+     The page hands it events and what each click should do; it hands back the values the %%CAL:KEY%% partial reads.
+
+       calView('id', { cals: [{ id, label, color }], events: [{ id, date: 'M-D', start: 'HH:MM', end: 'HH:MM', title, sub, cal,
+                       people: [{ i, tone }], logo: { d, c }, tag: [label, tone, ink], open: fn }],
+                       today: '2026-10-12', now: '10:42', date: '2026-10-12', view: 'week', addLabel,
+                       onAdd(iso, time), onSlot(iso, time), onExport, onEditCals, listTitle, startHour, endHour, rowH })
+
+     The state lives in state.cals[id] so two calendars on one board never share a view. */
+  calGet(id, cfg) { var c = (this.state.cals || {})[id] || {}; return { view: c.view || (this.isPhone() ? 'day' : (cfg.view || 'week')), date: c.date || cfg.date || cfg.today, off: c.off || {}, n: c.n || 0 }; }
+  calSet(id, patch) { var all = Object.assign({}, this.state.cals || {}), cur = all[id] || {}; all[id] = Object.assign({}, cur, patch, { n: (cur.n || 0) + 1 }); this.setState({ cals: all }); }
+  calView(id, cfg) {
+    var self = this, st = this.calGet(id, cfg), view = st.view;
+    var MON = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'], SH = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], DW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], DF = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    var P = function (s) { var a = s.split('-'); return new Date(+a[0], +a[1] - 1, +a[2]); };
+    var iso = function (d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); };
+    var key = function (d) { return (d.getMonth() + 1) + '-' + d.getDate(); };
+    var add = function (d, n) { return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); };
+    var mins = function (t) { var a = (t || '09:00').split(':'); return (+a[0]) * 60 + (+a[1] || 0); };
+    var hhmm = function (m) { return ('0' + Math.floor(m / 60)).slice(-2) + ':' + ('0' + (m % 60)).slice(-2); };
+    var cur = P(st.date), today = P(cfg.today), rowH = cfg.rowH || 60, h0 = cfg.startHour || 8, h1 = cfg.endHour || 20;
+    var monday = add(cur, -((cur.getDay() + 6) % 7)), calBy = {}; (cfg.cals || []).forEach(function (c) { calBy[c.id] = c; });
+    var all = (cfg.events || []).map(function (e) { var s = mins(e.start), en = e.end ? mins(e.end) : s + 60; return Object.assign({}, e, { s: s, e: Math.max(en, s + 30), color: (calBy[e.cal] || {}).color || 'var(--ad-series-1)' }); });
+    var vis = all.filter(function (e) { return !st.off[e.cal]; }), byKey = {};
+    vis.forEach(function (e) { (byKey[e.date] = byKey[e.date] || []).push(e); });
+    Object.keys(byKey).forEach(function (k) { byKey[k].sort(function (a, b) { return a.s - b.s || a.e - b.e; }); });
+    var set = function (patch) { self.calSet(id, patch); };
+    var shift = function (dir) { if (view === 'month') { var t = new Date(cur.getFullYear(), cur.getMonth() + dir, 1), dim = new Date(t.getFullYear(), t.getMonth() + 1, 0).getDate(); set({ date: iso(new Date(t.getFullYear(), t.getMonth(), Math.min(cur.getDate(), dim))) }); } else set({ date: iso(add(cur, dir * (view === 'week' ? 7 : 1))) }); };
+    var shortOf = function (e) { return e.title; };
+
+    /* the time grid: day or week */
+    var days = view === 'day' ? [cur] : [0, 1, 2, 3, 4, 5, 6].map(function (i) { return add(monday, i); });
+    var cols = days.map(function (d) {
+      var list = (byKey[key(d)] || []).slice(), cl = [], cEnd = -1, start = 0;
+      var close = function (to) { var n = 0; for (var q = start; q < to; q++) n = Math.max(n, list[q]._l + 1); for (var r = start; r < to; r++) list[r]._n = n; };
+      var ends = [];
+      list.forEach(function (e, i) { if (e.s >= cEnd && i > start) { close(i); start = i; ends = []; } var l = 0; while (ends[l] > e.s) l++; ends[l] = e.e; e._l = l; cEnd = Math.max(cEnd, e.e); });
+      close(list.length);
+      var evs = list.map(function (e) {
+        var top = Math.max(0, (e.s - h0 * 60) / 60 * rowH), h = Math.max(46, (e.e - e.s) / 60 * rowH) - 3, n = e._n || 1, ppl = e.people || [], tag = e.tag;
+        return { title: shortOf(e), time: hhmm(e.s) + ' to ' + hhmm(e.e), sub: e.sub || '', top: top + 1, h: h, left: 'calc(' + (e._l * 100 / n) + '% + 3px)', w: 'calc(' + (100 / n) + '% - 6px)', color: e.color,
+          cls: (h < 56 ? 'short ' : '') + (h >= 96 ? 'tall' : ''), aria: e.title + ', ' + DW[d.getDay()] + ' ' + d.getDate() + ' ' + SH[d.getMonth()] + ', ' + hhmm(e.s) + ' to ' + hhmm(e.e) + (calBy[e.cal] ? ', ' + calBy[e.cal].label : ''),
+          hasLogo: !!e.logo, logoBg: e.logo ? e.logo.c : '', logoD: e.logo ? e.logo.d : '', hasSub: h >= 104 && !!e.sub, hasPeople: h >= 76 && ppl.length > 0, people: ppl.slice(0, 3), hasMore: ppl.length > 3, more: '+' + (ppl.length - 3),
+          hasTag: h >= 86 && !!tag, tag: tag ? tag[0] : '', tagTone: tag ? tag[1] : '', tagInk: tag ? tag[2] : '', open: function (ev) { if (ev && ev.stopPropagation) ev.stopPropagation(); if (cfg.open) cfg.open(e); } };
+      });
+      var isT = iso(d) === iso(today);
+      return { d: DW[d.getDay()], n: String(d.getDate()), cls: (isT ? 'is-today ' : '') + (iso(d) === iso(cur) && view === 'week' ? 'is-sel' : ''), events: evs,
+        slot: function (ev) { if (ev && ev.target && ev.target.closest && ev.target.closest('.tgEv')) return; var r = ev.currentTarget.getBoundingClientRect(), m = Math.round(((ev.clientY - r.top) / rowH * 60) / 30) * 30 + h0 * 60; m = Math.max(h0 * 60, Math.min(h1 * 60 - 30, m)); if (cfg.onSlot) cfg.onSlot(iso(d), hhmm(m)); else if (cfg.onAdd) cfg.onAdd(iso(d), hhmm(m)); } };
+    });
+    var hours = []; for (var h = h0; h < h1; h++) hours.push({ top: (h - h0) * rowH, label: ('0' + h).slice(-2) + ':00' });
+    var nowM = cfg.now ? mins(cfg.now) : -1, nowDay = days.some(function (d) { return iso(d) === iso(today); });
+    var nowShow = nowM >= h0 * 60 && nowM <= h1 * 60 && nowDay;
+
+    /* the month grid */
+    var first = new Date(cur.getFullYear(), cur.getMonth(), 1), lead = (first.getDay() + 6) % 7, dim = new Date(cur.getFullYear(), cur.getMonth() + 1, 0).getDate(), rows = Math.ceil((lead + dim) / 7), cells = [], mini = [];
+    for (var i = 0; i < rows * 7; i++) {
+      (function (i) {
+        var d = add(first, i - lead), inM = d.getMonth() === cur.getMonth(), list = byKey[key(d)] || [], isT = iso(d) === iso(today), isS = iso(d) === iso(cur);
+        var inWeek = view === 'week' && d >= monday && d <= add(monday, 6), col = (i % 7);
+        cells.push({ n: String(d.getDate()), cls: (inM ? '' : 'out ') + (isT ? 'is-today' : ''), aria: DW[d.getDay()] + ' ' + d.getDate() + ' ' + MON[d.getMonth()] + ', ' + list.length + (list.length === 1 ? ' item' : ' items'),
+          items: list.slice(0, 3).map(function (e) { return { title: hhmm(e.s) + ' ' + e.title, color: e.color, aria: e.title + ', ' + hhmm(e.s), open: function (ev) { if (ev && ev.stopPropagation) ev.stopPropagation(); if (cfg.open) cfg.open(e); } }; }),
+          hasMore: list.length > 3, more: '+' + (list.length - 3) + ' more', pick: function () { set({ date: iso(d), view: 'day' }); } });
+        mini.push({ n: String(d.getDate()), cls: (inM ? '' : 'out ') + (isT ? 'is-today ' : '') + (isS ? 'is-sel ' : '') + (inWeek ? 'is-week ' : '') + (inWeek && col === 0 ? 'wk-s ' : '') + (inWeek && col === 6 ? 'wk-e' : ''),
+          dot: list.length ? list[0].color : 'transparent', pressed: isS ? 'true' : 'false', aria: DW[d.getDay()] + ' ' + d.getDate() + ' ' + MON[d.getMonth()] + (list.length ? ', ' + list.length + (list.length === 1 ? ' item' : ' items') : ''), pick: function () { set({ date: iso(d) }); } });
+      })(i);
+    }
+    var inView = vis.filter(function (e) { var p = P('2026-' + ('0' + e.date.split('-')[0]).slice(-2) + '-' + ('0' + e.date.split('-')[1]).slice(-2)); return view === 'day' ? iso(p) === iso(cur) : (view === 'week' ? p >= monday && p <= add(monday, 6) : p.getMonth() === cur.getMonth()); }).length;
+    var viewI = { day: 0, week: 1, month: 2 }[view];
+    var rangeOf = function () { if (view === 'day') return DF[cur.getDay()] + ' ' + cur.getDate() + ' ' + MON[cur.getMonth()]; if (view === 'week') { var e = add(monday, 6); return monday.getMonth() === e.getMonth() ? monday.getDate() + ' to ' + e.getDate() + ' ' + SH[e.getMonth()] : monday.getDate() + ' ' + SH[monday.getMonth()] + ' to ' + e.getDate() + ' ' + SH[e.getMonth()]; } return inView + (inView === 1 ? ' item' : ' items'); };
+    var seg = function (v) { return function () { set({ view: v }); }; };
+    return {
+      anim: st.n % 2 ? 'rinA' : 'rinB', add: function () { if (cfg.onAdd) cfg.onAdd(iso(cur), null); }, addLabel: cfg.addLabel || 'Add schedule', canAdd: cfg.canAdd !== false, sideAdd: cfg.canAdd !== false && cfg.sideAdd !== false,
+      mini: { title: MON[cur.getMonth()] + ' ' + cur.getFullYear(), heads: ['M', 'T', 'W', 'T', 'F', 'S', 'S'], cells: mini, prev: function () { var t = new Date(cur.getFullYear(), cur.getMonth() - 1, 1), dd = new Date(t.getFullYear(), t.getMonth() + 1, 0).getDate(); set({ date: iso(new Date(t.getFullYear(), t.getMonth(), Math.min(cur.getDate(), dd))) }); }, next: function () { var t = new Date(cur.getFullYear(), cur.getMonth() + 1, 1), dd = new Date(t.getFullYear(), t.getMonth() + 1, 0).getDate(); set({ date: iso(new Date(t.getFullYear(), t.getMonth(), Math.min(cur.getDate(), dd))) }); } },
+      listTitle: cfg.listTitle || 'My calendars', editCals: function () { if (cfg.onEditCals) cfg.onEditCals(); else self.say('Choose which calendars show here. Your choice is kept for next time.'); },
+      cals: (cfg.cals || []).map(function (c) { var on = !st.off[c.id]; return { label: c.label, color: c.color, on: on ? 'true' : 'false', n: all.filter(function (e) { return e.cal === c.id; }).length, tog: function () { var o = Object.assign({}, st.off); if (on) o[c.id] = true; else delete o[c.id]; set({ off: o }); } }; }),
+      title: MON[cur.getMonth()] + ' ' + cur.getFullYear(), range: rangeOf(), prev: function () { shift(-1); }, next: function () { shift(1); }, today: function () { set({ date: iso(today) }); },
+      viewI: viewI, cDay: view === 'day' ? 'on' : '', cWeek: view === 'week' ? 'on' : '', cMonth: view === 'month' ? 'on' : '', pDay: view === 'day' ? 'true' : 'false', pWeek: view === 'week' ? 'true' : 'false', pMonth: view === 'month' ? 'true' : 'false', setDay: seg('day'), setWeek: seg('week'), setMonth: seg('month'),
+      export: function () { if (cfg.onExport) cfg.onExport(vis); else self.say('Exporting ' + inView + ' items as a calendar file.'); },
+      strip: [0, 1, 2, 3, 4, 5, 6].map(function (i) { var d = add(monday, i), isS = iso(d) === iso(cur); return { d: DW[d.getDay()].charAt(0), n: String(d.getDate()), cls: (isS ? 'is-sel ' : '') + (iso(d) === iso(today) ? 'is-today' : ''), pressed: isS ? 'true' : 'false', aria: DW[d.getDay()] + ' ' + d.getDate() + ' ' + MON[d.getMonth()], pick: function () { set({ date: iso(d), view: view === 'month' ? 'day' : view }); } }; }),
+      isGrid: view !== 'month', tgCls: view === 'day' ? 'is-day' : '', nCols: cols.length, gridH: (h1 - h0) * rowH, rowH: rowH, tz: 'GMT +1', cols: cols, hours: hours, nowShow: nowShow && view !== 'month', nowTop: (nowM - h0 * 60) / 60 * rowH, nowLabel: cfg.now || '',
+      isMonth: view === 'month', wkdays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], cells: cells,
+      summary: inView ? inView + (inView === 1 ? ' item' : ' items') + (view === 'day' ? ' today' : view === 'week' ? ' this week' : ' this month') + (cfg.summaryNote ? '. ' + cfg.summaryNote : '.') : 'Nothing booked in this view. Pick another day or turn a calendar back on.'
+    };
   }
 
   /* ======================= The project page, shared by all three roles =======================
@@ -3625,6 +3970,13 @@ class Component extends DCLogic {
     var platDefs = [['all', 'All'], ['instagram', 'Instagram'], ['facebook', 'Facebook'], ['tiktok', 'TikTok']], platI = 0; platDefs.forEach(function (x, i) { if (x[0] === s.plat) platI = i; });
     var allP = this.allPosts(), waitN = allP.filter(function (x) { return self.postState(x) === 'client'; }).length;
 
+    var calCfg = { today: '2026-10-12', now: '10:42', date: '2026-10-' + (M.calStartDay || '13'), view: 'week', startHour: 8, endHour: 20, rowH: 66, addLabel: 'Plan a post', listTitle: 'Platforms', canAdd: M.role !== 'client',
+      cals: [{ id: 'instagram', label: 'Instagram', color: 'var(--cal-4)' }, { id: 'facebook', label: 'Facebook', color: 'var(--cal-1)' }, { id: 'tiktok', label: 'TikTok', color: 'var(--cal-6)' }].filter(function (c) { return (M.platforms || ['Instagram', 'Facebook', 'TikTok']).map(function (n) { return n.toLowerCase(); }).indexOf(c.id) >= 0; }),
+      events: this.allPosts().map(function (x) { var T = self.postTone(self.postState(x)), t0 = x.time || '12:30', a0 = t0.split(':'), v = (+a0[0]) * 60 + (+a0[1]) + 90, e0 = ('0' + Math.floor(v / 60)).slice(-2) + ':' + ('0' + (v % 60)).slice(-2); return { id: x.id, date: x.key, start: t0, end: e0, title: x.title, sub: x.plat.charAt(0).toUpperCase() + x.plat.slice(1) + ' · ' + (M.pj ? M.pj.client : ''), cal: x.plat, logo: { d: L[x.plat].d, c: x.plat === 'tiktok' ? '#000' : L[x.plat].c }, tag: [T[0], T[1], T[2]], people: [], open: openPost(x) }; }),
+      open: function (e) { e.open(); }, onAdd: function () { self.planPostSheet(null); }, onSlot: function (d, t) { self.planPostSheet([(+d.slice(5, 7)) + '-' + (+d.slice(8))]); },
+      summaryNote: waitN + ' with the client', onExport: function () { self.say('Exporting the content calendar as a file.'); } };
+    var CALC = this.calView('ccal', calCfg);
+
     /* approvals, files, money, activity */
     var approvals = (M.approvals || []).filter(function (a) { return !s.apDone[a.id]; }).map(function (a) { return Object.assign({ anim: self.anim(s.ra), hasAlt: !!a.altLabel, hasAct: !!a.actLabel, actCls: a.actCls || 'btn' }, a); });
     var F = M.files || [], fp = Math.min(s.fpage, Math.max(0, Math.ceil(F.length / s.fper) - 1));
@@ -3636,6 +3988,7 @@ class Component extends DCLogic {
     var AP = Object.assign(this.pager('pacts', A.length, s.aper, ap, function (k) { self.setState({ apage: k, aa: self.state.aa + 1 }); }, function (n) { self.setState({ aper: n, apage: 0 }); }), { all: function () { self.setState({ aper: 20, apage: 0 }); } });
 
     return Object.assign(this.kit(), this.extraVals(), {
+      CALC: CALC,
       pj: Object.assign({ hasFlag: !!pj.flag }, pj), hasCrumbs: !!M.crumb, crumbHref: M.crumb ? M.crumb.href : '', crumbLabel: M.crumb ? M.crumb.label : '',
       hasPause: !!M.pauseBanner, pause: M.pauseBanner || {}, pauseAct: function () { if (M.pauseBanner) M.pauseBanner.fn(); },
       hasSwitch: !!M.switches, switches: M.switches || [], switchN: (M.switches || []).length || 1, switchI: s.sw,
