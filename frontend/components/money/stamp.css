@@ -56,11 +56,9 @@
    document.css, where the rest of that element is declared. */
 .doc__stamp {
   position: absolute;
-  /* Beside the QR, not on it: the code sits at the foot's right edge (24px in,
-     160px wide), so the stamp stands left of it. */
-  right: calc(24px + 160px + 1.5rem);
-  bottom: 1.25rem;
-  width: clamp(104px, 22vw, 148px);
+  right: clamp(1rem, 5vw, 3rem);
+  bottom: clamp(1rem, 4vw, 2.5rem);
+  width: clamp(104px, 26vw, 168px);
   pointer-events: none;
 }
 
@@ -69,7 +67,8 @@
    point of it is to be seen at a glance, and a phone is where most of these
    are opened. */
 @media (max-width: 620px) {
-  .doc__stamp { width: 108px; right: 1rem; bottom: 1.25rem; }
+  .doc__stamp { width: 108px; right: .75rem; bottom: auto; top: 0; }
+  .doc__foot { padding-top: 2.5rem; }
 }
 
 /* It prints. A stamp that vanishes from the printed copy would be missing

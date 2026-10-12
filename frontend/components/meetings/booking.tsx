@@ -41,9 +41,8 @@ export function BookingForm({ managementToken, booking }: { managementToken?:str
     } catch(e){setError(e instanceof Error?e.message:"Your request could not be completed.");toast("Meeting request needs attention","bad");}finally{setBusy(false);}
   }
   return <><ToastHost/><div className="meetWrap meetPublic">
-    <h1 className="meetH1">{managementToken?"Change your meeting":"Book a meeting with the studio"}</h1>
     <ol className="meetSteps" aria-label="Booking progress">{["Meeting","Date and time","Your details","Review"].map((label,i)=><li key={label} aria-current={step===i?"step":undefined}>{i+1}. {label}</li>)}</ol>
-    {error?<p className="meetError errNote" role="alert"><span>{error} <Link href="/contact">Contact the studio</Link></span></p>:null}
+    {error?<p className="meetError" role="alert">{error} <Link href="/contact">Contact the studio</Link></p>:null}
     {notice&&busy?<p role="status" className="meetHint">{notice}</p>:null}
     {step===0?<section className="meetIntro" aria-labelledby="meetIntroTitle">
       <header className="meetIntroHead">
