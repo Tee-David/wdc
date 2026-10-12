@@ -2155,3 +2155,25 @@ td:has(> .adRowPick) , .ad__pickCell { white-space: nowrap; }
 .ad__scroll > .ad__t :is(th, td):first-child { position: sticky; left: 0; z-index: 1; background: var(--ad-panel); box-shadow: 1px 0 0 var(--ad-line); }
 .ad__scroll > .ad__t thead th:first-child { background: var(--ad-panel-2); z-index: 2; }
 .ad__scroll > .ad__t tbody tr:hover > td:first-child { background: var(--ad-hover); }
+
+/* ------------------------------------------------ phones: the owner's calls (2026-10-12) */
+
+/* ONE FIGURE CARD PER ROW ON A PHONE. Two across squeezed the figure, the label and the note into a column
+   too narrow to read; one across gives each its own line and a figure that can be large. */
+@media (max-width: 560px) {
+  .ad :is(.adFlow__tiles, .adStats, .ad__tiles, .ad__tiles--4, .ad__tiles--5, .adDash__kpis, .pBill__kpis, .rp__kpis),
+  .ad :is(.adPl__tiles, .adPg__tiles) .adStats { grid-template-columns: minmax(0, 1fr); gap: .6rem; }
+  .ad :is(.adFlow__tiles, .adStats) > :last-child:nth-child(odd) { grid-column: auto; }
+}
+
+/* A RAIL SCROLLS SIDEWAYS AND ONLY SIDEWAYS. A box that scrolls on x must not also scroll on y: the browser turns an
+   unset overflow-y into auto, so a focus ring or a shadow a pixel past the edge made the row slide up and down too. */
+.ad :is(.adTabs, .tabs, .ad__tabs, .ad__scroll, .ad__rail, .pv-rail, .adChips, .ad__chipRail, .ad__stageTrack) { overflow-y: hidden; overscroll-behavior-x: contain; }
+.adTabs { padding-bottom: 0; }
+.adTabs__tab { min-height: 3rem; }
+
+/* THE PAGER ON A PHONE wraps rather than being cut off. */
+@media (max-width: 560px) {
+  .ad__pgNav { flex-wrap: wrap; justify-content: center; row-gap: .4rem; }
+  .ad__pgBtn { min-width: 2.75rem; }
+}
