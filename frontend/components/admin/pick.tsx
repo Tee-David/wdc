@@ -106,7 +106,7 @@ export function Popover({ place, pop, className, children, label }: {
 /* ------------------------------------------------------------------ select */
 
 /**
- * A SELECT. Searchable above ten options (AGENTS.md), and wherever the
+ * A SELECT. Searchable from five options (the owner's call, 2026-10-12), and wherever the
  * caller says the list can grow; otherwise a plain list that still takes
  * type-ahead, as a native one does.
  */
@@ -144,7 +144,7 @@ export function Pick({
   const list = useRef<HTMLUListElement>(null);
   const typed = useRef({ s: "", at: 0 });
   const listId = useId();
-  const searchable = search ?? options.length > 10;
+  const searchable = search ?? options.length >= 5;
 
   const all = useMemo(
     () => (placeholder !== undefined && !options.some((o) => o.value === "") ? [{ value: "", label: placeholder }, ...options] : options),
