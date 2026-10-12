@@ -1463,3 +1463,6 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .dpQrRow span:not(.dpStamp){flex:1 1 0;min-width:0}
 .dpQr{flex:none;border:1px solid #c9ccdc;border-radius:8px;padding:4px;background:#fff}
 .dpStamp{flex:none;font:700 15px/1 'Space Grotesk',system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#15803d;border:3px solid #15803d;border-radius:8px;padding:8px 12px;transform:rotate(-8deg)}
+/* One figure card per row on a phone (owner's call, 2026-10-12). */
+@container app (max-width:520px){.tiles{grid-template-columns:minmax(0,1fr)}.tiles .stat:last-child:nth-child(odd){grid-column:auto}}
+@media(max-width:520px){.tiles{grid-template-columns:minmax(0,1fr)}}
