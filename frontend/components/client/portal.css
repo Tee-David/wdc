@@ -364,3 +364,10 @@
 .cpLine li span svg { width: .95rem; height: .95rem; }
 .cpLine li b { overflow-wrap: anywhere; }
 .cpLine li small { color: var(--ad-dim); }
+
+/* Help articles on the support page: each question opens to its answer. */
+.pSup__faq { list-style: none; margin: 0; padding: .5rem 1.25rem 1rem; display: grid; gap: .5rem; }
+.pSup__faq details { border: 1px solid var(--ad-line); border-radius: 14px; background: var(--ad-panel); }
+.pSup__faq summary { min-height: 2.75rem; padding: .7rem 1rem; cursor: pointer; font-weight: 600; list-style-position: inside; }
+.pSup__faq summary:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; border-radius: 14px; }
+.pSup__faq p { margin: 0; padding: 0 1rem 1rem; color: var(--ad-dim); line-height: 1.55; white-space: pre-wrap; }
