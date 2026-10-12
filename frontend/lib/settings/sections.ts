@@ -9,7 +9,7 @@ import type { Area } from "@/lib/admin/permissions";
  * than out of Settings. `area` is who may open it (lib/admin/permissions.ts);
  * a section a role cannot open is not listed for it, and its page refuses.
  */
-export type SettingsIcon = "sliders" | "messages" | "images" | "mail" | "plug" | "history" | "shield" | "users" | "user" | "globe" | "activity" | "lock" | "bell" | "wrench" | "building" | "calendar";
+export type SettingsIcon = "sliders" | "messages" | "images" | "mail" | "plug" | "history" | "shield" | "users" | "user" | "globe" | "activity" | "lock" | "bell" | "wrench" | "building" | "calendar" | "layers" | "list";
 
 export type SettingsSection = {
   href: string;
@@ -27,14 +27,18 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
   { href: "/admin/settings/account", label: "My account", line: "Name, password and devices.", group: "You", icon: "user", area: null, words: "profile password sign in google devices sessions tours" },
   { href: "/admin/settings/general", label: "Studio and invoices", line: "VAT, payment terms and reminders.", group: "Studio", icon: "sliders", area: "settings", words: "vat payment due terms reminders invoices estimates finance defaults" },
   { href: "/admin/settings/business", label: "Business profile", line: "Registered details and social profiles.", group: "Studio", icon: "building", area: "settings", words: "business company legal registered bn cac name motto social linkedin instagram x twitter facebook tiktok youtube behance whatsapp profiles footer" },
+  { href: "/admin/settings/services", label: "Services", line: "What the studio sells and how each is worked.", group: "Studio", icon: "layers", area: "settings", words: "services branding social seo web apps software stages deliverables work types projects" },
+  { href: "/admin/settings/lists", label: "Lists and categories", line: "Tags, expense categories, topics and folders.", group: "Studio", icon: "list", area: "settings", words: "lists categories tags expense blog topics folders files" },
   { href: "/admin/settings/meetings", label: "Meetings", line: "Availability, booking rules and calendar connections.", group: "Studio", icon: "calendar", area: "settings", words: "cal calendar meetings booking schedule time zone availability reminders video google meet" },
   { href: "/admin/settings/notifications", label: "Notifications", line: "What the studio is emailed about.", group: "Studio", icon: "bell", area: "settings", words: "alerts email tickets payments forms entries" },
   { href: "/admin/settings/site", label: "Website and SEO", line: "Search results and indexing.", group: "Studio", icon: "globe", area: "settings", words: "seo search engines google index noindex description" },
   { href: "/admin/settings/maintenance", label: "Maintenance", line: "The holding page and who is waiting.", group: "Studio", icon: "wrench", area: "settings", words: "maintenance holding page offline down 503 back soon template preview notify waitlist reviewer link" },
   { href: "/admin/settings/email", label: "Email", line: "Sender, test send and the log.", group: "Studio", icon: "mail", area: "settings", words: "mail smtp sender from reply test failure alerts message log" },
+  { href: "/admin/users", label: "Team and permissions", line: "Who can sign in and what each role can open.", group: "People", icon: "users", area: "team", words: "users staff invite roles access permissions admin accounts clients invitations" },
+  { href: "/admin/users/departments", label: "Departments", line: "Group the team by what they do.", group: "People", icon: "building", area: "team", words: "departments teams groups branding seo web" },
   { href: "/admin/settings/content", label: "Blog and site copy", line: "Blog defaults, and what is set in code.", group: "Content", icon: "sliders", area: "content", words: "blog posts rss feed topic service default services work case studies legal testimonials copy" },
   { href: "/admin/settings/policies", label: "Policies", line: "Privacy, terms, engagement and the rest.", group: "Content", icon: "sliders", area: "content", words: "legal privacy terms cookie engagement agreement payments refunds hosting policy policies tabs pdf" },
-  { href: "/admin/settings/faq", label: "FAQ", line: "Questions on the site.", group: "Content", icon: "messages", area: "content", words: "questions answers" },
+  { href: "/admin/settings/faq", label: "Help centre", line: "Questions and answers on the site.", group: "Content", icon: "messages", area: "content", words: "questions answers" },
   { href: "/admin/settings/media", label: "Media library", line: "Pictures and files.", group: "Content", icon: "images", area: "content", words: "images pictures uploads files" },
   { href: "/admin/settings/integrations", label: "Integrations", line: "Outside services and their state.", group: "System", icon: "plug", area: "settings", words: "paystack r2 storage database google pagespeed cal whatsapp" },
   { href: "/admin/settings/privacy", label: "Privacy and data", line: "Keep-for rules and requests.", group: "System", icon: "lock", area: "settings", words: "retention erase export requests ndpr gdpr" },

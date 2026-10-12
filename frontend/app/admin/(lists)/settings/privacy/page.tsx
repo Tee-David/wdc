@@ -1,3 +1,4 @@
+import { Head } from "@/components/admin/settings/kit";
 import { adminRole } from "@/lib/admin/guard";
 import { can } from "@/lib/admin/permissions";
 import { getRules, RULES } from "@/lib/privacy/retention";
@@ -60,7 +61,7 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
 
   return (
     <>
-      <div className="ad__head"><div><h1>Privacy and data</h1><p>How long things are kept, and requests about a person.</p></div></div>
+      <Head title="Privacy and data" line="How long things are kept, and requests about a person." />
       <div className="ad__stack">
         <RetentionForm rules={RULES} values={rules} />
 

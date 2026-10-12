@@ -31,6 +31,14 @@ export async function markWorkspaceNotification(_prev:ActionState,fd:FormData):P
   await db.query('UPDATE workspace_notifications SET read_at=COALESCE(read_at,now()) WHERE id=$1 AND user_id=$2',[id,actor.id]);refresh();return OK('Marked read.');
  }catch{return FAIL({},'That notification could not be updated.');}
 }
+export async function markAllWorkspaceNotifications(_prev:ActionState,_fd:FormData):Promise<ActionState> {
+ void _fd;
+ try {
+  const actor=await requireWorkspaceUser(true);
+  const done=await db.query('UPDATE workspace_notifications SET read_at=now() WHERE user_id=$1 AND read_at IS NULL',[actor.id]);
+  refresh();return OK(done.rowCount?`Marked ${done.rowCount} as read.`:'Everything was already read.');
+ }catch{return FAIL({},'Your notifications could not be updated.');}
+}
 /** Only explicit recipient retry. An ambiguous previous send is disclosed, never silently retried. */
 export async function retryWorkspaceNotification(_prev:ActionState,fd:FormData):Promise<ActionState> {
  try {

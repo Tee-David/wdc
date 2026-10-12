@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 import { Loader2 } from "lucide-react";
 import type { ActionState } from "@/lib/admin/validate";
 import { Form, Hidden, useFormErrors, useKept, Wrap } from "@/components/admin/form";
+import { PageHead } from "@/components/admin/page-head";
 /* The kit brings its own styles: it is used outside Settings too (New form), where
    settings.css was not loaded and the "/f/" prefix fell onto its own line. */
 import "./settings.css";
@@ -309,10 +310,5 @@ function ConfirmButton({ children, danger }: { children: React.ReactNode; danger
 
 /** The page's own title and one line, the same on every section. */
 export function Head({ title, line, children }: { title: string; line?: string; children?: React.ReactNode }) {
-  return (
-    <div className="ad__head">
-      <div><h1>{title}</h1>{line ? <p>{line}</p> : null}</div>
-      {children ? <div className="ad__row">{children}</div> : null}
-    </div>
-  );
+  return <PageHead title={title} lede={line} action={children} />;
 }

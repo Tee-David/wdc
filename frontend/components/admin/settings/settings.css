@@ -21,9 +21,6 @@
 .adSet__nav a:hover { background: var(--ad-bg); color: var(--ad-ink); }
 .adSet__nav a[aria-current="page"] { background: var(--ad-nav-on); color: var(--ad-nav-on-ink); font-weight: 600; }
 .dark .adSet__nav a[aria-current="page"] { color: #fff; }
-.adSet__nav a[aria-current="page"]::before {
-  content: ""; position: absolute; left: -.75rem; top: .6rem; bottom: .6rem; width: 4px; border-radius: 0 4px 4px 0; background: var(--ad-accent-fill);
-}
 .adSet__nav a:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
 .adSet__glyph { width: 1.1rem; height: 1.1rem; flex: none; }
 .adSet__nav .adSet__text b { font-weight: inherit; font-size: .92rem; }
@@ -295,3 +292,18 @@ label.adChip input:focus-visible + span { outline: 2px solid var(--ad-accent); o
 .adPriv__at { font-size: .85rem; font-variant-numeric: tabular-nums; }
 /* The lookup is a form, not a list filter, so its label is a field label. */
 .adForms__filters.adPriv__look label { font-size: .86rem; font-weight: 600; color: var(--ad-ink); }
+
+/* Read-only rows on Services and Lists: the row is not a link. */
+.adSet__row--static { cursor: default; }
+.adSet__row--static:hover { background: none; }
+.adSet__row--tight { min-height: 3rem; padding-block: .4rem; grid-template-columns: minmax(0, 1fr) auto; }
+.adSet__end { display: inline-flex; align-items: center; gap: .5rem; flex-wrap: wrap; justify-content: flex-end; }
+.adSet__row--tight a { color: inherit; display: inline-flex; align-items: center; min-height: 2.75rem; min-width: 2.75rem; }
+.adSet__note { margin: 0 0 1rem; padding: .85rem 1rem; border-radius: 14px; background: var(--ad-panel-2); border: 1px solid var(--ad-line-2); color: var(--ad-dim); font-size: .88rem; line-height: 1.5; }
+.adSet__facts { margin: 0; display: grid; border-top: 1px solid var(--ad-line); }
+.adSet__facts > div { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 2fr); gap: 1rem; padding: .75rem 1.25rem; border-bottom: 1px solid var(--ad-line); font-size: .88rem; }
+.adSet__facts > div:last-child { border-bottom: 0; }
+.adSet__facts dt { color: var(--ad-dim); }
+.adSet__facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.adSet__facts a { color: var(--ad-accent-ink); font-weight: 600; }
+@media (max-width: 640px) { .adSet__facts > div { grid-template-columns: minmax(0, 1fr); gap: .15rem; } }

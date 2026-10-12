@@ -1,3 +1,4 @@
+import { Head } from "@/components/admin/settings/kit";
 import Link from "next/link";
 import { Download } from "lucide-react";
 import { adminRole } from "@/lib/admin/guard";
@@ -35,12 +36,9 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
   };
   return (
     <>
-      <div className="ad__head">
-        <div><h1>Audit log</h1><p>Every change, who made it, and what it was before. Times are studio time (UTC+1).</p></div>
-        <div className="ad__row">
-          <a className="ad__btn" href={`/admin/settings/audit/export?${keep()}`}><Download aria-hidden="true" /> Export CSV</a>
-        </div>
-      </div>
+      <Head title="Audit log" line="Every change, who made it, and what it was before. Times are studio time (UTC+1).">
+        <a className="ad__btn" href={`/admin/settings/audit/export?${keep()}`}><Download aria-hidden="true" /> Export CSV</a>
+      </Head>
       <section className="ad__panel" style={{ marginBottom: ".9rem" }}>
         <form className="ad__filterBar" method="get" role="search">
           <label className="ad__filterSearch"><span className="ad__sr">Search</span>

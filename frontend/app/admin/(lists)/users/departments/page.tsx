@@ -1,5 +1,5 @@
-import Link from "next/link";
-import { ArrowLeft, Users } from "lucide-react";
+import { Users } from "lucide-react";
+import { PageHead } from "@/components/admin/page-head";
 import { listDepartments } from "@/lib/departments";
 import { syncStore } from "@/lib/admin/persist";
 import { clientsInDepartment } from "@/lib/admin/store";
@@ -23,14 +23,7 @@ export default async function Departments() {
   await syncStore().catch(() => {});
   return (
     <>
-      <div className="ad__head">
-        <div>
-          <Link href="/admin/users" className="ad__btn ad__btn--plain"><ArrowLeft aria-hidden="true" /> Users</Link>
-          <h1>Departments</h1>
-          <p>Group the team by what they do, and assign clients to the departments that look after them.</p>
-        </div>
-        <AddDepartment />
-      </div>
+      <PageHead crumbs={[{ href: "/admin/users", label: "Users" }]} title="Departments" lede="Group the team by what they do, and assign clients to the departments that look after them." action={<AddDepartment />} />
       {departments.length ? (
         <div className="ad__stack">
           {departments.map((d) => (
