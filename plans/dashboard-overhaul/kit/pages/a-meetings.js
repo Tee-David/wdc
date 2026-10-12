@@ -26,10 +26,10 @@
     var start = m ? { kind: m.kind, who: m.who, date: '2026-10-15', dateT: '11:00' } : { kind: 'Review meeting 1', who: team[0], date: '2026-10-15', dateT: '11:00' };
     this.open(this.sh({ eyebrow: m ? 'Move meeting' : 'New meeting', title: m ? m.client : 'Book a meeting', icon: I.cal, keepOpen: true, body: 'The client gets a Google Meet link and a calendar invite. Handover meetings are recorded.',
       select: !m, listTitle: 'Client', searchPh: 'Search clients by name, contact or email', create: m ? null : this.clientCreate('Add a new client'), list: m ? null : cs.map(function (c) { return { t: c.name, s: c.contact + ' · ' + c.email, ini: c.ini, av: c.tone, ref: c, k: c.phone }; }), selectWhy: 'Choose the client.',
-      form: start, fields: function () { return [{ key: 'date', type: 'datetime', label: 'When', timeLabel: 'Time', required: true, hint: 'Hours are 09:00 to 17:00 on weekdays.' }]; },
+      form: start, fields: function () { return [{ key: 'date', type: 'datetime', label: 'When', timeLabel: 'Time', required: true, hint: 'Any day and time you choose. Outside 09:00 to 17:00 is fine; we check it against the calendar first.' }]; },
       chipSets: [{ key: 'kind', label: 'Which meeting', opts: this.mtKinds() }, { key: 'who', label: 'Who hosts', opts: team }],
       primary: m ? 'Move meeting' : 'Send the invite', secondary: 'Cancel',
-      primaryDis: function (ctx) { var f = ctx.form; if (!m && ctx.pick < 0) return 'Choose the client.'; if (!f.date || f.date <= self.today()) return 'Pick a day after today.'; if (!f.dateT || f.dateT < '09:00' || f.dateT > '17:00') return 'Choose a time between 09:00 and 17:00.'; return ''; },
+      primaryDis: function (ctx) { var f = ctx.form; if (!m && ctx.pick < 0) return 'Choose the client.'; if (!f.date || f.date <= self.today()) return 'Pick a day after today.'; if (!f.dateT) return 'Choose a time.'; return ''; },
       onPrimary: function (ctx) { var f = ctx.form, when = self.fmDate(f.date) + ', ' + f.dateT; if (m) { self.hubPatch(m.id, { when: when, kind: f.kind, who: f.who, st: 'Awaiting client' }); self.say('Updated. ' + m.client + ' is asked to confirm ' + when + '.'); return; } var c = ctx.item.ref; self.hubAdd('mt', { id: 'mn' + Date.now(), name: c.name + ' · ' + f.kind, sub: 'Booked just now', client: c.name, proj: '', kind: f.kind, when: when, who: f.who, st: 'Awaiting client', past: false }); self.say('Saved. The invite for ' + c.name + ' is sent.'); } }));
   }
   fmDate(iso) { return this.fmtDate(iso); }
