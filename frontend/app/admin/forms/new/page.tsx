@@ -1,8 +1,7 @@
-import Link from "next/link";
 import { adminRole } from "@/lib/admin/guard";
 import { can } from "@/lib/admin/permissions";
 import { AdminState } from "@/components/admin/admin-state";
-import { Panel } from "@/components/admin/bits";
+import { PageHead } from "@/components/admin/page-head";
 import { NewFormForm } from "@/components/admin/forms/new-form";
 
 export const metadata = { title: "New form" };
@@ -14,16 +13,11 @@ export default async function NewFormPage() {
   }
   return (
     <>
-      <div className="ad__head">
-        <div>
-          <p className="ad__dim"><Link href="/admin/forms">Forms</Link></p>
-          <h1>New form</h1>
-          <p>Name it and pick its address. You add the questions next.</p>
-        </div>
-      </div>
-      <Panel title="The form">
+      <PageHead title="New form" crumbs={[{ href: "/admin/forms", label: "Forms" }]} lede={<>Name it and pick its address. <strong>You add the questions next.</strong></>} />
+      <section className="adList adNewForm" aria-label="The form">
+        <div className="adList__hd"><h2>The form</h2></div>
         <div className="adSetPad"><NewFormForm /></div>
-      </Panel>
+      </section>
     </>
   );
 }
