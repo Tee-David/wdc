@@ -16,6 +16,7 @@ import {
   LifeBuoy,
   LogOut,
   Mail,
+  MessagesSquare,
   Moon,
   Newspaper,
   PanelLeft,
@@ -82,6 +83,8 @@ const NAV: NavItem[] = [
       { href: "/admin/money/reconciliation", label: "Reconciliation" },
     ],
   },
+  /* Client questions and project channels in one list, for the owner and staff alike; each thread is scoped on the server. */
+  { href: "/admin/messages", label: "Messages", Icon: MessagesSquare, group: "main", tour: "nav-messages" },
   /* The books and the work, filtered and exportable. Owner only, like Money. */
   { href: "/admin/reports", label: "Reports", Icon: ChartColumn, group: "main", tour: "nav-reports" },
   /* Campaigns, the calendar of sends, automations, templates and contacts. */

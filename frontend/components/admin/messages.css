@@ -1,0 +1,87 @@
+/* Messages (app/admin/(lists)/messages): the conversation list beside the open
+   thread. One box sized to the screen; each pane scrolls on its own. Below
+   760px of page width it is one pane: the list, or the thread once one is
+   picked (is-thread), with Back. */
+.adMxBox { container-type: inline-size; min-width: 0; }
+.adMx { display: grid; grid-template-columns: minmax(17rem, 21rem) minmax(0, 1fr); gap: 16px; height: clamp(36rem, calc(100dvh - 12rem), 52rem); min-height: 0; }
+.adMx__list, .adMx__thread { display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; background: var(--ad-panel); border: 1px solid var(--ad-line); border-radius: 20px; box-shadow: var(--ad-sh-1); }
+.adMx__tools { padding: 0 1rem .5rem; }
+.adMx__kinds { padding: 0 1rem .5rem; }
+.adMx__kinds .adChips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+.adMx__rows { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; margin: 0; padding: .25rem .5rem .5rem; list-style: none; border-top: 1px solid var(--ad-line); }
+.adMx__list .ad__pager { border-top: 1px solid var(--ad-line); }
+.adMx__row { position: relative; display: flex; align-items: flex-start; gap: .75rem; min-height: 4.5rem; padding: .7rem .75rem; border-radius: 14px; color: var(--ad-ink); text-decoration: none; transition: background .15s; }
+@media (hover: hover) { .adMx__row:hover { background: var(--ad-hover); } }
+.adMx__row:active { background: var(--ad-panel-2); }
+.adMx__row:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
+.adMx__row.is-on { background: var(--ad-nav-on); color: var(--ad-nav-on-ink); }
+.adMx__row.is-on .adMx__rowSub, .adMx__row.is-on .adMx__rowLast, .adMx__row.is-on time { color: var(--ad-nav-on-ink); }
+.adMx__rowText { flex: 1; min-width: 0; display: grid; gap: .1rem; }
+.adMx__rowTop { display: flex; align-items: baseline; gap: .5rem; min-width: 0; }
+.adMx__rowTop b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .92rem; }
+.adMx__rowTop time { flex: none; font-size: .75rem; color: var(--ad-dim); }
+.adMx__rowSub, .adMx__rowLast { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .8rem; color: var(--ad-dim); }
+.adMx__rowLast { color: var(--ad-ink); opacity: 1; }
+.adMx__row:not(.is-on) .adMx__rowLast { color: var(--ad-dim); }
+.adMx__tag { flex: none; align-self: center; }
+
+.adMx__head { display: flex; align-items: center; gap: .75rem; padding: .9rem 1rem; border-bottom: 1px solid var(--ad-line); min-width: 0; flex-wrap: wrap; }
+.adMx__headText { flex: 1 1 0; min-width: 0; }
+.adMx__headText h2 { margin: 0; font: 700 1.02rem var(--font-space-grotesk), system-ui, sans-serif; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adMx__headText p { margin: .1rem 0 0; font-size: .8rem; color: var(--ad-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adMx__headActs { display: flex; gap: .5rem; flex-wrap: wrap; }
+
+.adMx__headActs .ad__btn { min-height: 2.75rem; }
+.adMx__back { display: none; min-width: 2.75rem; min-height: 2.75rem; padding: 0; justify-content: center; }
+.adMx__ctx { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; padding: .6rem 1rem; border-bottom: 1px solid var(--ad-line); background: var(--ad-panel-2); }
+.adMx__ctx a { display: inline-flex; align-items: center; gap: .4rem; min-height: 2.75rem; padding: 0 .75rem; border-radius: 999px; border: 1px solid var(--ad-line-2); background: var(--ad-panel); color: var(--ad-ink); font-size: .8rem; font-weight: 600; text-decoration: none; min-width: 0; max-width: 100%; }
+.adMx__ctx a svg { width: 1rem; height: 1rem; flex: none; }
+.adMx__ctx a span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (hover: hover) { .adMx__ctx a:hover { border-color: var(--ad-ink); } }
+.adMx__ctx a:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
+
+/* column-reverse keeps the newest message in view without a scroll script. */
+.adMx__body { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; display: flex; flex-direction: column-reverse; }
+.adMx__body:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: -2px; }
+.adMx__body > .adConv { padding: 1rem; }
+.adMx__item { display: grid; gap: .75rem; }
+.adMx__day { display: flex; justify-content: center; margin: .25rem 0 0; }
+.adMx__day span { padding: .2rem .75rem; border-radius: 999px; background: var(--ad-tone-flat); color: var(--ad-on-flat); font-size: .75rem; font-weight: 600; }
+.adMx__vis { font-size: .68rem; }
+
+.adMx__reply { padding: .9rem 1rem 1rem; border-top: 1px solid var(--ad-line); }
+.adMx__reply .ad__dim { margin: 0; }
+.adMx__reply textarea { min-height: 4.5rem; }
+.adMx__hint { margin: 0 0 .5rem; font-size: .8rem; color: var(--ad-dim); }
+.adMx__warn { margin: 0 0 12px; padding: .75rem 1rem; border-radius: 12px; background: var(--ad-tone-warn); color: var(--ad-on-warn); font-size: .88rem; font-weight: 600; }
+
+/* Who sees it: two options, one line (a segmented control on radios). */
+.adMx__seg { display: inline-flex; gap: 4px; padding: 4px; margin: 0 0 .6rem; border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-bg); }
+.adMx__seg legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.adMx__seg label { position: relative; display: inline-flex; }
+.adMx__seg input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.adMx__seg span { display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0 1rem; border-radius: 9px; font-size: .86rem; font-weight: 600; color: var(--ad-dim); transition: background .15s, color .15s; }
+.adMx__seg input:checked + span { background: var(--ad-nav-on); color: var(--ad-nav-on-ink); }
+@media (hover: hover) { .adMx__seg input:not(:checked):hover + span { color: var(--ad-ink); background: var(--ad-hover); } }
+.adMx__seg input:focus-visible + span { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
+
+@container (max-width: 760px) {
+  .adMx { grid-template-columns: minmax(0, 1fr); height: auto; }
+  .adMx.is-list .adMx__thread { display: none; }
+  .adMx.is-thread .adMx__list { display: none; }
+  .adMx__list { max-height: none; }
+  .adMx__rows { overflow: visible; }
+  /* On a phone the thread is the page: it grows and the page scrolls, so the
+     reply box is never squeezed against a fixed height. */
+  .adMx__body { overflow: visible; }
+  .adMx__back { display: inline-flex; }
+}
+@media (prefers-reduced-motion: reduce) { .adMx__row, .adMx__seg span { transition: none; } }
+@container (max-width: 560px) {
+  .adMx__headActs { flex-basis: 100%; }
+  .adMx__headActs > * { flex: 1 1 8rem; min-width: 0; }
+  .adMx__headActs .ad__btn { width: 100%; justify-content: center; }
+  /* The linked records become one sideways row rather than a stack. */
+  .adMx__ctx { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .adMx__ctx > * { flex: none; max-width: 16rem; }
+}

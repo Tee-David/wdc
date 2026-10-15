@@ -287,6 +287,17 @@ export const ADMIN_PAGE_TOURS: Record<string, TourDef> = {
       { id: "table", target: '[data-tour="entries-table"]', icon: "clipboard", title: "The entries", content: "Open any row for the full entry. The pager sits under the table; the owner also gets CSV and Excel at the top." },
     ],
   },
+  "/admin/messages": {
+    id: "admin-page-messages",
+    version: 1,
+    kind: "page",
+    title: "This page: Messages",
+    steps: [
+      { id: "intro", target: "body", placement: "center", icon: "inbox", showEstimate: true, title: "Every conversation in one list", content: "Client questions from the portal and each project's channel, newest first." },
+      { id: "list", target: '[data-tour="messages-list"]', icon: "filter", title: "Find the one you need", content: "Search by name or words, or show only the clients waiting on us. Pick a conversation to open it beside the list." },
+      { id: "thread", target: '[data-tour="messages-thread"]', icon: "inbox", title: "Reply without leaving the page", content: "A reply to a client is emailed and shows in their portal. In a project channel, Team only keeps it inside the studio; the project lead can choose Client sees it." },
+    ],
+  },
   "/admin/reports": {
     id: "admin-page-reports",
     version: 1,
