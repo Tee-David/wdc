@@ -1,0 +1,9 @@
+/* The Money hub (app/admin/(lists)/money): its tabs and parts share one card,
+   and the rail's How people pay list. */
+.adMoney > .adTabs { padding-top: .5rem; }
+.adMoney__part + .adMoney__part { border-top: 1px solid var(--ad-line); }
+.adMoney__part > .ad__filterBar { padding: 0 1.25rem .75rem; }
+.adMoney__part > .ad__listMeta { padding: 0 1.25rem .5rem; }
+.adMoney__methods { margin: 0; padding: 0; list-style: none; display: grid; gap: .75rem; }
+.adMoney__mLine { display: flex; justify-content: space-between; gap: .5rem; font-size: .88rem; margin-bottom: .3rem; }
+.adMoney__none { margin: 0; font-size: .85rem; }
