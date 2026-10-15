@@ -1578,7 +1578,7 @@ export async function replyToTicketAsStudio(_prev: ActionState, fd: FormData): P
   if (!t) return FAIL({}, "That conversation is no longer there.");
   const ticket = db.getTicket(t.ticketId);
   if (ticket) {
-    refresh(`/admin/clients/${ticket.clientId}`, "/admin/clients/support", `/admin/clients/support/${ticket.id}`, "/portal/support", `/portal/support/${ticket.id}`, "/portal");
+    refresh(`/admin/clients/${ticket.clientId}`, "/admin/clients/support", `/admin/clients/support/${ticket.id}`, "/admin/messages", "/portal/support", `/portal/support/${ticket.id}`, "/portal");
     /* The client's copy goes behind the response; the row is written first. */
     const run=await stageSupportReply({ticket,reply:body,author,messageId:t.id,by:author});
     if(typeof run==='function')after(run);
@@ -1597,7 +1597,7 @@ export async function setTicketState(_prev: ActionState, fd: FormData): Promise<
   const t = db.setTicketStatus(str(fd, "id"), status as "Open" | "Answered" | "Closed");
   if (!t) return FAIL({}, "That conversation is no longer there.");
   db.audit({ actor: await actorName(), kind: "client", subjectId: t.clientId, subject: t.subject, action: `set a support question to ${status}` });
-  refresh(`/admin/clients/${t.clientId}`, "/admin/clients/support", `/admin/clients/support/${t.id}`, "/portal/support", `/portal/support/${t.id}`, "/portal");
+  refresh(`/admin/clients/${t.clientId}`, "/admin/clients/support", `/admin/clients/support/${t.id}`, "/admin/messages", "/portal/support", `/portal/support/${t.id}`, "/portal");
   return OK(status === "Closed" ? "Closed." : status === "Open" ? "Reopened." : "Marked answered.");
 }
 

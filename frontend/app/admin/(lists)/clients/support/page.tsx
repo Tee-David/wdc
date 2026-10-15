@@ -88,9 +88,9 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
     body: last && last.from === "client" ? (last.body.length > 170 ? `${last.body.slice(0, 167)}...` : last.body) : "The client is waiting for an answer.",
     facts: [{ k: "From", v: client?.name ?? "Unknown" }, { k: "Company", v: client?.company ?? "Unknown" }, { k: "Last message", v: last ? whenWords(last.at, now) : "None" }],
     why: "The next move is the studio's.",
-    primary: { label: "Reply", href: `/admin/clients/support/${t.id}` },
+    primary: { label: "Reply", href: `/admin/messages?c=t-${t.id}` },
     ...(client ? { secondary: { label: "Open client", href: `/admin/clients/${client.id}` } } : {}),
-    open: `/admin/clients/support/${t.id}`,
+    open: `/admin/messages?c=t-${t.id}`,
   }));
 
   const chips = [
@@ -115,7 +115,7 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
           ]} />
           <RailCard title="Latest questions" aside="Newest first">
             <RailRows empty="Questions clients ask from their portal show here." rows={all.slice().sort((a, b) => b.t.createdAt.localeCompare(a.t.createdAt)).slice(0, 3).map(({ t, client }) => ({
-              key: t.id, title: t.subject, sub: `${client?.company ?? "Unknown client"} · ${whenWords(t.createdAt, now)}`, icon: LifeBuoy, tone: t.status === "Open" ? "warn" as const : "neutral" as const, href: `/admin/clients/support/${t.id}`,
+              key: t.id, title: t.subject, sub: `${client?.company ?? "Unknown client"} · ${whenWords(t.createdAt, now)}`, icon: LifeBuoy, tone: t.status === "Open" ? "warn" as const : "neutral" as const, href: `/admin/messages?c=t-${t.id}`,
               tag: { text: LABEL[t.status], tone: t.status === "Open" ? "warn" as const : t.status === "Answered" ? "good" as const : "flat" as const },
             }))} />
           </RailCard>
@@ -137,10 +137,10 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
                   <thead><tr><th><span className="ad__pickRow"><PickAll label="Select every question" />Question</span></th><th>From</th><th>Status</th><th>Last message</th><th className="num">Messages</th></tr></thead>
                   <tbody>
                     {shown.map(({ t, client, last, count, project }) => (
-                      <ClickRow key={t.id} href={`/admin/clients/support/${t.id}`} label={`${t.subject}, ${client?.company ?? "unknown client"}. ${LABEL[t.status]}. Press Enter to open.`}>
+                      <ClickRow key={t.id} href={`/admin/messages?c=t-${t.id}`} label={`${t.subject}, ${client?.company ?? "unknown client"}. ${LABEL[t.status]}. Press Enter to open.`}>
                         <td>
                           <span className="ad__who"><RowPick id={t.id} label={t.subject} />
-                            <span><Link href={`/admin/clients/support/${t.id}`}><b>{t.subject}</b></Link><small>Opened {dateWords(t.createdAt, now, false)}{project ? ` · ${project.title}` : ""}</small></span></span>
+                            <span><Link href={`/admin/messages?c=t-${t.id}`}><b>{t.subject}</b></Link><small>Opened {dateWords(t.createdAt, now, false)}{project ? ` · ${project.title}` : ""}</small></span></span>
                         </td>
                         <td><b>{client?.name ?? "Unknown"}</b><small style={{ display: "block", color: "var(--ad-dim)" }}>{client?.company ?? ""}</small></td>
                         <td><span className={`ad__pill ${PILL[t.status]}`}>{LABEL[t.status]}</span></td>
