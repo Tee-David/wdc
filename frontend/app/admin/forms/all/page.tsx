@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { ArrowLeft, Download, Columns3 } from "lucide-react";
+import { Download, Columns3 } from "lucide-react";
+import { PageHead } from "@/components/admin/page-head";
 import { can } from "@/lib/admin/permissions";
 import { adminRole } from "@/lib/admin/guard";
 import { COLUMNS, cell, listAll, readColumns } from "@/lib/forms/all-entries";
-import { Empty, Panel, when } from "@/components/admin/bits";
+import { Empty, when } from "@/components/admin/bits";
 import { Pager } from "@/components/admin/pager";
 import { DateRange } from "@/components/admin/date-range";
 import { FilterPick } from "@/components/admin/pick";
@@ -35,22 +36,19 @@ export default async function AllEntries({ searchParams }: { searchParams: Promi
 
   return (
     <>
-      <div className="ad__head">
-        <div>
-          <Link href="/admin/forms" className="ad__btn ad__btn--plain"><ArrowLeft aria-hidden="true" /> Forms</Link>
-          <h1>All entries</h1>
-          <p>Every entry from every form, newest first. Narrow it, choose what to show, take it away as a file.</p>
-        </div>
-        {can(role, "exports") ? (
+      <PageHead title="All entries" crumbs={[{ href: "/admin/forms", label: "Forms" }]}
+        lede={<>Every entry from every form, newest first. <strong>{total} {total === 1 ? "entry" : "entries"}.</strong></>}
+        action={can(role, "exports") ? (
           <div className="ad__row">
             <a className="ad__btn" href={`/admin/forms/all/export?${exportQs}&format=csv`}><Download aria-hidden="true" /> CSV</a>
             <a className="ad__btn" href={`/admin/forms/all/export?${exportQs}&format=xlsx`}><Download aria-hidden="true" /> Excel</a>
           </div>
-        ) : null}
-      </div>
+        ) : undefined} />
 
-      <Panel title="Narrow it down" dataTour="entries-filters">
-        <form method="get" action="/admin/forms/all" className="ad__filters" style={{ padding: ".9rem 1rem" }}>
+      <section className="adList" aria-label="Entries" data-tour="entries-table">
+        <div className="adList__hd"><h2>Entries</h2><span className="adList__n">{total}</span></div>
+        <div data-tour="entries-filters">
+        <form method="get" action="/admin/forms/all" className="ad__filters" style={{ padding: "0 1.25rem .9rem" }}>
           <label className="ad__filterSearch">
             Search
             <input type="search" name="q" defaultValue={f.q} placeholder="A name, email or answer" />
@@ -77,14 +75,11 @@ export default async function AllEntries({ searchParams }: { searchParams: Promi
             {f.q || form || f.from || f.to ? <Link className="ad__btn ad__btn--plain" href="/admin/forms/all">Clear</Link> : null}
           </span>
         </form>
-        <div style={{ padding: "0 1rem 1rem" }}>
+        <div style={{ padding: "0 1.25rem 1rem" }}>
           <DateRange value={{ from: f.from, to: f.to }} keep={keep}
             action="/admin/forms/all" href={(r) => href({ from: r.from, to: r.to, page: undefined })} />
         </div>
-      </Panel>
-
-      <div style={{ marginTop: "1rem" }}>
-        <Panel title={`${total} ${total === 1 ? "entry" : "entries"}`} dataTour="entries-table">
+        </div>
           {rows.length ? (
             <>
               <div className="ad__scroll" data-lenis-prevent>
@@ -112,12 +107,11 @@ export default async function AllEntries({ searchParams }: { searchParams: Promi
                 href={(p) => href({ page: p.page && p.page > 1 ? p.page : undefined, per: p.per ?? f.per })} />
             </>
           ) : (
-            <Empty title={f.q || form || f.from || f.to ? "No entries match" : "No entries yet"}>
+            <Empty title={f.q || form || f.from || f.to ? "No entries match" : "No entries yet"} action={f.q || form || f.from || f.to ? <Link className="ad__btn" href="/admin/forms/all">Clear filters</Link> : <Link className="ad__btn" href="/admin/forms">Open forms</Link>}>
               {f.q || form || f.from || f.to ? "Clear a filter to see more." : "Entries appear here as soon as someone sends a form."}
             </Empty>
           )}
-        </Panel>
-      </div>
+      </section>
     </>
   );
 }
