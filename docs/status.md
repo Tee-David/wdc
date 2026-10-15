@@ -280,3 +280,12 @@ On the new layout: Clients, Client page, Marketing, Blog, Forms, Money, invoice 
 Checked: tsc and eslint on changed files; a crawl of every page reachable from the owner dashboard (253) and the client portal (73) returned 200 with a heading, no error screen and no page errors; a click-through of every control on every design board found no page error and no link to a missing board. The production build (`next build`) compiles and type checks after clearing the stale `.next/dev` types. Not run: the whole Playwright suite; the specs skip without the capture token. The three specs that opened the invoice dialog were edited to open `/admin/money/new`; they have not been run.
 
 Known limits: per-service stage names are not modelled (one six-stage flow); Services and Lists are read-only; bills payable are not tracked, so "We owe" shows client credit and work paid for in advance; scheduled and saved reports would need a migration; Messages (team chat) is not built; Cal.com checks any time chosen for a booking, so a time it will not accept comes back as its own message.
+
+### Messages page — 15 October 2026
+
+`/admin/messages` is built for the owner and staff and sits in the sidebar after Money. One list holds client questions (support tickets) and every project channel the person may read (owner: all live projects; staff: projects they lead or were added to; tickets only for those projects' clients); the open thread sits beside it with its reply box. Chips: All, Waiting on us, Clients, Projects; search covers names, companies and the last message. A ticket reply emails the client as before; a project note is Team only unless the project lead picks Client sees it (checked again on the server). Page tour `admin-page-messages` v1 and a loading skeleton in the same geometry. No migration.
+
+Checked against a local CockroachDB with sample records (not production): tsc and eslint clean; the page at 320, 390, 834 and 1440 in both themes returned 200 with one h1, no horizontal overflow and no undersized controls; an end to end run sent a team note, a client-visible note (tagged Client sees it), a ticket reply (the ticket left Waiting on us) and showed the filtered no-results state, with no page errors. Not checked: a staff account in a browser, real email delivery, the production build.
+
+Not built from the board yet: unread counts, pinning and archiving, direct and group team chats, reactions, presence and attachments. Each needs its own table (a migration) and is the next step if the owner wants them.
+

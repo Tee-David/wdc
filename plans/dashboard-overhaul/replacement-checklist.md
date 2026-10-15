@@ -42,7 +42,7 @@ Every step ends with: `tsc`, eslint, the targeted Playwright specs, overflow and
 | `/admin/money`, `/admin/money/[id]` | `A-Money` | Tabs, Reports tab, bank accounts | Month by month table and New clients added |
 | `/admin/money/reconciliation` | `A-Reconcile` | Statement import and match | Account-level matching rules stay as in live |
 | `/admin/reports` | `A-Money` Reports tab | Folded into Money; keep `/admin/reports` as a redirect | Saved views, schedule, export |
-| Messages (the conversation views) | `A-Messages` | Reply, tags, gallery, multi-recipient | Email marketing link in the ⋮ |
+| Messages (the conversation views) | `A-Messages` | Built at `/admin/messages` (15 Oct): tickets and project channels, reply in place. Tags, gallery, multi-recipient, unread and team chats still to come (need a migration) | Email marketing link in the ⋮ |
 | `/admin/email`, `/email/campaigns/[id]`, `/email/automations/[id]`, `/email/contacts/[id]`, `/email/templates/[kind]` | `A-Email` | Four tabs, one table | Template and automation editors open from the sheet (to design when approved) |
 | `/admin/blog`, `/blog/[id]`, `/blog/work`, `/blog/work/[slug]` | `A-Blog` | Real editor, schedule, search check | Case studies tab: design when approved |
 | `/admin/users`, `/users/[id]`, `/users/departments` | `A-Settings` Team section | Team, Departments, sign in and security, sessions | Per-user page stays a sheet |
