@@ -1,0 +1,11 @@
+/* The invoice record page (app/admin/money/[id]): status tags under the lede,
+   the actions in the head's slot, and the rail's copy and link cards. */
+.adInv__status { display: flex; flex-wrap: wrap; gap: .4rem; margin: .5rem 0 0; }
+.adInv__acts { flex-wrap: wrap; justify-content: flex-end; gap: .5rem; }
+.adInv__acts .ad__btn { min-height: 2.75rem; }
+.adInv__copy { display: grid; justify-items: center; gap: .75rem; text-align: center; }
+.adInv__copy p { margin: 0; font-size: .85rem; }
+.adInv__note { margin: 0; font-size: .85rem; }
+.adInv__links { display: grid; gap: .5rem; }
+.adInv__links .ad__btn { justify-content: flex-start; min-height: 2.75rem; width: 100%; }
+@media (max-width: 640px) { .adInv__acts { justify-content: flex-start; } }
