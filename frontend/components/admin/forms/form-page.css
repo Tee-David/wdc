@@ -1,0 +1,6 @@
+/* One form's page (app/admin/forms/[form]): section tabs under the head, and the rail's public form card. */
+.adFormPg__tabs { margin: 0 0 1rem; }
+.adFormPg__note { margin: 0; font-size: .85rem; }
+.adFormPg__links { display: grid; gap: .5rem; }
+.adFormPg__links .ad__btn { justify-content: flex-start; min-height: 2.75rem; width: 100%; }
+.adList > .adForms__filters, .adList > .adForms__range { padding-inline: 1.25rem; }
