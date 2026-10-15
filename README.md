@@ -77,6 +77,8 @@ Public custom forms reuse SelectField and the lazy searchable PhoneField used by
 `Pager` keeps native disclosure and links with a small `DismissDetails` boundary for outside-pointer and Escape dismissal. Backup/restore design reuses `FileDrop`, `Dialog`, `Panel`, `Pager`, shared row-menu/bulk-bar geometry and pinned scrollable tables; it is an interactive proposal, not a running backup service.
 Paystack mode in Settings › Integrations uses `SettingsForm`, the designed `Select`, `Switch`, and the shared confirmation dialog. Live mode requires explicit acknowledgement and a fresh owner session. Configuration indicators contain no key values; existing checkout references retain their original account when mode changes.
 
+Messages (`/admin/messages`, owner and staff) puts client questions (support tickets) and project channels (`workspace_team_notes`) in one list beside the open thread, using `PageHead`, `Chips`, `UrlSearch`, `Pager`, the `adConv` bubbles and `components/admin/messages.css`. Ticket replies reuse `StudioReply` and `TicketStatusButtons`; a project note uses `ProjectReply`, whose Team only or Client sees it choice is a one-line segmented control (`.adMx__seg`) shown only to the project lead. Below 760px of page width it is one pane with Back.
+
 ### Voice
 
 - Write from the reader's side of the screen, in plain sentences. Say it the way the studio does: clients, projects, invoices, briefs, the portal.
