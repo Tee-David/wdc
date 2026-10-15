@@ -227,7 +227,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
                   {ticket ? <span className={`ad__pill ${PILL[ticket.status]}`}>{LABEL[ticket.status]}</span> : null}
                   {openClient && can(role, "clients") ? <Link href={`/admin/clients/${openClient.id}`}><Building2 aria-hidden="true" /><span>{openClient.company}</span></Link> : null}
                   {open.project ? <Link href={`/admin/projects/${open.project.id}`}><FolderKanban aria-hidden="true" /><span>{open.project.title}</span></Link> : null}
-                  {ticket ? <Link href={`/admin/clients/support/${ticket.id}`}><LifeBuoy aria-hidden="true" /><span>Opened {dateWords(ticket.createdAt, now, false)}</span></Link> : null}
+                  {ticket ? <Link href="/admin/clients/support"><LifeBuoy aria-hidden="true" /><span>Opened {dateWords(ticket.createdAt, now, false)} · All questions</span></Link> : null}
                 </nav>
                 <div className="adMx__body" data-lenis-prevent tabIndex={0} aria-label="Messages, newest at the bottom">
                   {threadError ? <AdminState kind="error" title="This channel did not load" description={threadError} /> : lines.length ? (
