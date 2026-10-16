@@ -308,3 +308,9 @@ Messages: team chats (direct or a named group), unread, pinning and archiving, a
 **Needs the owner:** apply migration `0054_messages.sql` in Settings, System. Until then Messages works as before and says what arrives with it.
 
 Production build (`next build`) at 62031a9 passes: compiled, type checked, 136 pages generated. Not run: the full Playwright suite; the deployed site was not checked.
+
+### Bank statement import on Reconciliation — 16 October 2026
+
+Reconciliation has a Bank statement tab and Import statement in its head. The bank's CSV is read in the browser (Date, Narration, Reference and Credit, or one signed Amount; a preamble above the table is skipped; money out is left out) and shown before anything is saved; the server re-checks every line and a fingerprint makes a second import of the same month add nothing. Each line of money in goes on the deck and waits until it is matched to the invoice it paid (an invoice number in the narration, or the one open invoice owing exactly that amount, is suggested) or set aside with a reason. Matching records a bank transfer on the day it reached the bank, with the receipt, and refuses a currency mismatch. `tests/statement-csv.check.cjs` pins the reader. Checked in a browser against the local database: import, suggested match with its receipt, set aside, and the tab at 320, 390, 834 and 1440 with no overflow.
+
+**Needs the owner:** apply migration `0055_bank_statements.sql` in Settings, System. Until then the tab says so and Import statement is hidden.

@@ -412,12 +412,13 @@ export const ADMIN_PAGE_TOURS: Record<string, TourDef> = {
   },
   "/admin/money/reconciliation": {
     id: "admin-page-reconciliation",
-    version: 1,
+    version: 2,
     kind: "page",
     title: "This page: Reconciliation",
     steps: [
       { id: "intro", target: "body", placement: "center", icon: "shieldCheck", showEstimate: true, title: "Where the books and the bank are asked to agree", content: "Not a sidebar page: reached from a banner on Money, and only when there is genuinely something in it." },
       { id: "attention", target: '[data-tour="recon-attention"]', icon: "flag", title: "Match it, or write it off", content: "Matching banks real money onto an invoice. Writing off records a decision and moves nothing. Kept as two separate buttons so neither happens by accident." },
+      { id: "import", target: '[data-tour="recon-import"]', icon: "clipboard", title: "Transfers straight to the bank", content: "Import the bank's CSV statement. Each line of money in waits on the Bank statement tab until you match it to the invoice it paid, which records the payment and sends the receipt, or set it aside with a reason." },
       { id: "log", target: '[data-tour="recon-log"]', icon: "clipboard", title: "Seeing two rows for one payment is normal", content: "A payment provider?s retry and a payer?s return from checkout often race each other. Both get logged; only one gets banked." },
     ],
   },
