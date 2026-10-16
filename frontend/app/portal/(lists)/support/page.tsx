@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CheckCircle2, LifeBuoy, MessageSquare, Phone, Plus } from "lucide-react";
+import { CheckCircle2, FolderKanban, LifeBuoy, MessageSquare, Phone, Plus } from "lucide-react";
 import { siteFaqs } from "@/lib/site-content";
 import { nowMs, whenWords } from "@/lib/admin/when";
 import { PageHead } from "@/components/admin/page-head";
@@ -59,6 +59,7 @@ export default async function PortalSupport({ searchParams }: { searchParams: Pr
     return `/portal/support${q ? `?${q}` : ""}`;
   };
   const fresh = open.filter((t) => t.status === "Answered").length;
+  const channels = getProjectsFor(client.id).filter((p) => !p.archived).slice(0, 5);
 
   return (
     <>
@@ -78,6 +79,11 @@ export default async function PortalSupport({ searchParams }: { searchParams: Pr
               { key: "call", title: "Book a call", sub: "Pick a time that suits you", icon: Phone, href: "/meet" },
             ]} />
           </RailCard>
+          {channels.length ? (
+            <RailCard title="Your project channels" aside="Your team reads these">
+              <RailRows empty="" rows={channels.map((p) => ({ key: p.id, title: p.title, sub: "Message the people working on it", icon: FolderKanban, href: `/portal/support/project/${p.id}` }))} />
+            </RailCard>
+          ) : null}
           {fresh ? <RailCard title="New replies"><p className="adRc__sub" style={{ whiteSpace: "normal" }}>{fresh} {fresh === 1 ? "conversation has" : "conversations have"} a reply from the studio.</p></RailCard> : null}
         </>}
       >
