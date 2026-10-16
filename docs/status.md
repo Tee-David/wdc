@@ -307,3 +307,4 @@ Messages: team chats (direct or a named group), unread, pinning and archiving, a
 
 **Needs the owner:** apply migration `0054_messages.sql` in Settings, System. Until then Messages works as before and says what arrives with it.
 
+Production build (`next build`) at 62031a9 passes: compiled, type checked, 136 pages generated. Not run: the full Playwright suite; the deployed site was not checked.
