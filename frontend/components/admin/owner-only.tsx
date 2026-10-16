@@ -14,7 +14,7 @@ export default async function AreaGate({ area, children, what }: { area: Area; c
   return (
     <section className="ad__panel" style={{ marginTop: "1rem" }}>
       <AdminState kind="forbidden" title={`${what} is for the owner`}
-        description="Your account can work on clients, projects, forms and the site's content. Ask the owner if you need something from here."
+        description="Your account can work on clients, projects, forms and the site's content. Ask Admin if you need something from here."
         action={<Link className="ad__btn" href="/admin">Back to the dashboard</Link>} />
     </section>
   );
