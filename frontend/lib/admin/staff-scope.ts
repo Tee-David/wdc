@@ -1,6 +1,8 @@
 import "server-only";
 import { db } from "@/lib/db/pool";
-import { getClients, getProjects } from "@/lib/admin/store";
+import { getClients, getDeliverable, getProjects, getTicket } from "@/lib/admin/store";
+import { FAIL, type ActionState } from "@/lib/admin/validate";
+import { adminRole } from "@/lib/admin/guard";
 import { getAdminRequest } from "@/lib/admin/session";
 import type { AdminRole } from "@/lib/admin/permissions";
 
@@ -40,3 +42,22 @@ export async function staffScope(role: AdminRole | null): Promise<StaffScope | n
 
 /** True when the scope allows this record; the owner's null scope allows everything. */
 export const inScope = (scope: StaffScope | null, kind: "projects" | "clients", id: string) => !scope || scope[kind].has(id);
+
+/**
+ * THE WRITE-SIDE CHECK, after allow(): refuses a staff member writing to a
+ * client, project, ticket or deliverable outside their scope. The owner (and
+ * anyone allow() already refused) passes straight through. A record that
+ * cannot be resolved is refused for staff, so a guessed id fails closed.
+ */
+export async function outOfScope(ref: { client?: string; project?: string; ticket?: string; deliverable?: string }): Promise<ActionState | null> {
+  const role = await adminRole();
+  if (role === "owner") return null;
+  const scope = await staffScope(role);
+  if (!scope) return null;
+  const refused = FAIL({}, "This is not one of your clients or projects. Ask Admin to add you to it.");
+  if (ref.client !== undefined && !scope.clients.has(ref.client)) return refused;
+  if (ref.project !== undefined && !scope.projects.has(ref.project)) return refused;
+  if (ref.ticket !== undefined) { const t = getTicket(ref.ticket); if (!t || !scope.clients.has(t.clientId)) return refused; }
+  if (ref.deliverable !== undefined) { const d = getDeliverable(ref.deliverable); if (!d || !scope.projects.has(d.projectId)) return refused; }
+  return null;
+}
