@@ -1,6 +1,7 @@
 export const SUPPORT_COOKIE = "wdc-support-view";
-/** The owner's read-only view of the admin AS an active staff member. Exclusive with SUPPORT_COOKIE. */
+/** The owner working in the admin AS an active staff member (writes allowed, each audited under the owner's name). Exclusive with SUPPORT_COOKIE. */
 export const SUPPORT_STAFF_COOKIE = "wdc-support-staff";
+/** The client view's length. The staff view is not timed: it lasts until Exit or until the owner's own session ends. */
 export const SUPPORT_MINUTES = 15;
 export const SUPPORT_EXIT = "/api/support/exit";
 export const SUPPORT_READ_ONLY = "This is a read-only support view. Exit it before making changes.";
@@ -41,8 +42,10 @@ export function staffPageAllowed(path: string): boolean {
   switch (area) {
     case undefined: return true;
     case "meetings": return s.length === 2;
-    /* The two LISTS only. The editor (/admin/blog/<id>) saves as you type and has nothing to read that the list does not show. */
-    case "blog": return s.length === 2 || (s.length === 3 && a === "work");
+    case "messages": return s.length === 2;
+    case "notifications": return s.length === 2;
+    /* The lists and the editors: staff write posts and case studies, so the owner working as them can too. */
+    case "blog": return s.length === 2 || (s.length === 3 && (a === "work" || record(a))) || (s.length === 4 && a === "work" && record(b));
     case "clients":
       if (s.length === 2) return true;
       if (a === "support") return s.length === 3 || (s.length === 4 && record(b));
@@ -58,12 +61,17 @@ export function staffPageAllowed(path: string): boolean {
   }
 }
 
-/** A scoped portal view never grants mutation authority; a staff view may only READ allow-listed admin pages. */
+/**
+ * A client view never grants mutation authority. A staff view reads AND posts
+ * (server actions post to the page they are on) on the allow-listed staff
+ * pages only; every API route, export and owner page stays refused, and each
+ * write is audited under the owner's name (lib/admin/guard.ts actorName).
+ */
 export function supportRequestAllowed(path: string, method: string, kind: SupportKind = "client"): boolean {
   if (path === SUPPORT_EXIT) return method === "POST";
   if (kind === "both") return false;
+  if (kind === "staff") return (method === "GET" || method === "HEAD" || method === "POST") && staffPageAllowed(path);
   if (method !== "GET" && method !== "HEAD") return false;
-  if (kind === "staff") return staffPageAllowed(path);
   return /^\/portal(?:\/(?:projects|support|meetings)(?:\/[A-Za-z0-9_-]+)?|\/(?:billing|settings))?\/?$/.test(path);
 }
 

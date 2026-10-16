@@ -532,7 +532,7 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
   );
 }
 
-export type ShellSupport = { name: string; expiresAt: string; minutes: number };
+export type ShellSupport = { name: string; actorName: string };
 
 export default function AdminShell({ children, counts = {}, user, role = "owner", support }: { children: ReactNode; counts?: Record<string, number>; user: AdminUser; role?: AdminRole; support?: ShellSupport | null }) {
   return (
@@ -619,7 +619,7 @@ function ShellFrame({ children, counts, user, support }: { children: ReactNode; 
       </aside>
 
       <div className="ad__column">
-        {support ? <div className="ad__stickTop"><SupportBar name={support.name} expiresAt={support.expiresAt} minutes={support.minutes} />{topbar}</div> : topbar}
+        {support ? <div className="ad__stickTop"><SupportBar name={support.name} actorName={support.actorName} />{topbar}</div> : topbar}
         <main className="ad__main">{children}</main>
         <TableScroll />
         <ToastHost />
