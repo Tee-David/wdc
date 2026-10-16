@@ -85,3 +85,9 @@
   .adMx__ctx { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
   .adMx__ctx > * { flex: none; max-width: 16rem; }
 }
+/* Inbox tabs, the unread dot and the notice before migration 0054. */
+.adMx__boxes .adTabs { padding: 0 .75rem; overflow-x: auto; scrollbar-width: none; flex-wrap: nowrap; }
+.adMx__boxes .adTabs__tab { padding-inline: .45rem; font-size: .84rem; flex: none; }
+.adMx__dot { display: inline-block; width: .55rem; height: .55rem; margin-right: .4rem; border-radius: 50%; background: var(--ad-dot, #ff6500); vertical-align: middle; }
+.adMx__row.is-on .adMx__dot { background: var(--ad-nav-on-ink); }
+.adMx__note { margin: 0 0 12px; padding: .75rem 1rem; border-radius: 12px; background: var(--ad-tone-flat); color: var(--ad-on-flat); font-size: .88rem; font-weight: 600; }
