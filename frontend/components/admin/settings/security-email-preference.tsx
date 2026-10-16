@@ -5,6 +5,6 @@ import { SecurityEmailForm } from "./security-email-form";
 export async function SecurityEmailPreference({ userId }: { userId: string }) {
   let enabled = true;
   try { const row = await db.query<{ email_enabled: boolean }>(`SELECT email_enabled FROM user_security_preferences WHERE user_id=$1`, [userId]); enabled = row.rows[0]?.email_enabled ?? true; }
-  catch { return <Panel title="Account-change emails"><p className="adSetPad">This preference needs migration 0036. Ask the owner to apply it in Settings › System.</p></Panel>; }
+  catch { return <Panel title="Account-change emails"><p className="adSetPad">This preference needs migration 0036. Ask Admin to apply it in Settings › System.</p></Panel>; }
   return <Panel title="Account-change emails"><div className="adSetPad"><SecurityEmailForm enabled={enabled} /></div></Panel>;
 }

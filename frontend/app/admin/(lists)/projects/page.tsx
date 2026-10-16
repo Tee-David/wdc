@@ -4,6 +4,7 @@ import { SERVICES } from "@/lib/services";
 import { getBoard, getClients, getInvoices } from "@/lib/admin/store";
 import { HEALTH, STAGES, invoiceStatus, invoiceTotals, naira, type Stage } from "@/lib/admin/types";
 import { adminRole } from "@/lib/admin/guard";
+import { inScope, staffScope } from "@/lib/admin/staff-scope";
 import { can } from "@/lib/admin/permissions";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 import { buildProjectRows, type ProjectRow } from "@/lib/admin/project-signals";
@@ -71,7 +72,9 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
   const needle = String(q.q ?? "").trim().slice(0, 80).toLocaleLowerCase();
   const per = readPer(q.per);
 
-  const all = buildProjectRows({ money });
+  /* Staff see the projects in their scope; the owner sees every one. */
+  const scope = await staffScope(role);
+  const all = buildProjectRows({ money }).filter((r) => inScope(scope, "projects", r.project.id));
   const owners = [...new Set(all.map((r) => r.project.owner).filter(Boolean))].sort();
   const owner = owners.find((o) => o === q.owner);
 
@@ -126,7 +129,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
   ].filter(Boolean).join(", ");
 
   const lede = <>
-    {live.length} live {live.length === 1 ? "project" : "projects"} across {usedServices} {usedServices === 1 ? "service" : "services"}.{" "}
+    {live.length} live {live.length === 1 ? "project" : "projects"} {scope ? "in your work" : <>across {usedServices} {usedServices === 1 ? "service" : "services"}</>}.{" "}
     <strong>{waiting.length ? `${waiting.length} ${waiting.length === 1 ? "waits" : "wait"} on clients.` : "Nobody is waiting on a client."}</strong>
   </>;
 

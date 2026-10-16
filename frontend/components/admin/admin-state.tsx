@@ -29,8 +29,9 @@ export function AdminState({ kind, title, description, action, secondaryAction, 
   if (kind === "forbidden" && !action) {
     const to = back ?? { href: "/admin", label: "Back to the dashboard" };
     action = <Link className="ad__btn" href={to.href}>{to.label}</Link>;
-    if (typeof description === "string" && !/ask the owner/i.test(description)) {
-      description = `${description} Ask the owner if you need something changed here.`;
+    /* Staff and client copy says Admin, never "the owner". */
+    if (typeof description === "string" && !/ask (the owner|admin)/i.test(description)) {
+      description = `${description} Ask Admin if you need something changed here.`;
     }
   }
   return (

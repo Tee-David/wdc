@@ -7,6 +7,7 @@ import { getAdminRequest } from "@/lib/admin/session";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 import { db } from "@/lib/db/pool";
 import { requireProjectActor } from "@/lib/workspace/access";
+import { inScope, staffScope } from "@/lib/admin/staff-scope";
 import { dateWords, nowMs, whenWords } from "@/lib/admin/when";
 import { initialsOf } from "@/components/admin/focus";
 import { PageHead } from "@/components/admin/page-head";
@@ -46,20 +47,6 @@ function hrefFor(query: Query, patch: Partial<Query>) {
   return `/admin/messages${s ? `?${s}` : ""}`;
 }
 
-/* The projects this person may read: every project for the owner, and for
-   staff the ones they lead or were added to. The thread itself is checked
-   again by requireProjectActor before anything is shown or written. */
-async function readableProjects(role: string, me: string) {
-  const live = getProjects().filter((p) => !p.archived);
-  if (role === "owner") return live;
-  let members = new Set<string>();
-  try {
-    const r = await db.query<{ project_id: string }>("SELECT project_id FROM workspace_project_members WHERE user_id=$1 AND revoked_at IS NULL", [me]);
-    members = new Set(r.rows.map((x) => x.project_id));
-  } catch { /* No membership table means leads only. */ }
-  return live.filter((p) => p.ownerIds?.includes(me) || members.has(p.id));
-}
-
 /**
  * EVERY CONVERSATION IN ONE PLACE: client questions and project channels in
  * one list, the open one beside it with its reply box. Client questions are
@@ -82,7 +69,9 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
   const kind = KINDS.some(([k]) => k === query.kind) ? query.kind ?? "" : "";
   const per = readPer(query.per);
 
-  const projects = await readableProjects(role, me);
+  /* The owner reads every live project; staff read the projects in their scope (lib/admin/staff-scope.ts). */
+  const scope = await staffScope(role);
+  const projects = getProjects().filter((p) => !p.archived && inScope(scope, "projects", p.id));
   const projectIds = projects.map((p) => p.id);
 
   /* Latest note and count per project, two bounded queries. */
@@ -100,10 +89,8 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
     } catch { notesFailed = true; }
   }
 
-  /* Client questions: all of them for anyone with Clients; staff without it see
-     only questions about clients whose projects they work on. */
-  const clientIds = new Set(projects.map((p) => p.clientId));
-  const tickets = getTickets().filter((t) => can(role, "clients") && (role === "owner" || clientIds.has(t.clientId)));
+  /* Client questions: the owner reads all of them; staff read those from clients in their scope. */
+  const tickets = getTickets().filter((t) => can(role, "clients") && inScope(scope, "clients", t.clientId));
 
   const convs: Conv[] = [
     ...tickets.map((t): Conv => {
