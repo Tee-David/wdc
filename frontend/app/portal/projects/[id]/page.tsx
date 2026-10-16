@@ -80,7 +80,8 @@ export default async function PortalProjectDetail({ params, searchParams }: { pa
   const billed = invoices.reduce((n, inv) => n + invoiceTotals(inv).total, 0);
   const paid = invoices.reduce((n, inv) => n + Math.min(inv.paid, invoiceTotals(inv).total), 0);
   const owing = invoices.filter((inv) => invoiceTotals(inv).due > 0).sort((a, b) => a.due.localeCompare(b.due))[0] ?? null;
-  const askHref = `/portal/support?new=1&project=${p.id}&subject=${encodeURIComponent(`About ${p.title}`)}`;
+  /* The project's own channel: the team reads it in Messages and is told at once. */
+  const askHref = `/portal/support/project/${p.id}`;
 
   const asked: Tab = TABS.find((t) => t === query.tab) ?? "overview";
   const tab: Tab = asked === "money" && !canBill ? "overview" : asked;
