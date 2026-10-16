@@ -1,5 +1,6 @@
 "use server";
 
+import { outOfScope } from "./staff-scope";
 import { usersOwner } from "@/lib/users/authorize";
 import { after } from "next/server";
 import { revalidatePath } from "next/cache";
@@ -35,6 +36,8 @@ export async function inviteClient(_prev: ActionState, fd: FormData): Promise<Ac
   persistSoon();
   const refused = await allow("clients");
   if (refused) return refused;
+  /* Staff invite only their own clients (lib/admin/staff-scope.ts). */
+  { const scoped = await outOfScope({ client: str(fd, "clientId") }); if (scoped) return scoped; }
   if (!invitationsConfigured()) return FAIL({}, NOT_CONNECTED);
   const client = getClient(str(fd, "clientId"));
   if (!client || client.archived) return FAIL({}, "That client could not be found, or is archived.");

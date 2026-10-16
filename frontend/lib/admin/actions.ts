@@ -12,6 +12,7 @@ import { invoiceTotals, STAGES, type InvoiceLine, type Method, type Payment } fr
 import { advanceAmount, invoiceMailVerdict, paymentReference, totalOfLines } from "./money-rules";
 import type { Staged } from "@/lib/money-mail";
 import { selectedPaystackMode } from "@/lib/paystack-mode";
+import { outOfScope } from "./staff-scope";
 import { actorName, adminRole, owner, ownerFresh, allow } from "./guard";
 import { can } from "./permissions";
 import { getLoggedById, queueLogged, retryLogged } from "@/lib/message-log";
@@ -160,6 +161,8 @@ export async function updateClient(_prev: ActionState, fd: FormData): Promise<Ac
   persistSoon();
   const refused = await allow("clients");
   if (refused) return refused;
+  /* Staff write only to their own clients and projects (lib/admin/staff-scope.ts). */
+  { const scoped = await outOfScope({ client: str(fd, "id") }); if (scoped) return scoped; }
   const id = str(fd, "id");
   const { errors, draft } = readClient(fd);
   if (Object.keys(errors).length) return FAIL(errors);
@@ -250,6 +253,8 @@ export async function createProject(_prev: ActionState, fd: FormData): Promise<A
   if(clientId==="__new"){if(!str(fd,"newClientCompany"))errors.newClientCompany="A company or a name.";}else if(!db.getClient(clientId))errors.clientId="Choose an existing client.";
   if(!service)errors.service="Pick the service.";if(iconColor&&!isIconColor(iconColor))errors.iconColor="Pick one of the icon colours offered.";
   if(Object.keys(errors).length)return FAIL(errors);
+  /* Staff open projects only for their own clients; a client they create is theirs. */
+  if(clientId!=="__new"){const scoped=await outOfScope({client:clientId});if(scoped)return scoped;}
   let result;
   try{result=await createProjectRecord({project:{clientId,title,service:service!,stage:at,due:isoDate(fd,"due"),owner:str(fd,"owner"),ownerIds:ids(fd,"ownerIds"),channel:channel(fd,"channel")??undefined,budget:can(await adminRole(),"money")?kobo(fd,"budget"):null,scope:str(fd,"scope")||undefined,icon:isProjectIcon(str(fd,"icon"))?str(fd,"icon"):randomProjectIcon(),iconColor:iconColor||undefined},newClient:clientId==="__new"?{name:str(fd,"newClientName")||str(fd,"newClientCompany"),company:str(fd,"newClientCompany"),email:str(fd,"newClientEmail"),phone:str(fd,"newClientPhone"),services:[service!],sector:"",notes:"Created while opening a project."}:undefined});}catch(error){return FAIL({},error instanceof Error?error.message:"Project could not be opened.");}
   if(result.eventIds.length)after(()=>dispatchWorkspaceEvents({eventIds:result.eventIds}));refresh("/admin/projects",`/admin/clients/${result.project.clientId}`);redirect(`/admin/projects/${result.project.id}`);
@@ -775,12 +780,15 @@ export async function assignEntry(_prev: ActionState, fd: FormData): Promise<Act
     if (noProjects) return noProjects;
   }
 
+  /* Staff file an entry only under their own clients (lib/admin/staff-scope.ts); a new client is theirs to create. */
+  if (clientMode === "existing") { const scoped = await outOfScope({ client: str(fd, "clientId") }); if (scoped) return scoped; }
   let client = clientMode === "existing" ? db.getClient(str(fd, "clientId")) : null;
   if (clientMode === "existing" && !client) errors.clientId = "Pick the client.";
   const text = (v: unknown) => (Array.isArray(v) ? v.join(", ") : String(v ?? "")).trim();
   const company = text(entry.answers.company);
   if (clientMode === "new" && !(entry.name || company || entry.email)) errors.clientMode = "This entry has no name or email to make a client from. Pick an existing client.";
 
+  if (projectMode === "existing") { const scoped = await outOfScope({ project: str(fd, "projectId") }); if (scoped) return scoped; }
   const existingProject = projectMode === "existing" ? db.getProject(str(fd, "projectId")) : null;
   if (projectMode === "existing" && !existingProject) errors.projectId = "Pick the project.";
   const [chosenService] = services(fd, "service");
@@ -915,6 +923,8 @@ export async function createDeliverable(_prev: ActionState, fd: FormData): Promi
   persistSoon();
   const refused = await allow("projects");
   if (refused) return refused;
+  /* Staff write only to their own clients and projects (lib/admin/staff-scope.ts). */
+  { const scoped = await outOfScope({ project: str(fd, "projectId") }); if (scoped) return scoped; }
   const errors: Record<string, string> = {};
   const projectId = str(fd, "projectId");
   const name = required(errors, "name", str(fd, "name"), "A name");
@@ -944,6 +954,8 @@ export async function addDeliverableVersion(_prev: ActionState, fd: FormData): P
   persistSoon();
   const refused = await allow("projects");
   if (refused) return refused;
+  /* Staff write only to their own clients and projects (lib/admin/staff-scope.ts). */
+  { const scoped = await outOfScope({ deliverable: str(fd, "id") }); if (scoped) return scoped; }
   const errors: Record<string, string> = {};
   const note = required(errors, "note", str(fd, "note"), "A note saying what changed");
   const files = deliverableFiles(fd, errors);
@@ -976,6 +988,8 @@ export async function moveApproval(_prev: ActionState, fd: FormData): Promise<Ac
   persistSoon();
   const refused = await allow("projects");
   if (refused) return refused;
+  /* Staff write only to their own clients and projects (lib/admin/staff-scope.ts). */
+  { const scoped = await outOfScope({ deliverable: str(fd, "id") }); if (scoped) return scoped; }
   const a = approval(fd, "approval");
   if (!a) return FAIL({ approval: "Pick what happened." });
   const note = str(fd, "note");
@@ -1197,6 +1211,8 @@ export async function logMessage(_prev: ActionState, fd: FormData): Promise<Acti
   persistSoon();
   const refused = await allow("clients");
   if (refused) return refused;
+  /* Staff write only to their own clients and projects (lib/admin/staff-scope.ts). */
+  { const scoped = await outOfScope({ client: str(fd, "clientId") }); if (scoped) return scoped; }
   const clientId = str(fd, "clientId");
   const client = db.getClient(clientId);
   if (!client) return FAIL({}, "That client is no longer there.");
@@ -1569,6 +1585,8 @@ export async function replyToTicketAsStudio(_prev: ActionState, fd: FormData): P
   persistSoon();
   const refused = await allow("clients");
   if (refused) return refused;
+  /* Staff write only to their own clients and projects (lib/admin/staff-scope.ts). */
+  { const scoped = await outOfScope({ ticket: str(fd, "id") }); if (scoped) return scoped; }
   const body = str(fd, "body");
   if (!body) return FAIL({ body: "Type a reply first." });
   /* Signed with the person's name: "Studio" told the client nothing about
@@ -1592,6 +1610,8 @@ export async function setTicketState(_prev: ActionState, fd: FormData): Promise<
   persistSoon();
   const refused = await allow("clients");
   if (refused) return refused;
+  /* Staff write only to their own clients and projects (lib/admin/staff-scope.ts). */
+  { const scoped = await outOfScope({ ticket: str(fd, "id") }); if (scoped) return scoped; }
   const status = str(fd, "status");
   if (!["Open", "Answered", "Closed"].includes(status)) return FAIL({}, "That is not a status.");
   const t = db.setTicketStatus(str(fd, "id"), status as "Open" | "Answered" | "Closed");
