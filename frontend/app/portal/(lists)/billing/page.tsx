@@ -127,7 +127,6 @@ export default async function PortalBilling({ searchParams }: { searchParams: Pr
           <li><span className="pBill__logo">{/* eslint-disable-next-line @next/next/no-img-element -- a 20px vector mark; the optimiser does not serve SVG. */}
           <img src="/payments/flutterwave.svg" alt="" width={20} height={20} /></span><span><b>Flutterwave</b><small>Cards, bank and USSD</small></span></li>
         </ul>
-        <p className="ad__dim pBill__note">No fee to you. Closing a payment halfway is safe: we keep checking and email you the result. An invoice cannot be paid twice.</p>
       </RailCard>
       <RailCard title="Coming up">
         <RailRows empty="Nothing else is due." rows={owing.slice(next ? 1 : 0, 5).map((inv) => ({
