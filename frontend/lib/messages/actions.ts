@@ -5,7 +5,9 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db/pool";
 import { transaction } from "@/lib/db/transaction";
 import { FAIL, OK, type ActionState } from "@/lib/admin/validate";
-import { requireWorkspaceUser, WorkspaceAccessError } from "@/lib/workspace/access";
+import { after } from "next/server";
+import { requireProjectActor, requireWorkspaceUser, projectRecipients, WorkspaceAccessError } from "@/lib/workspace/access";
+import { dispatchWorkspaceEvents, emitWorkspaceEvent, workspaceTransaction } from "@/lib/workspace/events";
 
 const KEY = /^[tpd]-[A-Za-z0-9_-]{1,100}$/;
 const value = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim();
@@ -89,4 +91,29 @@ export async function postTeamMessage(_prev: ActionState, fd: FormData): Promise
   } catch (e) { return FAIL({}, e instanceof WorkspaceAccessError ? e.message : NOT_READY); }
   revalidatePath("/admin/messages");
   return OK("Sent.");
+}
+
+/**
+ * A client writes in their own project's channel. The message is always
+ * visible to the client (it is theirs), lands in the studio's Messages as the
+ * project channel, and tells the project's studio people through the usual
+ * notification pipeline, which each of them can switch off.
+ */
+export async function postClientProjectMessage(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const projectId = value(fd, "projectId"), body = value(fd, "body");
+  if (!body || body.length > 5000) return FAIL({ body: "Write a message first." });
+  try {
+    const actor = await requireProjectActor(projectId, "comment");
+    if (actor.kind !== "client") return FAIL({}, "This box is for clients. Use the studio Messages page.");
+    const recipients = await projectRecipients(projectId, "internal");
+    const id = randomUUID(), eventId = randomUUID();
+    await workspaceTransaction(async (tx) => {
+      await tx.query("INSERT INTO workspace_team_notes(id,project_id,author_id,author_name,visibility,body) VALUES($1,$2,$3,$4,'client',$5)", [id, projectId, actor.id, actor.name, body]);
+      await emitWorkspaceEvent({ id: eventId, projectId, clientId: actor.clientId, kind: "client.message", category: "actions", actorId: actor.id, actorName: actor.name,
+        title: `${actor.name} wrote in ${actor.project.title}`, summary: body.slice(0, 3000), href: `/admin/messages?c=p-${projectId}`, visibility: "internal", recipients }, tx);
+    });
+    after(() => dispatchWorkspaceEvents({ eventIds: [eventId] }));
+  } catch (e) { return FAIL({}, said(e, "The message could not be sent. Reload and try again.")); }
+  revalidatePath("/portal/support"); revalidatePath(`/portal/projects/${projectId}`); revalidatePath("/admin/messages");
+  return OK("Sent. The team is told straight away.");
 }
