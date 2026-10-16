@@ -5,7 +5,7 @@ import { BulkBar, PickAll, RowPick } from "@/components/admin/bulk";
 import { hydrateSettings } from "@/lib/settings/store";
 import {
   creditBalances, financeDefaults, getAging, getClient, getClients, getCollectionRate,
-  getEstimates, getExpenses, getInvoice, getInvoices, getMonthly, getPayments,
+  getEstimates, getExpenses, getInvoice, getInvoices, getMonthly, getPayments, getPayouts,
   getPipeline, getProjects, getSummary, providerAttentionCount,
 } from "@/lib/admin/store";
 import { failedLoggedCount } from "@/lib/message-log";
@@ -16,11 +16,12 @@ import {
 import { Empty, InvoicePill, when } from "@/components/admin/bits";
 import { avTone, initials } from "@/lib/admin/client-mark";
 import { AddExpense, EstimateBuilder, InvoiceBuilder } from "@/components/admin/money-forms";
+import { AddPayout, ApprovePayouts, PayoutMenu } from "@/components/admin/payout-forms";
 import {
   EstimateMenu, ExpenseMenu, InvoiceMenu, PaymentMenu,
 } from "@/components/admin/row-actions";
 import { CashflowChart } from "@/components/admin/cashflow-chart";
-import { AlertTriangle, Clock, CreditCard, FileText, Plus, Wallet } from "lucide-react";
+import { AlertTriangle, Clock, CreditCard, FileText, HandCoins, Plus, Send, Wallet } from "lucide-react";
 import { PageHead } from "@/components/admin/page-head";
 import { ChoresMenu } from "@/components/admin/chores-menu";
 import { MiniBar, RailCard, RailHead, StatTiles, Workbench } from "@/components/admin/workbench";
@@ -104,7 +105,12 @@ export default async function MoneyPage({
   const overdueCount = onBooks.filter((i) => invoiceStatus(i) === "Overdue").length;
   const rebillable = expenses.filter((e) => e.rebillable).reduce((n, e) => n + e.amount, 0);
   const today = lagosToday();
-  const tab = ["invoices", "quotes", "payments", "expenses"].includes(String(query.tab)) ? String(query.tab) : "invoices";
+  const payouts = getPayouts();
+  const readyPayouts = payouts.filter((p) => p.state === "Ready");
+  const owedPayouts = payouts.filter((p) => p.state === "Ready" || p.state === "Approved");
+  const nextPayDay = owedPayouts.map((p) => p.due).sort()[0];
+  const nextPayTotal = owedPayouts.filter((p) => p.due === nextPayDay).reduce((n, p) => n + p.amount, 0);
+  const tab = ["invoices", "quotes", "payments", "payouts", "expenses"].includes(String(query.tab)) ? String(query.tab) : "invoices";
   /* THE DECK: late invoices, money the bank holds that no invoice claims, mail that did not go, and quotes waiting on an answer. */
   const moneyDeck: DeckItem[] = [
     ...onBooks.filter((i) => invoiceStatus(i) === "Overdue").map((i) => ({
@@ -116,6 +122,14 @@ export default async function MoneyPage({
     })),
     ...(unreconciled ? [{ id: "recon", kind: "Money", urgency: "Does not match", tone: "warn" as const, title: `${unreconciled} payment event${unreconciled === 1 ? "" : "s"} the books and the bank do not agree on`, body: "Money the provider reported that no invoice claims, or an event that failed its checks. Collected is wrong until they are matched.", primary: { label: "Open reconciliation", href: "/admin/money/reconciliation" } }] : []),
     ...(failedMail ? [{ id: "mail", kind: "Email", urgency: "Did not go", tone: "warn" as const, title: `${failedMail} message${failedMail === 1 ? "" : "s"} did not go`, body: "Emails the mail server refused or that could not be sent. The client has not seen them.", primary: { label: "Open the message log", href: "/admin/money/reconciliation" } }] : []),
+    ...(readyPayouts.length ? [{
+      id: `payouts-${readyPayouts.map((p) => p.id).join("-")}`, kind: "Payout", urgency: dateWords(readyPayouts.map((p) => p.due).sort()[0], nowMs(), false), tone: "warn" as const,
+      title: `${readyPayouts.length === 1 ? `${readyPayouts[0].who} is` : `${readyPayouts.length} freelancers are`} waiting on ${naira(readyPayouts.reduce((n, p) => n + p.amount, 0))}`,
+      body: readyPayouts.slice(0, 3).map((p) => `${p.who}: ${p.work}`).join(". "),
+      facts: [{ k: "First pay day", v: when(readyPayouts.map((p) => p.due).sort()[0]) }, { k: "Payouts", v: String(readyPayouts.length) }],
+      why: "Approving agrees the amounts before anything leaves the account.",
+      primary: { label: "Review the payouts", href: "/admin/money?tab=payouts&status=Ready#invoice-list" },
+    }] : []),
     ...estimates.filter((e) => estimateState(e) === "Sent").map((e) => ({
       id: `est-${e.id}`, kind: "Quote", urgency: "Waiting", tone: "warn" as const, label: e.number,
       title: `${getClient(e.clientId)?.company ?? "A client"} has not answered ${e.number}`,
@@ -191,6 +205,7 @@ export default async function MoneyPage({
           { label: "Collected", value: nairaShort(s.collected), note: rate === null ? "Nothing invoiced yet" : `${Math.round(rate * 100)}% of ${nairaShort(s.invoiced)} billed`, icon: Wallet, tone: "good", href: "/admin/money?status=Paid#invoice-list" },
           { label: "Outstanding", value: nairaShort(s.outstanding), note: `${openCount} ${openCount === 1 ? "invoice" : "invoices"} open`, icon: Clock, tone: "live", href: "/admin/money?status=Sent#invoice-list" },
           { label: "Overdue", value: nairaShort(s.overdue), note: overdueCount ? `${overdueCount} ${overdueCount === 1 ? "invoice" : "invoices"} late` : "Nothing late", noteTone: overdueCount ? "accent" : undefined, icon: AlertTriangle, tone: s.overdue ? "bad" : "good", href: "/admin/money?status=Overdue#invoice-list" },
+          { label: "Next payout", value: nairaShort(nextPayTotal), note: nextPayDay ? `${when(nextPayDay)}${readyPayouts.length ? `, ${readyPayouts.length} to approve` : ""}` : "Nothing owed", noteTone: readyPayouts.length ? "accent" : undefined, icon: Send, tone: "live", href: "/admin/money?tab=payouts#invoice-list" },
           { label: "Spent", value: nairaShort(s.spend), note: rebillable ? `${nairaShort(rebillable)} can be billed back` : `Net ${nairaShort(s.profit)}`, icon: CreditCard, tone: "brand", href: "/admin/money?tab=expenses#invoice-list" },
         ]} />
       </div>
@@ -204,10 +219,16 @@ export default async function MoneyPage({
         ) : <p className="ad__dim adMoney__none">No payments yet this month. Each method shows here as money arrives.</p>}
       </RailCard>
       <RailCard title="Coming up" aside="Next 14 days">
-        <RailRows empty="Nothing falls due in the next two weeks." rows={soon.map((i) => ({
-          key: i.id, title: getClient(i.clientId)?.company ?? "Client", sub: `${i.number} · ${money(invoiceTotals(i).due, currencyOf(i))}`, icon: FileText, tone: "neutral" as const, href: `/admin/money/${i.id}`,
-          tag: { text: dateWords(i.due, nowMs(), false), tone: "flat" as const },
-        }))} />
+        <RailRows empty="Nothing falls due in the next two weeks." rows={[
+          ...soon.map((i) => ({ at: i.due.slice(0, 10), row: {
+            key: i.id, title: getClient(i.clientId)?.company ?? "Client", sub: `${i.number} · ${money(invoiceTotals(i).due, currencyOf(i))}`, icon: FileText, tone: "neutral" as const, href: `/admin/money/${i.id}`,
+            tag: { text: dateWords(i.due, nowMs(), false), tone: "flat" as const },
+          } })),
+          ...owedPayouts.filter((p) => p.due <= new Date(Date.parse(today) + 14 * 86_400_000).toISOString().slice(0, 10)).slice(0, 3).map((p) => ({ at: p.due, row: {
+            key: p.id, title: `Payout to ${p.who}`, sub: `${p.state === "Ready" ? "Waiting on approval" : "Approved"} · ${naira(p.amount)}`, icon: Send, tone: p.state === "Ready" ? "live" as const : "neutral" as const, href: `/admin/money?tab=payouts#po-${p.id}`,
+            tag: { text: p.due < today ? "Late" : dateWords(p.due, nowMs(), false), tone: p.due < today ? "bad" as const : "flat" as const },
+          } })),
+        ].sort((a, b) => a.at.localeCompare(b.at)).slice(0, 5).map((x) => x.row)} />
       </RailCard>
       {/* HOW OLD THE MONEY IS, which "outstanding" cannot say: the conventional 30-day buckets, each drilling into the invoices behind it. */}
       <RailCard title="Who owes what" aside={owed ? nairaShort(owed) : undefined}>
@@ -288,14 +309,15 @@ export default async function MoneyPage({
         title="Money needing you"
         items={moneyDeck}
         emptyTitle="The money is looked after."
-        emptyBody="Nothing needs you on invoices, quotes or reconciliation."
+        emptyBody="Nothing needs you on invoices, quotes, payouts or reconciliation."
         emptyNext={{ label: "New invoice", href: "/admin/money?tab=invoices" }}
       />
-      <section className="adList adMoney" aria-label="Invoices, quotes, payments and expenses">
+      <section className="adList adMoney" aria-label="Invoices, quotes, payments, payouts and expenses">
       <Tabs label="Money" current={tab} items={[
         { key: "invoices", label: "Invoices", href: "/admin/money?tab=invoices", count: allInvoices.length, tone: overdueCount ? "bad" : undefined },
         { key: "quotes", label: "Quotes", href: "/admin/money?tab=quotes", count: estimates.length },
         { key: "payments", label: "Payments", href: "/admin/money?tab=payments", count: payments.length, tone: unreconciled ? "warn" : undefined },
+        { key: "payouts", label: "Payouts", href: "/admin/money?tab=payouts", count: payouts.length, tone: readyPayouts.length ? "warn" : undefined },
         { key: "expenses", label: "Expenses", href: "/admin/money?tab=expenses", count: expenses.length },
         { key: "reports", label: "Reports", href: "/admin/reports" },
       ]} />
@@ -566,6 +588,56 @@ export default async function MoneyPage({
             )}
           </Part>
             ) : null}
+            {tab === "payouts" ? (() => {
+              const st = ["Ready", "Approved", "Paid", "Cancelled"].includes(statusFilter) ? statusFilter : "";
+              const rows = payouts.filter((p) => !st || p.state === st).filter((p) => !search || `${p.who} ${p.work}`.toLocaleLowerCase().includes(search));
+              const pages = Math.max(1, Math.ceil(rows.length / per));
+              const pg = Math.min(requestedPage, pages);
+              const TONE: Record<string, string> = { Ready: "ad__pill--live", Approved: "ad__pill--flat", Paid: "ad__pill--good", Cancelled: "ad__pill--flat" };
+              return (
+          <Part title="Payouts" id="payouts" action={<span className="ad__row">{readyPayouts.length ? <ApprovePayouts ready={readyPayouts.map((p) => ({ id: p.id, who: p.who, amount: p.amount }))} /> : null}<AddPayout tone={readyPayouts.length ? "plain" : "primary"} /></span>}>
+            {payouts.length ? (
+              <>
+                <div className="adList__pad" style={{ paddingTop: ".25rem" }}>
+                  <Chips label="Show" current={st} items={[
+                    { key: "", label: "All", count: payouts.length, href: queryHref(query, { status: undefined, page: undefined }) },
+                    ...(["Ready", "Approved", "Paid", "Cancelled"] as const).filter((k) => k !== "Cancelled" || payouts.some((p) => p.state === k)).map((k) => ({ key: k, label: k, count: payouts.filter((p) => p.state === k).length, href: queryHref(query, { status: k, page: undefined }) })),
+                  ]} />
+                </div>
+                {rows.length ? (
+                  <>
+                    <div className="ad__scroll" tabIndex={0} role="region" aria-label="Payouts, scrolls sideways" data-lenis-prevent>
+                      <table className="ad__t">
+                        <thead><tr><th>Freelancer</th><th className="num">Amount</th><th>Work</th><th>Status</th><th>Pays</th><th className="ad__rmH"><span className="ad__sr">Actions</span></th></tr></thead>
+                        <tbody>
+                          {rows.slice((pg - 1) * per, pg * per).map((p) => {
+                            const on = p.projectId ? projectById.get(p.projectId) : null;
+                            return (
+                              <tr key={p.id} id={`po-${p.id}`}>
+                                <td><b>{p.who}</b><small className="ad__dim ad__subLine">{on ? <Link href={`/admin/projects/${on.id}`}>{on.title}</Link> : "No project"}</small></td>
+                                <td className="num">{naira(p.amount)}</td>
+                                <td>{p.work}{p.state === "Cancelled" && p.note ? <small className="ad__dim ad__subLine">{p.note}</small> : null}</td>
+                                <td><span className={`ad__pill ${TONE[p.state]}`}>{p.state}</span></td>
+                                <td className="ad__dim">{p.state === "Paid" && p.paidAt ? `Paid ${when(p.paidAt)}` : p.state === "Cancelled" ? "Not paying" : when(p.due)}</td>
+                                <td className="ad__rmC"><PayoutMenu payout={p} /></td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                    <Pager label="Payout pages" total={rows.length} page={pg} per={per} noun={rows.length === 1 ? "payout" : "payouts"} href={(patch) => queryHref(query, { page: patch.page && patch.page > 1 ? String(patch.page) : undefined, per: patch.per ? String(patch.per) : query.per })} />
+                  </>
+                ) : (
+                  <Empty title="Nothing matches" icon={HandCoins} action={<Link className="ad__btn" href="/admin/money?tab=payouts#invoice-list">Show every payout</Link>}>No payout is {st ? st.toLowerCase() : "like that"} right now.</Empty>
+                )}
+              </>
+            ) : (
+              <Empty title="No payouts yet" icon={HandCoins} action={<AddPayout />}>When a freelancer finishes work a client approved, add what they are owed here. Approve it, then mark it paid and the expense is recorded.</Empty>
+            )}
+          </Part>
+              );
+            })() : null}
             {tab === "payments" ? (
           <Part title="Payments received">
             {payments.length ? (
