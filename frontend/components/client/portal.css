@@ -373,3 +373,11 @@
 /* Projects (C-Projects): the switcher across a client's live projects, above the project's head. */
 .pProj__switch { display: inline-flex; max-width: 100%; overflow-x: auto; scrollbar-width: none; margin: 0 0 1rem; }
 .pProj__switch a { min-height: 2.75rem; flex: none; }
+
+/* People at your business: one row per person, the ⋮ on its own touch area. */
+.pPeople { list-style: none; margin: 0; padding: 0 1rem .5rem; display: grid; }
+.pPeople__row { display: flex; align-items: center; gap: .75rem; min-height: 3.5rem; padding: .5rem 0; border-top: 1px solid var(--ad-line); }
+.pPeople__row:first-child { border-top: 0; }
+.pPeople__text { flex: 1; min-width: 0; display: grid; }
+.pPeople__text b, .pPeople__text small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pPeople__text small { color: var(--ad-dim); }
