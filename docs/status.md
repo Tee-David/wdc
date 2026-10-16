@@ -289,3 +289,13 @@ Checked against a local CockroachDB with sample records (not production): tsc an
 
 Not built from the board yet: unread counts, pinning and archiving, direct and group team chats, reactions, presence and attachments. Each needs its own table (a migration) and is the next step if the owner wants them.
 
+### Overhaul, third wave: pages that were still on the old layout — 16 October 2026
+
+Each live page was screenshotted beside its board (the boards rendered locally with a small stand-in for the canvas runtime) and the gaps closed page by page. Now on the new layout: Reconciliation (deck of payments to match, payment and failed-email tabs, pulse rail), the invoice page (record head, figures, lines, payments, client copy, reminders, payment link), Money (lede with this month, tabs inside one card, status chips, one-line rows, rail with How people pay and Coming up), one form's page, one entry, All entries, New form, a user's record page, a campaign (builder first, audience beside sending), a marketing contact, and in the portal Home, Billing (Invoices, Receipts and Quotes tabs as tables on every screen), Settings (section menu and save bar), Projects (opens on the first live project with a switcher) and a conversation (two-pane Messages). The old ticket address redirects to its Messages thread.
+
+Staff now see their own work: Projects, Clients and Messages list only the projects they lead or were added to and the clients in their departments (`lib/admin/staff-scope.ts`), and any other project or client address is refused on the server. Refusals say Admin, never the owner.
+
+Checked against a local CockroachDB with sample records (not production): tsc and eslint on every changed file; each page at 320, 390, 834 and 1440 in both themes returned 200 with no horizontal overflow; screenshots compared with the boards; interaction runs for matching a payment, recording a part payment, sending notes and replies in Messages, and staff scoping (lists and refused addresses). Not checked: the production build, the full Playwright suite, real email and payment providers.
+
+Still open: the messaging upgrade on the boards (team chats, unread, pinning, clients writing in project channels) needs new tables and a migration; staff write actions on out-of-scope records are still guarded by role only, and the search palette is not yet scoped for staff; Payouts on the Money board, bank statement import and "People at your business" in client Settings have no data model yet.
+

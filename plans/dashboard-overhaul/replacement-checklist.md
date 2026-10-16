@@ -1,6 +1,6 @@
 # Replacement checklist: live dashboards to the new design
 
-Status: prototypes are complete for the owner, staff and client roles. Nothing below has been started in the live code. Implementation waits for the owner's approval and then runs with at most two Sonnet agents, model set explicitly.
+Status: prototypes are complete for the owner, staff and client roles. Live implementation: second wave 12 October, third wave 16 October (see docs/status.md); the messaging upgrade is the main open item. Implementation waits for the owner's approval and then runs with at most two Sonnet agents, model set explicitly.
 
 How to read it: each row is a live route or component, the board that shows the new design, what changes, and the check that closes it. Boards are in `plans/dashboard-overhaul/screens/`. The shared kit that built them is in `plans/dashboard-overhaul/kit/`. Tokens and components are in `design-system/`. A newer line in `preferences.md` wins over anything here.
 
