@@ -1,9 +1,10 @@
 import {moneySummary} from "@/lib/money/summary";
 import {currencyOf,money} from "@/lib/money/currency";
 import Link from "next/link";
-import {
-  Banknote, Bell, ChevronRight, FileCheck2, FolderKanban, LifeBuoy, MessageSquare, ReceiptText, Wallet,
-} from "lucide-react";
+import { ChevronRight, FolderKanban, MessageSquare, Wallet } from "lucide-react";
+import { PageHead } from "@/components/admin/page-head";
+import { ChoresMenu } from "@/components/admin/chores-menu";
+import { RailCard, Workbench } from "@/components/admin/workbench";
 import { getPortalRequest } from "@/lib/portal/session";
 import {
   getDeliverablesFor, getInvoices, getProjects, getTicketsFor, getUpdatesFor,
@@ -11,7 +12,7 @@ import {
 import { STAGES, invoiceStatus, invoiceTotals, nairaShort } from "@/lib/admin/types";
 import { SERVICE_BY_SLUG } from "@/lib/services";
 import { projectGlyph, projectTileStyle } from "@/components/client/service-glyph";
-import { Empty, Panel, Tile, when } from "@/components/admin/bits";
+import { Empty, when } from "@/components/admin/bits";
 import "@/components/client/portal.css";
 import "@/components/admin/dashboard.css";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
@@ -79,16 +80,12 @@ export default async function PortalOverview({ searchParams }: { searchParams: P
     const s = invoiceStatus(inv);
     return s === "Overdue" || (s === "Sent" && invoiceTotals(inv).due > 0) || s === "Part paid";
   });
-  const nextDue = outstandingInvoices.map((inv) => inv.due).filter(Boolean).sort()[0] ?? null;
   const answeredTickets = tickets.filter((t) => t.status === "Answered");
   const openTickets = tickets.filter((t) => t.status !== "Closed");
   const attentionCount = awaitingApproval.length + outstandingInvoices.length + answeredTickets.length;
 
   const waitingProjects = new Set(awaitingApproval.map((x) => x.project.id));
 
-  const balance = outstandingInvoices.reduce((n, inv) => n + invoiceTotals(inv).due, 0);
-  const live = projects.filter((p) => p.stage !== "Delivered");
-  const byStage = STAGES.map((s) => [s, live.filter((p) => p.stage === s).length] as const).filter(([, n]) => n);
 
   const updates = projects
     .flatMap((project) => getUpdatesFor(project.id).map((u) => ({ update: u, project })))
@@ -130,114 +127,132 @@ export default async function PortalOverview({ searchParams }: { searchParams: P
     })),
   ];
 
+  /* WHAT WE ARE DOING NEXT, from the records only: each project's next step as
+     the studio wrote it, its due date, and invoices still to pay, soonest first. */
+  const nowIso = new Date().toISOString();
+  const nextRows = [
+    ...projects.filter((p) => p.stage !== "Delivered").flatMap((p) => {
+      const n = nextFor(p.id);
+      const tag = SERVICE_BY_SLUG.get(p.service)?.short ?? p.service;
+      return [
+        ...(n ? [{ key: `n-${p.id}`, title: n, sub: p.title, tag, at: p.due ?? null, href: `/portal/projects/${p.id}` }] : []),
+        ...(p.due ? [{ key: `d-${p.id}`, title: `${p.title} is due`, sub: plainStatus(p.stage, waitingProjects.has(p.id)).text, tag, at: p.due, href: `/portal/projects/${p.id}` }] : []),
+      ];
+    }),
+    ...outstandingInvoices.map((inv) => ({ key: `i-${inv.id}`, title: `${money(invoiceTotals(inv).due, currencyOf(inv))} due on ${inv.number}`, sub: invoiceStatus(inv) === "Overdue" ? "Overdue" : "Pay with Paystack or Flutterwave", tag: "Billing", at: inv.due, href: `/i/${inv.token}` })),
+  ].sort((x, y) => (x.at ?? "9999").localeCompare(y.at ?? "9999"));
+  const nextPer = 5;
+  const billed = invoices.filter((inv) => !inv.voided && inv.status !== "Draft");
+  const billedTotal = billed.reduce((n, inv) => n + invoiceTotals(inv).total, 0);
+  const paidTotal = billed.reduce((n, inv) => n + Math.max(0, invoiceTotals(inv).total - invoiceTotals(inv).due), 0);
+  const paidShare = billedTotal ? Math.min(100, Math.round((paidTotal / billedTotal) * 100)) : 0;
+  const payFirst = outstandingInvoices.slice().sort((a, b) => a.due.localeCompare(b.due))[0];
+  const seesBilling = isPrimaryContact || billingProjectIds.length > 0;
+
+  const rail = (
+    <>
+      {seesBilling ? (
+        <RailCard title="Billing" link={{ href: "/portal/billing", label: "Invoices and receipts" }}>
+          <div className="pBill__ring" data-tour="portal-kpis">
+            <span className="adRing" style={{ "--p": paidShare } as React.CSSProperties} aria-hidden="true"><b>{paidShare}%<small>paid</small></b></span>
+            <span className="pBill__ringText">
+              <b className="ad__num">{nairaShort(paidTotal)}</b>
+              <small>of {nairaShort(billedTotal)} invoiced{projects.length > 1 ? ` across ${projects.length} projects` : ""}</small>
+              {payFirst ? <small className="pBill__ringDue">{moneySummary(outstandingInvoices, (inv) => invoiceTotals(inv).due)} to pay, next due {when(payFirst.due)}</small> : <small>Nothing to pay. Thank you.</small>}
+            </span>
+          </div>
+          {payFirst ? <a className="ad__btn ad__btn--primary pHome__pay" href={`/i/${payFirst.token}`}><Wallet aria-hidden="true" /> Pay {money(invoiceTotals(payFirst).due, currencyOf(payFirst))}</a> : null}
+        </RailCard>
+      ) : null}
+      {isPrimaryContact ? <MeetingsPanel email={session?.user.email ?? client.email} /> : null}
+      <RailCard title="Your projects" link={projects.length ? { href: "/portal/projects", label: "All" } : undefined}>
+        {projects.length ? (
+          <ul className="pHome__projects">
+            {projects.slice(0, 4).map((project) => {
+              const at = STAGES.indexOf(project.stage);
+              const st = plainStatus(project.stage, waitingProjects.has(project.id));
+              return (
+                <li key={project.id}>
+                  <Link href={`/portal/projects/${project.id}`}>
+                    <span className="pHome__pTop"><span className="cpProject__icon" style={projectTileStyle(project)}>{projectGlyph(project)}</span><b>{project.title}</b><span className={`cpStatus${st.you ? " is-you" : ""}`}>{st.text}</span></span>
+                    <span className="cpStages" role="img" aria-label={`Stage ${at + 1} of ${STAGES.length}: ${project.stage}`}>
+                      {STAGES.map((s, i) => <i key={s} className={i < at ? "is-done" : i === at ? "is-now" : undefined} />)}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        ) : finished > 0 ? (
+          <Empty title="Nothing in progress right now" icon={FolderKanban} action={<Link className="ad__btn" href="/portal/projects?show=delivered">See finished projects</Link>}>
+            {finished === 1 ? "Your finished project is" : `Your ${finished} finished projects are`} still here, with everything we handed over.
+          </Empty>
+        ) : (
+          <Empty title="No projects yet" icon={FolderKanban} action={<Link className="ad__btn" href="/meet">Book a call</Link>}>Once we start work together, each project shows here with its stage.</Empty>
+        )}
+      </RailCard>
+      <RailCard title="Recent updates">
+        {updates.length ? (
+          <ol className="cpFeed">
+            {updates.slice(0, 4).map(({ update, project }) => (
+              <li key={update.id}>
+                <span className="cpFeed__dot" aria-hidden="true" />
+                <Link href={`/portal/projects/${project.id}`}><b>{project.title}</b></Link>
+                <small>{update.author} · {when(update.at)}</small>
+                <p>{update.progress}</p>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <p className="ad__dim pBill__note">Progress notes we share with you show here as the work moves.</p>
+        )}
+      </RailCard>
+    </>
+  );
+
   return (
-    <div className="adFlow">
+    <>
       {/* Sent here from a studio link (a CC'd email, a forwarded address). */}
       {fromStudioLink ? (
         <p className="ad__banner" role="status">
           That link is for the studio team. You&rsquo;re signed in as {session?.user?.email ?? client.email}, a client, so here is your own portal instead.
         </p>
       ) : null}
-      <header className="ad__head">
-        <div>
-          <p className="ad__dim">{date}</p>
-          <h1>{attentionCount ? `${greeting}, ${firstName}. ${attentionCount} ${attentionCount === 1 ? "thing is" : "things are"} waiting on you.` : `${greeting}, ${firstName}.`}</h1>
-          <p>{attentionCount ? "Here is what to look at first, then where your projects stand." : "Nothing is waiting on you. Here is where your projects stand."}</p>
-        </div>
-        <div className="ad__row">
-          <Link className="ad__btn" href="/portal/billing"><Wallet aria-hidden="true" /> View billing</Link>
-          <Link className="ad__btn ad__btn--primary" href="/portal/support?new=1"><MessageSquare aria-hidden="true" /> Ask a question</Link>
-        </div>
-      </header>
-
+      <PageHead title={attentionCount ? `${greeting}, ${firstName}. ${attentionCount} ${attentionCount === 1 ? "thing is" : "things are"} waiting on you.` : `${greeting}, ${firstName}.`}
+        lede={<>{date}. {attentionCount ? "Here is what to look at first, then what we are doing next." : <strong>Nothing is waiting on you.</strong>}{openTickets.length ? ` ${openTickets.length} open ${openTickets.length === 1 ? "conversation" : "conversations"}.` : ""}</>}
+        action={<Link className="ad__btn ad__btn--primary" href="/portal/support?new=1"><MessageSquare aria-hidden="true" /> Ask a question</Link>}
+        chores={<ChoresMenu label="home, more" items={[
+          { label: "Billing", href: "/portal/billing", icon: "file" },
+          { label: "Choose what we email you", href: "/portal/settings?s=notifications", icon: "file" },
+        ]} />} />
       {isPrimaryContact ? <PortalExampleNote clientId={client.id} /> : null}
-
-
-
-      <div className="adFlow__grid">
-        <div className="adFlow__main">
-          <div data-tour="portal-attention">
-            <Deck id="portal" title="Waiting on you" items={deckItems}
-              emptyTitle="You are all caught up."
-              emptyBody="Deliverables to review, invoices due and replies to your questions will appear here."
-              emptyNext={{ label: "Open your projects", href: "/portal/projects" }} />
-          </div>
-          <Panel title="Your projects" action={<Link href="/portal/projects">View all projects <ChevronRight aria-hidden="true" /></Link>}>
-            {projects.length ? (
-              <div className="cpProjects">
-                {projects.map((project) => {
-                  const service = SERVICE_BY_SLUG.get(project.service);
-                  const at = STAGES.indexOf(project.stage);
-                  const next = nextFor(project.id);
-                  return (
-                    <Link className="cpProject" href={`/portal/projects/${project.id}`} key={project.id}>
-                      <span className="cpProject__top">
-                        <span className="cpProject__icon" style={projectTileStyle(project)}>{projectGlyph(project)}</span>
-                        {(() => { const st = plainStatus(project.stage, waitingProjects.has(project.id)); return <span className={`cpStatus${st.you ? " is-you" : ""}`}>{st.text}</span>; })()}
-                      </span>
-                      <b className="cpProject__title">{project.title}</b>
-                      <small className="cpProject__meta">{service?.short ?? project.service} · {project.due ? `due ${when(project.due)}` : "date to be agreed"}</small>
-                      <span className="cpStages" role="img" aria-label={`Stage ${at + 1} of ${STAGES.length}: ${project.stage}`}>
-                        {STAGES.map((s, i) => <i key={s} className={i < at ? "is-done" : i === at ? "is-now" : undefined} />)}
-                      </span>
-                      {next ? <small className="cpProject__next"><b>Next:</b> {next}</small> : null}
-                    </Link>
-                  );
-                })}
-              </div>
-            ) : (
-              finished > 0
-                ? <Empty title="Nothing in progress right now" icon={FolderKanban}
-                    action={<Link className="ad__btn" href="/portal/projects?show=delivered">See finished projects</Link>}>
-                    {finished === 1 ? "Your finished project is" : `Your ${finished} finished projects are`} still here, with everything we handed over.
-                  </Empty>
-                : <Empty title="No projects yet" icon={FolderKanban}
-                    action={<Link className="ad__btn" href="/meet">Book a call</Link>}>
-                    Once we start work together, each project shows here with its stage.
-                  </Empty>
-            )}
-          </Panel>
+      <Workbench railLabel="Your account at a glance" rail={rail}>
+        <div data-tour="portal-attention">
+          <Deck id="portal" title="Waiting on you" items={deckItems}
+            emptyTitle="You are all caught up."
+            emptyBody="Work to review, invoices due and replies to your questions will appear here."
+            emptyNext={{ label: "Open your projects", href: "/portal/projects" }} />
         </div>
-
-        <aside className="adFlow__rail" aria-label="Your account at a glance">
-      <dl className="adFlow__tiles" data-tour="portal-kpis">
-        <Tile label="Active projects" href="/portal/projects" value={String(live.length)} icon={FolderKanban}
-          note={byStage.length ? byStage.map(([s, n]) => `${n} ${s.toLowerCase()}`).join(", ") : `${projects.length} delivered`} />
-        <Tile label="Awaiting your review" href="/portal/projects" value={String(awaitingApproval.length)} icon={FileCheck2} iconTone="live"
-          note={awaitingApproval.length ? `${awaitingApproval[0].deliverable.name}${awaitingApproval.length > 1 ? ` and ${awaitingApproval.length - 1} more` : ""}` : "Nothing to look at yet"} />
-        {isPrimaryContact || billingProjectIds.length ? <Tile label="Balance owed" href="/portal/billing" value={nairaShort(balance)} icon={Banknote} iconTone="warn"
-          note={balance ? `${moneySummary(outstandingInvoices,inv=>invoiceTotals(inv).due)}${nextDue ? `, due ${when(nextDue)}` : " across your invoices"}` : "Nothing outstanding"} /> : null}
-        {isPrimaryContact ? <Tile label="Support" href="/portal/support" value={`${openTickets.length} open`} icon={LifeBuoy} iconTone="neutral"
-          note={answeredTickets.length ? `Reply from the studio ${when(answeredTickets[0].updatedAt)}` : openTickets.length ? "Waiting on the studio" : "No open questions"} /> : null}
-      </dl>
-          <Panel title="Recent updates">
-            {updates.length ? (
-              <ol className="cpFeed">
-                {updates.slice(0, 4).map(({ update, project }) => (
-                  <li key={update.id}>
-                    <span className="cpFeed__dot" aria-hidden="true" />
-                    <Link href={`/portal/projects/${project.id}`}><b>{project.title}</b></Link>
-                    <small>{update.author} · {when(update.at)}</small>
-                    <p>{update.progress}</p>
-                  </li>
-                ))}
-              </ol>
-            ) : (
-              <Empty title="No updates yet" icon={FileCheck2}>Progress notes the studio shares with you will show up here.</Empty>
-            )}
-          </Panel>
-
-          {isPrimaryContact ? <MeetingsPanel email={session?.user.email ?? client.email} /> : null}
-
-          <Panel title="Quick actions">
-            <div className="cpQuick">
-              <Link href="/portal/support?new=1"><span className="cpQuick__icon"><MessageSquare aria-hidden="true" /></span>Ask a question<ChevronRight aria-hidden="true" /></Link>
-              <Link href="/portal/billing"><span className="cpQuick__icon"><ReceiptText aria-hidden="true" /></span>Download an invoice<ChevronRight aria-hidden="true" /></Link>
-              <Link href="/portal/settings"><span className="cpQuick__icon"><Bell aria-hidden="true" /></span>Choose what we email you<ChevronRight aria-hidden="true" /></Link>
-            </div>
-          </Panel>
-        </aside>
-      </div>
-    </div>
+        <section className="adList" aria-label="What we are doing next">
+          <div className="adList__hd"><h2>What we are doing next</h2><span className="adList__n">{nextRows.length}</span></div>
+          {nextRows.length ? (
+            <ol className="pHome__next">
+              {nextRows.slice(0, nextPer).map((r) => (
+                <li key={r.key}>
+                  <Link href={r.href}>
+                    <span className="pHome__nText"><b>{r.title}</b><small>{r.sub}</small></span>
+                    <span className="ad__pill ad__pill--brand">{r.tag}</span>
+                    <span className={`pHome__when${r.at && r.at < nowIso ? " is-late" : ""}`}>{r.at ? when(r.at) : "To agree"}</span>
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <Empty title="Nothing scheduled yet" icon={FolderKanban} action={<Link className="ad__btn" href="/portal/support?new=1">Ask a question</Link>}>When we set the next step on a project, it shows here with its date.</Empty>
+          )}
+          {nextRows.length > nextPer ? <p className="pHome__more"><Link href="/portal/projects">See every project <ChevronRight aria-hidden="true" /></Link></p> : null}
+        </section>
+      </Workbench>
+    </>
   );
 }
