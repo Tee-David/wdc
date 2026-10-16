@@ -51,7 +51,7 @@ export const CLIENT_WELCOME: TourDef = {
 
 export const CLIENT_WALKTHROUGH: TourDef = {
   id: "client-walkthrough",
-  version: 7,
+  version: 8,
   kind: "walkthrough",
   title: "The full portal walkthrough",
   steps: [
@@ -77,7 +77,8 @@ export const CLIENT_WALKTHROUGH: TourDef = {
     { id: "nav-support", target: '[data-tour="portal-nav-support"]', href: "/portal/billing", desktopOnly: true, icon: "inbox", interact: { hint: "Click Support to move on" }, title: "Support", content: "Open Support to ask us something." },
     { id: "support", target: '[data-tour="portal-support"]', href: "/portal/support", page: "Support", icon: "inbox", title: "Questions and replies", content: "Start a conversation about anything. We reply here, and you can also reach us by email or on your project's WhatsApp group if we set one up." },
     { id: "nav-settings", target: '[data-tour="portal-nav-settings"]', href: "/portal/support", desktopOnly: true, icon: "settings", interact: { hint: "Click Settings to move on" }, title: "Settings", content: "Open Settings to choose what we email you about." },
-    { id: "notify", target: '[data-tour="portal-notify"]', href: "/portal/settings?s=notifications", page: "Settings", icon: "bell", title: "What we email you about", content: "Switch off the messages you do not want. Receipts for money you have paid always arrive, because they are your record." },
+    { id: "people", target: '[data-tour="portal-people"]', href: "/portal/settings?s=people", page: "Settings", icon: "users", title: "People at your business", content: "Give a colleague their own sign in to your projects, and tick whether they can approve work or see and pay invoices. Change or remove it any time." },
+    { id: "notify", target: '[data-tour="portal-notify"]', href: "/portal/settings?s=notifications", icon: "bell", title: "What we email you about", content: "Switch off the messages you do not want. Receipts for money you have paid always arrive, because they are your record." },
     { id: "signin", target: '[data-tour="portal-signin"]', href: "/portal/settings?s=signin", icon: "shieldCheck", title: "Your password", content: "Change it here. We email you a six-digit code first, so nobody else can change it for you, and we refuse passwords that have leaked elsewhere." },
     { id: "workspace-inbox", target: '[data-tour="workspace-notifications"]', href: "/portal/notifications", page: "Your inbox", icon: "bell", title: "Decisions and replies for you", content: "This is your personal inbox. Open the work to review it, supply a requested item or read an update. Internal team notes are not client updates." },
     { id: "workspace-preferences", target: '[data-tour="workspace-email-preferences"]', href: "/portal/notifications", optional: true, icon: "settings", title: "Choose how we keep you informed", content: "Choose immediate email, a daily or weekly summary, or in-app only. Save changes commits your personal choices." },
