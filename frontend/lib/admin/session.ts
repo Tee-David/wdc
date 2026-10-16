@@ -5,8 +5,8 @@ import { cookies, headers } from "next/headers";
 import { isAdminCapture } from "./capture";
 import { clientSupportCookiePresent, resolveStaffSupportView, staffSupportCookiePresent, supportCookiePresent } from "@/lib/users/support";
 
-/** Present only during the owner's read-only view as a staff member. */
-export type AdminSupport = { actorId: string; actorName: string; expiresAt: string; minutes: number };
+/** Present only while the owner works as a staff member. `actorName` is the real owner, written into every audit line. */
+export type AdminSupport = { actorId: string; actorName: string };
 
 export const getAdminRequest = cache(async () => {
   const requestHeaders = await headers();
@@ -52,7 +52,7 @@ export const getAdminRequest = cache(async () => {
     if (!view || !session) return { capture, support: null as AdminSupport | null, supportUnavailable: true, session: null };
     return {
       capture,
-      support: { actorId: view.actorId, actorName: view.actorName, expiresAt: view.expiresAt, minutes: Math.max(0, Math.ceil((new Date(view.expiresAt).getTime() - Date.now()) / 60_000)) } as AdminSupport | null,
+      support: { actorId: view.actorId, actorName: view.actorName } as AdminSupport | null,
       supportUnavailable: false,
       session: { ...session, user: { ...session.user, id: view.targetId, name: view.name, email: view.email, image: null, role: "staff" } },
     };

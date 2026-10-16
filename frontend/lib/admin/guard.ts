@@ -1,7 +1,8 @@
 import "server-only";
 
-import { supportCookiePresent } from "@/lib/users/support";
+import { readOnlySupportPresent } from "@/lib/users/support";
 import { getAdminRequest } from "./session";
+import { auditStaffViewWrite } from "./staff-view-audit";
 import { can, isAdminRole, type AdminRole, type Area } from "./permissions";
 import { FAIL, type ActionState } from "./validate";
 import { SUPPORT_READ_ONLY } from "@/lib/users/support-policy";
@@ -19,7 +20,7 @@ const REFUSED = "Your session has ended or does not have access to this. Sign in
  */
 export async function owner(): Promise<ActionState | null> {
   try {
-    if (await supportCookiePresent()) return FAIL({}, SUPPORT_READ_ONLY);
+    if (await readOnlySupportPresent()) return FAIL({}, SUPPORT_READ_ONLY);
     const { session } = await getAdminRequest();
     const role = (session?.user as { role?: string } | undefined)?.role;
     if (session?.user && role === "owner") return null;
@@ -48,11 +49,16 @@ export async function ownerFresh(): Promise<ActionState | null> {
   return { ...FAIL({}, "For a refund, reversal or void, sign in again first. Your session is older than 15 minutes. Nothing you typed is lost."), signIn: true };
 }
 
-/** The name to write against a change: the signed-in person, never a form field. */
+/**
+ * The name to write against a change: the signed-in person, never a form
+ * field. In the owner's staff view it is both, "Owner (as Staff)", so the
+ * audit log says who really did it.
+ */
 export async function actorName(): Promise<string> {
   try {
-    const { session } = await getAdminRequest();
-    return session?.user?.name?.trim() || session?.user?.email || "Studio";
+    const { session, support } = await getAdminRequest();
+    const name = session?.user?.name?.trim() || session?.user?.email || "Studio";
+    return support ? `${support.actorName} (as ${name})` : name;
   } catch {
     return "Studio";
   }
@@ -64,7 +70,7 @@ export async function adminRole(): Promise<AdminRole | null> {
     /* No support check here on purpose: this answers "what may this person SEE",
        and in the owner's staff view that is "staff" (getAdminRequest swaps the
        identity; a client view or an unverifiable one comes back with no
-       session, so null). WRITES are refused in allow() and owner() below. */
+       session, so null). The client view's writes are refused in allow() and owner() below. */
     const { session } = await getAdminRequest();
     const role = (session?.user as { role?: string } | undefined)?.role;
     return session?.user && isAdminRole(role) ? role : null;
@@ -79,8 +85,12 @@ export async function adminRole(): Promise<AdminRole | null> {
  * so a refused request learns nothing about which rule stopped it.
  */
 export async function allow(area: Area): Promise<ActionState | null> {
-  /* A support view reads; it never writes. The proxy already refuses the POST,
-     and this is the second lock for a path that gets past it. */
-  if (await supportCookiePresent()) return FAIL({}, SUPPORT_READ_ONLY);
-  return can(await adminRole(), area) ? null : { ...FAIL({}, REFUSED), signIn: true };
+  /* The client view reads; it never writes. The owner's staff view writes as
+     the staff member (role "staff", so can() below decides), audited under the
+     owner by actorName(). The proxy is the first lock; this is the second. */
+  if (await readOnlySupportPresent()) return FAIL({}, SUPPORT_READ_ONLY);
+  if (!can(await adminRole(), area)) return { ...FAIL({}, REFUSED), signIn: true };
+  const { session, support } = await getAdminRequest();
+  if (support && session?.user) await auditStaffViewWrite(support.actorName, session.user.id, session.user.name ?? "Staff");
+  return null;
 }

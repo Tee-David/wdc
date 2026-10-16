@@ -11,7 +11,8 @@ import {
 } from "../lib/users/support-policy";
 
 /**
- * The read-only support views, pure: no browser, no database. The proxy
+ * The support views, pure: no browser, no database. The client view is
+ * read-only; the staff view reads and posts on staff pages only. The proxy
  * decides from cookie NAMES and these functions alone, so this is the lock
  * that has to hold even if a layout, a guard or a page forgets.
  */
@@ -20,24 +21,31 @@ const METHODS = ["POST", "PUT", "PATCH", "DELETE", "OPTIONS", "TRACE", "CONNECT"
 const STAFF_PAGES = [
   "/admin", "/admin/", "/admin/clients", "/admin/clients/", "/admin/clients/c1", "/admin/clients/support", "/admin/clients/support/t_1",
   "/admin/projects", "/admin/projects/p-9", "/admin/forms", "/admin/forms/all", "/admin/forms/contact", "/admin/forms/onboarding-web/entries/abc123",
-  "/admin/meetings", "/admin/blog", "/admin/blog/work",
+  "/admin/meetings", "/admin/blog", "/admin/blog/work", "/admin/blog/p1", "/admin/blog/work/slug", "/admin/messages", "/admin/notifications",
 ];
 const REFUSED_FOR_STAFF = [
   "/admin/settings", "/admin/settings/team", "/admin/settings/system", "/admin/users", "/admin/users/u1", "/admin/users/departments",
   "/admin/email", "/admin/email/contacts/export", "/admin/email/campaigns/x", "/admin/money", "/admin/money/export", "/admin/money/i1", "/admin/reports", "/admin/reports/export",
-  "/admin/clients/export", "/admin/projects/export", "/admin/blog/p1", "/admin/blog/work/slug", "/admin/blog/work/x/y", "/admin/blog/export", "/admin/forms/export", "/admin/forms/all/export", "/admin/forms/contact/export",
+  "/admin/clients/export", "/admin/projects/export", "/admin/blog/work/x/y", "/admin/blog/export", "/admin/forms/export", "/admin/forms/all/export", "/admin/forms/contact/export",
   "/admin/forms/contact/entries/abc/pdf", "/admin/forms/new", "/admin/welcome", "/admin/settings/audit/export",
   "/api/admin/users/export", "/api/auth/sign-out", "/api/tours", "/api/meetings", "/api/support/exit/x", "/portal", "/portal/billing", "/login", "/", "/signed-in",
   "/administrator", "/admin.json", "/adminx/clients",
 ];
 
-test("any method other than GET/HEAD is refused in every view, except Exit", () => {
-  for (const kind of ["client", "staff", "both"] as const) {
+test("the client view and a tampered view refuse every method other than GET/HEAD, except Exit", () => {
+  for (const kind of ["client", "both"] as const) {
     for (const method of METHODS) {
       for (const path of [...STAFF_PAGES, "/portal", "/portal/billing", SUPPORT_EXIT + "/", "/api/anything"]) {
         expect(supportRequestAllowed(path, method, kind), `${kind} ${method} ${path}`).toBe(false);
       }
     }
+  }
+});
+
+test("the staff view posts on staff pages only, and never on an API route, an export or an owner page", () => {
+  for (const method of METHODS) {
+    for (const path of STAFF_PAGES) expect(supportRequestAllowed(path, method, "staff"), `${method} ${path}`).toBe(method === "POST");
+    for (const path of [...REFUSED_FOR_STAFF, SUPPORT_EXIT + "/", "/api/anything"]) expect(supportRequestAllowed(path, method, "staff"), `${method} ${path}`).toBe(false);
   }
 });
 
