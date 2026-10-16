@@ -369,3 +369,7 @@
 .pHome__pTop { display: flex; align-items: center; gap: .6rem; min-width: 0; }
 .pHome__pTop b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .9rem; }
 @media (max-width: 480px) { .pHome__next .ad__pill { display: none; } }
+
+/* Projects (C-Projects): the switcher across a client's live projects, above the project's head. */
+.pProj__switch { display: inline-flex; max-width: 100%; overflow-x: auto; scrollbar-width: none; margin: 0 0 1rem; }
+.pProj__switch a { min-height: 2.75rem; flex: none; }

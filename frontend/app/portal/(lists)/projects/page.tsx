@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { PageHead } from "@/components/admin/page-head";
 import { Tabs } from "@/components/admin/tabs";
@@ -35,6 +36,10 @@ export default async function PortalProjects({ searchParams }: { searchParams: P
   const isDone = (p: (typeof all)[number]) => p.archived || p.stage === "Delivered";
   const active = all.filter((p) => !isDone(p));
   const delivered = all.filter(isDone);
+  /* As C-Projects draws it, Projects opens on the work itself: the first live
+     project, with a switcher across the rest on its page. The list stays for
+     finished work, a search, or "All projects" from that switcher. */
+  if (!show && !sp.q && !sp.page && active.length) redirect(`/portal/projects/${active[0].id}`);
   const tab = show === "delivered" ? "delivered" : "active";
   const needle = String(sp.q ?? "").trim().slice(0, 80).toLocaleLowerCase();
   const matching = (tab === "delivered" ? delivered : active).filter((p) => !needle || `${p.title} ${p.owner}`.toLocaleLowerCase().includes(needle));
