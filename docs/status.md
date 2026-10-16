@@ -299,3 +299,11 @@ Checked against a local CockroachDB with sample records (not production): tsc an
 
 Still open: the messaging upgrade on the boards (team chats, unread, pinning, clients writing in project channels) needs new tables and a migration; staff write actions on out-of-scope records are still guarded by role only, and the search palette is not yet scoped for staff; Payouts on the Money board, bank statement import and "People at your business" in client Settings have no data model yet.
 
+### Working as staff, and the messaging upgrade — 16 October 2026
+
+Working as staff (owner's call): the owner's staff view is no longer read-only, timed or reason-gated. Writes go through as the staff member on the pages staff can open; the client view stays read-only, and the staff member's own password, sign-in and settings stay off. The view lasts until Back to my account or the owner's own session ends. The audit log records "started working as staff", one line per change with the page it came from, and "stopped working as staff", and each change's own line names the owner (as the staff member). Policy spec (11) and the support check pass; checked in a browser against the local database.
+
+Messages: team chats (direct or a named group), unread, pinning and archiving, and clients writing in their project channels (shown to them with only what is shared; their messages reach the studio tagged Client sees it and notify the project team). Checked end to end in a browser: start a chat, unread for the other person, reply, pin, archive, client channel message and its notice.
+
+**Needs the owner:** apply migration `0054_messages.sql` in Settings, System. Until then Messages works as before and says what arrives with it.
+
