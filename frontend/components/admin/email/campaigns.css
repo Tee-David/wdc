@@ -54,3 +54,8 @@
   .adCp__rate i b, .adCp__bar > i b { animation: adCp-grow .7s cubic-bezier(.2, .7, .2, 1) backwards; }
   @keyframes adCp-grow { from { transform: scaleX(0); } }
 }
+
+/* Campaign page on the Flow layout: the builder first and full width, then who gets it beside sending it. */
+.adCp__draft { display: grid; gap: 1.25rem; min-width: 0; }
+.adCp__pair { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); align-items: start; }
+.adCp__line { margin: 0; font-size: .88rem; }
