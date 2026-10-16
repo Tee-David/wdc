@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import PageTourButton from "@/components/admin/tour/page-tour-button";
 import { r2PublicBase } from "@/lib/r2";
 import { answerText, type Answers, type FileAnswer } from "@/lib/forms/custom-def";
 import { versionDef } from "@/lib/forms/custom";
@@ -17,7 +16,20 @@ import ColourRolesNote from "@/components/onboarding/colour-roles-note";
 import { answeredCount, clientFor, entryIds, getEntry, markRead, readFilters, type Entry } from "@/lib/forms/entries";
 import { eventsFor, type EntryEvent } from "@/lib/forms/events";
 import { listForRecord } from "@/lib/message-log";
-import { Empty, Panel, when } from "@/components/admin/bits";
+import { Empty, when } from "@/components/admin/bits";
+import { PageHead } from "@/components/admin/page-head";
+import { RailCard, Workbench } from "@/components/admin/workbench";
+import { initialsOf } from "@/components/admin/focus";
+
+/** A card in this page's work column, in the Flow list-card look: a heading row and what it holds. */
+function Panel({ title, action, children, dataTour }: { title: string; action?: React.ReactNode; children: React.ReactNode; dataTour?: string }) {
+  return (
+    <section className="adList adEntry__card" aria-label={title} data-tour={dataTour}>
+      <div className="adList__hd"><h2>{title}</h2><span className="adList__sp" />{action}</div>
+      {children}
+    </section>
+  );
+}
 import { AddNote, EntryState, ResendEmail } from "@/components/admin/forms/entry-actions";
 import { NOTIFICATIONS } from "@/lib/forms/settings";
 import { adminRole } from "@/lib/admin/guard";
@@ -229,20 +241,14 @@ export default async function EntryPage({ params, searchParams }: Props) {
 
   return (
     <>
-      <div className="ad__head">
-        <div>
-          <p className="ad__dim">
-            <Link href="/admin/forms">Forms</Link> / <Link href={`/admin/forms/${form.key}${listQuery ? `?${listQuery}` : ""}`}>{form.title}</Link>
-          </p>
-          <h1>{who(form, entry)}</h1>
-          <p>
-            {entry.serial ? `${form.noun} #${entry.serial} · ` : ""}
-            {form.service ? `${SERVICES.find((s) => s.slug === form.service)?.short} · ` : ""}
-            {entry.draft ? `Draft, last saved ${time(entry.at)}` : `Received ${time(entry.at)}`}
-          </p>
-        </div>
-        <div className="ad__row adForms__noPrint adEntryHeadActions">
-          <PageTourButton />
+      <PageHead title={who(form, entry)} mark={initialsOf({ name: who(form, entry) }, "client")} markTone="live"
+        crumbs={[{ href: "/admin/forms", label: "Forms" }, { href: `/admin/forms/${form.key}${listQuery ? `?${listQuery}` : ""}`, label: form.title }]}
+        lede={<>
+          {entry.serial ? `${form.noun} #${entry.serial} · ` : ""}
+          {form.service ? `${SERVICES.find((s) => s.slug === form.service)?.short} · ` : ""}
+          <strong>{entry.draft ? `Draft, last saved ${time(entry.at)}` : `Received ${time(entry.at)}`}</strong>
+        </>}
+        action={<div className="ad__row adForms__noPrint adEntryHeadActions">
           {/* BOTH, ALWAYS, with where this one sits: a button that vanishes at
               the end of the list reads as a missing feature, not an end. */}
           {ids.length > 1 ? (
@@ -266,44 +272,16 @@ export default async function EntryPage({ params, searchParams }: Props) {
           {form.source === "contact" ? (
             <a className="ad__btn ad__btn--primary" href={`mailto:${entry.email}?subject=${encodeURIComponent(`Re: ${entry.topic ?? "your enquiry"}`)}`}>Reply by email</a>
           ) : null}
-        </div>
-      </div>
-
+        </div>}>
       {form.inbox ? (
-        <div style={{ marginBottom: ".9rem" }}>
+        <div className="adEntry__state">
           <EntryState formKey={form.key} id={entry.id} read={true} starred={entry.starred} box={entry.box} />
         </div>
       ) : null}
+      </PageHead>
 
-      <div className="adForms__entry">
-        <div className="ad__stack">
-          <StudioNote form={form} entry={entry} />
-          <div data-tour="entry-answers"><Answers form={form} entry={entry} hideEmpty={sp.hide === "1"} /></div>
-          {/* After the answers, not before: the brief is the thing to read,
-              and the files are what it refers to. */}
-          <EntryAttachments files={files} />
-
-          {form.inbox ? (
-            <Panel title="History" dataTour="entry-history">
-              <AddNote formKey={form.key} id={entry.id} />
-              {events.length ? (
-                <ol className="adForms__timeline">
-                  {events.map((e) => (
-                    <li key={e.id}>
-                      <span><b>{KIND[e.kind]}</b> · {e.body}</span>
-                      <small>{e.actor} · {time(e.at)}</small>
-                    </li>
-                  ))}
-                </ol>
-              ) : (
-                <Empty title="Nothing has happened here yet">Notes, changes and emails about this entry are kept here.</Empty>
-              )}
-            </Panel>
-          ) : null}
-        </div>
-
-        <div className="ad__stack">
-          <Panel title="Details">
+      <Workbench railLabel="About this entry" rail={<>
+          <RailCard title="Details">
             <dl className="adForms__dl">
               {entry.serial ? <div><dt>Number</dt><dd>{form.noun} #{entry.serial}</dd></div> : null}
               <div><dt>{form.source === "newsletter" ? "Subscribed" : "Received"}</dt><dd>{time(entry.at)}</dd></div>
@@ -332,10 +310,10 @@ export default async function EntryPage({ params, searchParams }: Props) {
               {project ? <div><dt>Project</dt><dd><Link href={`/admin/projects/${project.id}`}>{project.title}</Link></dd></div> : null}
               <div><dt>Entry id</dt><dd className="ad__dim" style={{ fontSize: ".78rem" }}>{entry.id}</dd></div>
             </dl>
-          </Panel>
+          </RailCard>
 
           {form.source !== "newsletter" ? (
-            <Panel title="Emails about this entry" dataTour="entry-emails">
+            <RailCard title="Emails about this entry"><div data-tour="entry-emails">
               {mayResend ? <ResendEmail formKey={form.key} id={entry.id} notifications={NOTIFICATIONS[form.source].map((n) => ({ key: n.key, name: n.name }))} /> : null}
               {messages.length ? (
                 <ol className="adForms__timeline">
@@ -353,10 +331,34 @@ export default async function EntryPage({ params, searchParams }: Props) {
               ) : (
                 <Empty title="No emails yet">The confirmation and the studio&apos;s notice for this entry appear here once they send.</Empty>
               )}
+            </div></RailCard>
+          ) : null}
+      </>}>
+          <StudioNote form={form} entry={entry} />
+          <div data-tour="entry-answers"><Answers form={form} entry={entry} hideEmpty={sp.hide === "1"} /></div>
+          {/* After the answers, not before: the brief is the thing to read,
+              and the files are what it refers to. */}
+          <EntryAttachments files={files} />
+
+          {form.inbox ? (
+            <Panel title="History" dataTour="entry-history">
+              <AddNote formKey={form.key} id={entry.id} />
+              {events.length ? (
+                <ol className="adForms__timeline">
+                  {events.map((e) => (
+                    <li key={e.id}>
+                      <span><b>{KIND[e.kind]}</b> · {e.body}</span>
+                      <small>{e.actor} · {time(e.at)}</small>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <Empty title="Nothing has happened here yet">Notes, changes and emails about this entry are kept here.</Empty>
+              )}
             </Panel>
           ) : null}
-        </div>
-      </div>
+        
+      </Workbench>
     </>
   );
 }
