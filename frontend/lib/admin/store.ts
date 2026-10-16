@@ -1,6 +1,6 @@
 import {currencyOf,money,type PaymentAccountSnapshot} from "@/lib/money/currency";
 import type {
-  Approval, AuditEntry, AuditKind, Channel, Client, Deliverable, Expense,
+  Approval, AuditEntry, AuditKind, Channel, Client, Deliverable, Expense, Payout, PayoutState,
   Credit, Estimate, Health, Id, Invoice, InvoiceLine, Message, MessageChannel,
   MessageState, Payment, Priority, Project, ProviderEvent, ProviderOutcome,
   Refund, Stage, Submission, Task, Ticket, TicketMessage, TicketStatus, Update,
@@ -31,6 +31,7 @@ const INVOICES: Invoice[] = shared("INVOICES", (): Invoice[] => []);
 const PAYMENTS: Payment[] = shared("PAYMENTS", (): Payment[] => []);
 
 const EXPENSES: Expense[] = shared("EXPENSES", (): Expense[] => []);
+const PAYOUTS: Payout[] = shared("PAYOUTS", (): Payout[] => []);
 
 const SUBMISSIONS: Submission[] = shared("SUBMISSIONS", (): Submission[] => []);
 
@@ -514,7 +515,7 @@ export function mergeClients(keepId: Id, dupeId: Id, actor = "Studio"):
     for (const r of rows) if (r.clientId === dupeId) { r.clientId = keepId; moved++; }
   };
   repoint(PROJECTS); repoint(INVOICES); repoint(ESTIMATES); repoint(CREDITS);
-  repoint(TICKETS); repoint(MESSAGES); repoint(EXPENSES as { clientId?: Id | null }[]); repoint(SUBMISSIONS);
+  repoint(TICKETS); repoint(MESSAGES); repoint(EXPENSES as { clientId?: Id | null }[]); repoint(PAYOUTS as { clientId?: Id | null }[]); repoint(SUBMISSIONS);
 
   keep.services = [...new Set([...keep.services, ...dupe.services])];
   keep.tags = [...new Set([...(keep.tags ?? []), ...(dupe.tags ?? [])])];
@@ -1267,6 +1268,46 @@ export function addExpense(d: Omit<Expense, "id">, actor = "Studio"): Expense {
             .filter(Boolean).join(" · ") });
   EXPENSES.push(e);
   return e;
+}
+
+/* ---------------------------------------------------------------- payouts */
+
+/** Every payout, the soonest unpaid first, then the paid ones newest first. */
+export function getPayouts() {
+  const open = (p: Payout) => p.state === "Ready" || p.state === "Approved";
+  return PAYOUTS.slice().sort((a, b) => Number(open(b)) - Number(open(a)) || (open(a) ? a.due.localeCompare(b.due) : (b.paidAt ?? b.createdAt).localeCompare(a.paidAt ?? a.createdAt)));
+}
+export const getPayout = (id: Id) => PAYOUTS.find((p) => p.id === id) ?? null;
+
+export function addPayout(d: Pick<Payout, "who" | "email" | "work" | "amount" | "due" | "projectId" | "note">, actor: string): Payout {
+  const project = d.projectId ? getProject(d.projectId) : null;
+  const p: Payout = { ...d, id: mint("po"), projectId: project?.id, clientId: project?.clientId, state: "Ready", createdAt: new Date().toISOString(), by: actor };
+  PAYOUTS.push(p);
+  audit({ actor, kind: "expense", subjectId: p.id, subject: `Payout to ${p.who}`, action: "added a payout", note: [naira(p.amount), p.work, project?.title].filter(Boolean).join(" · ") });
+  return p;
+}
+
+/**
+ * MOVES A PAYOUT ON. Only forward (Ready to Approved to Paid) or to Cancelled
+ * from an unpaid state: a paid payout is history. Paying records the expense
+ * in the same step, so Spent and the project's margin never miss it.
+ */
+export function movePayout(id: Id, to: PayoutState, actor: string, extra: { paidOn?: string; reference?: string; note?: string } = {}): Payout | "gone" | "no" {
+  const p = getPayout(id);
+  if (!p) return "gone";
+  const okMove = (p.state === "Ready" && (to === "Approved" || to === "Paid" || to === "Cancelled")) || (p.state === "Approved" && (to === "Paid" || to === "Cancelled"));
+  if (!okMove) return "no";
+  const now = new Date().toISOString();
+  if (to === "Approved" || (to === "Paid" && !p.approvedAt)) { p.approvedBy = actor; p.approvedAt = now; }
+  if (to === "Paid") {
+    p.paidAt = extra.paidOn ? `${extra.paidOn}T12:00:00.000Z` : now;
+    p.reference = extra.reference || undefined;
+    p.expenseId = addExpense({ description: `Payout to ${p.who}: ${p.work}`.slice(0, 200), category: "Contractors", amount: p.amount, at: p.paidAt, vendor: p.who, method: "Transfer", projectId: p.projectId, note: p.reference ? `Reference ${p.reference}` : undefined, by: actor }, actor).id;
+  }
+  if (to === "Cancelled") p.note = extra.note || p.note;
+  p.state = to;
+  audit({ actor, kind: "expense", subjectId: p.id, subject: `Payout to ${p.who}`, action: to === "Approved" ? "approved a payout" : to === "Paid" ? "marked a payout paid" : "cancelled a payout", note: [naira(p.amount), extra.reference, extra.note].filter(Boolean).join(" · ") });
+  return p;
 }
 
 /** Everything spent against one project, for its margin. */
@@ -2179,7 +2220,7 @@ export function getPipeline(today = new Date()) {
  */
 export function persistedCollections(): Record<string, { id: string }[]> {
   return {
-    CLIENTS, PROJECTS, INVOICES, PAYMENTS, EXPENSES, SUBMISSIONS, TICKETS, TICKET_MESSAGES,
+    CLIENTS, PROJECTS, INVOICES, PAYMENTS, EXPENSES, PAYOUTS, SUBMISSIONS, TICKETS, TICKET_MESSAGES,
     CREDITS, TASKS, UPDATES, DELIVERABLES, PROVIDER_EVENTS, MESSAGES, ESTIMATES,
   } as unknown as Record<string, { id: string }[]>;
 }
