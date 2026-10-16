@@ -4,7 +4,6 @@ import { currencyOf, money } from "@/lib/money/currency";
 import { PayForm } from "@/components/money/pay-form";
 import { selectedPaystackMode } from "@/lib/paystack-mode";
 import Link from "next/link";
-import Image from "next/image";
 import { ListSearch } from "@/components/admin/list-search";
 import { Banknote, CreditCard, Download, FileText, Lock, Receipt } from "lucide-react";
 import { getPortalRequest } from "@/lib/portal/session";
@@ -123,8 +122,10 @@ export default async function PortalBilling({ searchParams }: { searchParams: Pr
       </RailCard>
       <RailCard title="How you can pay">
         <ul className="pBill__ways">
-          <li><span className="pBill__logo"><Image src="/paystack.svg" alt="" width={20} height={20} /></span><span><b>Paystack</b><small>Cards and bank transfer</small></span></li>
-          <li><span className="pBill__logo"><Image src="/flutterwave.svg" alt="" width={20} height={20} /></span><span><b>Flutterwave</b><small>Cards, bank and USSD</small></span></li>
+          <li><span className="pBill__logo">{/* eslint-disable-next-line @next/next/no-img-element -- a 20px vector mark; the optimiser does not serve SVG. */}
+          <img src="/payments/paystack.svg" alt="" width={20} height={20} /></span><span><b>Paystack</b><small>Cards and bank transfer</small></span></li>
+          <li><span className="pBill__logo">{/* eslint-disable-next-line @next/next/no-img-element -- a 20px vector mark; the optimiser does not serve SVG. */}
+          <img src="/payments/flutterwave.svg" alt="" width={20} height={20} /></span><span><b>Flutterwave</b><small>Cards, bank and USSD</small></span></li>
         </ul>
         <p className="ad__dim pBill__note">No fee to you. Closing a payment halfway is safe: we keep checking and email you the result. An invoice cannot be paid twice.</p>
       </RailCard>
@@ -150,11 +151,9 @@ export default async function PortalBilling({ searchParams }: { searchParams: Pr
         lede={balance > 0
           ? <>You have paid {paidTotal ? moneySummary(payments.map(({ p, inv }) => ({ ...p, currency: currencyOf(inv) })), kept) : "nothing yet"}. <strong>{moneySummary(owing, (inv) => invoiceTotals(inv).due)} is still to pay.</strong></>
           : <>Every invoice, receipt and quote for your projects. <strong>Nothing to pay.</strong></>}
-        action={next && payable(next) ? (
-          /* A real POST, as on the invoice itself: a link that spends money can be followed by a prefetcher. The amount comes off the token, never from this page. */
-          <PayForm currency={currencyOf(next)} action={`/api/pay/${next.token}`}>
-            <button type="submit" className="ad__btn ad__btn--primary"><CreditCard aria-hidden="true" /> Pay {money(invoiceTotals(next).due, currencyOf(next))}</button>
-          </PayForm>
+        action={next ? (
+          /* The invoice page asks Paystack or Flutterwave and takes the payment; a paid invoice cannot be paid twice. */
+          <a className="ad__btn ad__btn--primary" href={`/i/${next.token}`}><CreditCard aria-hidden="true" /> Pay {money(invoiceTotals(next).due, currencyOf(next))}</a>
         ) : undefined} />
       {paymentMode !== "live" ? <p className="pBill__mode" role="status">{paymentMode === "test" ? "Online checkout is in test mode. Simulated payments leave your invoices unpaid. Open an invoice for bank details to make a real payment." : "Online checkout is not available right now. Open an invoice for bank details or message Admin."}</p> : null}
 
