@@ -9,3 +9,7 @@
 .emTimeline li { padding: .6rem .8rem; border: 1px solid var(--ad-line); border-radius: 10px; display: grid; gap: .15rem; }
 .emTimeline small { color: var(--ad-dim); }
 .emTags { display: flex; flex-wrap: wrap; gap: .35rem; }
+
+/* A marketing contact's page (app/admin/email/contacts/[id]). */
+.emContact__body { display: grid; gap: 1rem; padding: 0 1.25rem 1.25rem; }
+.emContact__dl { margin: 0; }
