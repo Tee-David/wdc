@@ -328,3 +328,5 @@ Client Settings has a People at your business section. The main contact (the acc
 Known ceiling: access covers the projects live when it is given; a project that starts later needs the person saved again. A per-project choice can be added if clients ask.
 
 **Needs the owner:** apply migration `0056_colleague_invitations.sql` in Settings, System. Until then the section says it is not switched on yet.
+
+Production build (`next build`) at ae19839 passes: compiled, type checked, 136 pages generated (run without a database URL, so page-data collection logs "COCKROACHDB_URL is not configured" and carries on). Not run: the full Playwright suite; the deployed site was not checked.
