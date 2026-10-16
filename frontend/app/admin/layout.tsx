@@ -100,7 +100,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           counts={{ Forms: open, FailedMail: failedMail, Blog: inReview, Unchecked: unchecked }}
           user={{ name: session.user.name, email: session.user.email, image: session.user.image }}
           role={role}
-          support={support ? { name: session.user.name, expiresAt: support.expiresAt, minutes: support.minutes } : null}
+          support={support ? { name: session.user.name, actorName: support.actorName } : null}
         >
           <AdminNotices notices={notices} />
           {children}
