@@ -32,6 +32,8 @@ import { avTone, initials } from "@/lib/admin/client-mark";
 import { dateTimeWords, dateWords, nowMs, whenWords } from "@/lib/admin/when";
 import { nairaTile } from "@/lib/admin/short-money";
 import { adminRole } from "@/lib/admin/guard";
+import { inScope, staffScope } from "@/lib/admin/staff-scope";
+import { AdminState as ScopeState } from "@/components/admin/admin-state";
 import { can } from "@/lib/admin/permissions";
 import { hydrateSettings } from "@/lib/settings/store";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
@@ -79,6 +81,10 @@ export default async function ProjectPage({ params, searchParams }: { params: Pr
   await hydrateSettings();
   const finance = financeDefaults();
   const role = await adminRole();
+  /* A staff member opens only the projects in their scope; the address of any other is refused, not shown. */
+  if (!inScope(await staffScope(role), "projects", p.id)) {
+    return <section className="ad__panel"><ScopeState kind="forbidden" title="This project is not one of yours" description="Ask Admin to add you to the project or to its client's department." back={{ href: "/admin/projects", label: "Back to your projects" }} /></section>;
+  }
   const money = can(role, "money");
   const isOwner = role === "owner";
   const now = nowMs();

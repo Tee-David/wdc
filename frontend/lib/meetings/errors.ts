@@ -54,7 +54,7 @@ const ERRORS: MeetingErrorAction = { kind: "link", label: "Open the Error log", 
 const TABLE: Record<MeetingErrorCode, MeetingErrorInfo> = {
   not_owner: {
     title: "Only the owner can change scheduling",
-    message: "Scheduling settings are for the owner. Ask the owner if you need something changed here.",
+    message: "Scheduling settings are for the owner. Ask Admin if you need something changed here.",
     plain: "You do not have access to this.",
     actions: [{ kind: "link", label: "Back to the dashboard", href: "/admin" }],
     transient: false,
