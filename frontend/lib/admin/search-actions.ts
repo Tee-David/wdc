@@ -1,5 +1,6 @@
 "use server";
 
+import { inScope, staffScope, type StaffScope } from "./staff-scope";
 import { db } from "@/lib/db/pool";
 import { rateLimit } from "@/lib/rate-limit";
 import { adminRole } from "./guard";
@@ -87,8 +88,8 @@ export async function searchOptions(kind: SearchKind, q: string, selectedIds?: s
 
   try {
     switch (kind) {
-      case "clients": return await clients(text, ids, narrow);
-      case "projects": return await projects(text, ids, narrow);
+      case "clients": return await clients(text, ids, narrow, await staffScope(role));
+      case "projects": return await projects(text, ids, narrow, await staffScope(role));
       case "invoices": return await invoices(text, ids, narrow);
       case "staff": return await staff(text, ids);
       case "contacts": return await contacts(text, ids);
@@ -121,11 +122,12 @@ export async function invoiceReceiptReason(id: string): Promise<string | undefin
 
 const join = (...bits: (string | undefined)[]) => bits.filter(Boolean).join(" · ");
 
-async function clients(q: string, ids: string[], scope: SearchScope): Promise<SearchResult> {
+/* Staff are offered only their own clients and projects (lib/admin/staff-scope.ts); the owner, every one. */
+async function clients(q: string, ids: string[], scope: SearchScope, mine: StaffScope | null): Promise<SearchResult> {
   await syncStore();
   const row = (c: ReturnType<typeof store.getClients>[number]): SearchRow => ({ value: c.id, label: c.company || c.name, hint: join(c.name !== c.company ? c.name : undefined, c.email) || undefined });
   /* A client folded into another is not offered (it is archived there too). */
-  const live = store.getClients().filter((c) => !c.mergedInto && c.id !== scope.exclude);
+  const live = store.getClients().filter((c) => !c.mergedInto && c.id !== scope.exclude && inScope(mine, "clients", c.id));
   const { rows, total } = rankRows(live, q, (c) => ({
     primary: c.company || c.name,
     others: [c.name, c.email, c.phone, ...(c.contacts ?? []).flatMap((p) => [p.name, p.email ?? ""])],
@@ -134,11 +136,11 @@ async function clients(q: string, ids: string[], scope: SearchScope): Promise<Se
   return { rows: rows.map(row), selected, more: total > SEARCH_LIMIT };
 }
 
-async function projects(q: string, ids: string[], scope: SearchScope): Promise<SearchResult> {
+async function projects(q: string, ids: string[], scope: SearchScope, mine: StaffScope | null): Promise<SearchResult> {
   await syncStore();
   /* Never the budget, owner or history: a project is its title and whose it is. */
   const row = (p: NonNullable<ReturnType<typeof store.getProject>>): SearchRow => ({ value: p.id, label: p.title, hint: store.getClient(p.clientId)?.company });
-  const pool = scope.clientId ? store.getProjectsFor(scope.clientId) : store.getProjects();
+  const pool = (scope.clientId ? store.getProjectsFor(scope.clientId) : store.getProjects()).filter((p) => inScope(mine, "projects", p.id));
   const { rows, total } = rankRows(pool, q, (p) => ({ primary: p.title, others: [store.getClient(p.clientId)?.company ?? ""] }), { tie: "input" });
   const selected = ids.map((id) => store.getProject(id)).filter((p): p is NonNullable<typeof p> => Boolean(p)).map(row);
   return { rows: rows.map(row), selected, more: total > SEARCH_LIMIT };
