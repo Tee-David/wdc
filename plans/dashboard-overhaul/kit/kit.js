@@ -185,6 +185,12 @@
     }
     this.setState({ pop: base, menu: null, dq: '' });
   }
+  /* A row of filter chips as one searchable pick: a button showing the current choice, opening the menu (a popover, a bottom sheet on a phone). Search from five options. */
+  chipsAsPick(id, label, items) {
+    var self = this, on = items.filter(function (c) { return /\bon\b/.test(c.cls || ''); })[0] || items[0];
+    return { cur: on ? on.t : label, n: on && on.n != null ? on.n : '', label: label, expanded: this.popOn('pick', id),
+      open: function (e) { self.openPop(e, 'pick', id, 280, Math.min(380, (items.length >= 5 ? 70 : 16) + items.length * 46), label, { search: items.length >= 5, searchPh: 'Search ' + label.toLowerCase(), items: items }); } };
+  }
   closePop() { var self = this; this.exitThen('.mSheet, .mSheet ~ .scrim, .menuF', function () { self.setState({ pop: null }); }); }
   menuItem(label, d, fn, opt) {
     opt = opt || {}; var self = this;
@@ -420,7 +426,11 @@
       var cur = F[cs.key] != null ? F[cs.key] : (cs.multi ? [] : '');
       var cq = (F['~q' + cs.key] || '').toLowerCase(), srch = cs.search !== false && cs.opts.length >= 5;
       var shownOpts = cs.opts.filter(function (o) { return !srch || !cq || o.toLowerCase().indexOf(cq) >= 0 || (cs.multi ? cur.indexOf(o) >= 0 : cur === o); });
-      return { label: cs.label, hint: cs.hint || '', hasHint: !!cs.hint, role: cs.multi ? 'group' : 'radiogroup', searchable: srch, q: F['~q' + cs.key] || '', hasQ: !!F['~q' + cs.key], noMatch: srch && !!cq && shownOpts.every(function (o) { return o.toLowerCase().indexOf(cq) < 0; }), onQ: function (e) { setF('~q' + cs.key, e.target.value); }, clearQ: function () { setF('~q' + cs.key, ''); }, opts: shownOpts.map(function (o) {
+      var open = !!F['~open' + cs.key], picked = cs.multi ? cur : (cur ? [cur] : []);
+      var lc = cs.label.toLowerCase();
+      var valText = !picked.length ? (cs.multi ? 'Any ' + lc : 'Pick ' + (/^[aeiou]/.test(lc) ? 'an ' : 'a ') + lc) : (picked.length === 1 ? picked[0] : picked.length + ' ' + lc + (/s$/.test(lc) ? '' : 's') + ' picked');
+      var toggle = function (v) { var c = self.state.form[cs.key] != null ? self.state.form[cs.key] : (cs.multi ? [] : ''); if (cs.multi) { c = c.indexOf(v) >= 0 ? c.filter(function (x) { return x !== v; }) : c.concat([v]); setF(cs.key, c); } else { var m = Object.assign({}, self.state.form); m[cs.key] = v; m['~open' + cs.key] = false; m['~q' + cs.key] = ''; self.setState({ form: m }); } };
+      return { noRows: srch && !!cq && !shownOpts.length, key: cs.key, label: cs.label, hint: cs.hint || '', hasHint: !!cs.hint, role: cs.multi ? 'group' : 'radiogroup', searchable: srch, chipsOnly: !srch, open: open, expanded: open ? 'true' : 'false', valText: valText, isEmptyVal: !picked.length ? 'cbxPh' : '', multi: !!cs.multi, hasTokens: !!cs.multi && picked.length > 0, tokens: (cs.multi ? picked : []).map(function (v) { return { t: v, remove: function () { toggle(v); } }; }), toggleOpen: function () { setF('~open' + cs.key, !open); }, closeIt: function () { setF('~open' + cs.key, false); }, rows: shownOpts.map(function (o) { var on = picked.indexOf(o) >= 0; return { t: o, sel: on ? 'true' : 'false', on: on, cls: on ? 'on' : '', pick: function () { toggle(o); } }; }), q: F['~q' + cs.key] || '', hasQ: !!F['~q' + cs.key], noMatch: srch && !!cq && shownOpts.every(function (o) { return o.toLowerCase().indexOf(cq) < 0; }), onQ: function (e) { setF('~q' + cs.key, e.target.value); }, clearQ: function () { setF('~q' + cs.key, ''); }, opts: shownOpts.map(function (o) {
         var on = cs.multi ? cur.indexOf(o) >= 0 : cur === o;
         return { t: o, cls: on ? 'on' : '', checked: on ? 'true' : 'false', role: cs.multi ? 'checkbox' : 'radio', pick: function () { var c = self.state.form[cs.key] != null ? self.state.form[cs.key] : (cs.multi ? [] : ''); if (cs.multi) { c = c.indexOf(o) >= 0 ? c.filter(function (x) { return x !== o; }) : c.concat([o]); } else c = o; setF(cs.key, c); } };
       }) };
@@ -448,6 +458,7 @@
       if (s.pop.kind === 'per') popItems = this.perItems(s.pop.id);
       else if (s.pop.kind === 'snooze') popItems = this.snoozeItems();
       else if (s.pop.kind === 'delegate') popItems = this.delegateItems();
+      else if (s.pop.kind === 'pick') popItems = (s.pop.items || []).filter(function (c) { var q = (s.dq || '').trim().toLowerCase(); return !q || c.t.toLowerCase().indexOf(q) >= 0; }).map(function (c) { var on = /\bon\b/.test(c.cls || ''); return self.menuItem(c.t, on ? self.icons().check : '', function () { c.pick(); self.setState({ pop: null }); }, { role: 'menuitemradio', checked: on, on: on, hint: c.n != null ? String(c.n) : '' }); });
       else if (this.popItems) popItems = this.popItems(s.pop) || [];
       popItems = popItems.map(function (m, i) { return Object.assign({ anim: self.anim(s.dq.length), delay: Math.min(i, 8) * 0.025 + 's' }, m); });
     }
@@ -480,7 +491,7 @@
       attach: function () { self.say('The file picker opens here. Up to 50 MB a file.'); },
       isTourPick: raw.kind === 'tour', tourOpts: tourOpts, isFile: raw.kind === 'file', isPost: raw.kind === 'post', isPay: raw.kind === 'pay', isFollow: raw.kind === 'follow', isQuote: raw.kind === 'quote',
       popOpen: !!s.pop && (popItems.length > 0 || s.pop.search), popAsMenu: !!s.pop && !s.pop.asSheet, popAsSheet: !!s.pop && s.pop.asSheet, pop: Object.assign({ hasNote: !!(s.pop && s.pop.note) }, s.pop || {}), popItems: popItems, popEmpty: !!s.pop && s.pop.search && !popItems.length, popEmptyText: 'Nobody matches "' + s.dq + '".',
-      closePop: function () { self.closePop(); }, grabPop: function (e) { self.grabStart(e, '.mSheet', function () { self.setState({ pop: null }); }); },
+      closePop: function () { self.closePop(); }, grabPop: function (e) { self.grabStart(e, '.mSheet', function () { self.setState({ pop: null }); }); }, grabBell: function (e) { self.grabStart(e, '.popP', function () { self.setState({ bell: false }); }); },
       dq: s.dq, onDq: function (e) { self.setState({ dq: e.target.value }); },
       bellOpen: s.bell, bellExp: s.bell ? 'true' : 'false', toggleBell: function () { if (self.state.bell) { self.exitThen('.popP, .scrim', function () { self.setState({ bell: false }); }); return; } self.setState({ bell: true, menu: null, pop: null }); },
       notes: shown, notesEmpty: !shown.length, unread: unread, hasUnread: unread > 0, bellLabel: 'Notifications, ' + unread + ' unread', bellI: s.bellTab === 'unread' ? 1 : 0,

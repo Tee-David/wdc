@@ -208,7 +208,7 @@
 
     return Object.assign(this.kit(), this.extraVals(), {
       lede: allLive.length + (allLive.length === 1 ? ' live project' : ' live projects') + (self.hideMoney() ? ' in your departments. ' : ' across ' + SV.length + ' services. ') + waiting.length + (waiting.length === 1 ? ' waits' : ' wait') + ' on clients.', canNew: !self.hideMoney(), valueHead: self.hideMoney() ? 'Billing' : 'Payment',
-      stats: stats, svcs: svcs, viewI: vI, views: V.map(function (v) { var on = s.view === v[0]; return { t: v[1], d: v[2], cls: on ? 'on' : '', pressed: on ? 'true' : 'false', pick: function () { if (!on) self.setState({ view: v[0], va: self.state.va + 1 }); } }; }),
+      stats: stats, svcs: svcs, svcSel: self.chipsAsPick('svc', 'Service', svcs), viewI: vI, views: V.map(function (v) { var on = s.view === v[0]; return { t: v[1], d: v[2], cls: on ? 'on' : '', pressed: on ? 'true' : 'false', pick: function () { if (!on) self.setState({ view: v[0], va: self.state.va + 1 }); } }; }),
       isList: s.view === 'list', isBoard: s.view === 'board', isTl: s.view === 'tl', tl: TLV, isCal: s.view === 'cal', viewAnim: s.va % 2 ? 'kidIn' : 'kidIn2',
       tabs: tabs, rows: rows, PP: PP, TPR: TPR, empty: !list.length, emptyTitle: q ? 'No project matches "' + s.q2 + '".' : 'No projects here.', emptyBody: q ? 'Search by project, client or lead, or clear the service filter.' : (s.ptab === 'waiting' ? 'Nothing is waiting on a client in this service.' : 'Try another service or tab.'),
       clearFilters: function () { self.setState({ q2: '', svc: 'all', ppage: 0, ra: self.state.ra + 1 }); },

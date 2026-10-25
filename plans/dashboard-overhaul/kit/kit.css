@@ -1469,3 +1469,46 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .tbl th:nth-child(2),.tbl td:nth-child(2){padding-left:22px}
 .tbl.hasCk th:nth-child(2),.tbl.hasCk td:nth-child(2){padding-left:14px}
 .tbl.hasCk th:nth-child(3),.tbl.hasCk td:nth-child(3){padding-left:22px}
+
+/* Searchable dropdown for any pick from five options up (owner's call, 2026-10-12): a field, a list with its own search, ticks for several. */
+.cbx{display:flex;flex-direction:column;gap:8px;min-width:0}
+.cbxBtn{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:48px;text-align:left;cursor:pointer;font:inherit;color:var(--ad-ink)}
+.cbxBtn[aria-expanded="true"]{border-color:var(--ad-ink);box-shadow:0 0 0 4px var(--ad-ring)}
+.cbxBtn[aria-expanded="true"] .cbxChev{transform:rotate(180deg)}
+.cbxChev{transition:transform .2s var(--ease);flex:none}
+.cbxVal{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cbxPh{color:var(--ad-dim)}
+.cbxTokens{display:flex;flex-wrap:wrap;gap:6px}
+.cbxTok{display:inline-flex;align-items:center;gap:4px;padding:4px 4px 4px 12px;border-radius:999px;background:var(--ad-tone-brand);color:#fff;font-size:13px;font-weight:600}
+.cbxTok button{width:28px;height:28px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;color:#fff;position:relative}
+.cbxTok button::after{content:"";position:absolute;inset:-8px}
+.cbxTok button:hover{background:var(--ad-tone-bad)}
+.cbxPop{border:1px solid var(--ad-line-2);border-radius:14px;background:var(--ad-panel);box-shadow:var(--ad-sh-2);overflow:hidden;animation:rise .2s var(--ease)}
+.cbxSearch{margin:8px;border-radius:10px}
+.cbxList{max-height:260px;overflow-y:auto;overscroll-behavior:contain;padding:0 6px 6px;display:flex;flex-direction:column}
+.cbxRow{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 10px;border-radius:10px;text-align:left;font:inherit;color:var(--ad-ink);cursor:pointer}
+.cbxRow:hover{background:var(--ad-hover)}
+.cbxRow.on{font-weight:600}
+.cbxTick{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--ad-line-2);display:inline-flex;align-items:center;justify-content:center;flex:none;color:transparent}
+.cbxRow.on .cbxTick{background:var(--ad-fill);border-color:var(--ad-fill);color:#fff}
+.cbxFoot{display:flex;justify-content:flex-end;padding:8px;border-top:1px solid var(--ad-line)}
+
+/* A segmented control never grows past its box: equal columns that can shrink, long labels wrap to two lines, and on a phone a view switch keeps only its icons. */
+.seg{max-width:100%;grid-auto-columns:minmax(0,1fr)}
+.seg button,.seg a{white-space:normal;text-align:center;line-height:1.2;min-width:0;padding:6px 10px}
+@container app (max-width:640px){.segIco .segL{display:none}.segIco button,.segIco a{min-width:44px}}
+/* Timeline layers: the pinned project names stay above the Today line when the chart scrolls sideways; the header stays above both, so the line starts under it. */
+.gtHead{z-index:6}
+.tlCorner{z-index:7}
+.tlName{z-index:5;min-width:0;overflow:hidden}
+.tlName strong,.tlName span{overflow-wrap:anywhere}
+.tlToday{top:var(--tlHead,43px);z-index:4}
+.cbxSearch{width:auto;box-sizing:border-box}
+.cbxPop{max-width:100%;box-sizing:border-box}
+.tlName{margin-bottom:-1px;border-bottom:1px solid var(--ad-line)}
+.cbxNone{margin:0;padding:12px 10px;color:var(--ad-dim);font-size:14px}
+.selBtn{display:flex;align-items:center;gap:8px;width:min(100%,320px);min-height:44px;cursor:pointer;font:inherit;color:var(--ad-ink);text-align:left}
+.selBtn[aria-expanded="true"]{border-color:var(--ad-ink);box-shadow:0 0 0 4px var(--ad-ring)}
+.selLbl{font-size:13px;color:var(--ad-dim);font-weight:600}
+.selVal{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.selN{font-size:13px;color:var(--ad-dim)}
