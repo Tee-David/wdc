@@ -49,6 +49,7 @@ import { portalMaps } from "@/lib/admin/client-signals";
 import { meetingList } from "@/lib/meetings/store";
 import { projectGlyph, projectTileStyle } from "@/components/client/service-glyph";
 import { Deck, type DeckItem } from "@/components/admin/deck";
+import { remindInvoice, reinviteClient } from "@/lib/admin/client-deck-actions";
 import { db } from "@/lib/db/pool";
 
 /* NO generateStaticParams. The client list is written to now, and a route
@@ -190,7 +191,7 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
       deck.push({ id: `late-${i.id}`, kind: "Money", urgency: `Due ${dateWords(i.due, now)}`, tone: "bad", label: i.number,
         title: `${c.company} owes ${formatMoney(invoiceTotals(i).due, currencyOf(i))}`, body: `${i.number} is past due. Send a reminder with the pay link, or record a payment that came in another way.`,
         facts: [{ k: "Invoice", v: i.number }, { k: "Paid so far", v: formatMoney(i.paid, currencyOf(i)) }],
-        primary: { label: "Open the invoice", href: `/admin/money/${i.id}` }, secondary: { label: "Record a payment", href: `/admin/money/${i.id}` }, open: `/admin/money/${i.id}` });
+        primary: { label: "Send a reminder", run: remindInvoice.bind(null, i.id) }, secondary: { label: "Record a payment", href: `/admin/money/${i.id}` }, open: `/admin/money/${i.id}` });
     }
     for (const t of tickets.filter((x) => x.status === "Open")) {
       deck.push({ id: `q-${t.id}`, kind: "Question", urgency: `Since ${dateWords(t.updatedAt, now)}`, tone: "warn", label: "Support",
@@ -216,7 +217,7 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
     if (!hasAccount && !c.archived) {
       deck.push({ id: `portal-${c.id}`, kind: "Access", urgency: invited ? "Invitation sent" : "No account", tone: "neutral",
         title: invited ? `${first} has not accepted the portal invitation` : `${first} has no portal account`, body: "With an account they approve files, pay invoices and message the team in one place.",
-        primary: { label: invited ? "Resend the invitation" : "Invite to the portal", href: tabHref("people") } });
+        primary: { label: invited ? "Send a new invitation" : "Invite to the portal", run: reinviteClient.bind(null, c.id) }, open: tabHref("people") });
     }
     if (meeting && daysFrom(meeting.start, now) <= 2) {
       deck.push({ id: `meet-${meeting.uid ?? meeting.start}`, kind: "Meeting", urgency: daysFrom(meeting.start, now) <= 0 ? "Today" : `In ${daysFrom(meeting.start, now)} days`, tone: "brand",
