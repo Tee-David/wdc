@@ -74,7 +74,15 @@ export async function applyMigrations(): Promise<ActionState> {
   if ((await adminRole()) !== "owner") return FAIL({}, "Changing the database is the owner's.");
   const by = await actorName();
   let r;
-  try { r = await applyPendingMigrations(); } catch (error) {
+  /* Data migrations: the seeds the owner applies with the schema. */
+  const steps = {
+    "realtors-practice": async () => {
+      const { importRealtorsPractice } = await import("@/lib/system/import-realtors");
+      const done = await importRealtorsPractice(by);
+      audit({ actor: by, kind: "setting", subjectId: "0059_seed_realtors_practice.sql", subject: "Realtors' Practice import", action: "brought in the invoice history", note: done.summary });
+    },
+  };
+  try { r = await applyPendingMigrations(steps); } catch (error) {
     console.error("[migrations] could not start:", error instanceof Error ? error.message : error);
     return FAIL({}, "The database could not be reached. Nothing was changed.");
   }
