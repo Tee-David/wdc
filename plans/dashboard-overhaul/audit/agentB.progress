@@ -9,3 +9,13 @@ BATCH DONE: /admin/settings/content /admin/settings/policies /admin/settings/med
 BATCH DONE: /admin/settings/audit /admin/settings/system /admin/settings/team /admin/settings/access
 BATCH DONE: /admin/settings/policies/terms
 ALL_OWNER_DONE
+RERUN DONE: /admin/settings/meetings /admin/settings/notifications
+RERUN DONE: /admin/settings /admin/settings/account /admin/settings/general /admin/settings/business
+RERUN DONE: /admin/email/templates/enquiry-receipt /admin/settings/lists
+RERUN_ALL_DONE
+CLIENT BATCH 1 DONE
+email and blog sections written: /admin/email, campaigns/seed-c1, automations/seed-a1, templates/enquiry-receipt, /admin/blog, /admin/blog/work
+settings sections written: all 24 tabs, control-group table, helper write-clicks note
+client batch 1 sections written: /portal, /portal/billing, /portal/notifications, /portal/settings
+CLIENT BATCH 2 DONE (safe copy: /portal/projects /portal/support /portal/welcome /portal/projects/p1)
+client batch 2 sections written: /portal/welcome (redirect), /portal/projects, /portal/projects/p1, /portal/support; cross-page, hidden-things sections written. TASK ESSENTIALLY COMPLETE
