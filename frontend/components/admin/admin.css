@@ -1936,7 +1936,11 @@ html.is-dragging, html.is-dragging * { cursor: grabbing !important; }
 .adRowPick, .adRowPickAll { width: 1.15rem; height: 1.15rem; margin: 0 .6rem 0 0; flex: none; vertical-align: middle; accent-color: var(--ad-fill); cursor: pointer; }
 .ad__t tr.is-picked > td { background: var(--ad-hover); }
 .adBulk__btn.is-danger { color: var(--ad-bad-ink); }
-td:has(> .adRowPick) , .ad__pickCell { white-space: nowrap; }
+td:has(.adRowPick) , .ad__pickCell { white-space: nowrap; }
+/* The box stays 18px; the label around it is the 44px target, pulled back
+   with negative margins so the row does not grow. */
+.adPickHit { display: inline-grid; place-items: center; width: 2.75rem; height: 2.75rem; margin: -.8rem .1rem -.8rem -.8rem; vertical-align: middle; cursor: pointer; border-radius: 12px; }
+.adPickHit .adRowPick, .adPickHit .adRowPickAll { margin: 0; }
 .ad__pickRow { display: flex; align-items: center; min-width: 0; }
 
 /* ------------------------------------------------------ money's layout --
