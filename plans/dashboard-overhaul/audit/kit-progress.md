@@ -27,5 +27,11 @@ Publishing is done by the main session (owner's call, 2026-10-25). Design runs r
   - Forms board: the Mira entry is now the social media onboarding (new form "Onboarding, social media"), its sheet opens the full brief; New form gains "Start from" and continues into the form builder.
   - Checked: 1440, phone, dark tablet, 320: no overflow, no small targets (crumb links now 44 wide in the kit). Scenario of all four cards, the section pick and the photo preview passed.
 
+- 2026-10-25 Hybrid lists, part 1: Projects (admin and staff), Reconciliation, Notifications. READY TO PUBLISH: all of `canvas/project/` (kit.css changed: segmented controls now have a 44px hit area; A-Projects, S-Projects, A-Reconcile, A-Notifications, C-Notifications changed).
+  - Projects opens with "Projects needing you" (print files due, a handover to book, a demo agenda, the paused driver app with Resume with a reason, Mira's blocked social setup). Staff see only their own projects' cards and none with amounts ("Your projects need": Instagram access for Chiamaka). Below the deck, "Due in the next 7 days"; the figures move into the rail with a "By service" bar list that filters the table. Views stay full width.
+  - Money data made consistent: Reconciliation's bank line is now Bloom Pharmacy ₦180,000 for INV-26-7HB2QA (it said Mira paid Kora's invoice), the Paystack event and failed receipt belong to Zara's INV-26-4WE9KS, Notifications say Zara paid ₦200,000 yesterday, the client's notification is Mira's deposit INV-26-9QX4LM due Wed 14 Oct. Mira's deposit reads "due Wed" everywhere; the Halo demo is on Monday.
+  - Checked: A-Projects and S-Projects at 1440, phone, dark tablet: no overflow, no small targets. Scenario: hand over, book a handover, send the demo agenda, resume with a reason (disabled until a reason), service bar filter: passed.
+
 ## Next
-1. Hybrid lists, Settings tabs, client portal pages, staff pages.
+1. Hybrid lists, part 2: Clients, Support, Money, Meetings, Users (check against the standard; most already have a deck).
+3. Settings tabs, client portal pages, staff pages.

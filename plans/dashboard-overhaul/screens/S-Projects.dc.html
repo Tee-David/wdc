@@ -1551,6 +1551,66 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 @container app (max-width:760px) { .docLineH { display: none; } }
 .segTall button { min-height: 44px; }
 
+/* Entry page: a long form entry read as a brief (2026-10-25) */
+.ansNav { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; }
+.ansNav .chip { min-height: 44px; }
+.ansSec { padding: 0; overflow: hidden; }
+.ansHead { display: flex; align-items: center; gap: 10px; padding: 16px 20px 8px; flex-wrap: wrap; }
+.ansHead h2 { font-size: 17px; font-weight: 700; flex: 1; min-width: 0; }
+.ansCount { font-size: 13px; color: var(--ad-dim); }
+.ansList { margin: 0; padding: 0 8px 10px; display: flex; flex-direction: column; }
+.ansRow { display: grid; grid-template-columns: minmax(0, 220px) minmax(0, 1fr); gap: 6px 20px; padding: 12px; border-top: 1px solid var(--ad-line); }
+.ansRow:first-child { border-top: 0; }
+.ansRow.open { background: var(--ad-panel-2); border-radius: 12px; border-top-color: transparent; }
+.ansRow.open + .ansRow { border-top-color: transparent; }
+.ansRow dt { font-size: 13px; color: var(--ad-dim); font-weight: 600; }
+.ansRow dd { margin: 0; display: flex; flex-direction: column; gap: 8px; min-width: 0; font-size: 15px; }
+.ansV { overflow-wrap: anywhere; }
+.ansChips { display: flex; flex-wrap: wrap; gap: 6px; }
+.ansFlag { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ansProf { display: flex; flex-direction: column; gap: 6px; }
+.profRow { display: flex; align-items: center; gap: 10px; min-height: 44px; color: inherit; text-decoration: none; border-radius: 12px; padding: 2px 6px 2px 2px; }
+.profRow:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
+@media (hover: hover) { .profRow:hover { background: var(--ad-hover); } }
+.profTile { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; flex: none; }
+.ansPhotos { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+.phTile { position: relative; aspect-ratio: 1; border-radius: 12px; border: 1px solid var(--ad-line); display: flex; align-items: flex-end; padding: 6px; overflow: hidden; min-height: 44px; }
+.phTile:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
+.phName { font-size: 11px; font-weight: 600; background: #fff; color: #0e0e2c; border-radius: 99px; padding: 2px 8px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.phTag { position: absolute; top: 6px; left: 6px; height: 20px; padding: 0 7px; font-size: 11px; }
+.factList { margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.factList > div { display: flex; flex-direction: column; gap: 2px; }
+.factList dt { font-size: 12px; color: var(--ad-dim); }
+.factList dd { margin: 0; font-size: 14px; }
+.linkRow { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 12px; color: inherit; text-decoration: none; min-height: 44px; }
+.histList { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.histList li { display: flex; gap: 10px; align-items: flex-start; }
+.hDot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--ad-tone-brand); margin-top: 5px; flex: none; }
+.hDot.now { background: #ff6500; border-color: #ff6500; }
+@container card (max-width: 520px) { .ansRow { grid-template-columns: minmax(0, 1fr); } }
+.crumbs a{min-width:44px;justify-content:center}
+.ansNav { align-items: center; }
+.ansNav .selBtn { flex: 1 1 260px; max-width: 420px; }
+.ansNavNote { font-size: 13px; color: var(--ad-dim); }
+/* Segmented controls: a 40px segment with an invisible hit area to 46px, so every segment meets the 44px target (2026-10-25) */
+.seg button,.seg a{min-height:40px}
+.seg button::after,.seg a::after{content:'';position:absolute;inset:-3px 0}
+.weekRow { display: flex; align-items: center; gap: 12px; padding: 6px; border-radius: 12px; width: 100%; min-height: 52px; }
+.meetDate.sm { width: 44px; border-radius: 10px; }
+.meetDate.sm .mm { font-size: 10px; line-height: 18px; }
+.meetDate.sm .dd { font-size: 18px; line-height: 28px; }
+.weekGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 12px; }
+@container app (max-width: 640px) { .weekGrid { grid-template-columns: minmax(0, 1fr); } }
+.svcBar { display: flex; flex-direction: column; gap: 6px; width: 100%; padding: 8px; border-radius: 12px; min-height: 44px; text-align: left; }
+.svcBarT { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; }
+.svcBarTrack { height: 8px; border-radius: 99px; background: var(--ad-panel-2); overflow: hidden; }
+.svcBarTrack span { display: block; height: 100%; border-radius: 99px; background: var(--ad-tone-brand); transform-origin: left; animation: barGrow .7s var(--ease) backwards; }
+.svcBar.on { background: var(--ad-fill); color: var(--ad-on-fill); }
+.svcBar.on .svcBarTrack { background: rgb(255 255 255 / .22); }
+.svcBar.on .svcBarTrack span { background: #fff; }
+@keyframes barGrow { from { transform: scaleX(0); } }
+@media (prefers-reduced-motion: reduce) { .svcBarTrack span { animation: none; } }
+
 </style>
 </helmet>
 <div class="{{rootCls}}" onClick="{{rootClick}}">
@@ -1659,14 +1719,105 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
             </sc-if>
 
             <sc-if value="{{ready}}" hint-placeholder-val="{{ true }}">
-            <div class="tiles" data-tour="figures">
-              <sc-for list="{{stats}}" as="k" hint-placeholder-count="3">
-                <button class="card lift rise stat {{k.delay}}" onClick="{{k.open}}" aria-label="{{k.aria}}" style="--k: {{k.dot}}; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; text-align: left; min-height: 104px">
-                  <span class="statHd"><span class="statIc" style="background: {{k.tile}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="{{k.ic}}"></path></svg></span><span class="statLbl">{{k.label}}</span></span>
-                  <span class="num" style="font-size: clamp(22px, 2.4vw, 26px); font-weight: 700; line-height: 1.1">{{k.value}}</span>
-                  <span style="font-size: 12px; font-weight: 600; color: {{k.noteCol}}">{{k.note}}</span>
-                </button>
-              </sc-for>
+            <div class="layout">
+              <div class="col">
+                <section aria-label="{{deckTitle}}" data-tour="deck">
+                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap">
+                    <h2 style="font-size: 17px; font-weight: 700">{{deckTitle}}</h2>
+                    <span class="strip" role="img" aria-label="{{stripLabel}}"><sc-for list="{{strip}}" as="sg" hint-placeholder-count="6"><span class="{{sg.cls}}"></span></sc-for></span>
+                    <span class="num" style="color: var(--ad-dim); font-size: 13px">{{stripText}}</span>
+                    <span class="hideS" style="margin-left: auto; color: var(--ad-dim); font-size: 12px">{{deckKeys}}</span>
+                  </div>
+                  <sc-if value="{{hasTop}}" hint-placeholder-val="{{ true }}">
+                    <div class="deck {{top.deckCls}}">
+                      <sc-if value="{{hasG1}}" hint-placeholder-val="{{ true }}"><span class="ghost" aria-hidden="true"></span></sc-if>
+                      <sc-if value="{{hasG2}}" hint-placeholder-val="{{ true }}"><span class="ghost g2" aria-hidden="true"></span></sc-if>
+                      <article class="topCard onDark {{top.kidCls}}" tabindex="0" onKeyDown="{{deckKey}}" aria-label="{{top.aria}}" style="animation-name: {{top.anim}}; animation-duration: {{top.dur}}; animation-timing-function: {{top.ease}}; animation-fill-mode: {{top.fill}}">
+                        <div class="tags">
+                          <span class="tag" style="background: #fff; color: #000065">{{top.kind}}</span>
+                          <span class="tag" style="background: {{top.utone}}; color: #fff">{{top.urgency}}</span>
+                          <span class="projLbl num" style="margin-left: auto; font-size: 13px; color: var(--ad-hero-dim)">{{top.label}}</span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 8px">
+                          <h3 class="cardH">{{top.title}}</h3>
+                          <p style="color: var(--ad-hero-dim); font-size: 15px">{{top.body}}</p>
+                        </div>
+                        <sc-if value="{{top.hasSteps}}" hint-placeholder-val="{{ false }}">
+                          <div style="display: flex; flex-direction: column; gap: 8px">
+                            <span style="display: flex; justify-content: space-between; font-size: 13px; color: var(--ad-hero-dim)"><span>Steps</span><span class="num">{{top.stepText}}</span></span>
+                            <span style="height: 8px; border-radius: 99px; background: rgb(255 255 255/.14); overflow: hidden"><span style="display: block; height: 100%; width: {{top.stepPct}}%; background: #ff6500; border-radius: 99px; transition: width .45s var(--ease)"></span></span>
+                            <div style="display: flex; flex-wrap: wrap; gap: 6px">
+                              <sc-for list="{{top.stepList}}" as="st" hint-placeholder-count="4">
+                                <button class="stepChip {{st.cls}}" role="checkbox" aria-checked="{{st.pressed}}" onClick="{{st.toggle}}"><span class="stepBox"><sc-if value="{{st.on}}" hint-placeholder-val="{{ false }}"><svg class="ic" viewBox="0 0 24 24" width="10" height="10" aria-hidden="true" style="stroke-width: 3.4"><path pathLength="1" d="M20 6 9 17l-5-5"></path></svg></sc-if></span>{{st.t}}</button>
+                              </sc-for>
+                            </div>
+                          </div>
+                        </sc-if>
+                        <sc-if value="{{top.isLogo}}" hint-placeholder-val="{{ false }}">
+                          <div style="display: flex; flex-direction: column; gap: 8px">
+                            <div class="routes" id="routes" role="radiogroup" aria-label="Choose a route" onScroll="{{routeScroll}}">
+                              <sc-for list="{{routes}}" as="r" hint-placeholder-count="2">
+                                <button class="route {{r.cls}}" role="radio" aria-checked="{{r.checked}}" onClick="{{r.pick}}">
+                                  <span class="routePrev" style="background: {{r.bg}}"><span class="disp" style="font-size: clamp(20px, 5cqi, 30px); font-weight: 700; color: {{r.fg}}; letter-spacing: -.04em">{{r.mark}}</span><sc-if value="{{r.isSel}}" hint-placeholder-val="{{ false }}"><span class="tag pickTag"><svg class="ic" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true" style="stroke-width: 3"><path d="M20 6 9 17l-5-5"></path></svg>Your pick</span></sc-if></span>
+                                  <strong style="font-size: 14px; padding: 0 4px">{{r.name}}</strong>
+                                  <span class="rNote" style="font-size: 12px; color: var(--ad-hero-dim); padding: 0 4px 4px">{{r.note}}</span>
+                                </button>
+                              </sc-for>
+                            </div>
+                            <span class="railDots" aria-hidden="true"><sc-for list="{{routeDots}}" as="rd" hint-placeholder-count="2"><span class="{{rd}}"></span></sc-for></span>
+                            <button class="lnk" style="color: #fff; align-self: flex-start; min-height: 44px" onClick="{{openRouteFile}}">See both routes full size<svg class="ic arr" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"></path></svg></button>
+                          </div>
+                        </sc-if>
+                        <sc-if value="{{top.hasMeta}}" hint-placeholder-val="{{ true }}">
+                          <dl class="meta"><sc-for list="{{top.meta}}" as="m" hint-placeholder-count="3"><div style="display: flex; flex-direction: column; min-width: 0"><dt>{{m.k}}</dt><dd class="num">{{m.v}}</dd></div></sc-for></dl>
+                        </sc-if>
+                        <sc-if value="{{top.hasWhy}}" hint-placeholder-val="{{ true }}">
+                          <p class="why"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="margin-top: 2px; color: #ffb27a"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"></path></svg><span>{{top.why}}</span></p>
+                        </sc-if>
+                        <div class="deckActs">
+                          <button class="hb grow" onClick="{{top.primary}}">{{top.primaryLabel}}<svg class="ic arr" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"></path></svg></button>
+                          <button class="hb2 grow" onClick="{{top.secondary}}">{{top.secondaryLabel}}</button>
+                          <span class="sp"></span>
+                          <div class="deckTools">
+                            <button class="hb2 tipU" data-menu="snooze" data-tip="{{snoozeLabel}}" onClick="{{openSnooze}}" aria-haspopup="menu" aria-label="{{snoozeLabel}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 6v6l4 2"></path></svg><span class="tLbl">{{snoozeShort}}</span></button>
+                            <sc-if value="{{canPass}}" hint-placeholder-val="{{ true }}"><button class="hb2 tipU" data-menu="delegate" data-tip="Hand over" onClick="{{openDelegate}}" aria-haspopup="dialog" aria-label="Hand over"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M19 8v6M22 11h-6"></path></svg><span class="tLbl">Hand over</span></button></sc-if>
+                            <button class="hb2 tipU ib" data-tip="Open details" onClick="{{top.details}}" aria-label="Open details" style="padding: 0 14px"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg></button>
+                          </div>
+                        </div>
+                        <sc-if value="{{top.stamp}}" hint-placeholder-val="{{ false }}"><span class="stamp" style="--st: {{top.stampTone}}; --cx: {{top.cx}}; --cy: {{top.cy}}" aria-hidden="true"><span class="stampRing"></span><span class="stampIn"><svg class="stampIc" viewBox="0 0 52 52" width="64" height="64"><circle class="stC" cx="26" cy="26" r="23" pathLength="1"></circle><path class="stP" d="{{top.stampD}}" pathLength="1"></path></svg><span class="stampL">{{top.stampLabel}}</span></span></span></sc-if>
+                      </article>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{deckEmpty}}" hint-placeholder-val="{{ false }}">
+                    <div class="card empty" role="status">
+                      <span class="emptyIc"><svg class="ic" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true" style="stroke-width: 2.6"><path pathLength="1" d="M20 6 9 17l-5-5"></path></svg></span>
+                      <h3>{{emptyTitle}}</h3>
+                      <p style="color: var(--ad-dim)">{{emptyBody}} <strong style="color: var(--ad-ink)">{{emptyNext}}</strong></p>
+                      <div class="emptyActs"><button class="btn" onClick="{{emptyPrimary}}">{{emptyPrimaryLabel}}</button><button class="btn2" onClick="{{restoreDeck}}">{{emptySecondaryLabel}}</button></div>
+                    </div>
+                  </sc-if>
+                </section>
+
+                <section class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 6px" aria-label="Due in the next 7 days" data-tour="week">
+                  <div style="display: flex; align-items: center; gap: 8px"><h2 style="font-size: 16px; font-weight: 700; flex: 1">Due in the next 7 days</h2><span class="tag num" style="background: var(--ad-tone-flat); color: var(--ad-on-flat)">{{weekN}}</span></div>
+                  <div class="weekGrid"><sc-for list="{{week}}" as="w" hint-placeholder-count="4"><button class="rowh weekRow" onClick="{{w.open}}"><span class="meetDate sm"><span class="mm">{{w.mm}}</span><span class="dd num">{{w.dd}}</span></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 13px; text-align: left"><strong>{{w.t}}</strong><span style="color: var(--ad-dim)">{{w.s}}</span></span><sc-if value="{{w.hot}}" hint-placeholder-val="{{ false }}"><span class="tag" style="background: var(--ad-tone-warn); color: #fff">{{w.hotT}}</span></sc-if></button></sc-for></div>
+                </section>
+              </div>
+              <aside class="railCards" aria-label="Where the work stands">
+                <div class="bento" data-tour="figures">
+                  <sc-for list="{{stats}}" as="k" hint-placeholder-count="3">
+                    <button class="card lift rise stat {{k.delay}}" onClick="{{k.open}}" aria-label="{{k.aria}}" style="--k: {{k.dot}}; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; text-align: left; min-height: 104px">
+                      <span class="statHd"><span class="statIc" style="background: {{k.tile}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="{{k.ic}}"></path></svg></span><span class="statLbl">{{k.label}}</span></span>
+                      <span class="num" style="font-size: clamp(22px, 2.4vw, 26px); font-weight: 700; line-height: 1.1">{{k.value}}</span>
+                      <span style="font-size: 12px; font-weight: 600; color: {{k.noteCol}}">{{k.note}}</span>
+                    </button>
+                  </sc-for>
+                </div>
+                <section class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 6px" aria-label="Live projects by service">
+                  <div style="display: flex; align-items: center; gap: 8px"><h2 style="font-size: 16px; font-weight: 700; flex: 1">By service</h2><sc-if value="{{svcOn}}" hint-placeholder-val="{{ false }}"><button class="lnk viewAll" onClick="{{svcClear}}">Show all</button></sc-if></div>
+                  <sc-for list="{{bySvc}}" as="b" hint-placeholder-count="4"><button class="rowh svcBar {{b.cls}}" aria-pressed="{{b.pressed}}" aria-label="{{b.aria}}" onClick="{{b.pick}}"><span class="svcBarT"><span>{{b.t}}</span><strong class="num">{{b.n}}</strong></span><span class="svcBarTrack" aria-hidden="true"><span style="width: {{b.pct}}%"></span></span></button></sc-for>
+                </section>
+              </aside>
             </div>
 
             <section class="card cq rise d2" aria-label="Projects" data-tour="views" style="overflow: hidden">
@@ -3825,7 +3976,7 @@ class Component extends DCLogic {
     var BR = ['Discovery', 'Concepts', 'Review', 'Final files', 'Handover'], SO = ['Setup', 'Plan', 'Approve', 'Publish', 'Report'], WB = ['Discovery', 'Design', 'Build', 'Launch', 'Handover'], SE = ['Audit', 'Fix', 'Content', 'Report'], AP = ['Discovery', 'Design', 'Build', 'Test', 'Release'];
     return [
       p('mira-br', 'Brand identity', 'Mira Skincare', 'mira', 'Branding & Design', BR, 2, 'IN', 'Sat 17 Oct', false, '₦1,200,000', '50% paid', 'var(--ad-tone-good)', 'waiting', 'Waiting 9 days', 'Adaeze to choose a logo route'),
-      p('mira-so', 'Social media management', 'Mira Skincare', 'mira', 'Social & Ads', SO, 0, 'CA', 'Starts 1 Nov', false, '₦300,000 a month', 'Deposit due Tue', 'var(--ad-tone-warn)', 'live', 'Blocked', 'Deposit and Instagram access'),
+      p('mira-so', 'Social media management', 'Mira Skincare', 'mira', 'Social & Ads', SO, 0, 'CA', 'Starts 1 Nov', false, '₦300,000 a month', 'Deposit due Wed', 'var(--ad-tone-warn)', 'live', 'Blocked', 'Deposit and Instagram access'),
       p('okafor-fl', 'Firm flyers', 'Tunde Okafor Law', 'okafor', 'Branding & Design', BR, 2, 'IN', 'Thu 15 Oct', true, '₦180,000', 'Paid', 'var(--ad-tone-good)', 'live', '', 'Revision 1 in progress'),
       p('ade-menu', 'Menu redesign', "Ade's Kitchen", 'ade', 'Branding & Design', BR, 1, 'IN', 'Sat 24 Oct', false, '₦250,000', 'Deposit paid', 'var(--ad-tone-good)', 'live', '', 'Two directions on Wednesday'),
       p('lumen-tt', 'Class timetable design', 'Lumen Fitness', 'lumen', 'Branding & Design', BR, 3, 'IN', 'Tue 13 Oct', true, '₦90,000', 'Paid', 'var(--ad-tone-good)', 'live', '', 'Print files on Monday'),
@@ -3837,7 +3988,7 @@ class Component extends DCLogic {
       p('bloom-seo', 'SEO retainer', 'Bloom Pharmacy', 'bloom', 'SEO', SE, 3, 'BO', 'Monthly', false, '₦300,000 a month', 'Retainer', 'var(--ad-tone-brand)', 'live', '', 'September report sent'),
       p('halo-seo', 'SEO setup', 'Halo Clinics', 'halo', 'SEO', SE, 0, 'BO', 'Sat 31 Oct', false, '₦220,000', 'Deposit paid', 'var(--ad-tone-good)', 'live', '', 'Technical audit this week'),
       p('kora-app', 'Driver app', 'Kora Logistics', 'kora', 'Apps', AP, 2, 'DE', 'Paused', true, '₦3,400,000', '₦850,000 late', 'var(--ad-bad-ink)', 'live', 'Paused', 'Build paused until milestone 2 is paid'),
-      p('halo-ai', 'Booking assistant', 'Halo Clinics', 'halo', 'Software & AI', AP, 2, 'DE', 'Tue 20 Oct', false, '₦4,800,000', 'Milestone 2 on 20 Oct', 'var(--ad-tone-neutral)', 'live', '', 'Milestone 2 demo tomorrow'),
+      p('halo-ai', 'Booking assistant', 'Halo Clinics', 'halo', 'Software & AI', AP, 2, 'DE', 'Tue 20 Oct', false, '₦4,800,000', 'Milestone 2 on 20 Oct', 'var(--ad-tone-neutral)', 'live', '', 'Milestone 2 demo on Monday'),
       p('pine-br', 'Brand identity', 'Pinewood Bakery', 'pine', 'Branding & Design', BR, 5, 'IN', 'Done Jul 2026', false, '₦950,000', 'Paid in full', 'var(--ad-tone-good)', 'done', '', 'Handover recorded'),
       p('bloom-web', 'Website', 'Bloom Pharmacy', 'bloom', 'Web & Apps', WB, 5, 'DE', 'Done Mar 2026', false, '₦1,800,000', 'Paid in full', 'var(--ad-tone-good)', 'done', '', 'Handover recorded'),
       p('ade-sep', 'September content', "Ade's Kitchen", 'ade', 'Social & Ads', SO, 5, 'CA', 'Done 30 Sep', false, '₦350,000', 'Paid', 'var(--ad-tone-good)', 'done', '', 'Report sent 1 Oct')
@@ -4001,6 +4152,7 @@ class Component extends DCLogic {
   tourSteps() {
     var I = this.icons();
     return [
+      { target: 'deck', title: 'Projects that need you', icon: I.target, body: 'Late, blocked, paused or about to land, across every service. Act, snooze or hand it over, and the next card rises.', hint: 'Focus the card: D done, S snooze.' },
       { target: 'figures', title: 'Where the work stands', icon: I.chart, body: 'Live projects, what waits on clients, and what is due this week. Tap a figure for the list.' },
       { target: 'views', title: 'List, board or calendar', icon: I.layers, body: 'The same projects three ways. Filter by service with the chips; tap any project to open it.', hint: 'The board scrolls sideways on a phone.' },
       !this.hideMoney() && { target: 'new', title: 'Start a project', icon: I.plus, body: 'Pick the client, the service and the lead. The stages come from the service, and the deposit invoice can go out straight away.' },
@@ -4117,6 +4269,40 @@ class Component extends DCLogic {
     return [];
   }
 
+  /* The Focus deck for delivery: what is late, blocked, paused or due to land across every service. Staff see only cards without amounts. */
+  clearId(id, how, label, msg, opt) { var it = this.deck().filter(function (d) { return d.id === id; })[0]; if (it && !this.state.gone[id] && !this.state.snoozed[id]) this.clear(it, how, label, msg, opt); else if (msg) this.say(msg); }
+  snoozeTitle() { return 'Bring it back'; }
+  patchProj(id, patch) { var ov = Object.assign({}, this.state.leadOv); ov[id] = Object.assign({}, ov[id] || {}, patch); this.setState({ leadOv: ov, ra: this.state.ra + 1 }); }
+  deck() {
+    var self = this, I = this.icons(), staff = this.hideMoney(), P = {}; this.projectsData().forEach(function (x) { P[x.id] = x; });
+    var cards = [
+      { id: 'lumen-tt', kind: 'Due soon', urgency: 'Tue 13 Oct', utone: '#a16207', label: 'Branding & Design', dept: 'Branding & Design', title: 'Lumen’s class timetable print files are due Tuesday', body: 'Final files is the last stage before handover. Daniel approved the layout on Thursday; the print sizes are left.', meta: [{ k: 'Stage', v: 'Final files, 4 of 5' }, { k: 'Lead', v: 'Ifeanyi' }, { k: 'Client', v: 'Lumen Fitness' }], why: 'Print shops need the files a day before they print. Sending on Monday keeps Tuesday safe.',
+        primaryLabel: 'Files are ready, hand over', primaryFn: function (at) { self.ask({ eyebrow: 'Class timetable design', title: 'Move it to handover?', body: 'Daniel gets the print files in his portal with the handover note. The project moves to Handover; it is done once he confirms.', ok: 'Move to handover', icon: I.check, tone: 'var(--ad-tone-good)', green: true, onOk: function () { self.patchProj('lumen-tt', { cur: 4, stage: 'Handover', next: 'Files sent, waiting for Daniel to confirm' }); self.clearId('lumen-tt', 'done', '', 'Moved to Handover. Daniel has the print files in his portal.', { final: true, at: at }); } }); },
+        secondaryLabel: 'Move the date', secondaryFn: function () { self.open(self.sh({ eyebrow: 'Class timetable design', title: 'Move the due date', icon: I.cal, deckId: 'lumen-tt', listTitle: 'New date', select: true, list: [{ t: 'Wed 14 Oct', s: 'One day later' }, { t: 'Fri 16 Oct', s: 'End of the week' }], body: 'Daniel is told the new date in his portal.', primary: function (ctx) { return ctx.pick >= 0 ? 'Move to ' + ctx.item.t : 'Move the date'; }, secondary: 'Cancel', onPrimary: function (ctx) { self.patchProj('lumen-tt', { due: ctx.item.t }); self.clearId('lumen-tt', 'snooze', ctx.item.t + ', 09:00', 'Moved to ' + ctx.item.t + '. Daniel has been told.'); } })); },
+        sheet: this.projectSheet(P['lumen-tt']) },
+      { id: 'oak-web', kind: 'Handover', urgency: 'Not booked', utone: '#5c5c7a', label: 'Web & Apps', dept: 'Web & Apps', title: 'Book Oak and Ivy’s recorded handover', body: 'Every launch check is closed. The handover meeting on Google Meet is recorded, then the handover document follows.', meta: [{ k: 'Stage', v: 'Handover, 5 of 5' }, { k: 'Lead', v: 'Daniel' }, { k: 'Contact', v: 'Temi A.' }], why: staff ? 'The project is done only after the recorded handover, so book it while the site is fresh.' : 'The final invoice goes after the handover, so booking it is what releases the last payment.',
+        primaryLabel: 'Book the handover', primaryFn: function () { self.bookSheet ? self.open(self.sh({ eyebrow: 'Website · Oak and Ivy Interiors', title: 'Book the recorded handover', icon: I.cal, deckId: 'oak-web', listTitle: 'Offer Temi a time', select: true, list: [{ t: 'Tue 13 Oct, 11:00', s: '60 min · Google Meet, recorded' }, { t: 'Wed 14 Oct, 14:00', s: '60 min · Google Meet, recorded' }, { t: 'Thu 15 Oct, 10:00', s: '60 min · Google Meet, recorded' }], note: 'Temi gets the invite and a short list of what to have ready: domain login, a second admin email, questions.', primary: function (ctx) { return ctx.pick >= 0 ? 'Send invite for ' + ctx.item.t : 'Send the invite'; }, secondary: 'Cancel', onPrimary: function (ctx) { self.patchProj('oak-web', { next: 'Handover booked ' + ctx.item.t, due: ctx.item.t.split(',')[0] }); self.clearId('oak-web', 'done', '', 'Invite sent to Temi for ' + ctx.item.t + '. It is on the calendar and in Meetings.', { final: true }); } })) : null; },
+        secondaryLabel: 'Let Temi choose', secondaryFn: function (at) { self.clearId('oak-web', 'done', '', '', { at: at, delayed: { pending: function (n) { return 'Sending Temi the booking link in ' + n + 's'; }, done: 'Sent. Temi picks a time from your free slots and you are told.' } }); },
+        sheet: this.projectSheet(P['oak-web']) },
+      { id: 'halo-ai', kind: 'Meeting', urgency: 'Mon 12 Oct', utone: '#5c5c7a', label: 'Software & AI', dept: 'Software & AI', title: 'Milestone 2 demo for Halo on Monday', body: 'Daniel shows the clinic calendar and reminders to Dr Kemi. Milestone 2 is signed off at the demo or after one round of changes.', meta: [{ k: 'Stage', v: 'Build, 3 of 5' }, { k: 'Lead', v: 'Daniel' }, { k: 'Demo', v: 'Mon 12 Oct, 10:00' }], why: 'An agenda before the weekend turns the demo into a sign off instead of a first look.',
+        primaryLabel: 'Send the agenda', primaryFn: function (at) { self.clearId('halo-ai', 'done', '', '', { at: at, delayed: { pending: function (n) { return 'Sending the demo agenda to Dr Kemi in ' + n + 's'; }, done: 'Agenda sent to Dr Kemi with the Meet link and what to test.' } }); },
+        secondaryLabel: 'Open the project', secondaryFn: function () { self.openProject(P['halo-ai']); },
+        sheet: this.projectSheet(P['halo-ai']) },
+      { id: 'kora-app', money: true, kind: 'Paused', urgency: '12 days late', utone: '#c62828', label: 'Apps', dept: 'Finance', title: 'Kora’s driver app is paused on a late payment', body: 'Milestone 2, ₦850,000, was due on 28 Sep. The build stopped on 26 Sep and the team’s tasks are hidden until it resumes.', meta: [{ k: 'Owed', v: '₦850,000' }, { k: 'Since', v: 'Sat 26 Sep' }, { k: 'Lead', v: 'Daniel' }], why: 'Resuming without payment is your call. If you do, write why, so the team and the history know.',
+        primaryLabel: 'See the late invoice', primaryFn: function () { window.location.href = 'A-Invoice.dc.html?no=INV-26-4KQ8ZD'; },
+        secondaryLabel: 'Resume with a reason', secondaryFn: function () { self.ask({ eyebrow: 'Driver app', title: 'Resume the driver app before payment?', body: 'Tasks return to Daniel’s My Day and the deadline counts again. The invoice stays open and reminders continue.', input: true, inputLabel: 'Reason', inputPh: 'For example: Adebayo promised payment on Friday', ok: 'Resume the project', icon: I.play, onOk: function (r) { var u = Object.assign({}, self.state.paused); delete u['kora-app']; self.setState({ paused: u, ra: self.state.ra + 1 }); self.patchProj('kora-app', { next: 'Resumed: ' + r }); self.clearId('kora-app', 'done', '', 'Resumed. Daniel has his tasks back, with your reason.', { final: true }); } }); },
+        sheet: this.projectSheet(P['kora-app']) },
+      { id: 'mira-so', money: true, kind: 'Blocked', urgency: 'Starts 1 Nov', utone: '#c62828', label: 'Social & Ads', dept: 'Social & Ads', title: 'Mira’s social media cannot start yet', body: 'Two things block setup: the ₦450,000 deposit due Wed 14 Oct, and Instagram access from Bola.', meta: [{ k: 'Deposit', v: 'Due Wed 14 Oct' }, { k: 'Access', v: 'Asked Wed 7 Oct' }, { k: 'Lead', v: 'Chiamaka' }], why: 'November is planned from their insights, so access is needed two weeks before the start.',
+        primaryLabel: 'Open Mira Skincare', primaryFn: function () { window.location.href = 'A-Client.dc.html'; },
+        secondaryLabel: 'Snooze to Wednesday', secondaryFn: function (at) { self.clearId('mira-so', 'snooze', 'Wed 14 Oct, 09:00', 'Snoozed to Wednesday, the deposit date.', { at: at }); },
+        sheet: this.projectSheet(P['mira-so']) },
+      staff && { id: 'mira-so-s', kind: 'Blocked', urgency: 'Needed by 26 Oct', utone: '#c62828', label: 'Social & Ads', dept: 'Social & Ads', title: 'Instagram access for Mira is still missing', body: 'You asked on Wed 7 Oct. Bola, their marketing lead, holds the account and has not replied.', meta: [{ k: 'Starts', v: '1 Nov' }, { k: 'Holds it', v: 'Bola T.' }, { k: 'Asked', v: 'Wed 7 Oct' }], why: 'November is planned from their insights, so access is needed two weeks before the start. Admin follows up on the deposit.',
+        primaryLabel: 'Ask Bola again', primaryFn: function (at) { self.clearId('mira-so-s', 'done', '', '', { at: at, delayed: { pending: function (n) { return 'Sending the access request to Bola in ' + n + 's'; }, done: 'Sent to Bola with the guide. Adaeze is copied.' } }); },
+        secondaryLabel: 'Access received', secondaryFn: function (at) { self.patchProj('mira-so', { flag: '', next: 'Access received. Plan November' }); self.clearId('mira-so-s', 'done', '', 'Recorded. Setup ticks off and Admin is told.', { at: at }); },
+        sheet: this.projectSheet(P['mira-so']) }
+    ].filter(Boolean);
+    return cards.filter(function (c) { var pid = c.id.replace(/-s$/, ''); return !staff || (!c.money && P[pid] && self.projScope(P[pid])); });
+  }
   renderVals() {
     var s = this.state, self = this, p = s.p, I = this.icons(), S = this.sh.bind(this);
     var all = this.allProjects(), q = s.q2.trim().toLowerCase();
@@ -4203,7 +4389,16 @@ class Component extends DCLogic {
       { label: 'Due next 7 days', raw: dueWeek, note: kinds.meeting + (kinds.meeting === 1 ? ' meeting' : ' meetings') + (self.hideMoney() ? ', ' + kinds.deadline + (kinds.deadline === 1 ? ' deadline' : ' deadlines') : ', ' + kinds.money + (kinds.money === 1 ? ' payment' : ' payments')), noteCol: 'var(--ad-dim)', dot: 'var(--ad-series-2)', sheet: S({ eyebrow: 'This week', title: 'Due 13 to 19 Oct', icon: I.cal, listTitle: 'In order', list: weeks[0].days.reduce(function (a, d) { return a.concat(d[2].filter(function (e) { return byId[e[0]]; }).map(function (e) { return { t: d[0] + ' ' + d[1] + ' · ' + e[1], s: byId[e[0]].name + ' · ' + byId[e[0]].client, tag: K[e[2]][0], tone: K[e[2]][1] }; })); }, []), primary: 'Open the calendar', onPrimary: function () { self.setState({ view: 'cal', wk: 0, va: self.state.va + 1 }); } }) }
     ].map(function (k, i) { return Object.assign({}, k, self.statDeco(k), { value: String(Math.round(k.raw * p)), delay: 'd' + (i + 1), aria: k.label + ': ' + k.raw + '. ' + k.note, open: function () { self.open(k.sheet); } }); });
 
-    return Object.assign(this.kit(), this.extraVals(), {
+    var dk = this.deck(), dv = this.deckView(dk), staffV = this.hideMoney();
+    var WK = [['Tue 13 Oct', 'lumen-tt', 'Class timetable print files', 'Lumen Fitness · Ifeanyi'], ['Wed 14 Oct', 'mira-so', staffV ? 'Logo review with Adaeze' : 'Mira social deposit due', staffV ? 'Mira Skincare · Ifeanyi' : 'Mira Skincare · ₦450,000'], ['Thu 15 Oct', 'okafor-fl', 'Firm flyers, revision 1', 'Tunde Okafor Law · Ifeanyi'], ['Fri 16 Oct', 'oak-web', 'Website handover', 'Oak and Ivy Interiors · Daniel'], ['Fri 16 Oct', 'lumen-ads', 'Instagram ads go live', 'Lumen Fitness · Chiamaka'], ['Sat 17 Oct', 'mira-br', 'Brand identity final files', 'Mira Skincare · Ifeanyi']];
+    var PJ = {}; all.forEach(function (x) { PJ[x.id] = x; });
+    var week = WK.filter(function (w) { return PJ[w[1]] && !(staffV && w[1] === 'mira-so'); }).map(function (w) { var x = PJ[w[1]], hot = x.flag === 'Blocked' || /^Waiting/.test(x.flag || ''); return { mm: 'Oct', dd: w[0].split(' ')[1], t: w[2], s: w[0].split(' ')[0] + ' · ' + w[3], hot: hot, hotT: x.flag, open: function () { self.openProject(x); } }; });
+    return Object.assign(this.kit(), this.extraVals(), dv, {
+      deckTitle: staffV ? 'Your projects need' : 'Projects needing you', deckKeys: 'Focus the card: D done, S snooze', snoozeLabel: 'Snooze', snoozeShort: 'Snooze', canPass: !staffV,
+      emptyTitle: 'Every project is moving.', emptyBody: 'Nothing is late, blocked or waiting on you. Next:', emptyNext: 'class timetable print files on Tue 13 Oct.', emptyPrimaryLabel: staffV ? 'Open My Day' : 'New project', emptySecondaryLabel: 'Bring the cards back', emptyPrimary: function () { if (staffV) { window.location.href = 'D-Staff.dc.html'; return; } self.newProjectSheet(); },
+      week: week, weekN: week.length,
+      bySvc: (function () { var live = all.filter(function (x) { return x.status !== 'done'; }), L = SV.map(function (v) { return [v, live.filter(function (x) { return x.svc === v; }).length]; }).filter(function (r) { return r[1] > 0; }), mx = Math.max.apply(null, L.map(function (r) { return r[1]; }).concat([1])); return L.map(function (r) { var on = s.svc === r[0]; return { t: r[0], n: r[1], pct: Math.round(r[1] / mx * 100), cls: on ? 'on' : '', pressed: on ? 'true' : 'false', aria: r[0] + ': ' + r[1] + ' live. ' + (on ? 'Filtering the list. Press to show all.' : 'Press to filter the list.'), pick: function () { self.setState({ svc: on ? 'all' : r[0], ppage: 0, ra: self.state.ra + 1 }); } }; }); })(),
+      svcOn: s.svc !== 'all', svcClear: function () { self.setState({ svc: 'all', ppage: 0, ra: self.state.ra + 1 }); },
       lede: allLive.length + (allLive.length === 1 ? ' live project' : ' live projects') + (self.hideMoney() ? ' in your departments. ' : ' across ' + SV.length + ' services. ') + waiting.length + (waiting.length === 1 ? ' waits' : ' wait') + ' on clients.', canNew: !self.hideMoney(), valueHead: self.hideMoney() ? 'Billing' : 'Payment',
       stats: stats, svcs: svcs, svcSel: self.chipsAsPick('svc', 'Service', svcs), viewI: vI, views: V.map(function (v) { var on = s.view === v[0]; return { t: v[1], d: v[2], cls: on ? 'on' : '', pressed: on ? 'true' : 'false', pick: function () { if (!on) self.setState({ view: v[0], va: self.state.va + 1 }); } }; }),
       isList: s.view === 'list', isBoard: s.view === 'board', isTl: s.view === 'tl', tl: TLV, isCal: s.view === 'cal', viewAnim: s.va % 2 ? 'kidIn' : 'kidIn2',

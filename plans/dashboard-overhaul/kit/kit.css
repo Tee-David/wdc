@@ -1579,3 +1579,21 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .ansNav { align-items: center; }
 .ansNav .selBtn { flex: 1 1 260px; max-width: 420px; }
 .ansNavNote { font-size: 13px; color: var(--ad-dim); }
+/* Segmented controls: a 40px segment with an invisible hit area to 46px, so every segment meets the 44px target (2026-10-25) */
+.seg button,.seg a{min-height:40px}
+.seg button::after,.seg a::after{content:'';position:absolute;inset:-3px 0}
+.weekRow { display: flex; align-items: center; gap: 12px; padding: 6px; border-radius: 12px; width: 100%; min-height: 52px; }
+.meetDate.sm { width: 44px; border-radius: 10px; }
+.meetDate.sm .mm { font-size: 10px; line-height: 18px; }
+.meetDate.sm .dd { font-size: 18px; line-height: 28px; }
+.weekGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 12px; }
+@container app (max-width: 640px) { .weekGrid { grid-template-columns: minmax(0, 1fr); } }
+.svcBar { display: flex; flex-direction: column; gap: 6px; width: 100%; padding: 8px; border-radius: 12px; min-height: 44px; text-align: left; }
+.svcBarT { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; }
+.svcBarTrack { height: 8px; border-radius: 99px; background: var(--ad-panel-2); overflow: hidden; }
+.svcBarTrack span { display: block; height: 100%; border-radius: 99px; background: var(--ad-tone-brand); transform-origin: left; animation: barGrow .7s var(--ease) backwards; }
+.svcBar.on { background: var(--ad-fill); color: var(--ad-on-fill); }
+.svcBar.on .svcBarTrack { background: rgb(255 255 255 / .22); }
+.svcBar.on .svcBarTrack span { background: #fff; }
+@keyframes barGrow { from { transform: scaleX(0); } }
+@media (prefers-reduced-motion: reduce) { .svcBarTrack span { animation: none; } }

@@ -140,7 +140,7 @@
     var BR = ['Discovery', 'Concepts', 'Review', 'Final files', 'Handover'], SO = ['Setup', 'Plan', 'Approve', 'Publish', 'Report'], WB = ['Discovery', 'Design', 'Build', 'Launch', 'Handover'], SE = ['Audit', 'Fix', 'Content', 'Report'], AP = ['Discovery', 'Design', 'Build', 'Test', 'Release'];
     return [
       p('mira-br', 'Brand identity', 'Mira Skincare', 'mira', 'Branding & Design', BR, 2, 'IN', 'Sat 17 Oct', false, '₦1,200,000', '50% paid', 'var(--ad-tone-good)', 'waiting', 'Waiting 9 days', 'Adaeze to choose a logo route'),
-      p('mira-so', 'Social media management', 'Mira Skincare', 'mira', 'Social & Ads', SO, 0, 'CA', 'Starts 1 Nov', false, '₦300,000 a month', 'Deposit due Tue', 'var(--ad-tone-warn)', 'live', 'Blocked', 'Deposit and Instagram access'),
+      p('mira-so', 'Social media management', 'Mira Skincare', 'mira', 'Social & Ads', SO, 0, 'CA', 'Starts 1 Nov', false, '₦300,000 a month', 'Deposit due Wed', 'var(--ad-tone-warn)', 'live', 'Blocked', 'Deposit and Instagram access'),
       p('okafor-fl', 'Firm flyers', 'Tunde Okafor Law', 'okafor', 'Branding & Design', BR, 2, 'IN', 'Thu 15 Oct', true, '₦180,000', 'Paid', 'var(--ad-tone-good)', 'live', '', 'Revision 1 in progress'),
       p('ade-menu', 'Menu redesign', "Ade's Kitchen", 'ade', 'Branding & Design', BR, 1, 'IN', 'Sat 24 Oct', false, '₦250,000', 'Deposit paid', 'var(--ad-tone-good)', 'live', '', 'Two directions on Wednesday'),
       p('lumen-tt', 'Class timetable design', 'Lumen Fitness', 'lumen', 'Branding & Design', BR, 3, 'IN', 'Tue 13 Oct', true, '₦90,000', 'Paid', 'var(--ad-tone-good)', 'live', '', 'Print files on Monday'),
@@ -152,7 +152,7 @@
       p('bloom-seo', 'SEO retainer', 'Bloom Pharmacy', 'bloom', 'SEO', SE, 3, 'BO', 'Monthly', false, '₦300,000 a month', 'Retainer', 'var(--ad-tone-brand)', 'live', '', 'September report sent'),
       p('halo-seo', 'SEO setup', 'Halo Clinics', 'halo', 'SEO', SE, 0, 'BO', 'Sat 31 Oct', false, '₦220,000', 'Deposit paid', 'var(--ad-tone-good)', 'live', '', 'Technical audit this week'),
       p('kora-app', 'Driver app', 'Kora Logistics', 'kora', 'Apps', AP, 2, 'DE', 'Paused', true, '₦3,400,000', '₦850,000 late', 'var(--ad-bad-ink)', 'live', 'Paused', 'Build paused until milestone 2 is paid'),
-      p('halo-ai', 'Booking assistant', 'Halo Clinics', 'halo', 'Software & AI', AP, 2, 'DE', 'Tue 20 Oct', false, '₦4,800,000', 'Milestone 2 on 20 Oct', 'var(--ad-tone-neutral)', 'live', '', 'Milestone 2 demo tomorrow'),
+      p('halo-ai', 'Booking assistant', 'Halo Clinics', 'halo', 'Software & AI', AP, 2, 'DE', 'Tue 20 Oct', false, '₦4,800,000', 'Milestone 2 on 20 Oct', 'var(--ad-tone-neutral)', 'live', '', 'Milestone 2 demo on Monday'),
       p('pine-br', 'Brand identity', 'Pinewood Bakery', 'pine', 'Branding & Design', BR, 5, 'IN', 'Done Jul 2026', false, '₦950,000', 'Paid in full', 'var(--ad-tone-good)', 'done', '', 'Handover recorded'),
       p('bloom-web', 'Website', 'Bloom Pharmacy', 'bloom', 'Web & Apps', WB, 5, 'DE', 'Done Mar 2026', false, '₦1,800,000', 'Paid in full', 'var(--ad-tone-good)', 'done', '', 'Handover recorded'),
       p('ade-sep', 'September content', "Ade's Kitchen", 'ade', 'Social & Ads', SO, 5, 'CA', 'Done 30 Sep', false, '₦350,000', 'Paid', 'var(--ad-tone-good)', 'done', '', 'Report sent 1 Oct')
