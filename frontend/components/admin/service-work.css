@@ -1,0 +1,19 @@
+/* THE SERVICE'S OWN WORK (service-work.tsx): figure cards, then one list per kind of work. */
+.svw { display: grid; gap: 1rem; }
+.svw__sub { margin: -.25rem 1.25rem .5rem; color: var(--ad-dim); font-size: .9rem; }
+.svw__list { list-style: none; margin: 0; padding: 0 .5rem .5rem; display: grid; }
+.svw__row {
+  display: flex; align-items: center; gap: .75rem; min-height: 3.5rem; padding: .6rem .75rem; border-radius: 12px;
+  color: var(--ad-ink); text-decoration: none; border-top: 1px solid var(--ad-line);
+}
+.svw__list li:first-child .svw__row { border-top: 0; }
+@media (hover: hover) { .svw__row:hover { background: var(--ad-hover); } }
+.svw__row:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
+.svw__txt { flex: 1 1 auto; min-width: 0; display: grid; gap: 2px; }
+.svw__txt strong { font-weight: 600; overflow-wrap: anywhere; }
+.svw__txt span { font-size: .85rem; color: var(--ad-dim); overflow-wrap: anywhere; }
+.svw__row .ad__pill { flex: none; }
+.svw__tick { flex: none; width: 1.75rem; height: 1.75rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: var(--ad-tone-flat); color: var(--ad-on-flat); }
+.svw__tick svg { width: 1rem; height: 1rem; }
+.svw__tick.is-on { background: var(--ad-tone-good); color: var(--ad-on-good); }
+.svw__empty { margin: 0 1.25rem 1.1rem; padding: .9rem 1rem; border: 1px dashed var(--ad-line-2); border-radius: 12px; color: var(--ad-dim); font-size: .9rem; }
