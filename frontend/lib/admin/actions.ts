@@ -1162,6 +1162,53 @@ export async function emailReminder(_prev: ActionState, fd: FormData): Promise<A
   return toldAbout(staged, (to) => `Reminder on its way to ${to}. The log below shows whether it arrived.`);
 }
 
+/** The client promised a date: note it, and the automatic reminders wait until it passes. */
+export async function promisePayment(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
+  const refused = await owner();
+  if (refused) return refused;
+  const id = str(fd, "id"), until = str(fd, "until"), note = str(fd, "note").slice(0, 300);
+  const inv = db.getInvoice(id);
+  if (!inv) return FAIL({}, "That invoice is no longer there.");
+  if (inv.voided || invoiceTotals(inv).due <= 0) return FAIL({}, "Nothing is owed on it, so there is nothing to promise.");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(until)) return FAIL({ until: "Pick the date they promised." });
+  if (until < new Date().toISOString().slice(0, 10)) return FAIL({ until: "Pick today or a later date." });
+  db.setInvoicePromise(id, { until, note: note || undefined }, await actorName());
+  refresh("/admin/money", `/admin/money/${id}`, `/admin/clients/${inv.clientId}`);
+  return OK(`Saved. Reminders pause until ${new Date(`${until}T12:00:00Z`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}.`);
+}
+
+export async function clearPromise(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
+  const refused = await owner();
+  if (refused) return refused;
+  const inv = db.setInvoicePromise(str(fd, "id"), null, await actorName());
+  if (!inv) return FAIL({}, "That invoice is no longer there.");
+  refresh("/admin/money", `/admin/money/${inv.id}`, `/admin/clients/${inv.clientId}`);
+  return OK("Updated. Reminders run on their schedule again.");
+}
+
+/** The final notice: once per invoice, the same email with firmer words. */
+export async function sendFinalNotice(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
+  const refused = await owner();
+  if (refused) return refused;
+  const id = str(fd, "id");
+  const inv = db.getInvoice(id);
+  if (!inv) return FAIL({}, "That invoice is no longer there.");
+  if (inv.voided || invoiceTotals(inv).due <= 0) return FAIL({}, "There is nothing outstanding on it.");
+  if (inv.finalNoticeAt) return FAIL({}, "The final notice already went. Call them, or record the payment when it comes.");
+  const { stageFinalNotice } = await import("@/lib/money-mail");
+  const staged = await stageFinalNotice({ invoice: inv, by: await actorName() });
+  if (staged.state === "skipped") return FAIL({}, `${staged.say} Nothing was emailed. Call or message them, then write it down with Log a call or message on their page.`);
+  db.markFinalNotice(id, await actorName());
+  refresh("/admin/money", `/admin/money/${id}`, `/admin/clients/${inv.clientId}`);
+  return toldAbout(staged, (to) => `Final notice on its way to ${to}. The log below shows whether it arrived.`);
+}
+
 /**
  * Send a receipt for a payment (by its id), or for an invoice's latest one.
  *

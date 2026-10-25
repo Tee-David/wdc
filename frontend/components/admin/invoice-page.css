@@ -9,3 +9,15 @@
 .adInv__links { display: grid; gap: .5rem; }
 .adInv__links .ad__btn { justify-content: flex-start; min-height: 2.75rem; width: 100%; }
 @media (max-width: 640px) { .adInv__acts { justify-content: flex-start; } }
+
+/* What this invoice needs (components/admin/invoice-needs.tsx): one card above the figures. */
+.adNeed { display: grid; gap: .6rem; padding: 1.25rem; border-radius: 20px; background: var(--ad-panel); border: 1px solid var(--ad-line); box-shadow: var(--ad-sh-1); }
+.adNeed--bad { border-color: var(--ad-tone-bad); }
+.adNeed--warn { border-color: var(--ad-tone-warn); }
+.adNeed__tags { display: flex; flex-wrap: wrap; gap: .4rem; }
+.adNeed__t { margin: 0; font: 700 clamp(1.1rem, 1rem + .5vw, 1.35rem)/1.25 var(--font-space-grotesk), system-ui, sans-serif; }
+.adNeed__b { margin: 0; color: var(--ad-dim); max-width: 60ch; }
+.adNeed__acts { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-top: .25rem; }
+.adNeed__acts .ad__btn { min-height: 2.75rem; }
+.adNeed--calm { margin: 0; padding: .85rem 1.1rem; border-radius: 14px; background: var(--ad-panel-2); color: var(--ad-ink); font-weight: 600; }
+@media (max-width: 640px) { .adNeed__acts > * { flex: 1 1 100%; } .adNeed__acts .ad__btn { width: 100%; justify-content: center; } }

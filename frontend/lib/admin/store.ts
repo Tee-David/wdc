@@ -803,6 +803,26 @@ export type PatchResult =
  * invoice used to say something else" is the question a changed invoice is
  * asked.
  */
+/** Record or clear the client's promised payment date. Audited either way. */
+export function setInvoicePromise(id: Id, promise: { until: string; note?: string } | null, actor = "Studio"): Invoice | null {
+  const inv = getInvoice(id);
+  if (!inv) return null;
+  inv.promise = promise ? { ...promise, by: actor, at: now() } : null;
+  audit({ actor, kind: "invoice", subjectId: inv.id, subject: inv.number,
+          action: promise ? `noted a promise to pay by ${promise.until.slice(0, 10)}` : "cleared the promised date",
+          note: promise?.note || undefined });
+  return inv;
+}
+
+/** Note that the final notice went. */
+export function markFinalNotice(id: Id, actor = "Studio"): Invoice | null {
+  const inv = getInvoice(id);
+  if (!inv) return null;
+  inv.finalNoticeAt = now();
+  audit({ actor, kind: "invoice", subjectId: inv.id, subject: inv.number, action: "sent the final notice" });
+  return inv;
+}
+
 export function patchInvoice(
   id: Id,
   d: Partial<Pick<Invoice, "projectId" | "due" | "vatRate" | "lines" | "currency" | "paymentAccount">>,
