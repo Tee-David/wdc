@@ -1551,6 +1551,66 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 @container app (max-width:760px) { .docLineH { display: none; } }
 .segTall button { min-height: 44px; }
 
+/* Entry page: a long form entry read as a brief (2026-10-25) */
+.ansNav { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; }
+.ansNav .chip { min-height: 44px; }
+.ansSec { padding: 0; overflow: hidden; }
+.ansHead { display: flex; align-items: center; gap: 10px; padding: 16px 20px 8px; flex-wrap: wrap; }
+.ansHead h2 { font-size: 17px; font-weight: 700; flex: 1; min-width: 0; }
+.ansCount { font-size: 13px; color: var(--ad-dim); }
+.ansList { margin: 0; padding: 0 8px 10px; display: flex; flex-direction: column; }
+.ansRow { display: grid; grid-template-columns: minmax(0, 220px) minmax(0, 1fr); gap: 6px 20px; padding: 12px; border-top: 1px solid var(--ad-line); }
+.ansRow:first-child { border-top: 0; }
+.ansRow.open { background: var(--ad-panel-2); border-radius: 12px; border-top-color: transparent; }
+.ansRow.open + .ansRow { border-top-color: transparent; }
+.ansRow dt { font-size: 13px; color: var(--ad-dim); font-weight: 600; }
+.ansRow dd { margin: 0; display: flex; flex-direction: column; gap: 8px; min-width: 0; font-size: 15px; }
+.ansV { overflow-wrap: anywhere; }
+.ansChips { display: flex; flex-wrap: wrap; gap: 6px; }
+.ansFlag { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ansProf { display: flex; flex-direction: column; gap: 6px; }
+.profRow { display: flex; align-items: center; gap: 10px; min-height: 44px; color: inherit; text-decoration: none; border-radius: 12px; padding: 2px 6px 2px 2px; }
+.profRow:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
+@media (hover: hover) { .profRow:hover { background: var(--ad-hover); } }
+.profTile { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; flex: none; }
+.ansPhotos { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+.phTile { position: relative; aspect-ratio: 1; border-radius: 12px; border: 1px solid var(--ad-line); display: flex; align-items: flex-end; padding: 6px; overflow: hidden; min-height: 44px; }
+.phTile:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
+.phName { font-size: 11px; font-weight: 600; background: #fff; color: #0e0e2c; border-radius: 99px; padding: 2px 8px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.phTag { position: absolute; top: 6px; left: 6px; height: 20px; padding: 0 7px; font-size: 11px; }
+.factList { margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.factList > div { display: flex; flex-direction: column; gap: 2px; }
+.factList dt { font-size: 12px; color: var(--ad-dim); }
+.factList dd { margin: 0; font-size: 14px; }
+.linkRow { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 12px; color: inherit; text-decoration: none; min-height: 44px; }
+.histList { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.histList li { display: flex; gap: 10px; align-items: flex-start; }
+.hDot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--ad-tone-brand); margin-top: 5px; flex: none; }
+.hDot.now { background: #ff6500; border-color: #ff6500; }
+@container card (max-width: 520px) { .ansRow { grid-template-columns: minmax(0, 1fr); } }
+.crumbs a{min-width:44px;justify-content:center}
+.ansNav { align-items: center; }
+.ansNav .selBtn { flex: 1 1 260px; max-width: 420px; }
+.ansNavNote { font-size: 13px; color: var(--ad-dim); }
+/* Segmented controls: a 40px segment with an invisible hit area to 46px, so every segment meets the 44px target (2026-10-25) */
+.seg button,.seg a{min-height:40px}
+.seg button::after,.seg a::after{content:'';position:absolute;inset:-3px 0}
+.weekRow { display: flex; align-items: center; gap: 12px; padding: 6px; border-radius: 12px; width: 100%; min-height: 52px; }
+.meetDate.sm { width: 44px; border-radius: 10px; }
+.meetDate.sm .mm { font-size: 10px; line-height: 18px; }
+.meetDate.sm .dd { font-size: 18px; line-height: 28px; }
+.weekGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 12px; }
+@container app (max-width: 640px) { .weekGrid { grid-template-columns: minmax(0, 1fr); } }
+.svcBar { display: flex; flex-direction: column; gap: 6px; width: 100%; padding: 8px; border-radius: 12px; min-height: 44px; text-align: left; }
+.svcBarT { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; }
+.svcBarTrack { height: 8px; border-radius: 99px; background: var(--ad-panel-2); overflow: hidden; }
+.svcBarTrack span { display: block; height: 100%; border-radius: 99px; background: var(--ad-tone-brand); transform-origin: left; animation: barGrow .7s var(--ease) backwards; }
+.svcBar.on { background: var(--ad-fill); color: var(--ad-on-fill); }
+.svcBar.on .svcBarTrack { background: rgb(255 255 255 / .22); }
+.svcBar.on .svcBarTrack span { background: #fff; }
+@keyframes barGrow { from { transform: scaleX(0); } }
+@media (prefers-reduced-motion: reduce) { .svcBarTrack span { animation: none; } }
+
 </style>
 </helmet>
 <div class="{{rootCls}}" onClick="{{rootClick}}">
@@ -4145,7 +4205,7 @@ class Component extends DCLogic {
     var BR = ['Discovery', 'Concepts', 'Review', 'Final files', 'Handover'], SO = ['Setup', 'Plan', 'Approve', 'Publish', 'Report'], WB = ['Discovery', 'Design', 'Build', 'Launch', 'Handover'], SE = ['Audit', 'Fix', 'Content', 'Report'], AP = ['Discovery', 'Design', 'Build', 'Test', 'Release'];
     return [
       p('mira-br', 'Brand identity', 'Mira Skincare', 'mira', 'Branding & Design', BR, 2, 'IN', 'Sat 17 Oct', false, '₦1,200,000', '50% paid', 'var(--ad-tone-good)', 'waiting', 'Waiting 9 days', 'Adaeze to choose a logo route'),
-      p('mira-so', 'Social media management', 'Mira Skincare', 'mira', 'Social & Ads', SO, 0, 'CA', 'Starts 1 Nov', false, '₦300,000 a month', 'Deposit due Tue', 'var(--ad-tone-warn)', 'live', 'Blocked', 'Deposit and Instagram access'),
+      p('mira-so', 'Social media management', 'Mira Skincare', 'mira', 'Social & Ads', SO, 0, 'CA', 'Starts 1 Nov', false, '₦300,000 a month', 'Deposit due Wed', 'var(--ad-tone-warn)', 'live', 'Blocked', 'Deposit and Instagram access'),
       p('okafor-fl', 'Firm flyers', 'Tunde Okafor Law', 'okafor', 'Branding & Design', BR, 2, 'IN', 'Thu 15 Oct', true, '₦180,000', 'Paid', 'var(--ad-tone-good)', 'live', '', 'Revision 1 in progress'),
       p('ade-menu', 'Menu redesign', "Ade's Kitchen", 'ade', 'Branding & Design', BR, 1, 'IN', 'Sat 24 Oct', false, '₦250,000', 'Deposit paid', 'var(--ad-tone-good)', 'live', '', 'Two directions on Wednesday'),
       p('lumen-tt', 'Class timetable design', 'Lumen Fitness', 'lumen', 'Branding & Design', BR, 3, 'IN', 'Tue 13 Oct', true, '₦90,000', 'Paid', 'var(--ad-tone-good)', 'live', '', 'Print files on Monday'),
@@ -4157,7 +4217,7 @@ class Component extends DCLogic {
       p('bloom-seo', 'SEO retainer', 'Bloom Pharmacy', 'bloom', 'SEO', SE, 3, 'BO', 'Monthly', false, '₦300,000 a month', 'Retainer', 'var(--ad-tone-brand)', 'live', '', 'September report sent'),
       p('halo-seo', 'SEO setup', 'Halo Clinics', 'halo', 'SEO', SE, 0, 'BO', 'Sat 31 Oct', false, '₦220,000', 'Deposit paid', 'var(--ad-tone-good)', 'live', '', 'Technical audit this week'),
       p('kora-app', 'Driver app', 'Kora Logistics', 'kora', 'Apps', AP, 2, 'DE', 'Paused', true, '₦3,400,000', '₦850,000 late', 'var(--ad-bad-ink)', 'live', 'Paused', 'Build paused until milestone 2 is paid'),
-      p('halo-ai', 'Booking assistant', 'Halo Clinics', 'halo', 'Software & AI', AP, 2, 'DE', 'Tue 20 Oct', false, '₦4,800,000', 'Milestone 2 on 20 Oct', 'var(--ad-tone-neutral)', 'live', '', 'Milestone 2 demo tomorrow'),
+      p('halo-ai', 'Booking assistant', 'Halo Clinics', 'halo', 'Software & AI', AP, 2, 'DE', 'Tue 20 Oct', false, '₦4,800,000', 'Milestone 2 on 20 Oct', 'var(--ad-tone-neutral)', 'live', '', 'Milestone 2 demo on Monday'),
       p('pine-br', 'Brand identity', 'Pinewood Bakery', 'pine', 'Branding & Design', BR, 5, 'IN', 'Done Jul 2026', false, '₦950,000', 'Paid in full', 'var(--ad-tone-good)', 'done', '', 'Handover recorded'),
       p('bloom-web', 'Website', 'Bloom Pharmacy', 'bloom', 'Web & Apps', WB, 5, 'DE', 'Done Mar 2026', false, '₦1,800,000', 'Paid in full', 'var(--ad-tone-good)', 'done', '', 'Handover recorded'),
       p('ade-sep', 'September content', "Ade's Kitchen", 'ade', 'Social & Ads', SO, 5, 'CA', 'Done 30 Sep', false, '₦350,000', 'Paid', 'var(--ad-tone-good)', 'done', '', 'Report sent 1 Oct')

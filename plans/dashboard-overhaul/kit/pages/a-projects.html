@@ -10,14 +10,29 @@
             </div>
             %%SKELLIST%%
             <sc-if value="{{ready}}" hint-placeholder-val="{{ true }}">
-            <div class="tiles" data-tour="figures">
-              <sc-for list="{{stats}}" as="k" hint-placeholder-count="3">
-                <button class="card lift rise stat {{k.delay}}" onClick="{{k.open}}" aria-label="{{k.aria}}" style="--k: {{k.dot}}; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; text-align: left; min-height: 104px">
-                  <span class="statHd"><span class="statIc" style="background: {{k.tile}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="{{k.ic}}"></path></svg></span><span class="statLbl">{{k.label}}</span></span>
-                  <span class="num" style="font-size: clamp(22px, 2.4vw, 26px); font-weight: 700; line-height: 1.1">{{k.value}}</span>
-                  <span style="font-size: 12px; font-weight: 600; color: {{k.noteCol}}">{{k.note}}</span>
-                </button>
-              </sc-for>
+            <div class="layout">
+              <div class="col">
+                %%DECK%%
+                <section class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 6px" aria-label="Due in the next 7 days" data-tour="week">
+                  <div style="display: flex; align-items: center; gap: 8px"><h2 style="font-size: 16px; font-weight: 700; flex: 1">Due in the next 7 days</h2><span class="tag num" style="background: var(--ad-tone-flat); color: var(--ad-on-flat)">{{weekN}}</span></div>
+                  <div class="weekGrid"><sc-for list="{{week}}" as="w" hint-placeholder-count="4"><button class="rowh weekRow" onClick="{{w.open}}"><span class="meetDate sm"><span class="mm">{{w.mm}}</span><span class="dd num">{{w.dd}}</span></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 13px; text-align: left"><strong>{{w.t}}</strong><span style="color: var(--ad-dim)">{{w.s}}</span></span><sc-if value="{{w.hot}}" hint-placeholder-val="{{ false }}"><span class="tag" style="background: var(--ad-tone-warn); color: #fff">{{w.hotT}}</span></sc-if></button></sc-for></div>
+                </section>
+              </div>
+              <aside class="railCards" aria-label="Where the work stands">
+                <div class="bento" data-tour="figures">
+                  <sc-for list="{{stats}}" as="k" hint-placeholder-count="3">
+                    <button class="card lift rise stat {{k.delay}}" onClick="{{k.open}}" aria-label="{{k.aria}}" style="--k: {{k.dot}}; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; text-align: left; min-height: 104px">
+                      <span class="statHd"><span class="statIc" style="background: {{k.tile}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="{{k.ic}}"></path></svg></span><span class="statLbl">{{k.label}}</span></span>
+                      <span class="num" style="font-size: clamp(22px, 2.4vw, 26px); font-weight: 700; line-height: 1.1">{{k.value}}</span>
+                      <span style="font-size: 12px; font-weight: 600; color: {{k.noteCol}}">{{k.note}}</span>
+                    </button>
+                  </sc-for>
+                </div>
+                <section class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 6px" aria-label="Live projects by service">
+                  <div style="display: flex; align-items: center; gap: 8px"><h2 style="font-size: 16px; font-weight: 700; flex: 1">By service</h2><sc-if value="{{svcOn}}" hint-placeholder-val="{{ false }}"><button class="lnk viewAll" onClick="{{svcClear}}">Show all</button></sc-if></div>
+                  <sc-for list="{{bySvc}}" as="b" hint-placeholder-count="4"><button class="rowh svcBar {{b.cls}}" aria-pressed="{{b.pressed}}" aria-label="{{b.aria}}" onClick="{{b.pick}}"><span class="svcBarT"><span>{{b.t}}</span><strong class="num">{{b.n}}</strong></span><span class="svcBarTrack" aria-hidden="true"><span style="width: {{b.pct}}%"></span></span></button></sc-for>
+                </section>
+              </aside>
             </div>
 
             <section class="card cq rise d2" aria-label="Projects" data-tour="views" style="overflow: hidden">

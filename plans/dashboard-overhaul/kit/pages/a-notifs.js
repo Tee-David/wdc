@@ -13,7 +13,7 @@
   ntRail() { return ['Payments and receipts', 'Replies and approvals', 'New enquiries', 'System notices']; }
   ntAll() {
     return this.hubApply('nt', [
-      { id: 'n1', name: 'Mira Skincare paid INV-26-4KQ8ZD', sub: '₦850,000 by Paystack. Receipt RCT-2026-041 sent.', kind: 'Money', read: false, when: 'Today, 08:52', go: 'A-Money.dc.html' },
+      { id: 'n1', name: 'Zara Events paid INV-26-4WE9KS', sub: '₦200,000 by Paystack. Receipt RCT-2026-041 sent.', kind: 'Money', read: false, when: 'Yesterday, 08:52', go: 'A-Money.dc.html' },
       { id: 'n2', name: 'Adaeze O. replied to Brand guide v2', sub: 'She approved the colours and asked for a darker navy.', kind: 'Messages', read: false, when: 'Today, 08:10', go: 'A-Messages.dc.html' },
       { id: 'n3', name: 'Temi Adeoye sent an enquiry', sub: 'Contact form. The email matches Oak and Ivy Interiors.', kind: 'Enquiries', read: false, when: 'Today, 08:12', go: 'A-Forms.dc.html' },
       { id: 'n4', name: 'Kora Logistics invoice is 12 days overdue', sub: '₦1,015,000. The final reminder goes out Monday.', kind: 'Money', read: true, when: 'Yesterday', go: 'A-Money.dc.html' },
@@ -23,7 +23,7 @@
   }
   ntDeck() {
     var self = this, I = this.icons();
-    var a = self.ntAll().filter(function (n) { return n.id === 'n1'; })[0]; return [{ id: 'nd1', kind: 'Payment', urgency: 'Today, 08:52', utone: '#15803d', label: 'Money', dept: 'Finance', title: 'Mira Skincare paid ₦850,000', body: 'The payment arrived by Paystack. The receipt was sent and the invoice shows as paid.', meta: [{ k: 'Invoice', v: 'INV-26-4KQ8ZD' }, { k: 'Receipt', v: 'RCT-2026-041' }, { k: 'Provider', v: 'Paystack' }], why: 'Nothing to do. Open it if you want to thank them.', primaryLabel: 'Open the invoice', primaryFn: function () { window.location.href = 'A-Money.dc.html'; }, secondaryLabel: 'Mark as read', sToast: 'Updated. It is marked as read.', sheet: self.sh({ eyebrow: 'Money', title: a.name, icon: I.cash, body: a.sub, primary: 'Open the invoice', secondary: 'Close', onPrimary: function () { window.location.href = 'A-Money.dc.html'; } }) }];
+    var a = self.ntAll().filter(function (n) { return n.id === 'n1'; })[0]; return [{ id: 'nd1', kind: 'Payment', urgency: 'Yesterday, 08:52', utone: '#15803d', label: 'Money', dept: 'Finance', title: 'Zara Events paid ₦200,000', body: 'The payment arrived by Paystack. The receipt was sent and the invoice shows as paid.', meta: [{ k: 'Invoice', v: 'INV-26-4WE9KS' }, { k: 'Receipt', v: 'RCT-2026-041' }, { k: 'Provider', v: 'Paystack' }], why: 'Nothing to do. Open it if you want to thank them.', primaryLabel: 'Open the invoice', primaryFn: function () { window.location.href = 'A-Money.dc.html'; }, secondaryLabel: 'Mark as read', sToast: 'Updated. It is marked as read.', sheet: self.sh({ eyebrow: 'Money', title: a.name, icon: I.cash, body: a.sub, primary: 'Open the invoice', secondary: 'Close', onPrimary: function () { window.location.href = 'A-Money.dc.html'; } }) }];
   }
   hubCfg() {
     var self = this, I = this.icons(), Fl = 'var(--ad-tone-flat)';
