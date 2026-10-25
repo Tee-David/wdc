@@ -253,6 +253,10 @@ export type InvoiceLine = {
 };
 
 export type Invoice = {
+  /** A date the client promised to pay by. Automatic reminders pause until it passes (lib/jobs/reminders.ts). */
+  promise?: { until: string; note?: string; by: string; at: string } | null;
+  /** When the final notice went. One per invoice. */
+  finalNoticeAt?: string;
   currency?: string;
   paymentAccount?: PaymentAccountSnapshot | null;
   id: Id;

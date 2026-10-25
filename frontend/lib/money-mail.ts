@@ -370,7 +370,7 @@ export const stageInvoiceEmail = (input: { invoice: Invoice; by?: string }) => s
  * cannot go twice in one day however many times the job runs, and tomorrow's
  * is allowed through.
  */
-function planReminder(input: { invoice: Invoice; today?: Date; by?: string; retry?: boolean }): Outgoing {
+function planReminder(input: { invoice: Invoice; today?: Date; by?: string; retry?: boolean; final?: boolean }): Outgoing {
   const { invoice } = input;
   const client = getClient(invoice.clientId);
   const email = client?.email?.trim();
@@ -381,8 +381,9 @@ function planReminder(input: { invoice: Invoice; today?: Date; by?: string; retr
   const base = {
     to: email || NO_ADDRESS, clientId: invoice.clientId, retry: input.retry,
     about: { kind: "invoice" as const, id: invoice.id, label: invoice.number },
-    dedupeKey: `reminder:${invoice.id}:${day}`, by: input.by ?? "Studio",
-    subject: `A reminder about invoice ${invoice.number}`,
+    /* The final notice goes once per invoice; an ordinary reminder at most once a day. */
+    dedupeKey: input.final ? `final:${invoice.id}` : `reminder:${invoice.id}:${day}`, by: input.by ?? "Studio",
+    subject: input.final ? `Final notice about invoice ${invoice.number}` : `A reminder about invoice ${invoice.number}`,
   };
   if (!notifyAllows(client?.notify, "reminders")) {
     return { ...base, summary: "", hold: { reason: "opted out", say: `${client?.company ?? "the client"} has invoice reminders switched off.` } };
@@ -393,13 +394,15 @@ function planReminder(input: { invoice: Invoice; today?: Date; by?: string; retr
     ...base, unsubscribe: true,
     summary: `${money(totals.due,currencyOf(invoice))} outstanding, due ${due}.`,
     text: [
-      `This is a friendly reminder that ${money(totals.due,currencyOf(invoice))} is outstanding on invoice ${invoice.number}, which was due on ${due}.`,
+      input.final
+        ? `This is our final notice that ${money(totals.due,currencyOf(invoice))} is still outstanding on invoice ${invoice.number}, which was due on ${due}. Please settle it, or reply to agree a date, so the work can carry on.`
+        : `This is a friendly reminder that ${money(totals.due,currencyOf(invoice))} is outstanding on invoice ${invoice.number}, which was due on ${due}.`,
       "",
       `Open and pay it here: ${url}`,
       "",
       "If it has already been paid, or if something about it needs sorting out, just reply and we will take a look.",
     ].join("\n"),
-    html: shell("A reminder about your invoice", `${money(totals.due,currencyOf(invoice))} outstanding on ${invoice.number}.`, [
+    html: shell(input.final ? "A final notice about your invoice" : "A reminder about your invoice", `${money(totals.due,currencyOf(invoice))} outstanding on ${invoice.number}.`, [
       emailFigure(money(totals.due,currencyOf(invoice)), { label: "Still to pay", note: `${invoice.number} · due ${due}` }),
       emailButton("Open and pay the invoice", url),
       emailSmall("Already paid, or something needs sorting out? Reply to this email and we will take a look."),
@@ -412,6 +415,8 @@ export async function sendInvoiceReminderEmail(input: { invoice: Invoice; today?
 }
 
 export const stageReminderEmail = (input: { invoice: Invoice; today?: Date; by?: string }) => stage(planReminder({ ...input, retry: true }));
+/** The final notice: the same email and look, firmer words, once per invoice. */
+export const stageFinalNotice = (input: { invoice: Invoice; by?: string }) => stage(planReminder({ ...input, retry: true, final: true }));
 
 /* ------------------------------------------------- corrections, for the client */
 

@@ -31,6 +31,8 @@ export async function sendScheduledReminders(now = new Date()): Promise<Reminder
     const status = invoiceStatus(invoice);
     if (status !== "Sent" && status !== "Part paid" && status !== "Overdue") continue;
     if (invoiceTotals(invoice).due <= 0) continue;
+    /* A promised date pauses the schedule until it passes; the studio decides what happens after. */
+    if (invoice.promise && Date.parse(`${invoice.promise.until.slice(0, 10)}T23:59:59Z`) >= today) continue;
     const late = Math.round((today - Date.parse(`${invoice.due.slice(0, 10)}T00:00:00Z`)) / DAY);
     if (!days.includes(late)) continue;
     const r = await sendInvoiceReminderEmail({ invoice, today: now, by: "Reminder schedule" });

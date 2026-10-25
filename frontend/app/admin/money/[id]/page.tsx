@@ -25,6 +25,7 @@ import { CreditExcess, EmailInvoice, EmailReminder, SendReceipt } from "@/compon
 import { InvoiceReconciliation } from "@/components/admin/reconciliation";
 import CommsLog from "@/components/admin/comms-log";
 import InvoiceReminders from "@/components/admin/invoice-reminders";
+import { InvoiceNeeds, type Need } from "@/components/admin/invoice-needs";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 import "@/components/admin/dashboard.css";
 import "@/components/admin/invoice-page.css";
@@ -70,6 +71,15 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
   const now = nowMs();
   const lateDays = Math.max(0, -daysFrom(inv.due, now));
   const link = invoiceUrl(inv.token);
+  /* WHAT THIS NEEDS, from the record: late, promised, due soon, or one calm line. */
+  const dueIn = daysFrom(inv.due, now);
+  const promised = inv.promise && t.due > 0 ? inv.promise : null;
+  const need: Need | null = inv.voided || inv.status === "Draft" ? null
+    : t.due <= 0 ? { kind: "calm", line: `Paid in full${payments.length ? `, last payment ${dateWords(payments.map((p) => p.at).sort().at(-1)!, now)}` : ""}. Nothing to chase.` }
+    : promised ? { kind: "promised", until: dateWords(promised.until, now), note: promised.note, owed: naira(t.due), late: daysFrom(promised.until, now) < 0 }
+    : status === "Overdue" ? { kind: "late", days: lateDays, owed: naira(t.due), finalAt: inv.finalNoticeAt ? dateWords(inv.finalNoticeAt, now) : undefined }
+    : dueIn <= 3 ? { kind: "soon", days: Math.max(0, dueIn), owed: naira(t.due) }
+    : { kind: "calm", line: `${naira(t.due)} due ${dateWords(inv.due, now)}. Reminders go on their schedule; nothing needs you yet.` };
 
   const rail = (
     <>
@@ -174,6 +184,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
 
 
       <Workbench railLabel="About this invoice" rail={rail}>
+        {need ? <InvoiceNeeds id={inv.id} need={need} record={need.kind !== "calm" && t.due > 0 ? <RecordPayment invoice={inv} owed={t.due} noReceipt={noEmail} /> : null} /> : null}
         <StatTiles items={[
           { label: "Total", value: naira(t.total), note: inv.vatRate ? `Includes VAT at ${inv.vatRate}%` : "No VAT", icon: FileText, tone: "brand" },
           { label: "Paid", value: naira(inv.paid), note: `${payments.length} ${payments.length === 1 ? "payment" : "payments"}`, icon: CheckCircle2, tone: "good" },
