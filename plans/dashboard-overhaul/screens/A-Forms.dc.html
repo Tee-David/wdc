@@ -1551,6 +1551,48 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 @container app (max-width:760px) { .docLineH { display: none; } }
 .segTall button { min-height: 44px; }
 
+/* Entry page: a long form entry read as a brief (2026-10-25) */
+.ansNav { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; }
+.ansNav .chip { min-height: 44px; }
+.ansSec { padding: 0; overflow: hidden; }
+.ansHead { display: flex; align-items: center; gap: 10px; padding: 16px 20px 8px; flex-wrap: wrap; }
+.ansHead h2 { font-size: 17px; font-weight: 700; flex: 1; min-width: 0; }
+.ansCount { font-size: 13px; color: var(--ad-dim); }
+.ansList { margin: 0; padding: 0 8px 10px; display: flex; flex-direction: column; }
+.ansRow { display: grid; grid-template-columns: minmax(0, 220px) minmax(0, 1fr); gap: 6px 20px; padding: 12px; border-top: 1px solid var(--ad-line); }
+.ansRow:first-child { border-top: 0; }
+.ansRow.open { background: var(--ad-panel-2); border-radius: 12px; border-top-color: transparent; }
+.ansRow.open + .ansRow { border-top-color: transparent; }
+.ansRow dt { font-size: 13px; color: var(--ad-dim); font-weight: 600; }
+.ansRow dd { margin: 0; display: flex; flex-direction: column; gap: 8px; min-width: 0; font-size: 15px; }
+.ansV { overflow-wrap: anywhere; }
+.ansChips { display: flex; flex-wrap: wrap; gap: 6px; }
+.ansFlag { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ansProf { display: flex; flex-direction: column; gap: 6px; }
+.profRow { display: flex; align-items: center; gap: 10px; min-height: 44px; color: inherit; text-decoration: none; border-radius: 12px; padding: 2px 6px 2px 2px; }
+.profRow:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
+@media (hover: hover) { .profRow:hover { background: var(--ad-hover); } }
+.profTile { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; flex: none; }
+.ansPhotos { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+.phTile { position: relative; aspect-ratio: 1; border-radius: 12px; border: 1px solid var(--ad-line); display: flex; align-items: flex-end; padding: 6px; overflow: hidden; min-height: 44px; }
+.phTile:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
+.phName { font-size: 11px; font-weight: 600; background: #fff; color: #0e0e2c; border-radius: 99px; padding: 2px 8px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.phTag { position: absolute; top: 6px; left: 6px; height: 20px; padding: 0 7px; font-size: 11px; }
+.factList { margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.factList > div { display: flex; flex-direction: column; gap: 2px; }
+.factList dt { font-size: 12px; color: var(--ad-dim); }
+.factList dd { margin: 0; font-size: 14px; }
+.linkRow { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 12px; color: inherit; text-decoration: none; min-height: 44px; }
+.histList { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.histList li { display: flex; gap: 10px; align-items: flex-start; }
+.hDot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--ad-tone-brand); margin-top: 5px; flex: none; }
+.hDot.now { background: #ff6500; border-color: #ff6500; }
+@container card (max-width: 520px) { .ansRow { grid-template-columns: minmax(0, 1fr); } }
+.crumbs a{min-width:44px;justify-content:center}
+.ansNav { align-items: center; }
+.ansNav .selBtn { flex: 1 1 260px; max-width: 420px; }
+.ansNavNote { font-size: 13px; color: var(--ad-dim); }
+
 </style>
 </helmet>
 <div class="{{rootCls}}" onClick="{{rootClick}}">
@@ -4301,6 +4343,7 @@ class Component extends DCLogic {
       { id: 'f2', name: 'Onboarding, brand identity', sub: 'Eleven questions about the brand', where: '/start/brand', st: 'Live', n: 6, unread: 0, last: 'Fri 9 Oct', conv: 67, drafts: 0, ver: 5, built: false },
       { id: 'f3', name: 'Onboarding, website', sub: 'Pages, content and payments', where: '/start/website', st: 'Live', n: 4, unread: 0, last: 'Mon 5 Oct', conv: 75, drafts: 1, ver: 4, built: false },
       { id: 'f4', name: 'Quote request', sub: 'A short form from the services pages', where: '/f/quote', st: 'Limit reached', n: 12, unread: 1, last: 'Today, 07:40', conv: 42, drafts: 0, ver: 2 },
+      { id: 'f6', name: 'Onboarding, social media', sub: 'Platforms, voice, approvals and assets', where: '/start/social', st: 'Live', n: 3, unread: 0, last: 'Fri 9 Oct', conv: 71, drafts: 0, ver: 2, built: false },
       { id: 'f5', name: 'Newsletter signup', sub: 'One field in the footer', where: 'Footer', st: 'Not open yet', n: 0, unread: 0, last: 'No entries yet', conv: 0, drafts: 1, ver: 0 }
     ]);
   }
@@ -4308,7 +4351,7 @@ class Component extends DCLogic {
     return this.hubApply('ent', [
       { id: 'e1', name: 'Temi Adeoye', sub: '“We need a site for our estate agency, with listings we can update ourselves.”', form: 'Contact', status: 'New', read: false, star: false, client: '', project: '', recv: 'Today, 08:12', email: 'temi@oakandivy.ng', phone: '+234 802 000 0191', answers: [['What do you need?', 'Website'], ['Tell us about it', 'We need a site for our estate agency, with listings we can update ourselves.']], files: [{ n: 'listing-ideas.pdf', size: '1.2 MB' }], hist: [{ t: 'Entry received', when: 'Today, 08:12' }], notes: [], emails: [{ t: 'Thank you sent to the visitor', when: 'Today, 08:12' }, { t: 'Studio notice delivered to the studio inbox', when: 'Today, 08:12' }] },
       { id: 'e2', name: 'Ifeoma Eze', sub: 'Social media management for three platforms', form: 'Quote request', status: 'New', read: false, star: true, client: '', project: '', recv: 'Today, 07:40', email: 'ifeoma@lumenads.com', phone: '', answers: [['What do you need?', 'Social media'], ['Tell us about it', 'Social media management for three platforms']], files: [], hist: [{ t: 'Entry received', when: 'Today, 07:40' }], notes: [], emails: [{ t: 'Thank you sent to the visitor', when: 'Today, 07:40' }] },
-      { id: 'e3', name: 'Mira Skincare', sub: 'Logo and guide', form: 'Onboarding, brand identity', status: 'Assigned', read: true, star: false, client: 'Mira Skincare', project: 'Brand identity', recv: 'Fri 9 Oct', email: 'adaeze@miraskincare.ng', phone: '+234 802 114 3390', answers: [['Brand name', 'Mira Skincare'], ['What do you need?', 'Logo and brand guide']], files: [], hist: [{ t: 'Entry received', when: 'Fri 9 Oct' }, { t: 'Assigned to Mira Skincare by you', when: 'Fri 9 Oct' }], notes: [{ t: 'Daniel to book the discovery call.', when: 'Fri 9 Oct' }], emails: [] },
+      { id: 'e3', name: 'Mira Skincare', sub: 'Instagram, TikTok and Facebook from 1 Nov', form: 'Onboarding, social media', status: 'Assigned', read: true, star: false, client: 'Mira Skincare', project: 'Social media management', recv: 'Fri 9 Oct', email: 'adaeze@miraskincare.ng', phone: '+234 802 114 3390', page: 'A-Entry.dc.html', answers: [['Platforms', 'Instagram, TikTok, Facebook'], ['Posts a month', '12 posts and 4 reels'], ['Who approves posts', 'Bola T., marketing lead'], ['Ad budget', 'I’m not sure, please advise me']], files: [{ n: '8 product photos', size: '14.6 MB' }], hist: [{ t: 'Entry received from the pre-filled link', when: 'Fri 9 Oct' }, { t: 'Assigned to Mira Skincare, Social media management', when: 'Fri 9 Oct' }], notes: [{ t: 'Chiamaka leads. Instagram access guide sent.', when: 'Fri 9 Oct' }], emails: [] },
       { id: 'e4', name: 'Tunde Bakare', sub: 'Can you redo our menu design?', form: 'Contact', status: 'Replied', read: true, star: false, client: 'Zara Events', project: '', recv: 'Thu 8 Oct', email: 'tunde@zaraevents.ng', phone: '', answers: [['Tell us about it', 'Can you redo our menu design?']], files: [], hist: [{ t: 'Entry received', when: 'Thu 8 Oct' }, { t: 'Reply sent by you', when: 'Thu 8 Oct' }], notes: [], emails: [{ t: 'Reply sent to tunde@zaraevents.ng', when: 'Thu 8 Oct' }] },
       { id: 'e5', name: 'seo-offers@cheapranks.top', sub: '“Rank first on Google in 24 hours”', form: 'Contact', status: 'Spam', read: true, star: false, client: '', project: '', recv: 'Wed 7 Oct', email: 'seo-offers@cheapranks.top', phone: '', answers: [['Tell us about it', 'Rank first on Google in 24 hours']], files: [], hist: [{ t: 'Held as spam: blocked word “seo offer”', when: 'Wed 7 Oct' }], notes: [], emails: [] },
       { id: 'e6', name: 'Bola Shittu', sub: 'Pages and payments', form: 'Onboarding, website', status: 'Assigned', read: true, star: false, client: 'Bloom Pharmacy', project: 'Website', recv: 'Mon 5 Oct', email: 'bola@bloompharmacy.ng', phone: '', answers: [['Pages', 'Home, services, delivery, contact'], ['Payments', 'Paystack']], files: [], hist: [{ t: 'Entry received', when: 'Mon 5 Oct' }], notes: [], emails: [] }
@@ -4363,16 +4406,16 @@ class Component extends DCLogic {
       rows: [{ k: 'Form', v: e.form }, { k: 'Email', v: e.email }, { k: 'Phone', v: e.phone || 'Not given' }, { k: 'Received', v: e.recv }, { k: 'Client', v: e.client || 'Not assigned yet' }, { k: 'Project', v: e.project || 'None' }].concat(e.answers.map(function (a) { return { k: a[0], v: a[1] }; })).concat((e.files || []).map(function (f) { return { k: 'Attachment', v: f.n + ' · ' + f.size }; })),
       feed: (e.notes || []).map(function (n) { return { t: 'Note: ' + n.t, when: n.when }; }).concat((e.hist || []).slice().reverse()).concat((e.emails || []).map(function (m) { return { t: m.t, when: m.when }; })),
       quick: [{ t: e.star ? 'Unstar' : 'Star', fn: function () { self.hubPatch(e.id, { star: !e.star }); self.closeSheet(true); self.say('Updated.'); } }, { t: 'Add a note', fn: function () { self.entryNote(e); } }, { t: 'Forward', fn: function () { self.entryForward(e); } }, { t: 'Print', fn: function () { self.say('The print view opens.'); } }, { t: 'Download PDF', fn: function () { self.saveBlob && self.saveBlob(new Blob(['Entry from ' + e.name + '\n' + e.answers.map(function (a) { return a[0] + ': ' + a[1]; }).join('\n')], { type: 'text/plain' }), 'entry-' + e.id + '.txt'); self.say('The entry downloaded.'); } }, { t: spam ? 'Not spam' : 'Mark as spam', fn: function () { self.hubPatch(e.id, { status: spam ? 'New' : 'Spam' }); self.closeSheet(true); self.say(spam ? 'Updated. The entry is back in New.' : 'Marked as spam.'); } }],
-      primary: 'Reply by email', secondary: e.client ? 'Open ' + e.client : 'Assign to a client',
-      onPrimary: function () { self.entryReply(e, true); return 'stay'; },
-      onSecondary: function () { if (e.client) { window.location.href = 'A-Clients.dc.html'; return; } self.entryAssign(e); return 'stay'; } });
+      primary: e.page ? 'Open the full brief' : 'Reply by email', secondary: e.client ? 'Open ' + e.client : 'Assign to a client',
+      onPrimary: function () { if (e.page) { window.location.href = e.page; return 'stay'; } self.entryReply(e, true); return 'stay'; },
+      onSecondary: function () { if (e.client) { window.location.href = e.client === 'Mira Skincare' ? 'A-Client.dc.html' : 'A-Clients.dc.html'; return; } self.entryAssign(e); return 'stay'; } });
   }
   fmNew() {
     var self = this, I = this.icons();
-    this.open(this.sh({ eyebrow: 'New form', title: 'Name the form', icon: I.file, keepOpen: true, focus: 'f-name', body: 'Name it and pick its address. You add the questions next.', form: { name: '', addr: '' },
+    this.open(this.sh({ eyebrow: 'New form', title: 'Name the form', icon: I.file, keepOpen: true, focus: 'f-name', body: 'Name it, pick its address and what it starts from. You add the questions in the builder next.', form: { name: '', addr: '', from: 'Blank' }, chipSets: [{ key: 'from', label: 'Start from', opts: ['Blank', 'A copy of Contact', 'Onboarding template'] }],
       fields: function (st) { var f = st.form, auto = (f.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); return [{ key: 'name', label: 'Name', ph: 'Event sign-up', wide: true }, { key: 'addr', label: 'Address', ph: auto || 'event-signup', wide: true, hint: 'wdc.ng/f/' + ((f.addr || '').trim() || auto || 'your-form') + '. Two or more small letters, numbers or dashes.', check: function (v) { return v.trim() && !/^[a-z0-9-]{2,}$/.test(v.trim()) ? 'Two or more small letters, numbers or dashes.' : (self.fmForms().some(function (x) { return x.where === '/f/' + v.trim(); }) ? 'Another form already uses this address.' : ''); } }]; },
       primary: 'Create and add questions', secondary: 'Cancel', primaryDis: function (ctx) { var f = ctx.form, a = (f.addr || '').trim() || (f.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); if (!(f.name || '').trim()) return 'Give the form a name.'; if (!/^[a-z0-9-]{2,}$/.test(a)) return 'Pick an address of two or more letters, numbers or dashes.'; return ''; },
-      onPrimary: function (ctx) { var f = ctx.form, a = (f.addr || '').trim() || f.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); self.hubAdd('form', { id: 'fn' + Date.now(), name: f.name.trim(), sub: 'New form', where: '/f/' + a, st: 'Draft', n: 0, unread: 0, last: 'No entries yet', conv: 0, drafts: 1, ver: 0 }); self.setState({ sheet: null, stack: [], tab: 1 }); self.say('Saved. “' + f.name.trim() + '” is a draft. Add the questions next.'); } }));
+      onPrimary: function (ctx) { var f = ctx.form, a = (f.addr || '').trim() || f.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); self.hubAdd('form', { id: 'fn' + Date.now(), name: f.name.trim(), sub: 'New form', where: '/f/' + a, st: 'Draft', n: 0, unread: 0, last: 'No entries yet', conv: 0, drafts: 1, ver: 0 }); self.setState({ sheet: null, stack: [], tab: 1 }); self.say('Saved. “' + f.name.trim() + '” is a draft. The builder opens with ' + (f.from === 'A copy of Contact' ? 'the Contact questions' : (f.from === 'Onboarding template' ? 'the onboarding sections' : 'a blank page')) + '.'); setTimeout(function () { window.location.href = 'A-FormBuilder.dc.html'; }, 1500); } }));
   }
   formSheet(f) {
     var self = this, I = this.icons(), t = this.fmTone(f.st);
