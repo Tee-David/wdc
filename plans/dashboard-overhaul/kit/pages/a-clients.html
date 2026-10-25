@@ -26,7 +26,7 @@
                       <sc-if value="{{hasQ2}}" hint-placeholder-val="{{ false }}"><button class="clr" aria-label="Clear search" onClick="{{clearQ2}}"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></sc-if>
                     </label>
                   </div>
-                  <div class="chips svcChips" role="group" aria-label="Service" style="padding: 0 20px 12px"><sc-for list="{{svcs}}" as="c" hint-placeholder-count="7"><button class="chip {{c.cls}}" aria-pressed="{{c.pressed}}" onClick="{{c.pick}}">{{c.t}}<span class="num" style="opacity: .75">{{c.n}}</span></button></sc-for></div>
+                  <div style="padding: 0 20px 12px"><button type="button" class="input selBtn" data-menu="pick" aria-haspopup="menu" aria-expanded="{{svcSel.expanded}}" onClick="{{svcSel.open}}"><span class="selLbl">Service</span><span class="selVal">{{svcSel.cur}}</span><span class="num selN">{{svcSel.n}}</span><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button></div>
                   <div role="tablist" aria-label="Client status" class="tabs">
                     <sc-for list="{{tabs}}" as="tb" hint-placeholder-count="4">
                       <button role="tab" class="tab {{tb.cls}}" aria-selected="{{tb.sel}}" onClick="{{tb.pick}}">{{tb.label}}<span class="tag num" style="background: var(--ad-tone-flat); color: var(--ad-on-flat); height: 20px; padding: 0 7px">{{tb.n}}</span></button>

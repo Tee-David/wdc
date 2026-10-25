@@ -307,7 +307,7 @@
       ledeA: active.length + (active.length === 1 ? ' active client and ' : ' active clients and ') + leads.length + (leads.length === 1 ? ' lead.' : ' leads.'), ledeB: need ? need + (need === 1 ? ' needs you today.' : ' need you today.') : 'Nobody is waiting on you.', ledeC: self.ngn(owed) + ' outstanding.',
       deckTitle: 'Clients needing you', deckKeys: 'Focus the card: D done, S snooze', snoozeLabel: 'Snooze', snoozeShort: 'Snooze', canPass: true,
       emptyTitle: 'Every client is looked after.', emptyBody: 'Nobody is waiting on a reply from you. Next:', emptyNext: 'Discovery call with Zara Events at 11:00.', emptyPrimaryLabel: 'Add a client', emptySecondaryLabel: 'Bring everything back', emptyPrimary: function () { self.newClientSheet(); },
-      total: all.length, tabs: tabs, svcs: svcs, rows: rows, CP: CP, TCL: TCL,
+      total: all.length, tabs: tabs, svcs: svcs, svcSel: self.chipsAsPick('svc', 'Service', svcs), rows: rows, CP: CP, TCL: TCL,
       q2: s.q2, hasQ2: !!s.q2, onQ2: function (e) { self.setState({ q2: e.target.value, cpage: 0, ra: self.state.ra + 1 }); }, clearQ2: function () { self.setState({ q2: '', ra: self.state.ra + 1 }); },
       hasFilter: hasFilter && !!all.length, noFilterEmpty: !all.length, clearFilters: function () { var f = Object.assign({}, self.state.flt); delete f.clients; self.setState({ q2: '', svc: 'all', ctab: 'all', cpage: 0, flt: f, ra: self.state.ra + 1 }); },
       empty: !list.length,
