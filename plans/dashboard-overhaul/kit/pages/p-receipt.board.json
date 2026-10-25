@@ -1,1 +1,1 @@
-{"file": "P-Receipt.dc.html", "title": "Receipt, public page", "role": 0, "bare": true, "html": "pub-doc.html", "js": ["ra-common.js", "pub-common.js", "a-pub-receipt.js", "a-pub-doc.js"], "css": ["doc-mark.css", "pub-doc.css"]}
+{"file": "P-Receipt.dc.html", "title": "Receipt, public page", "role": 0, "bare": true, "html": "pub-receipt.html", "js": ["ra-common.js", "pub-common.js", "a-pub-receipt.js", "a-pub-doc.js"], "css": ["doc-mark.css", "pub-doc.css", "pub-printer.css"]}

@@ -1,5 +1,5 @@
   /* ======================= Public invoice, quote and receipt: one document page, three kinds ======================= */
-  pageState() { return { st: this.docKind() === 'quote' ? 'open' : (this.docKind() === 'receipt' ? 'paid' : 'due'), prov: 'paystack', ticks: { 0: true, 1: true, 2: false, 3: true }, ra: 0 }; }
+  pageState() { return { view: 'printer', st: this.docKind() === 'quote' ? 'open' : (this.docKind() === 'receipt' ? 'paid' : 'due'), prov: 'paystack', ticks: { 0: true, 1: true, 2: false, 3: true }, ra: 0 }; }
   pubTitle() { return ({ invoice: 'Invoice', quote: 'Quote', receipt: 'Receipt' })[this.docKind()]; }
   tourSteps() { return []; }
   docModel() {
@@ -46,5 +46,5 @@
       accept: function () { self.ask({ eyebrow: 'Accept quote', title: 'Accept ' + M.no + ' for ₦' + Math.round(M.total).toLocaleString('en-NG') + '?', body: 'We email the deposit invoice (50%) and the team starts when it is paid. Two review meetings and a recorded handover are included.', input: true, inputLabel: 'Type your name to accept', inputPh: 'Your full name', ok: 'Accept the quote', green: true, icon: I.check, tone: 'var(--ad-tone-good)', onOk: function () { self.set({ st: 'accepted' }); self.confetti(); self.say('Accepted. The deposit invoice is on its way.'); } }); },
       decline: function () { self.ask({ eyebrow: 'Decline quote', title: 'Decline ' + M.no + '?', body: 'We will stop work on it. You can tell us why, which helps the next quote.', input: true, inputLabel: 'Why (optional)', inputPh: 'Budget, timing, something else', ok: 'Decline the quote', danger: true, icon: I.block || I.trash, tone: 'var(--ad-tone-bad)', onOk: function () { self.set({ st: 'declined' }); } }); },
       ask: help, download: function () { self.say(M.no + '.pdf downloaded.'); }, print: function () { self.say('The print dialog opens with the clean one page layout.'); }, help: help
-    });
+    }, this.docExtra ? this.docExtra(M) : {});
   }
