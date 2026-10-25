@@ -410,6 +410,18 @@
         open: function () { if (self._lp) { self._lp = false; return; } self.msgOpen(c.id); }, press: function (e) { self.msgHold(e, function () { self.openPop({ currentTarget: e.currentTarget }, 'row', c.id, 250, 260, 'Actions for ' + c.name); }); },
         more: function (e) { if (e && e.stopPropagation) e.stopPropagation(); self.openPop(e, 'row', c.id, 250, 260, 'Actions for ' + c.name); }, moreX: self.popOn('row', c.id) });
     });
+    /* One row of filters, the way a phone's chat app has one: the inbox views and the kinds together; Archived is a row at the top of the list. */
+    var src = s.demoEmpty ? [] : all;
+    var cnt = function (tab, k) { return src.filter(function (c) { return self.msgTabIn(c, tab) && self.msgKindIn(c, k) && V.inSearch(c); }).length; };
+    var unreadN0 = cnt('unread', 'all'), archN = cnt('archived', 'all');
+    var filters = [['all', 'All', 'inbox', 'all', 0], ['unread', 'Unread', 'unread', 'all', unreadN0]]
+      .concat(V.KINDS.filter(function (f) { return f[0] !== 'all'; }).map(function (f) { return [f[0], f[1], 'inbox', f[0], 0]; }))
+      .concat([['pinned', 'Pinned', 'pinned', 'all', 0]])
+      .map(function (f) {
+        var on = filter !== 'archived' && filter === f[2] && kind === f[3];
+        return { t: f[1], n: f[4], hasN: f[4] > 0, cls: on ? 'on' : '', pressed: on ? 'true' : 'false', pick: function () { self.setState({ mfilter: f[2], mkind: f[3], mpage: 0, ra: s.ra + 1 }); } };
+      });
+    var inArch = filter === 'archived';
     var TABS = [['inbox', 'Inbox'], ['unread', 'Unread'], ['pinned', 'Pinned'], ['archived', 'Archived']];
     var tabs = TABS.map(function (t) { var on = filter === t[0]; return { label: t[1], n: (s.demoEmpty ? [] : all).filter(function (c) { return self.msgTabIn(c, t[0]) && self.msgKindIn(c, kind) && V.inSearch(c); }).length, cls: on ? 'on' : '', sel: on ? 'true' : 'false', pick: function () { self.setState({ mfilter: t[0], mpage: 0, ra: s.ra + 1 }); } }; });
     var kinds = V.KINDS.map(function (f) { var on = kind === f[0]; return { t: f[1], n: (s.demoEmpty ? [] : all).filter(function (c) { return self.msgTabIn(c, filter) && self.msgKindIn(c, f[0]) && V.inSearch(c); }).length, cls: on ? 'on' : '', pressed: on ? 'true' : 'false', pick: function () { self.setState({ mkind: f[0], mpage: 0, ra: s.ra + 1 }); } }; });
@@ -502,7 +514,7 @@
       ledeA: s.demoEmpty ? 'Your inbox is empty.' : total ? total + (total === 1 ? ' unread message' : ' unread messages') + ' in ' + unreadN + (unreadN === 1 ? ' conversation.' : ' conversations.') : 'You are all caught up.', ledeB: M.waiting ? M.waiting(this, all) : '',
       skRows: [1, 2, 3, 4, 5], modeCls: 'm-' + mode, paneCls: s.thread ? 'isThread' : '', infoCls: mode === 'col' && infoOpen && sel && !noPerm ? 'hasInfo' : '', showInfoCol: mode === 'col' && infoOpen && !!sel && !noPerm,
       offline: s.offline, goOnline: function () { self.setOffline(false); },
-      tabs: tabs, hasKinds: V.KINDS.length > 0, kinds: kinds, convs: convs, MG: MG, mq: s.mq, hasMq: !!s.mq,
+      tabs: tabs, hasKinds: V.KINDS.length > 0, kinds: kinds, filters: filters, archRow: inArch || archN > 0, archLabel: inArch ? 'Archived conversations' : 'Archived', archN: inArch ? 'Back to the inbox' : archN, archD: inArch ? 'm12 19-7-7 7-7M19 12H5' : 'M21 8v13H3V8M1 3h22v5H1zM10 12h4', archGo: function () { self.setState({ mfilter: inArch ? 'inbox' : 'archived', mkind: 'all', mpage: 0, ra: s.ra + 1 }); }, hasLede: !!(M.waiting && M.waiting(self, all)), convs: convs, MG: MG, mq: s.mq, hasMq: !!s.mq,
       onMq: function (e) { self.setState({ mq: e.target.value, mpage: 0, ra: self.state.ra + 1 }); }, clearMq: function () { self.setState({ mq: '', ra: self.state.ra + 1 }); }, clearFilters: function () { self.setState({ mq: '', mkind: 'all', mpage: 0, ra: self.state.ra + 1 }); },
       noConvs: !list.length, hasFilter: hasFilter, emptyTitle: emptyTitle, emptyBody: emptyBody, emptyD: emptyD, emptyNew: emptyNew,
       hasThread: !!sel && !noPerm, noThread: !sel && !noPerm, noPerm: noPerm, noPermT: M.role === 'admin' ? 'You are not a member of this channel' : 'You do not have access to this conversation', noPermB: M.role === 'admin' ? 'Only members can read a channel. Add yourself and it opens with its full history.' : 'It belongs to a project you are not part of. Ask Admin to add you and it appears here with its full history.', noPermBtn: M.role === 'admin' ? 'Add me to the channel' : 'Ask Admin for access',
