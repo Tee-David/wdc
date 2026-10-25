@@ -122,3 +122,82 @@
   .adMxHead .adPh__acts > .ad__btn--primary .ad__btnTxt { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .adMxHead .adPh__acts > .ad__btn--primary svg { width: 1.35rem; height: 1.35rem; }
 }
+
+/* The thread as a chat app (components/admin/thread.tsx): swipe or the arrow to reply, quotes that jump back, long press, go to newest. */
+.adTh { position: relative; display: flex; flex-direction: column; }
+.adTh .adConv { padding: 1rem; }
+.adTh__lane { position: relative; min-width: 0; display: flex; align-items: center; gap: .25rem; }
+.adTh__msg.is-mine .adTh__lane { flex-direction: row-reverse; }
+.adTh__bubble { flex: 1 1 auto; touch-action: pan-y; transition: transform .22s cubic-bezier(.16, 1, .3, 1); -webkit-user-select: text; user-select: text; -webkit-touch-callout: none; }
+.adTh__bubble.is-dragging { transition: none; }
+.adTh__swipeIc { position: absolute; left: -.25rem; top: 50%; margin-top: -.9rem; width: 1.8rem; height: 1.8rem; display: grid; place-items: center; border-radius: 50%; background: var(--ad-panel-2); color: var(--ad-ink); opacity: 0; pointer-events: none; }
+.adTh__swipeIc svg { width: 1rem; height: 1rem; }
+.adTh__replyBtn { flex: none; position: relative; width: 2rem; height: 2rem; display: grid; place-items: center; border: 1px solid var(--ad-line-2); border-radius: 50%; background: var(--ad-panel); color: var(--ad-ink); cursor: pointer; opacity: 0; transition: opacity .15s; }
+.adTh__replyBtn::after { content: ""; position: absolute; inset: -.4rem; }
+.adTh__replyBtn svg { width: .95rem; height: .95rem; }
+@media (hover: hover) { .adTh__msg:hover .adTh__replyBtn { opacity: 1; } .adTh__replyBtn:hover { border-color: var(--ad-ink); } }
+.adTh__replyBtn:focus-visible { opacity: 1; outline: 2px solid var(--ad-focus); outline-offset: 2px; }
+@media (hover: none) { .adTh__replyBtn { display: none; } }
+.adTh__quote { display: grid; gap: .1rem; width: 100%; margin: 0 0 .5rem; padding: .45rem .7rem; border: 0; border-left: 3px solid var(--ad-accent-ink); border-radius: 10px; background: var(--ad-panel); color: var(--ad-ink); text-align: left; font: inherit; cursor: pointer; }
+.adTh__quote b { font-size: .78rem; color: var(--ad-accent-ink); }
+.adTh__quote span { font-size: .82rem; color: var(--ad-dim); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.adTh__quote:disabled { cursor: default; }
+.adConv__msg.is-mine .adTh__quote { background: #1a1a7e; border-left-color: #ff6500; color: #fff; }
+.adConv__msg.is-mine .adTh__quote b { color: #fff; }
+.adConv__msg.is-mine .adTh__quote span { color: #d9dcf5; }
+.dark .adConv__msg.is-mine .adTh__quote { background: #2d2d8f; }
+.adTh__quote:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
+@keyframes adThFlash { 0%, 60% { background: var(--ad-hover); } 100% { background: transparent; } }
+.adTh__msg.is-flash { animation: adThFlash 1.6s ease; border-radius: 16px; }
+.adTh__menu { grid-column: 1 / -1; display: flex; gap: .5rem; flex-wrap: wrap; justify-content: flex-start; margin-top: .4rem; }
+.adTh__msg.is-mine .adTh__menu { justify-content: flex-end; }
+.adTh__menu button { display: inline-flex; align-items: center; gap: .4rem; min-height: 2.75rem; padding: 0 .9rem; border-radius: 999px; border: 1px solid var(--ad-line-2); background: var(--ad-panel); color: var(--ad-ink); font: 600 .85rem var(--font-outfit), system-ui, sans-serif; cursor: pointer; }
+.adTh__menu button svg { width: 1rem; height: 1rem; }
+.adTh__menu .adTh__menuX { width: 2.75rem; padding: 0; justify-content: center; }
+.adTh__menu .adTh__menuX:hover { background: var(--ad-tone-bad); border-color: var(--ad-tone-bad); color: #fff; }
+.adTh__end { height: 1px; }
+.adTh__down { position: sticky; bottom: .75rem; align-self: flex-end; margin: -2.75rem .75rem 0 0; width: 2.75rem; height: 2.75rem; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--ad-line-2); background: var(--ad-panel); color: var(--ad-ink); box-shadow: var(--ad-sh-2); cursor: pointer; z-index: 2; animation: adThUp .25s cubic-bezier(.16, 1, .3, 1); }
+.adTh__down svg { width: 1.1rem; height: 1.1rem; }
+.adTh__down:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
+@keyframes adThUp { from { opacity: 0; transform: translateY(8px); } }
+.adTh__replying { display: flex; align-items: center; gap: .6rem; margin: 0 0 .6rem; padding: .5rem .5rem .5rem .8rem; border-left: 3px solid var(--ad-accent-ink); border-radius: 12px; background: var(--ad-panel-2); }
+.adTh__replyingTxt { flex: 1; min-width: 0; display: grid; gap: .1rem; }
+.adTh__replyingTxt b { font-size: .8rem; color: var(--ad-accent-ink); }
+.adTh__replyingTxt span { font-size: .84rem; color: var(--ad-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adTh__replyingX { flex: none; width: 2.75rem; height: 2.75rem; display: grid; place-items: center; border: 0; border-radius: 50%; background: none; color: var(--ad-ink); cursor: pointer; }
+.adTh__replyingX:hover { background: var(--ad-tone-bad); color: #fff; }
+.adTh__replyingX:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .adTh__bubble, .adTh__replyBtn { transition: none; } .adTh__msg.is-flash, .adTh__down { animation: none; } .adTh__msg.is-flash { background: var(--ad-hover); } }
+
+/* The composer, the way a chat app has it: one pill that grows with the text and a round send button beside it. */
+.adCmp { display: grid; grid-template-columns: minmax(0, 1fr) 3rem; gap: .5rem; align-items: end; }
+.adCmp > :not(.ad__f):not(button) { grid-column: 1 / -1; }
+.adCmp .ad__f { margin: 0; gap: .25rem; }
+.adCmp .ad__flRow { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.adCmp textarea { min-height: 3rem; max-height: 10rem; padding: .8rem 1.1rem; border-radius: 24px; resize: none; field-sizing: content; line-height: 1.4; }
+.adMx__reply .adCmp textarea { min-height: 3rem; }
+.adMx__reply .adCmp > button.ad__btn[type="submit"] { flex: none; min-width: 3rem; width: 3rem; height: 3rem; min-height: 3rem; padding: 0; border-radius: 50%; justify-content: center; }
+.adCmp > button[type="submit"] .ad__btnTxt { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.adCmp > button[type="submit"] svg { width: 1.2rem; height: 1.2rem; }
+.adCmp .ad__fh, .adCmp .ad__hint { font-size: .78rem; padding-left: 1.1rem; }
+
+/* Rows: an unread count in a solid badge, and read ticks on my own last message in a team chat. */
+.adMx__badge { flex: none; min-width: 1.35rem; height: 1.35rem; padding: 0 .4rem; display: inline-grid; place-items: center; border-radius: 999px; background: var(--ad-tone-live); color: #fff; font: 700 .72rem/1 var(--font-space-grotesk), system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+.adMx__tick { display: inline-flex; vertical-align: -.15em; margin-right: .3rem; color: var(--ad-dim); }
+.adMx__tick svg { width: 1rem; height: 1rem; }
+.adMx__tick.is-seen { color: var(--ad-accent-ink); }
+
+/* On a phone, New message floats at the bottom right, in reach of a thumb and clear of the safe area. */
+@media (max-width: 640px) {
+  .adMxHead .adPh__acts > .ad__btn--primary {
+    position: fixed; z-index: 30; right: max(1rem, env(safe-area-inset-right)); bottom: max(1.25rem, calc(env(safe-area-inset-bottom) + .75rem));
+    width: 3.5rem; min-width: 3.5rem; height: 3.5rem; border-radius: 18px; box-shadow: var(--ad-sh-3);
+  }
+  .adMxHead .adPh__acts > .ad__btn--primary svg { width: 1.5rem; height: 1.5rem; }
+  /* Room under the last row so the button never covers it. */
+  .adMx.is-list .adMx__rows { padding-bottom: 4.5rem; }
+}
+/* Inside a conversation the composer owns the bottom of the screen, so the floating button steps back into the head. */
+@media (max-width: 640px) {
+  .adMxHead.is-thread .adPh__acts > .ad__btn--primary { position: static; width: 3rem; min-width: 3rem; height: 3rem; border-radius: 999px; box-shadow: none; }
+}

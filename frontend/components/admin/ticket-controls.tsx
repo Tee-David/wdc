@@ -3,14 +3,17 @@
 import { CheckCircle2, RotateCcw, Send, XCircle } from "lucide-react";
 import { replyToTicketAsStudio, setTicketState } from "@/lib/admin/actions";
 import { Area, Form, Hidden, Submit } from "./form";
+import { ReplyingTo, useReply } from "./thread";
 
 /** The studio's reply, and the status moves beside it. */
 export function StudioReply({ ticketId }: { ticketId: string }) {
+  const { setReply } = useReply();
   return (
-    <Form action={replyToTicketAsStudio} resetOnDone>
+    <Form className="adCmp" action={replyToTicketAsStudio} resetOnDone onDone={(st) => { if (st.ok) setReply(null); }}>
       <Hidden name="id" value={ticketId} />
-      <Area name="body" label="Your reply" required rows={4} placeholder="Answer the question. The client is emailed and sees it in their portal." />
-      <Submit tone="primary" icon={Send}>Send reply</Submit>
+      <ReplyingTo />
+      <Area name="body" label="Your reply" required rows={1} placeholder="Reply to the client" hint="The client is emailed and sees it in their portal." />
+      <Submit tone="primary" icon={Send}><span className="ad__btnTxt">Send reply</span></Submit>
     </Form>
   );
 }

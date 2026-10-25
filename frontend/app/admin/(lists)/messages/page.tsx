@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Archive, ArrowLeft, Pin, Building2, FolderKanban, LifeBuoy, MessagesSquare } from "lucide-react";
+import { Archive, ArrowLeft, Check, CheckCheck, Pin, Building2, FolderKanban, LifeBuoy, MessagesSquare } from "lucide-react";
 import { getClient, getProject, getProjects, getTicket, getTicketMessages, getTickets } from "@/lib/admin/store";
 import { adminRole } from "@/lib/admin/guard";
 import { can } from "@/lib/admin/permissions";
@@ -20,8 +20,9 @@ import { AdminState } from "@/components/admin/admin-state";
 import { StudioReply, TicketStatusButtons } from "@/components/admin/ticket-controls";
 import { ProjectReply } from "@/components/admin/project-reply";
 import { MarkRead, NewTeamThread, TeamReply, ThreadFlags } from "@/components/admin/messages-ui";
-import { messagesReady, readStates, teamMessages, teamThreadsFor, type TeamThread } from "@/lib/messages/store";
+import { messagesReady, othersRead, readStates, unreadCounts, teamMessages, teamThreadsFor, type TeamThread } from "@/lib/messages/store";
 import type { Project, Ticket } from "@/lib/admin/types";
+import { ThreadLines, ThreadProvider, type ThreadLine } from "@/components/admin/thread";
 import "@/components/admin/conversation.css";
 import "@/components/admin/messages.css";
 
@@ -36,10 +37,12 @@ type Conv = {
   /** Who wrote the last message: "me" or someone else, for unread. */
   lastMine: boolean;
   unread?: boolean; pinned?: boolean; archived?: boolean;
+  /** Unread messages, when they can be counted; and, for my own last message in a team chat, whether everyone else has read it. */
+  unreadN?: number; seen?: boolean;
   ticket?: Ticket; project?: Project | null; team?: TeamThread;
 };
-type Line = { id: string; who: string; mine: boolean; at: string; body: string; tag?: { text: string; tone: "live" | "flat" } };
-type NoteRow = { id: string; project_id: string; author_id: string; author_name: string; visibility: "client" | "internal"; body: string; created_at: string | Date };
+type Line = { id: string; who: string; mine: boolean; at: string; body: string; tag?: { text: string; tone: "live" | "flat" }; visibility?: "client" | "internal"; replyTo?: string | null };
+type NoteRow = { id: string; project_id: string; author_id: string; author_name: string; visibility: "client" | "internal"; body: string; created_at: string | Date; reply_to?: string | null };
 
 const KINDS = [["", "All"], ["waiting", "Waiting on us"], ["client", "Clients"], ["project", "Projects"], ["team", "Team"]] as const;
 /* One row of filters, the way a phone's chat app has one: the inbox views and the kinds together. Archived is a row at the top of the list. */
@@ -139,12 +142,26 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
   /* THIS PERSON'S STATE (migration 0054): unread is a message from someone else
      after they last opened it; pinned conversations sit on top; archived ones
      leave the inbox until someone writes again. */
-  const states = await readStates(me, convs.map((c) => c.key));
+  const [states, counts2, seenBy] = await Promise.all([
+    readStates(me, convs.map((c) => c.key)),
+    ready ? unreadCounts(me, projectIds, team.map((t) => t.id)) : Promise.resolve(new Map<string, number>()),
+    ready ? othersRead(me, team.map((t) => `d-${t.id}`)) : Promise.resolve(new Map<string, Map<string, string | null>>()),
+  ]);
   for (const c of convs) {
     const st = states.get(c.key);
     c.pinned = !!st?.pinned;
     c.unread = ready && !c.lastMine && !!c.lastAt && (!st?.lastReadAt || c.lastAt > st.lastReadAt);
     c.archived = !!st?.archived && !(c.unread);
+    if (c.unread) {
+      c.unreadN = c.ticket
+        ? getTicketMessages(c.ticket.id).filter((m) => m.from === "client" && (!st?.lastReadAt || m.at > st.lastReadAt)).length
+        : counts2.get(c.key);
+    }
+    /* Read ticks only where reading is recorded for everyone in it: team chats. */
+    if (c.team && c.lastMine && c.team.last && c.lastAt) {
+      const reads = seenBy.get(c.key), others = c.team.members.filter((m) => m.id !== me);
+      c.seen = others.length > 0 && others.every((m) => { const at = reads?.get(m.id); return !!at && at >= c.lastAt!; });
+    }
   }
   convs.sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned) || (b.lastAt ?? "").localeCompare(a.lastAt ?? ""));
   const inBox = (c: Conv, b: string) => (b === "archived" ? !!c.archived : !c.archived && (b === "" || (b === "unread" ? !!c.unread : !!c.pinned)));
@@ -156,7 +173,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
     .filter(([k]) => (k === "unread" || k === "pinned" ? ready : k === "all" || k === "waiting" || tally[k] > 0))
     .map(([k, label]) => ({
       key: k, label,
-      count: k === "unread" ? boxN.unread || undefined : k === "waiting" ? tally.waiting || undefined : undefined,
+      count: k === "unread" ? (boxN.unread ? (boxN.unread > 99 ? "99+" : boxN.unread) : undefined) : k === "waiting" ? tally.waiting || undefined : undefined,
       href: hrefFor(query, k === "unread" || k === "pinned" ? { box: k, kind: undefined, page: undefined, c: undefined } : { box: undefined, kind: k === "all" ? undefined : k, page: undefined, c: undefined }),
     }));
   const rows = convs
@@ -177,17 +194,17 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
   let lines: Line[] = [];
   let canPublish = false, threadError = "";
   if (open?.ticket) {
-    lines = getTicketMessages(open.ticket.id).map((m) => ({ id: m.id, who: m.from === "studio" ? m.author : open.name, mine: m.from === "studio", at: m.at, body: m.body }));
+    lines = getTicketMessages(open.ticket.id).map((m) => ({ id: m.id, who: m.from === "studio" ? m.author : open.name, mine: m.from === "studio", at: m.at, body: m.body, replyTo: m.replyTo ?? null }));
   } else if (open?.project) {
     try {
       const actor = await requireProjectActor(open.project.id, "read");
       canPublish = actor.canManage;
-      const r = await db.query<NoteRow>("SELECT id,project_id,author_id,author_name,visibility,body,created_at FROM workspace_team_notes WHERE project_id=$1 ORDER BY created_at DESC LIMIT 80", [open.project.id]);
-      lines = r.rows.reverse().map((n) => ({ id: n.id, who: n.author_name, mine: n.author_id === me, at: iso(n.created_at), body: n.body, tag: n.visibility === "client" ? { text: "Client sees it", tone: "live" } : { text: "Team only", tone: "flat" } }));
+      const r = await db.query<NoteRow>("SELECT id,project_id,author_id,author_name,visibility,body,created_at,reply_to FROM workspace_team_notes WHERE project_id=$1 ORDER BY created_at DESC LIMIT 80", [open.project.id]);
+      lines = r.rows.reverse().map((n) => ({ id: n.id, who: n.author_name, mine: n.author_id === me, at: iso(n.created_at), body: n.body, visibility: n.visibility, replyTo: n.reply_to ?? null, tag: n.visibility === "client" ? { text: "Client sees it", tone: "live" } : { text: "Team only", tone: "flat" } }));
     } catch { threadError = "This channel could not be read. Reload the page, or open the project."; }
   } else if (open?.team) {
     const msgs = await teamMessages(open.team.id, me);
-    if (msgs) lines = msgs.map((m) => ({ id: m.id, who: m.authorName, mine: m.authorId === me, at: m.at, body: m.body }));
+    if (msgs) lines = msgs.map((m) => ({ id: m.id, who: m.authorName, mine: m.authorId === me, at: m.at, body: m.body, replyTo: m.replyTo ?? null }));
     else threadError = "This chat could not be read. Reload the page.";
   }
   const openClient = open?.ticket ? getClient(open.ticket.clientId) : open?.project ? getClient(open.project.clientId) : null;
@@ -208,7 +225,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
 
   return (
     <>
-      <div className="adMxHead">
+      <div className={`adMxHead${picked ? " is-thread" : ""}`}>
       <PageHead title="Messages"
         /* Only a line worth reading: who is waiting and for how long. Unread is on its chip; a quiet inbox needs no sentence. */
         lede={tally.waiting ? <>{`${tally.waiting} ${tally.waiting === 1 ? "client is" : "clients are"} waiting on us.`}{oldest?.lastAt ? <> <strong>Longest wait {whenWords(oldest.lastAt, now)}.</strong></> : null}</> : undefined}
@@ -248,9 +265,9 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
                           <span className="adMx__rowText">
                             <span className="adMx__rowTop"><b>{c.pinned ? <span className="ad__sr">Pinned. </span> : null}{c.name}</b>{c.lastAt ? <time dateTime={c.lastAt}>{whenWords(c.lastAt, now)}</time> : null}</span>
                             <span className="adMx__rowBottom">
-                              <span className="adMx__rowLast">{c.last && c.last.replace(/^You: /, "").toLocaleLowerCase().startsWith(c.ctx.toLocaleLowerCase()) ? clip(c.last) : <><span className="adMx__ctxWord">{c.ctx}</span>{c.last ? <> · {clip(c.last)}</> : null}</>}</span>
+                              <span className="adMx__rowLast">{c.team && c.lastMine && c.team.last ? <span className={`adMx__tick${c.seen ? " is-seen" : ""}`} role="img" aria-label={c.seen ? "Read" : "Sent"}>{c.seen ? <CheckCheck aria-hidden="true" /> : <Check aria-hidden="true" />}</span> : null}{c.last && c.last.replace(/^You: /, "").toLocaleLowerCase().startsWith(c.ctx.toLocaleLowerCase()) ? clip(c.last) : <><span className="adMx__ctxWord">{c.ctx}</span>{c.last ? <> · {clip(c.last)}</> : null}</>}</span>
                               {c.waiting ? <span className="ad__pill ad__pill--warn adMx__tag">Waiting</span> : null}
-                              {c.unread ? <span className="adMx__dot" role="img" aria-label="Unread" /> : null}
+                              {c.unread ? (c.unreadN ? <span className="adMx__badge" aria-label={`${c.unreadN} unread`}>{c.unreadN > 99 ? "99+" : c.unreadN}</span> : <span className="adMx__dot" role="img" aria-label="Unread" />) : null}
                               {c.pinned ? <Pin className="adMx__pin" aria-hidden="true" /> : null}
                             </span>
                           </span>
@@ -267,6 +284,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
             )}
           </section>
 
+          <ThreadProvider key={open?.key ?? "none"}>
           <section className="adMx__thread" aria-label={open ? `Conversation with ${open.name}` : "Conversation"} data-tour="messages-thread">
             {open ? (
               <>
@@ -288,23 +306,14 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
                 </nav>
                 <div className="adMx__body" data-lenis-prevent tabIndex={0} aria-label="Messages, newest at the bottom">
                   {threadError ? <AdminState kind="error" title="This channel did not load" description={threadError} /> : lines.length ? (
-                    <ol className="adConv">
-                      {lines.map((m, i) => {
-                        const day = dateWords(m.at, now, true), prev = lines[i - 1];
-                        return (
-                          <li key={m.id} className="adMx__item">
-                            {!prev || dateWords(prev.at, now, true) !== day ? <p className="adMx__day"><span>{day}</span></p> : null}
-                            <div className={`adConv__msg${m.mine ? " is-mine" : ""}`}>
-                              <span className={`adConv__av ad__av${m.mine ? "" : " ad__av--live"}`} aria-hidden="true">{initialsOf({ name: m.who }, m.mine ? "studio" : "client")}</span>
-                              <div className="adConv__bubble">
-                                <p className="adConv__who"><b>{m.mine ? "You" : m.who}</b> <time dateTime={m.at}>{new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" }).format(new Date(m.at))}</time>{m.tag ? <span className={`ad__pill ad__pill--${m.tag.tone} adMx__vis`}>{m.tag.text}</span> : null}</p>
-                                <p className="adConv__body">{m.body}</p>
-                              </div>
-                            </div>
-                          </li>
-                        );
-                      })}
-                    </ol>
+                    <ThreadLines label="Messages" lines={lines.map((m, i): ThreadLine => {
+                      const day = dateWords(m.at, now, true), prev = lines[i - 1];
+                      return {
+                        ...m, day: !prev || dateWords(prev.at, now, true) !== day ? day : undefined,
+                        time: new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" }).format(new Date(m.at)),
+                        initials: initialsOf({ name: m.who }, m.mine ? "studio" : "client"),
+                      };
+                    })} />
                   ) : (
                     <Empty title="No messages yet" icon={MessagesSquare}>{open.kind === "project" ? "Write the first note below. It stays with the team unless you choose Client sees it." : open.kind === "team" ? "Write the first message below." : "This question has no messages."}</Empty>
                   )}
@@ -321,6 +330,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
               <Empty title="Pick a conversation" icon={MessagesSquare}>Choose one from the list to read it and reply.</Empty>
             )}
           </section>
+          </ThreadProvider>
         </div>
       </div>
     </>

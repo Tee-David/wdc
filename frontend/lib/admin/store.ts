@@ -1654,11 +1654,13 @@ export function addTicket(d: { clientId: Id; projectId?: Id | null; subject: str
 /** A reply from either side. The client's own reply on a closed ticket
     reopens it -- their word is what "closed" was waiting on either way, so
     a studio-closed ticket a client writes back on is not actually closed. */
-export function addTicketMessage(d: { ticketId: Id; from: "client" | "studio"; author: string; body: string }): TicketMessage | null {
+export function addTicketMessage(d: { ticketId: Id; from: "client" | "studio"; author: string; body: string; replyTo?: Id }): TicketMessage | null {
   const t = TICKETS.find((x) => x.id === d.ticketId);
   if (!t) return null;
   const at = now();
-  const m: TicketMessage = { id: mint("tm"), ticketId: t.id, at, author: d.author, from: d.from, body: d.body };
+  /* A quote must point at a message in this same question, or it is dropped. */
+  const replyTo = d.replyTo && TICKET_MESSAGES.some((x) => x.id === d.replyTo && x.ticketId === t.id) ? d.replyTo : undefined;
+  const m: TicketMessage = { id: mint("tm"), ticketId: t.id, at, author: d.author, from: d.from, body: d.body, ...(replyTo ? { replyTo } : {}) };
   TICKET_MESSAGES.push(m);
   t.updatedAt = at;
   t.status = d.from === "studio" ? "Answered" : "Open";

@@ -6,6 +6,7 @@ import { markThreadRead, postTeamMessage, setThreadFlag, startTeamThread } from 
 import { DialogButton } from "./dialog";
 import { Area, Field, Form, Hidden, Submit } from "./form";
 import { RemoteChecks } from "./remote-pick";
+import { ReplyingTo, useReply } from "./thread";
 
 /** Remembers that this person has read the open conversation. Renders nothing. */
 export function MarkRead({ threadKey }: { threadKey: string }) {
@@ -49,11 +50,13 @@ export function NewTeamThread() {
 
 /** The reply box in a team chat. */
 export function TeamReply({ threadId }: { threadId: string }) {
+  const { setReply } = useReply();
   return (
-    <Form action={postTeamMessage} resetOnDone>
+    <Form className="adCmp" action={postTeamMessage} resetOnDone onDone={(st) => { if (st.ok) setReply(null); }}>
       <Hidden name="threadId" value={threadId} />
-      <Area name="body" label="Your message" required rows={3} placeholder="Write to the team." />
-      <Submit tone="primary" icon={Send}>Send message</Submit>
+      <ReplyingTo />
+      <Area name="body" label="Your message" required rows={1} placeholder="Message" />
+      <Submit tone="primary" icon={Send}><span className="ad__btnTxt">Send message</span></Submit>
     </Form>
   );
 }
