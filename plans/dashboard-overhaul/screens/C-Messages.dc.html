@@ -1479,6 +1479,77 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 /* One figure card per row on a phone (owner's call, 2026-10-12). */
 @container app (max-width:520px){.tiles{grid-template-columns:minmax(0,1fr)}.tiles .stat:last-child:nth-child(odd){grid-column:auto}}
 @media(max-width:520px){.tiles{grid-template-columns:minmax(0,1fr)}}
+.tbl th:nth-child(2),.tbl td:nth-child(2){padding-left:22px}
+.tbl.hasCk th:nth-child(2),.tbl.hasCk td:nth-child(2){padding-left:14px}
+.tbl.hasCk th:nth-child(3),.tbl.hasCk td:nth-child(3){padding-left:22px}
+
+/* Searchable dropdown for any pick from five options up (owner's call, 2026-10-12): a field, a list with its own search, ticks for several. */
+.cbx{display:flex;flex-direction:column;gap:8px;min-width:0}
+.cbxBtn{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:48px;text-align:left;cursor:pointer;font:inherit;color:var(--ad-ink)}
+.cbxBtn[aria-expanded="true"]{border-color:var(--ad-ink);box-shadow:0 0 0 4px var(--ad-ring)}
+.cbxBtn[aria-expanded="true"] .cbxChev{transform:rotate(180deg)}
+.cbxChev{transition:transform .2s var(--ease);flex:none}
+.cbxVal{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cbxPh{color:var(--ad-dim)}
+.cbxTokens{display:flex;flex-wrap:wrap;gap:6px}
+.cbxTok{display:inline-flex;align-items:center;gap:4px;padding:4px 4px 4px 12px;border-radius:999px;background:var(--ad-tone-brand);color:#fff;font-size:13px;font-weight:600}
+.cbxTok button{width:28px;height:28px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;color:#fff;position:relative}
+.cbxTok button::after{content:"";position:absolute;inset:-8px}
+.cbxTok button:hover{background:var(--ad-tone-bad)}
+.cbxPop{border:1px solid var(--ad-line-2);border-radius:14px;background:var(--ad-panel);box-shadow:var(--ad-sh-2);overflow:hidden;animation:rise .2s var(--ease)}
+.cbxSearch{margin:8px;border-radius:10px}
+.cbxList{max-height:260px;overflow-y:auto;overscroll-behavior:contain;padding:0 6px 6px;display:flex;flex-direction:column}
+.cbxRow{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 10px;border-radius:10px;text-align:left;font:inherit;color:var(--ad-ink);cursor:pointer}
+.cbxRow:hover{background:var(--ad-hover)}
+.cbxRow.on{font-weight:600}
+.cbxTick{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--ad-line-2);display:inline-flex;align-items:center;justify-content:center;flex:none;color:transparent}
+.cbxRow.on .cbxTick{background:var(--ad-fill);border-color:var(--ad-fill);color:#fff}
+.cbxFoot{display:flex;justify-content:flex-end;padding:8px;border-top:1px solid var(--ad-line)}
+
+/* A segmented control never grows past its box: equal columns that can shrink, long labels wrap to two lines, and on a phone a view switch keeps only its icons. */
+.seg{max-width:100%;grid-auto-columns:minmax(0,1fr)}
+.seg button,.seg a{white-space:normal;text-align:center;line-height:1.2;min-width:0;padding:6px 10px}
+@container app (max-width:640px){.segIco .segL{display:none}.segIco button,.segIco a{min-width:44px}}
+/* Timeline layers: the pinned project names stay above the Today line when the chart scrolls sideways; the header stays above both, so the line starts under it. */
+.gtHead{z-index:6}
+.tlCorner{z-index:7}
+.tlName{z-index:5;min-width:0;overflow:hidden}
+.tlName strong,.tlName span{overflow-wrap:anywhere}
+.tlToday{top:var(--tlHead,43px);z-index:4}
+.cbxSearch{width:auto;box-sizing:border-box}
+.cbxPop{max-width:100%;box-sizing:border-box}
+.tlName{margin-bottom:-1px;border-bottom:1px solid var(--ad-line)}
+.cbxNone{margin:0;padding:12px 10px;color:var(--ad-dim);font-size:14px}
+.selBtn{display:flex;align-items:center;gap:8px;width:min(100%,320px);min-height:44px;cursor:pointer;font:inherit;color:var(--ad-ink);text-align:left}
+.selBtn[aria-expanded="true"]{border-color:var(--ad-ink);box-shadow:0 0 0 4px var(--ad-ring)}
+.selLbl{font-size:13px;color:var(--ad-dim);font-weight:600}
+.selVal{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.selN{font-size:13px;color:var(--ad-dim)}
+
+/* Client page: what a retainer includes, and team notes (2026-10-25) */
+.planIncl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.planIncl > span { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 10px 12px; border-radius: 12px; background: var(--ad-panel-2); font-size: 12px; color: var(--ad-dim); }
+.planIncl strong { font-size: 16px; color: var(--ad-ink); }
+.noteRow { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: 12px; background: var(--ad-panel-2); min-width: 0; }
+.noteRow p { margin: 0; overflow-wrap: anywhere; }
+
+/* The client's copy in a narrow rail: a line's description takes its own row, parties stack (2026-10-25) */
+@container card (max-width:420px){
+  .dpTh,.dpTr{grid-template-columns:34px minmax(0,1fr) minmax(0,1fr);row-gap:4px}
+  .dpTh span:first-child,.dpTr span:first-child{grid-column:1/-1}
+  .dpTr span:first-child{font-weight:600}
+  .dpParty{grid-template-columns:minmax(0,1fr)}
+  .dpParty .r{text-align:left;align-items:flex-start}
+  .dpParty span{overflow-wrap:break-word;word-break:normal}
+}
+.nxCalm { display: flex; align-items: center; gap: 12px; padding: 14px 18px; font-size: 14px; }
+.nxCard .deckActs { flex-wrap: wrap; }
+.docLineH { font-size: 12px; font-weight: 600; color: var(--ad-dim); min-height: 0; }
+.docLineH span { padding: 0 4px; }
+.docLineH .dlQ, .docLineH .dlU { padding: 0 14px; }
+.docLineH .dlA { text-align: right; }
+@container app (max-width:760px) { .docLineH { display: none; } }
+.segTall button { min-height: 44px; }
 
 /* ===== Messages: three panes, presence, delivery, reactions, mentions, emoji, details panel ===== */
 .mxWrap{display:grid;gap:16px;height:clamp(640px,calc(100vh - 196px),800px);min-height:0;align-items:stretch}
@@ -1723,6 +1794,30 @@ button.mxRowBtn:hover{background:var(--ad-hover)}
 .msgRow.on .av0{color:#fff !important}
 .msgRow.on .mxFlag{color:var(--ad-nav-on-ink)}
 
+/* WhatsApp-simple landing (owner, 2026-10-25): one filter row, archived as a row, two-line rows, a round + on phones, the list edge to edge. */
+.mxArch{display:flex;align-items:center;gap:14px;min-height:48px;margin:4px 8px 0;padding:0 12px 0 26px;border:0;border-radius:14px;background:none;color:var(--ad-ink);font:600 14px 'Outfit',system-ui,sans-serif;text-align:left;cursor:pointer}
+.mxArch svg{color:var(--ad-dim)}
+.mxArch span{flex:1}
+.mxArch b{font-weight:600;font-size:13px;color:var(--ad-dim)}
+@media (hover:hover){.mxArch:hover{background:var(--ad-hover)}}
+.mxArch:focus-visible{outline:2px solid var(--ad-focus);outline-offset:2px}
+.mxCtx{font-weight:600}
+.mxRow.on{background:var(--ad-hover)!important;color:var(--ad-ink)!important}
+.mxRow.on *{color:inherit}
+.mxRow.on .mxWhen,.mxRow.on .mxCtx{color:var(--ad-dim)}
+.mxRow strong{font-family:'Space Grotesk',system-ui,sans-serif;font-size:15px}
+@container app (max-width:640px){
+  .pageHead .mxNew{width:48px;min-width:48px;height:48px;padding:0;border-radius:999px;justify-content:center;flex:none}
+  .pageHead .mxNew .mxNewT{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  .mxWrap.m-sheet{height:auto}
+  .mxWrap.m-sheet .mxList.card{background:transparent;border:0;box-shadow:none;border-radius:0;overflow:visible}
+  .mxWrap.m-sheet .mxList > div:first-child{padding:0!important}
+  .mxWrap.m-sheet .mxKinds{padding:10px 0 4px}
+  .mxWrap.m-sheet .mxRows{padding:4px 0 8px!important;overflow:visible}
+  .mxWrap.m-sheet:not(.isThread) .mxRow.on{background:none!important}
+  .mxArch{margin:4px 0 0;padding-left:18px}
+}
+
 </style>
 </helmet>
 <div class="{{rootCls}}" onClick="{{rootClick}}">
@@ -1815,10 +1910,10 @@ button.mxRowBtn:hover{background:var(--ad-hover)}
             <div class="pageHead rise">
               <div>
                 <h1 class="h1">Messages</h1>
-                <p class="lede">{{ledeA}} <strong style="color: var(--ad-ink)">{{ledeB}}</strong></p>
+                <sc-if value="{{hasLede}}" hint-placeholder-val="{{ false }}"><p class="lede"><strong style="color: var(--ad-ink)">{{ledeB}}</strong></p></sc-if>
               </div>
               <div class="headActs">
-                <button class="btn" onClick="{{newMsg}}" data-tour="new"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>New message</button>
+                <button class="btn mxNew" onClick="{{newMsg}}" data-tour="new"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg><span class="mxNewT">New message</span></button>
                 <button class="ibtn" data-menu="chores" aria-label="More for messages" aria-haspopup="menu" aria-expanded="{{choresX}}" onClick="{{openChores}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg></button>
               </div>
             </div>
@@ -1841,25 +1936,24 @@ button.mxRowBtn:hover{background:var(--ad-hover)}
                   <label class="sfield" style="width: 100%; flex: none">
                     <svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="color: var(--ad-dim)"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"></path></svg>
                     <span class="sr">Search conversations</span>
-                    <input id="pgq" value="{{mq}}" onChange="{{onMq}}" placeholder="Name, project or word">
+                    <input id="pgq" value="{{mq}}" onChange="{{onMq}}" placeholder="Search conversations">
                     <sc-if value="{{hasMq}}" hint-placeholder-val="{{ false }}"><button class="clr" aria-label="Clear search" onClick="{{clearMq}}"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></sc-if>
                   </label>
                 </div>
-                <div role="tablist" aria-label="Conversation views" class="tabs mxTabs"><sc-for list="{{tabs}}" as="tb" hint-placeholder-count="4"><button role="tab" class="tab {{tb.cls}}" aria-selected="{{tb.sel}}" onClick="{{tb.pick}}">{{tb.label}}<span class="num mxTabN">{{tb.n}}</span></button></sc-for></div>
-                <sc-if value="{{hasKinds}}" hint-placeholder-val="{{ true }}"><div class="mxKinds"><div class="chips svcChips" role="group" aria-label="Filter by kind"><sc-for list="{{kinds}}" as="f" hint-placeholder-count="4"><button class="chip mxChip {{f.cls}}" aria-pressed="{{f.pressed}}" onClick="{{f.pick}}">{{f.t}}<span class="num" style="opacity: .75">{{f.n}}</span></button></sc-for></div></div></sc-if>
+                <div class="mxKinds"><div class="chips svcChips" role="group" aria-label="Show"><sc-for list="{{filters}}" as="f" hint-placeholder-count="6"><button class="chip mxChip {{f.cls}}" aria-pressed="{{f.pressed}}" onClick="{{f.pick}}">{{f.t}}<sc-if value="{{f.hasN}}" hint-placeholder-val="{{ false }}"><span class="num" style="opacity: .75">{{f.n}}</span></sc-if></button></sc-for></div></div>
+                <sc-if value="{{archRow}}" hint-placeholder-val="{{ true }}"><button class="mxArch" onClick="{{archGo}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="{{archD}}"></path></svg><span>{{archLabel}}</span><b class="num">{{archN}}</b></button></sc-if>
                 <ul class="msgRows mxRows" style="list-style: none; margin: 0; padding: 6px 8px 8px" data-lenis-prevent>
                   <sc-for list="{{convs}}" as="c" hint-placeholder-count="5">
                     <sc-if value="{{c.isHead}}" hint-placeholder-val="{{ false }}"><li class="mxHead">{{c.label}}</li></sc-if>
                     <sc-if value="{{c.isRow}}" hint-placeholder-val="{{ true }}"><li class="rowIn mxLi" style="animation-name: {{c.anim}}; animation-delay: {{c.delay}}"><button class="msgRow mxRow {{c.cls}}" aria-current="{{c.current}}" aria-label="{{c.aria}}" onClick="{{c.open}}" onPointerDown="{{c.press}}">
                       <span class="mxAv">
-                        <sc-if value="{{c.avDirect}}" hint-placeholder-val="{{ true }}"><span class="av0" style="width: 40px; height: 40px; font-size: 12px; background: {{c.tone}}">{{c.i}}</span><span class="pDot {{c.dotCls}}" role="img" aria-label="{{c.presT}}"></span></sc-if>
-                        <sc-if value="{{c.avGroup}}" hint-placeholder-val="{{ false }}"><span class="av0" style="width: 40px; height: 40px; font-size: 12px; background: {{c.tone}}; border-radius: 12px">{{c.i}}</span></sc-if>
-                        <sc-if value="{{c.avProj}}" hint-placeholder-val="{{ false }}"><span class="av0" style="width: 40px; height: 40px; background: {{c.tone}}; border-radius: 12px"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></svg></span></sc-if>
+                        <sc-if value="{{c.avDirect}}" hint-placeholder-val="{{ true }}"><span class="av0" style="width: 48px; height: 48px; font-size: 14px; background: {{c.tone}}">{{c.i}}</span><span class="pDot {{c.dotCls}}" role="img" aria-label="{{c.presT}}"></span></sc-if>
+                        <sc-if value="{{c.avGroup}}" hint-placeholder-val="{{ false }}"><span class="av0" style="width: 48px; height: 48px; font-size: 14px; background: {{c.tone}}; border-radius: 14px">{{c.i}}</span></sc-if>
+                        <sc-if value="{{c.avProj}}" hint-placeholder-val="{{ false }}"><span class="av0" style="width: 48px; height: 48px; background: {{c.tone}}; border-radius: 14px"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></svg></span></sc-if>
                       </span>
                       <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
                         <span style="display: flex; align-items: center; gap: 6px"><strong style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: {{c.fw}}">{{c.name}}</strong><sc-if value="{{c.pinned}}" hint-placeholder-val="{{ false }}"><svg class="ic mxFlag" viewBox="0 0 24 24" width="13" height="13" role="img" aria-label="Pinned"><path d="M12 17v5M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"></path></svg></sc-if><sc-if value="{{c.muted}}" hint-placeholder-val="{{ false }}"><svg class="ic mxFlag" viewBox="0 0 24 24" width="13" height="13" role="img" aria-label="Muted"><path d="M8.7 3A6 6 0 0 1 18 8a21.3 21.3 0 0 0 .6 5M17 17H3s3-2 3-9a4.67 4.67 0 0 1 .3-1.7M10.3 21a1.94 1.94 0 0 0 3.4 0M2 2l20 20"></path></svg></sc-if><span style="flex: 1"></span><span class="num mxWhen">{{c.when}}</span></span>
-                        <span class="mxSubL">{{c.sub}}</span>
-                        <span style="display: flex; align-items: center; gap: 6px"><sc-if value="{{c.hasTick}}" hint-placeholder-val="{{ false }}"><svg class="ic mxTick {{c.tickCls}}" viewBox="0 0 24 24" width="14" height="14" role="img" aria-label="{{c.tickAria}}"><path d="{{c.tickD}}"></path></svg></sc-if><span style="flex: 1; min-width: 0; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: {{c.pcol}}; font-weight: {{c.fw}}">{{c.last}}</span><sc-if value="{{c.hasUnread}}" hint-placeholder-val="{{ false }}"><span class="tag num" style="background: var(--ad-tone-live); color: #fff; height: 20px; padding: 0 7px; flex: none"><span class="sr">Unread </span>{{c.unread}}</span></sc-if></span>
+                                                <span style="display: flex; align-items: center; gap: 6px"><sc-if value="{{c.hasTick}}" hint-placeholder-val="{{ false }}"><svg class="ic mxTick {{c.tickCls}}" viewBox="0 0 24 24" width="14" height="14" role="img" aria-label="{{c.tickAria}}"><path d="{{c.tickD}}"></path></svg></sc-if><span style="flex: 1; min-width: 0; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: {{c.pcol}}; font-weight: {{c.fw}}"><b class="mxCtx">{{c.sub}}</b> · {{c.last}}</span><sc-if value="{{c.hasUnread}}" hint-placeholder-val="{{ false }}"><span class="tag num" style="background: var(--ad-tone-live); color: #fff; height: 20px; padding: 0 7px; flex: none"><span class="sr">Unread </span>{{c.unread}}</span></sc-if></span>
                       </span>
                     </button><button class="mxMore" data-menu="row" aria-label="Actions for {{c.name}}" aria-haspopup="menu" aria-expanded="{{c.moreX}}" onClick="{{c.more}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg></button></li></sc-if>
                   </sc-for>
@@ -2487,7 +2581,7 @@ button.mxRowBtn:hover{background:var(--ad-hover)}
             </sc-for></div>
           </sc-if>
           <sc-if value="{{sheet.hasChipSets}}" hint-placeholder-val="{{ false }}">
-            <sc-for list="{{sheet.chipSets}}" as="cs" hint-placeholder-count="1"><div class="field {{sheet.chipsCls}}"><span>{{cs.label}}</span><sc-if value="{{cs.searchable}}" hint-placeholder-val="{{ false }}"><label class="input ssIn"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"></path></svg><span class="sr">Search {{cs.label}}</span><input value="{{cs.q}}" placeholder="Search {{cs.label}}" autocomplete="off" onChange="{{cs.onQ}}" onInput="{{cs.onQ}}"><sc-if value="{{cs.hasQ}}" hint-placeholder-val="{{ false }}"><button type="button" class="ssX" aria-label="Clear the search" onClick="{{cs.clearQ}}"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></sc-if></label></sc-if><div class="chips" role="{{cs.role}}" aria-label="{{cs.label}}"><sc-for list="{{cs.opts}}" as="o" hint-placeholder-count="4"><button class="chip {{o.cls}}" role="{{o.role}}" aria-checked="{{o.checked}}" onClick="{{o.pick}}">{{o.t}}</button></sc-for></div><sc-if value="{{cs.noMatch}}" hint-placeholder-val="{{ false }}"><span class="hint">Nothing matches. Clear the search to see everything.</span></sc-if><sc-if value="{{cs.hasHint}}" hint-placeholder-val="{{ false }}"><span class="hint">{{cs.hint}}</span></sc-if></div></sc-for>
+            <sc-for list="{{sheet.chipSets}}" as="cs" hint-placeholder-count="1"><div class="field {{sheet.chipsCls}}"><span>{{cs.label}}</span><sc-if value="{{cs.searchable}}" hint-placeholder-val="{{ false }}"><div class="cbx"><button type="button" class="input cbxBtn" aria-haspopup="listbox" aria-expanded="{{cs.expanded}}" onClick="{{cs.toggleOpen}}"><span class="cbxVal {{cs.isEmptyVal}}">{{cs.valText}}</span><svg class="ic cbxChev" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button><sc-if value="{{cs.hasTokens}}" hint-placeholder-val="{{ false }}"><div class="cbxTokens"><sc-for list="{{cs.tokens}}" as="tk" hint-placeholder-count="2"><span class="cbxTok">{{tk.t}}<button type="button" aria-label="Remove {{tk.t}}" onClick="{{tk.remove}}"><svg class="ic" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></span></sc-for></div></sc-if><sc-if value="{{cs.open}}" hint-placeholder-val="{{ false }}"><div class="cbxPop"><label class="input ssIn cbxSearch"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"></path></svg><span class="sr">Search {{cs.label}}</span><input id="cbxq-{{cs.key}}" value="{{cs.q}}" placeholder="Search" autocomplete="off" autoFocus="{{ true }}" onChange="{{cs.onQ}}" onInput="{{cs.onQ}}"><sc-if value="{{cs.hasQ}}" hint-placeholder-val="{{ false }}"><button type="button" class="ssX" aria-label="Clear the search" onClick="{{cs.clearQ}}"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></sc-if></label><div class="cbxList" role="listbox" aria-label="{{cs.label}}" aria-multiselectable="{{cs.multi}}"><sc-for list="{{cs.rows}}" as="r" hint-placeholder-count="5"><button type="button" class="cbxRow {{r.cls}}" role="option" aria-selected="{{r.sel}}" onClick="{{r.pick}}"><span class="cbxTick" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="13" height="13"><path d="M20 6 9 17l-5-5"></path></svg></span><span>{{r.t}}</span></button></sc-for><sc-if value="{{cs.noRows}}" hint-placeholder-val="{{ false }}"><p class="cbxNone">Nothing matches “{{cs.q}}”. <button type="button" class="lnk" onClick="{{cs.clearQ}}">Clear the search</button></p></sc-if></div><sc-if value="{{cs.multi}}" hint-placeholder-val="{{ false }}"><div class="cbxFoot"><button type="button" class="btn" onClick="{{cs.closeIt}}">Done</button></div></sc-if></div></sc-if></div></sc-if><sc-if value="{{cs.chipsOnly}}" hint-placeholder-val="{{ true }}"><div class="chips" role="{{cs.role}}" aria-label="{{cs.label}}"><sc-for list="{{cs.opts}}" as="o" hint-placeholder-count="4"><button class="chip {{o.cls}}" role="{{o.role}}" aria-checked="{{o.checked}}" onClick="{{o.pick}}">{{o.t}}</button></sc-for></div></sc-if><sc-if value="{{cs.noMatch}}" hint-placeholder-val="{{ false }}"><span class="hint">Nothing matches. Clear the search to see everything.</span></sc-if><sc-if value="{{cs.hasHint}}" hint-placeholder-val="{{ false }}"><span class="hint">{{cs.hint}}</span></sc-if></div></sc-for>
           </sc-if>
           <sc-if value="{{sheet.hasChecks}}" hint-placeholder-val="{{ false }}">
             <div style="display: flex; flex-direction: column; gap: 8px">
@@ -2539,7 +2633,7 @@ button.mxRowBtn:hover{background:var(--ad-hover)}
     <sc-if value="{{bellOpen}}" hint-placeholder-val="{{ false }}">
       <div class="scrim" style="background: transparent" onClick="{{toggleBell}}"></div>
       <section class="popP" role="dialog" aria-label="Notifications">
-        <span class="grabZone"><span class="grab"></span></span>
+        <span class="grabZone" onPointerDown="{{grabBell}}"><span class="grab"></span></span>
         <div style="display: flex; align-items: center; gap: 10px; padding: 14px 16px 8px"><h2 style="font-size: 17px; font-weight: 700; flex: 1">Notifications</h2><button class="lnk" onClick="{{markAll}}">Mark all read</button><sc-if value="{{hasAllNotes}}" hint-placeholder-val="{{ false }}"><a class="lnk" href="{{allNotesHref}}">See all</a></sc-if></div>
         <div style="padding: 0 16px 8px"><div class="seg" role="group" aria-label="Show" style="--n: 2; --i: {{bellI}}"><span class="pill" aria-hidden="true"></span><button class="{{bAll}}" aria-pressed="{{bAllP}}" onClick="{{tabAll}}">All</button><button class="{{bUn}}" aria-pressed="{{bUnP}}" onClick="{{tabUnread}}">Unread <span class="num">{{unread}}</span></button></div></div>
         <div style="overflow-y: auto; overscroll-behavior: contain; padding: 0 8px 8px">
@@ -2718,7 +2812,7 @@ class Component extends DCLogic {
     if (opt.delay) {
       var left = opt.delay;
       this.setState({ ta: n, toast: { msg: opt.pending(left), undo: function () { clearInterval(self.ti); if (opt.cancel) opt.cancel(); self.say(opt.cancelled || 'Cancelled. Nothing was sent.'); }, auto: false } });
-      this.ti = setInterval(function () { left--; if (left <= 0) { clearInterval(self.ti); self.say(msg); } else if (self.state.toast) self.setState({ toast: Object.assign({}, self.state.toast, { msg: opt.pending(left) }) }); }, 1000);
+      this.ti = setInterval(function () { left--; if (left <= 0) { clearInterval(self.ti); if (typeof opt.done === 'function') opt.done(); self.say(msg); } else if (self.state.toast) self.setState({ toast: Object.assign({}, self.state.toast, { msg: opt.pending(left) }) }); }, 1000);
       return;
     }
     var dur = opt.undo ? 8000 : 5000;
@@ -2813,6 +2907,12 @@ class Component extends DCLogic {
       base.x = Math.round(x); base.y = Math.round(y);
     }
     this.setState({ pop: base, menu: null, dq: '' });
+  }
+  /* A row of filter chips as one searchable pick: a button showing the current choice, opening the menu (a popover, a bottom sheet on a phone). Search from five options. */
+  chipsAsPick(id, label, items) {
+    var self = this, on = items.filter(function (c) { return /\bon\b/.test(c.cls || ''); })[0] || items[0];
+    return { cur: on ? on.t : label, n: on && on.n != null ? on.n : '', label: label, expanded: this.popOn('pick', id),
+      open: function (e) { self.openPop(e, 'pick', id, 280, Math.min(380, (items.length >= 5 ? 70 : 16) + items.length * 46), label, { search: items.length >= 5, searchPh: 'Search ' + label.toLowerCase(), items: items }); } };
   }
   closePop() { var self = this; this.exitThen('.mSheet, .mSheet ~ .scrim, .menuF', function () { self.setState({ pop: null }); }); }
   menuItem(label, d, fn, opt) {
@@ -3049,7 +3149,11 @@ class Component extends DCLogic {
       var cur = F[cs.key] != null ? F[cs.key] : (cs.multi ? [] : '');
       var cq = (F['~q' + cs.key] || '').toLowerCase(), srch = cs.search !== false && cs.opts.length >= 5;
       var shownOpts = cs.opts.filter(function (o) { return !srch || !cq || o.toLowerCase().indexOf(cq) >= 0 || (cs.multi ? cur.indexOf(o) >= 0 : cur === o); });
-      return { label: cs.label, hint: cs.hint || '', hasHint: !!cs.hint, role: cs.multi ? 'group' : 'radiogroup', searchable: srch, q: F['~q' + cs.key] || '', hasQ: !!F['~q' + cs.key], noMatch: srch && !!cq && shownOpts.every(function (o) { return o.toLowerCase().indexOf(cq) < 0; }), onQ: function (e) { setF('~q' + cs.key, e.target.value); }, clearQ: function () { setF('~q' + cs.key, ''); }, opts: shownOpts.map(function (o) {
+      var open = !!F['~open' + cs.key], picked = cs.multi ? cur : (cur ? [cur] : []);
+      var lc = cs.label.toLowerCase();
+      var valText = !picked.length ? (cs.multi ? 'Any ' + lc : 'Pick ' + (/^[aeiou]/.test(lc) ? 'an ' : 'a ') + lc) : (picked.length === 1 ? picked[0] : picked.length + ' ' + lc + (/s$/.test(lc) ? '' : 's') + ' picked');
+      var toggle = function (v) { var c = self.state.form[cs.key] != null ? self.state.form[cs.key] : (cs.multi ? [] : ''); if (cs.multi) { c = c.indexOf(v) >= 0 ? c.filter(function (x) { return x !== v; }) : c.concat([v]); setF(cs.key, c); } else { var m = Object.assign({}, self.state.form); m[cs.key] = v; m['~open' + cs.key] = false; m['~q' + cs.key] = ''; self.setState({ form: m }); } };
+      return { noRows: srch && !!cq && !shownOpts.length, key: cs.key, label: cs.label, hint: cs.hint || '', hasHint: !!cs.hint, role: cs.multi ? 'group' : 'radiogroup', searchable: srch, chipsOnly: !srch, open: open, expanded: open ? 'true' : 'false', valText: valText, isEmptyVal: !picked.length ? 'cbxPh' : '', multi: !!cs.multi, hasTokens: !!cs.multi && picked.length > 0, tokens: (cs.multi ? picked : []).map(function (v) { return { t: v, remove: function () { toggle(v); } }; }), toggleOpen: function () { setF('~open' + cs.key, !open); }, closeIt: function () { setF('~open' + cs.key, false); }, rows: shownOpts.map(function (o) { var on = picked.indexOf(o) >= 0; return { t: o, sel: on ? 'true' : 'false', on: on, cls: on ? 'on' : '', pick: function () { toggle(o); } }; }), q: F['~q' + cs.key] || '', hasQ: !!F['~q' + cs.key], noMatch: srch && !!cq && shownOpts.every(function (o) { return o.toLowerCase().indexOf(cq) < 0; }), onQ: function (e) { setF('~q' + cs.key, e.target.value); }, clearQ: function () { setF('~q' + cs.key, ''); }, opts: shownOpts.map(function (o) {
         var on = cs.multi ? cur.indexOf(o) >= 0 : cur === o;
         return { t: o, cls: on ? 'on' : '', checked: on ? 'true' : 'false', role: cs.multi ? 'checkbox' : 'radio', pick: function () { var c = self.state.form[cs.key] != null ? self.state.form[cs.key] : (cs.multi ? [] : ''); if (cs.multi) { c = c.indexOf(o) >= 0 ? c.filter(function (x) { return x !== o; }) : c.concat([o]); } else c = o; setF(cs.key, c); } };
       }) };
@@ -3077,6 +3181,7 @@ class Component extends DCLogic {
       if (s.pop.kind === 'per') popItems = this.perItems(s.pop.id);
       else if (s.pop.kind === 'snooze') popItems = this.snoozeItems();
       else if (s.pop.kind === 'delegate') popItems = this.delegateItems();
+      else if (s.pop.kind === 'pick') popItems = (s.pop.items || []).filter(function (c) { var q = (s.dq || '').trim().toLowerCase(); return !q || c.t.toLowerCase().indexOf(q) >= 0; }).map(function (c) { var on = /\bon\b/.test(c.cls || ''); return self.menuItem(c.t, on ? self.icons().check : '', function () { c.pick(); self.setState({ pop: null }); }, { role: 'menuitemradio', checked: on, on: on, hint: c.n != null ? String(c.n) : '' }); });
       else if (this.popItems) popItems = this.popItems(s.pop) || [];
       popItems = popItems.map(function (m, i) { return Object.assign({ anim: self.anim(s.dq.length), delay: Math.min(i, 8) * 0.025 + 's' }, m); });
     }
@@ -3109,7 +3214,7 @@ class Component extends DCLogic {
       attach: function () { self.say('The file picker opens here. Up to 50 MB a file.'); },
       isTourPick: raw.kind === 'tour', tourOpts: tourOpts, isFile: raw.kind === 'file', isPost: raw.kind === 'post', isPay: raw.kind === 'pay', isFollow: raw.kind === 'follow', isQuote: raw.kind === 'quote',
       popOpen: !!s.pop && (popItems.length > 0 || s.pop.search), popAsMenu: !!s.pop && !s.pop.asSheet, popAsSheet: !!s.pop && s.pop.asSheet, pop: Object.assign({ hasNote: !!(s.pop && s.pop.note) }, s.pop || {}), popItems: popItems, popEmpty: !!s.pop && s.pop.search && !popItems.length, popEmptyText: 'Nobody matches "' + s.dq + '".',
-      closePop: function () { self.closePop(); }, grabPop: function (e) { self.grabStart(e, '.mSheet', function () { self.setState({ pop: null }); }); },
+      closePop: function () { self.closePop(); }, grabPop: function (e) { self.grabStart(e, '.mSheet', function () { self.setState({ pop: null }); }); }, grabBell: function (e) { self.grabStart(e, '.popP', function () { self.setState({ bell: false }); }); },
       dq: s.dq, onDq: function (e) { self.setState({ dq: e.target.value }); },
       bellOpen: s.bell, bellExp: s.bell ? 'true' : 'false', toggleBell: function () { if (self.state.bell) { self.exitThen('.popP, .scrim', function () { self.setState({ bell: false }); }); return; } self.setState({ bell: true, menu: null, pop: null }); },
       notes: shown, notesEmpty: !shown.length, unread: unread, hasUnread: unread > 0, bellLabel: 'Notifications, ' + unread + ' unread', bellI: s.bellTab === 'unread' ? 1 : 0,
@@ -4521,6 +4626,18 @@ class Component extends DCLogic {
         open: function () { if (self._lp) { self._lp = false; return; } self.msgOpen(c.id); }, press: function (e) { self.msgHold(e, function () { self.openPop({ currentTarget: e.currentTarget }, 'row', c.id, 250, 260, 'Actions for ' + c.name); }); },
         more: function (e) { if (e && e.stopPropagation) e.stopPropagation(); self.openPop(e, 'row', c.id, 250, 260, 'Actions for ' + c.name); }, moreX: self.popOn('row', c.id) });
     });
+    /* One row of filters, the way a phone's chat app has one: the inbox views and the kinds together; Archived is a row at the top of the list. */
+    var src = s.demoEmpty ? [] : all;
+    var cnt = function (tab, k) { return src.filter(function (c) { return self.msgTabIn(c, tab) && self.msgKindIn(c, k) && V.inSearch(c); }).length; };
+    var unreadN0 = cnt('unread', 'all'), archN = cnt('archived', 'all');
+    var filters = [['all', 'All', 'inbox', 'all', 0], ['unread', 'Unread', 'unread', 'all', unreadN0]]
+      .concat(V.KINDS.filter(function (f) { return f[0] !== 'all'; }).map(function (f) { return [f[0], f[1], 'inbox', f[0], 0]; }))
+      .concat([['pinned', 'Pinned', 'pinned', 'all', 0]])
+      .map(function (f) {
+        var on = filter !== 'archived' && filter === f[2] && kind === f[3];
+        return { t: f[1], n: f[4], hasN: f[4] > 0, cls: on ? 'on' : '', pressed: on ? 'true' : 'false', pick: function () { self.setState({ mfilter: f[2], mkind: f[3], mpage: 0, ra: s.ra + 1 }); } };
+      });
+    var inArch = filter === 'archived';
     var TABS = [['inbox', 'Inbox'], ['unread', 'Unread'], ['pinned', 'Pinned'], ['archived', 'Archived']];
     var tabs = TABS.map(function (t) { var on = filter === t[0]; return { label: t[1], n: (s.demoEmpty ? [] : all).filter(function (c) { return self.msgTabIn(c, t[0]) && self.msgKindIn(c, kind) && V.inSearch(c); }).length, cls: on ? 'on' : '', sel: on ? 'true' : 'false', pick: function () { self.setState({ mfilter: t[0], mpage: 0, ra: s.ra + 1 }); } }; });
     var kinds = V.KINDS.map(function (f) { var on = kind === f[0]; return { t: f[1], n: (s.demoEmpty ? [] : all).filter(function (c) { return self.msgTabIn(c, filter) && self.msgKindIn(c, f[0]) && V.inSearch(c); }).length, cls: on ? 'on' : '', pressed: on ? 'true' : 'false', pick: function () { self.setState({ mkind: f[0], mpage: 0, ra: s.ra + 1 }); } }; });
@@ -4613,7 +4730,7 @@ class Component extends DCLogic {
       ledeA: s.demoEmpty ? 'Your inbox is empty.' : total ? total + (total === 1 ? ' unread message' : ' unread messages') + ' in ' + unreadN + (unreadN === 1 ? ' conversation.' : ' conversations.') : 'You are all caught up.', ledeB: M.waiting ? M.waiting(this, all) : '',
       skRows: [1, 2, 3, 4, 5], modeCls: 'm-' + mode, paneCls: s.thread ? 'isThread' : '', infoCls: mode === 'col' && infoOpen && sel && !noPerm ? 'hasInfo' : '', showInfoCol: mode === 'col' && infoOpen && !!sel && !noPerm,
       offline: s.offline, goOnline: function () { self.setOffline(false); },
-      tabs: tabs, hasKinds: V.KINDS.length > 0, kinds: kinds, convs: convs, MG: MG, mq: s.mq, hasMq: !!s.mq,
+      tabs: tabs, hasKinds: V.KINDS.length > 0, kinds: kinds, filters: filters, archRow: inArch || archN > 0, archLabel: inArch ? 'Archived conversations' : 'Archived', archN: inArch ? 'Back to the inbox' : archN, archD: inArch ? 'm12 19-7-7 7-7M19 12H5' : 'M21 8v13H3V8M1 3h22v5H1zM10 12h4', archGo: function () { self.setState({ mfilter: inArch ? 'inbox' : 'archived', mkind: 'all', mpage: 0, ra: s.ra + 1 }); }, hasLede: !!(M.waiting && M.waiting(self, all)), convs: convs, MG: MG, mq: s.mq, hasMq: !!s.mq,
       onMq: function (e) { self.setState({ mq: e.target.value, mpage: 0, ra: self.state.ra + 1 }); }, clearMq: function () { self.setState({ mq: '', ra: self.state.ra + 1 }); }, clearFilters: function () { self.setState({ mq: '', mkind: 'all', mpage: 0, ra: self.state.ra + 1 }); },
       noConvs: !list.length, hasFilter: hasFilter, emptyTitle: emptyTitle, emptyBody: emptyBody, emptyD: emptyD, emptyNew: emptyNew,
       hasThread: !!sel && !noPerm, noThread: !sel && !noPerm, noPerm: noPerm, noPermT: M.role === 'admin' ? 'You are not a member of this channel' : 'You do not have access to this conversation', noPermB: M.role === 'admin' ? 'Only members can read a channel. Add yourself and it opens with its full history.' : 'It belongs to a project you are not part of. Ask Admin to add you and it appears here with its full history.', noPermBtn: M.role === 'admin' ? 'Add me to the channel' : 'Ask Admin for access',

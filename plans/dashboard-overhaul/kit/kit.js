@@ -89,7 +89,7 @@
     if (opt.delay) {
       var left = opt.delay;
       this.setState({ ta: n, toast: { msg: opt.pending(left), undo: function () { clearInterval(self.ti); if (opt.cancel) opt.cancel(); self.say(opt.cancelled || 'Cancelled. Nothing was sent.'); }, auto: false } });
-      this.ti = setInterval(function () { left--; if (left <= 0) { clearInterval(self.ti); self.say(msg); } else if (self.state.toast) self.setState({ toast: Object.assign({}, self.state.toast, { msg: opt.pending(left) }) }); }, 1000);
+      this.ti = setInterval(function () { left--; if (left <= 0) { clearInterval(self.ti); if (typeof opt.done === 'function') opt.done(); self.say(msg); } else if (self.state.toast) self.setState({ toast: Object.assign({}, self.state.toast, { msg: opt.pending(left) }) }); }, 1000);
       return;
     }
     var dur = opt.undo ? 8000 : 5000;

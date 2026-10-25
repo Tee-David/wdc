@@ -24,9 +24,9 @@
   docs() {
     var paid = this.state.paidDep;
     return {
-      inv: [paid ? { no: 'INV-26-9QX4LM', for: 'Social media, deposit 50%', amount: '₦450,000', date: 'Paid today', status: 'Paid', tone: 'var(--ad-tone-good)', kind: 'inv' } : { no: 'INV-26-9QX4LM', for: 'Social media, deposit 50%', amount: '₦450,000', date: 'Wed 14 Oct', status: 'Due in 4 days', tone: 'var(--ad-tone-warn)', kind: 'inv', open: true }, { no: 'INV-26-2FT7RB', for: 'Brand identity, deposit 50%', amount: '₦600,000', date: '30 Sep', status: 'Paid', tone: 'var(--ad-tone-good)', kind: 'inv' }],
+      inv: [paid ? { no: 'INV-26-9QX4LM', for: 'Social media, deposit 50%', amount: '₦450,000', date: 'Paid today', status: 'Paid', tone: 'var(--ad-tone-good)', kind: 'inv' } : { no: 'INV-26-9QX4LM', for: 'Social media, deposit 50%', amount: '₦450,000', date: 'Wed 14 Oct', status: 'Due in 4 days', tone: 'var(--ad-tone-warn)', kind: 'inv', open: true }, { no: 'INV-26-2FT7RB', for: 'Brand identity, deposit 50%', amount: '₦600,000', date: '2 Oct', status: 'Paid', tone: 'var(--ad-tone-good)', kind: 'inv' }],
       est: [{ no: 'EST-2026-011', for: 'Social media management, 3 months', amount: '₦900,000', date: '3 Oct', status: 'Accepted', tone: 'var(--ad-tone-good)', kind: 'est' }, { no: 'EST-2026-009', for: 'Brand identity', amount: '₦1,200,000', date: '18 Sep', status: 'Accepted', tone: 'var(--ad-tone-good)', kind: 'est' }],
-      rct: (paid ? [{ no: 'RCT-2026-031', for: 'Social media deposit, ' + (this.state.paidHow || 'bank transfer').toLowerCase(), amount: '₦450,000', date: 'Today', status: 'Sent', tone: 'var(--ad-tone-good)', kind: 'rct' }] : []).concat([{ no: 'RCT-2026-028', for: 'Brand identity deposit, Paystack card', amount: '₦600,000', date: '30 Sep', status: 'Sent', tone: 'var(--ad-tone-good)', kind: 'rct' }])
+      rct: (paid ? [{ no: 'RCT-2026-043', for: 'Social media deposit, ' + (this.state.paidHow || 'bank transfer').toLowerCase(), amount: '₦450,000', date: 'Today', status: 'Sent', tone: 'var(--ad-tone-good)', kind: 'rct' }] : []).concat([{ no: 'RCT-2026-035', for: 'Brand identity deposit, Paystack card', amount: '₦600,000', date: '2 Oct', status: 'Sent', tone: 'var(--ad-tone-good)', kind: 'rct' }])
     };
   }
   docFile(d) { return { name: d.no + '.pdf', project: 'Mira Skincare', view: 'doc', ref: d.no, docTitle: ({ inv: 'Invoice', est: 'Quote', rct: 'Receipt' })[d.kind] + ' · ' + d.amount, when: d.date, size: '190 KB', tone: 'var(--ad-tone-bad)', by: 'Funmi K.' }; }
@@ -45,14 +45,14 @@
       ['Instagram access guide.pdf', 'social', '7 Oct', '420 KB', 'doc', 1, 'Chiamaka A.'], ['Content pillars.pdf', 'social', '3 Oct', '1.6 MB', 'doc', 1, 'Chiamaka A.'],
       ['Moodboard.jpg', 'brand', '26 Sep', '3.8 MB', 'art', 1, 'Ifeanyi N.'], ['Competitor scan.pdf', 'brand', '25 Sep', '2.2 MB', 'doc', 0, 'Ifeanyi N.'],
       ['Discovery call notes.pdf', 'brand', '24 Sep', '320 KB', 'doc', 0, 'Babatope A.'], ['Logo round 1.pdf', 'brand', '22 Sep', '3.9 MB', 'art', 1, 'Ifeanyi N.'],
-      ['Signed quote EST-2026-009.pdf', 'billing', '20 Sep', '210 KB', 'doc', 1, 'Funmi K.'], ['Receipt RCT-2026-028.pdf', 'billing', '30 Sep', '180 KB', 'doc', 1, 'Funmi K.']
+      ['Signed quote EST-2026-009.pdf', 'billing', '20 Sep', '210 KB', 'doc', 1, 'Funmi K.'], ['Receipt RCT-2026-035.pdf', 'billing', '2 Oct', '180 KB', 'doc', 1, 'Funmi K.']
     ].map(function (f, i) { var ext = f[0].split('.').pop().toUpperCase(); return { id: 'f' + i, name: f[0], cat: f[1], project: { brand: 'Brand identity', social: 'Social media', billing: 'Billing' }[f[1]], when: f[2], size: f[3], view: f[4], shared: !!f[5], by: f[6], ext: ext, docTitle: f[0].replace(/\.\w+$/, ''), ref: 'MIRA-' + (i + 1), pageCount: ext === 'PDF' ? 2 + (i % 4) : 1, bg: i === 4 ? '#c9a27a' : '#f1ece4', fg: '#2b2620', mark: i === 4 ? 'moodboard' : 'mira', swatches: [{ c: '#1f4d3a', n: 'Leaf' }, { c: '#f1ece4', n: 'Linen' }, { c: '#2b2620', n: 'Bark' }, { c: '#c9a27a', n: 'Clay' }], tone: ext === 'PDF' ? '#c62828' : (ext === 'PNG' ? '#000065' : '#b84a00') }; });
   }
   activity() {
     return [
       ['AO', '#1f4d3a', 'Adaeze', 'asked about the green in route B', 'Message', 'Today, 10:12', 'Message'], ['IN', '#000065', 'Ifeanyi', 'sent logo round 2', 'Brand identity', 'Today, 09:40', 'Work'],
       ['FK', '#15803d', 'Funmi', 'sent the social media deposit invoice', 'INV-26-9QX4LM · ₦450,000', 'Wed 7 Oct', 'Money'], ['CA', '#b84a00', 'Chiamaka', 'asked for Instagram access', 'Social media', 'Wed 7 Oct', 'Work'],
-      ['AO', '#1f4d3a', 'Adaeze', 'accepted quote EST-2026-011', 'Social media management · ₦900,000', 'Sat 3 Oct', 'Money'], ['AO', '#1f4d3a', 'Adaeze', 'paid ₦600,000 by Paystack', 'Receipt RCT-2026-028', '30 Sep', 'Money'],
+      ['AO', '#1f4d3a', 'Adaeze', 'accepted quote EST-2026-011', 'Social media management · ₦900,000', 'Sat 3 Oct', 'Money'], ['AO', '#1f4d3a', 'Adaeze', 'paid ₦600,000 by Paystack', 'Receipt RCT-2026-035', '2 Oct', 'Money'],
       ['AO', '#1f4d3a', 'Adaeze', 'asked for changes on round 1', 'Brand identity', '25 Sep', 'Work'], ['IN', '#000065', 'Ifeanyi', 'sent logo round 1', 'Brand identity', '22 Sep', 'Work'],
       ['BA', '#000065', 'Babatope', 'held the discovery call', 'Google Meet · 45 min', '24 Sep', 'Message'], ['BA', '#000065', 'Babatope', 'added Mira Skincare as a client', 'From the contact form', '18 Sep', 'Work']
     ].map(function (a) { return { i: a[0], tone: a[1], who: a[2], what: a[3], where: a[4], when: a[5], kind: a[6], ktone: a[6] === 'Money' ? 'var(--ad-tone-good)' : (a[6] === 'Message' ? 'var(--ad-tone-brand)' : 'var(--ad-tone-neutral)') }; });
@@ -130,8 +130,8 @@
       primary: function (ctx) { var n = +String(ctx.form.amt || '').replace(/[^\d]/g, ''); return n && n < 450000 ? 'Save part payment' : 'Save payment'; }, secondary: 'Cancel',
       primaryDis: function (ctx) { if (!ctx.form.how) return 'Pick how they paid.'; if (!+String(ctx.form.amt || '').replace(/[^\d]/g, '')) return 'Enter the amount received.'; return ''; },
       onPrimary: function (ctx) { var n = +String(ctx.form.amt).replace(/[^\d]/g, ''); if (n < 450000) { self.logFeed('AO', '#1f4d3a', 'Adaeze', 'paid ₦' + n.toLocaleString('en-NG') + ' of the deposit', 'INV-26-9QX4LM', 'Money'); self.clearId('deposit', 'snooze', 'Wed 14 Oct, 09:00', 'Part payment saved. ₦' + (450000 - n).toLocaleString('en-NG') + ' is still owed; the card comes back on the due date.'); return; }
-        self.setState({ paidDep: true, paidHow: ctx.form.how, ra: self.state.ra + 1 }); self.logFeed('AO', '#1f4d3a', 'Adaeze', 'paid the social media deposit by ' + ctx.form.how.toLowerCase(), 'RCT-2026-031 · ₦450,000', 'Money');
-        self.clearId('deposit', 'done', '', 'Payment saved. INV-26-9QX4LM is paid and receipt RCT-2026-031 has gone to Adaeze.', { final: true }); } }));
+        self.setState({ paidDep: true, paidHow: ctx.form.how, ra: self.state.ra + 1 }); self.logFeed('AO', '#1f4d3a', 'Adaeze', 'paid the social media deposit by ' + ctx.form.how.toLowerCase(), 'RCT-2026-043 · ₦450,000', 'Money');
+        self.clearId('deposit', 'done', '', 'Payment saved. INV-26-9QX4LM is paid and receipt RCT-2026-043 has gone to Adaeze.', { final: true }); } }));
   }
   askAccess() {
     var self = this, I = this.icons();

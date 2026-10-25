@@ -1516,6 +1516,40 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .tlName{z-index:5;min-width:0;overflow:hidden}
 .tlName strong,.tlName span{overflow-wrap:anywhere}
 .tlToday{top:var(--tlHead,43px);z-index:4}
+.cbxSearch{width:auto;box-sizing:border-box}
+.cbxPop{max-width:100%;box-sizing:border-box}
+.tlName{margin-bottom:-1px;border-bottom:1px solid var(--ad-line)}
+.cbxNone{margin:0;padding:12px 10px;color:var(--ad-dim);font-size:14px}
+.selBtn{display:flex;align-items:center;gap:8px;width:min(100%,320px);min-height:44px;cursor:pointer;font:inherit;color:var(--ad-ink);text-align:left}
+.selBtn[aria-expanded="true"]{border-color:var(--ad-ink);box-shadow:0 0 0 4px var(--ad-ring)}
+.selLbl{font-size:13px;color:var(--ad-dim);font-weight:600}
+.selVal{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.selN{font-size:13px;color:var(--ad-dim)}
+
+/* Client page: what a retainer includes, and team notes (2026-10-25) */
+.planIncl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.planIncl > span { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 10px 12px; border-radius: 12px; background: var(--ad-panel-2); font-size: 12px; color: var(--ad-dim); }
+.planIncl strong { font-size: 16px; color: var(--ad-ink); }
+.noteRow { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: 12px; background: var(--ad-panel-2); min-width: 0; }
+.noteRow p { margin: 0; overflow-wrap: anywhere; }
+
+/* The client's copy in a narrow rail: a line's description takes its own row, parties stack (2026-10-25) */
+@container card (max-width:420px){
+  .dpTh,.dpTr{grid-template-columns:34px minmax(0,1fr) minmax(0,1fr);row-gap:4px}
+  .dpTh span:first-child,.dpTr span:first-child{grid-column:1/-1}
+  .dpTr span:first-child{font-weight:600}
+  .dpParty{grid-template-columns:minmax(0,1fr)}
+  .dpParty .r{text-align:left;align-items:flex-start}
+  .dpParty span{overflow-wrap:break-word;word-break:normal}
+}
+.nxCalm { display: flex; align-items: center; gap: 12px; padding: 14px 18px; font-size: 14px; }
+.nxCard .deckActs { flex-wrap: wrap; }
+.docLineH { font-size: 12px; font-weight: 600; color: var(--ad-dim); min-height: 0; }
+.docLineH span { padding: 0 4px; }
+.docLineH .dlQ, .docLineH .dlU { padding: 0 14px; }
+.docLineH .dlA { text-align: right; }
+@container app (max-width:760px) { .docLineH { display: none; } }
+.segTall button { min-height: 44px; }
 
 </style>
 </helmet>
@@ -2000,7 +2034,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
             </sc-for></div>
           </sc-if>
           <sc-if value="{{sheet.hasChipSets}}" hint-placeholder-val="{{ false }}">
-            <sc-for list="{{sheet.chipSets}}" as="cs" hint-placeholder-count="1"><div class="field {{sheet.chipsCls}}"><span>{{cs.label}}</span><sc-if value="{{cs.searchable}}" hint-placeholder-val="{{ false }}"><div class="cbx"><button type="button" class="input cbxBtn" aria-haspopup="listbox" aria-expanded="{{cs.expanded}}" onClick="{{cs.toggleOpen}}"><span class="cbxVal {{cs.isEmptyVal}}">{{cs.valText}}</span><svg class="ic cbxChev" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button><sc-if value="{{cs.hasTokens}}" hint-placeholder-val="{{ false }}"><div class="cbxTokens"><sc-for list="{{cs.tokens}}" as="tk" hint-placeholder-count="2"><span class="cbxTok">{{tk.t}}<button type="button" aria-label="Remove {{tk.t}}" onClick="{{tk.remove}}"><svg class="ic" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></span></sc-for></div></sc-if><sc-if value="{{cs.open}}" hint-placeholder-val="{{ false }}"><div class="cbxPop"><label class="input ssIn cbxSearch"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"></path></svg><span class="sr">Search {{cs.label}}</span><input value="{{cs.q}}" placeholder="Search" autocomplete="off" onChange="{{cs.onQ}}" onInput="{{cs.onQ}}"><sc-if value="{{cs.hasQ}}" hint-placeholder-val="{{ false }}"><button type="button" class="ssX" aria-label="Clear the search" onClick="{{cs.clearQ}}"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></sc-if></label><div class="cbxList" role="listbox" aria-label="{{cs.label}}" aria-multiselectable="{{cs.multi}}"><sc-for list="{{cs.rows}}" as="r" hint-placeholder-count="5"><button type="button" class="cbxRow {{r.cls}}" role="option" aria-selected="{{r.sel}}" onClick="{{r.pick}}"><span class="cbxTick" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="13" height="13"><path d="M20 6 9 17l-5-5"></path></svg></span><span>{{r.t}}</span></button></sc-for></div><sc-if value="{{cs.multi}}" hint-placeholder-val="{{ false }}"><div class="cbxFoot"><button type="button" class="btn" onClick="{{cs.closeIt}}">Done</button></div></sc-if></div></sc-if></div></sc-if><sc-if value="{{cs.chipsOnly}}" hint-placeholder-val="{{ true }}"><div class="chips" role="{{cs.role}}" aria-label="{{cs.label}}"><sc-for list="{{cs.opts}}" as="o" hint-placeholder-count="4"><button class="chip {{o.cls}}" role="{{o.role}}" aria-checked="{{o.checked}}" onClick="{{o.pick}}">{{o.t}}</button></sc-for></div></sc-if><sc-if value="{{cs.noMatch}}" hint-placeholder-val="{{ false }}"><span class="hint">Nothing matches. Clear the search to see everything.</span></sc-if><sc-if value="{{cs.hasHint}}" hint-placeholder-val="{{ false }}"><span class="hint">{{cs.hint}}</span></sc-if></div></sc-for>
+            <sc-for list="{{sheet.chipSets}}" as="cs" hint-placeholder-count="1"><div class="field {{sheet.chipsCls}}"><span>{{cs.label}}</span><sc-if value="{{cs.searchable}}" hint-placeholder-val="{{ false }}"><div class="cbx"><button type="button" class="input cbxBtn" aria-haspopup="listbox" aria-expanded="{{cs.expanded}}" onClick="{{cs.toggleOpen}}"><span class="cbxVal {{cs.isEmptyVal}}">{{cs.valText}}</span><svg class="ic cbxChev" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button><sc-if value="{{cs.hasTokens}}" hint-placeholder-val="{{ false }}"><div class="cbxTokens"><sc-for list="{{cs.tokens}}" as="tk" hint-placeholder-count="2"><span class="cbxTok">{{tk.t}}<button type="button" aria-label="Remove {{tk.t}}" onClick="{{tk.remove}}"><svg class="ic" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></span></sc-for></div></sc-if><sc-if value="{{cs.open}}" hint-placeholder-val="{{ false }}"><div class="cbxPop"><label class="input ssIn cbxSearch"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"></path></svg><span class="sr">Search {{cs.label}}</span><input id="cbxq-{{cs.key}}" value="{{cs.q}}" placeholder="Search" autocomplete="off" autoFocus="{{ true }}" onChange="{{cs.onQ}}" onInput="{{cs.onQ}}"><sc-if value="{{cs.hasQ}}" hint-placeholder-val="{{ false }}"><button type="button" class="ssX" aria-label="Clear the search" onClick="{{cs.clearQ}}"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></sc-if></label><div class="cbxList" role="listbox" aria-label="{{cs.label}}" aria-multiselectable="{{cs.multi}}"><sc-for list="{{cs.rows}}" as="r" hint-placeholder-count="5"><button type="button" class="cbxRow {{r.cls}}" role="option" aria-selected="{{r.sel}}" onClick="{{r.pick}}"><span class="cbxTick" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="13" height="13"><path d="M20 6 9 17l-5-5"></path></svg></span><span>{{r.t}}</span></button></sc-for><sc-if value="{{cs.noRows}}" hint-placeholder-val="{{ false }}"><p class="cbxNone">Nothing matches “{{cs.q}}”. <button type="button" class="lnk" onClick="{{cs.clearQ}}">Clear the search</button></p></sc-if></div><sc-if value="{{cs.multi}}" hint-placeholder-val="{{ false }}"><div class="cbxFoot"><button type="button" class="btn" onClick="{{cs.closeIt}}">Done</button></div></sc-if></div></sc-if></div></sc-if><sc-if value="{{cs.chipsOnly}}" hint-placeholder-val="{{ true }}"><div class="chips" role="{{cs.role}}" aria-label="{{cs.label}}"><sc-for list="{{cs.opts}}" as="o" hint-placeholder-count="4"><button class="chip {{o.cls}}" role="{{o.role}}" aria-checked="{{o.checked}}" onClick="{{o.pick}}">{{o.t}}</button></sc-for></div></sc-if><sc-if value="{{cs.noMatch}}" hint-placeholder-val="{{ false }}"><span class="hint">Nothing matches. Clear the search to see everything.</span></sc-if><sc-if value="{{cs.hasHint}}" hint-placeholder-val="{{ false }}"><span class="hint">{{cs.hint}}</span></sc-if></div></sc-for>
           </sc-if>
           <sc-if value="{{sheet.hasChecks}}" hint-placeholder-val="{{ false }}">
             <div style="display: flex; flex-direction: column; gap: 8px">
@@ -2231,7 +2265,7 @@ class Component extends DCLogic {
     if (opt.delay) {
       var left = opt.delay;
       this.setState({ ta: n, toast: { msg: opt.pending(left), undo: function () { clearInterval(self.ti); if (opt.cancel) opt.cancel(); self.say(opt.cancelled || 'Cancelled. Nothing was sent.'); }, auto: false } });
-      this.ti = setInterval(function () { left--; if (left <= 0) { clearInterval(self.ti); self.say(msg); } else if (self.state.toast) self.setState({ toast: Object.assign({}, self.state.toast, { msg: opt.pending(left) }) }); }, 1000);
+      this.ti = setInterval(function () { left--; if (left <= 0) { clearInterval(self.ti); if (typeof opt.done === 'function') opt.done(); self.say(msg); } else if (self.state.toast) self.setState({ toast: Object.assign({}, self.state.toast, { msg: opt.pending(left) }) }); }, 1000);
       return;
     }
     var dur = opt.undo ? 8000 : 5000;
@@ -2326,6 +2360,12 @@ class Component extends DCLogic {
       base.x = Math.round(x); base.y = Math.round(y);
     }
     this.setState({ pop: base, menu: null, dq: '' });
+  }
+  /* A row of filter chips as one searchable pick: a button showing the current choice, opening the menu (a popover, a bottom sheet on a phone). Search from five options. */
+  chipsAsPick(id, label, items) {
+    var self = this, on = items.filter(function (c) { return /\bon\b/.test(c.cls || ''); })[0] || items[0];
+    return { cur: on ? on.t : label, n: on && on.n != null ? on.n : '', label: label, expanded: this.popOn('pick', id),
+      open: function (e) { self.openPop(e, 'pick', id, 280, Math.min(380, (items.length >= 5 ? 70 : 16) + items.length * 46), label, { search: items.length >= 5, searchPh: 'Search ' + label.toLowerCase(), items: items }); } };
   }
   closePop() { var self = this; this.exitThen('.mSheet, .mSheet ~ .scrim, .menuF', function () { self.setState({ pop: null }); }); }
   menuItem(label, d, fn, opt) {
@@ -2566,7 +2606,7 @@ class Component extends DCLogic {
       var lc = cs.label.toLowerCase();
       var valText = !picked.length ? (cs.multi ? 'Any ' + lc : 'Pick ' + (/^[aeiou]/.test(lc) ? 'an ' : 'a ') + lc) : (picked.length === 1 ? picked[0] : picked.length + ' ' + lc + (/s$/.test(lc) ? '' : 's') + ' picked');
       var toggle = function (v) { var c = self.state.form[cs.key] != null ? self.state.form[cs.key] : (cs.multi ? [] : ''); if (cs.multi) { c = c.indexOf(v) >= 0 ? c.filter(function (x) { return x !== v; }) : c.concat([v]); setF(cs.key, c); } else { var m = Object.assign({}, self.state.form); m[cs.key] = v; m['~open' + cs.key] = false; m['~q' + cs.key] = ''; self.setState({ form: m }); } };
-      return { label: cs.label, hint: cs.hint || '', hasHint: !!cs.hint, role: cs.multi ? 'group' : 'radiogroup', searchable: srch, chipsOnly: !srch, open: open, expanded: open ? 'true' : 'false', valText: valText, isEmptyVal: !picked.length ? 'cbxPh' : '', multi: !!cs.multi, hasTokens: !!cs.multi && picked.length > 0, tokens: (cs.multi ? picked : []).map(function (v) { return { t: v, remove: function () { toggle(v); } }; }), toggleOpen: function () { setF('~open' + cs.key, !open); }, closeIt: function () { setF('~open' + cs.key, false); }, rows: shownOpts.map(function (o) { var on = picked.indexOf(o) >= 0; return { t: o, sel: on ? 'true' : 'false', on: on, cls: on ? 'on' : '', pick: function () { toggle(o); } }; }), q: F['~q' + cs.key] || '', hasQ: !!F['~q' + cs.key], noMatch: srch && !!cq && shownOpts.every(function (o) { return o.toLowerCase().indexOf(cq) < 0; }), onQ: function (e) { setF('~q' + cs.key, e.target.value); }, clearQ: function () { setF('~q' + cs.key, ''); }, opts: shownOpts.map(function (o) {
+      return { noRows: srch && !!cq && !shownOpts.length, key: cs.key, label: cs.label, hint: cs.hint || '', hasHint: !!cs.hint, role: cs.multi ? 'group' : 'radiogroup', searchable: srch, chipsOnly: !srch, open: open, expanded: open ? 'true' : 'false', valText: valText, isEmptyVal: !picked.length ? 'cbxPh' : '', multi: !!cs.multi, hasTokens: !!cs.multi && picked.length > 0, tokens: (cs.multi ? picked : []).map(function (v) { return { t: v, remove: function () { toggle(v); } }; }), toggleOpen: function () { setF('~open' + cs.key, !open); }, closeIt: function () { setF('~open' + cs.key, false); }, rows: shownOpts.map(function (o) { var on = picked.indexOf(o) >= 0; return { t: o, sel: on ? 'true' : 'false', on: on, cls: on ? 'on' : '', pick: function () { toggle(o); } }; }), q: F['~q' + cs.key] || '', hasQ: !!F['~q' + cs.key], noMatch: srch && !!cq && shownOpts.every(function (o) { return o.toLowerCase().indexOf(cq) < 0; }), onQ: function (e) { setF('~q' + cs.key, e.target.value); }, clearQ: function () { setF('~q' + cs.key, ''); }, opts: shownOpts.map(function (o) {
         var on = cs.multi ? cur.indexOf(o) >= 0 : cur === o;
         return { t: o, cls: on ? 'on' : '', checked: on ? 'true' : 'false', role: cs.multi ? 'checkbox' : 'radio', pick: function () { var c = self.state.form[cs.key] != null ? self.state.form[cs.key] : (cs.multi ? [] : ''); if (cs.multi) { c = c.indexOf(o) >= 0 ? c.filter(function (x) { return x !== o; }) : c.concat([o]); } else c = o; setF(cs.key, c); } };
       }) };
@@ -2594,6 +2634,7 @@ class Component extends DCLogic {
       if (s.pop.kind === 'per') popItems = this.perItems(s.pop.id);
       else if (s.pop.kind === 'snooze') popItems = this.snoozeItems();
       else if (s.pop.kind === 'delegate') popItems = this.delegateItems();
+      else if (s.pop.kind === 'pick') popItems = (s.pop.items || []).filter(function (c) { var q = (s.dq || '').trim().toLowerCase(); return !q || c.t.toLowerCase().indexOf(q) >= 0; }).map(function (c) { var on = /\bon\b/.test(c.cls || ''); return self.menuItem(c.t, on ? self.icons().check : '', function () { c.pick(); self.setState({ pop: null }); }, { role: 'menuitemradio', checked: on, on: on, hint: c.n != null ? String(c.n) : '' }); });
       else if (this.popItems) popItems = this.popItems(s.pop) || [];
       popItems = popItems.map(function (m, i) { return Object.assign({ anim: self.anim(s.dq.length), delay: Math.min(i, 8) * 0.025 + 's' }, m); });
     }

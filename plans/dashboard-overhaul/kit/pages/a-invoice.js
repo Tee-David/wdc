@@ -30,15 +30,37 @@
   docClient(c) { return { id: c.id, name: c.name, ini: c.ini, tone: c.tone, contact: c.contact, email: c.email, phone: c.phone }; }
   isoLabel(t) { var m = /(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)/.exec(t || ''); if (!m) return ''; return '2026-' + ('0' + (['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(m[2]) + 1)).slice(-2) + '-' + ('0' + m[1]).slice(-2); }
   /* A document that exists only as a row in Money is rebuilt from that row, so every invoice and quote can be opened. */
+  /* What each invoice in Money was for, so a reopened row shows its real project and lines (sums match the Money figures). */
+  invLines() {
+    return {
+      'INV-26-4KQ8ZD': { project: 'Driver app', lines: [['Driver app, milestone 2: live tracking and proof of delivery', 1, 850000]] },
+      'INV-26-2BV6NM': { project: 'Website care', lines: [['okaforlaw.ng domain renewal, 1 year', 1, 15000], ['Hosting on our account, 1 year, weekly backups', 1, 75000]] },
+      'INV-26-7XC1RT': { project: 'Instagram ads', lines: [['Ads management, October', 1, 75000]] },
+      'INV-26-9QX4LM': { project: 'Social media management', lines: [['Social media management, deposit 50% of EST-2026-011', 1, 450000]] },
+      'INV-26-4QJ7HU': { project: 'Website', lines: [['Website, final 50% at handover', 1, 520000]] },
+      'INV-26-6PC9VB': { project: 'Instagram ads', lines: [['Ads management, November', 1, 150000]] },
+      'INV-26-3HN8TP': { project: 'Booking assistant', lines: [['Booking assistant, milestone 2: clinic calendar and reminders', 1, 1200000]] },
+      'INV-26-7HB2QA': { project: 'SEO retainer', lines: [['Technical SEO fixes from the September audit', 1, 180000]] },
+      'INV-26-5RW2KD': { project: 'October content', lines: [['Social media retainer, November', 1, 350000]] },
+      'INV-26-2FT7RB': { project: 'Brand identity', lines: [['Brand identity, deposit 50% of EST-2026-009', 1, 600000]] },
+      'INV-26-5TY4WC': { project: 'Website', lines: [['Website, deposit 50%', 1, 520000], ['Product photography, 2 days', 2, 260000]] },
+      'INV-26-3MS8QA': { project: 'SEO retainer', lines: [['SEO retainer, October, from 3 Oct', 1, 280000]] },
+      'INV-26-9KD2PL': { project: 'October content', lines: [['Social media retainer, October', 1, 350000]] },
+      'INV-26-6CK8NB': { project: 'Booking assistant', lines: [['Care plan, October (Care 20)', 1, 500000]] },
+      'INV-26-8HG1VE': { project: 'Booking assistant', lines: [['Booking assistant, milestone 1: chat and booking flow', 1, 1200000]] }
+    };
+  }
   synthDoc(no) {
     var self = this, t = this.today(), num = function (v) { return parseInt(String(v).replace(/[^\d]/g, ''), 10) || 0; };
     var cli = function (name) { var c = self.clientRoster().filter(function (x) { return x.name === name; })[0]; return c ? self.docClient(c) : { id: 'x', name: name, ini: name.split(/\s+/).map(function (w) { return w.charAt(0); }).join('').slice(0, 2).toUpperCase(), tone: '#000065', contact: name, email: '', phone: '' }; };
     var inv = this.invAll().filter(function (r) { return r.no === no; })[0];
     if (inv) {
       var n = num(inv.amount), st = inv.status, late = /(\d+) days? late/.exec(st), soon = /in (\d+) days?/.exec(st), d = this.blankDoc('invoice');
-      d.no = no; d.client = cli(inv.client); d.cur = inv.amount.charAt(0) === '$' ? 'USD' : 'NGN'; d.sent = true; d.vat = false; d.lines = [{ d: inv.for || inv.title || 'Services for ' + inv.client, q: 1, u: n, opt: false }]; d.issued = this.addDays(t, -14);
+      d.no = no; d.client = cli(inv.client); d.cur = inv.amount.charAt(0) === '$' ? 'USD' : 'NGN'; d.sent = true; d.vat = false; var LX = this.invLines()[no]; d.lines = LX ? LX.lines.map(function (l) { return { d: l[0], q: l[1], u: l[2], opt: false }; }) : [{ d: inv.for || inv.title || 'Services for ' + inv.client, q: 1, u: n, opt: false }]; if (LX) d.project = LX.project; d.issued = this.addDays(t, -14);
       d.due = late ? this.addDays(t, -(+late[1])) : (soon ? this.addDays(t, +soon[1]) : (/today/i.test(st) ? t : (this.isoLabel(inv.date) || this.addDays(t, 14))));
+      var iss = this.addDays(d.due, -14); d.issued = iss < t ? iss : t;
       d.history = [{ t: 'Invoice sent to ' + inv.client, when: this.fmtDate(d.issued) }];
+      if (inv.tab !== 'paid') { var selfR = this; this.remSteps(d).forEach(function (x) { var iso = selfR.addDays(d.due, x.off); if (x.on && iso < t) d.history.unshift({ t: x.t + ' sent by itself', when: selfR.fmtDate(iso) }); }); }
       if (inv.tab === 'paid') { var iso = this.isoLabel(inv.date) || t; d.payments = [{ rc: this.rcpt(inv), iso: iso, when: this.fmtDate(iso), method: inv.method || 'Paystack', ref: '', by: 'The client', amt: n }]; d.history.unshift({ t: 'Paid by ' + (inv.method || 'Paystack') + ', receipt ' + this.rcpt(inv), when: this.fmtDate(iso) }); if (st === 'Refunded') { d.payments.push({ rc: 'REF-' + no.slice(-4), iso: iso, when: this.fmtDate(iso), method: 'Refund', ref: '', by: 'Babatope A.', amt: -n }); d.history.unshift({ t: 'Refunded in full', when: this.fmtDate(iso) }); } }
       return d;
     }
@@ -148,7 +170,7 @@
   remind() {
     var self = this, I = this.icons(), d = this.D(), T = this.docTotals(d), late = d.due < this.today();
     this.ask({ eyebrow: 'Reminder', title: 'Remind ' + d.client.contact.split(' ')[0] + ' about ' + d.no + '?', body: this.docMoney(d, T.owed) + ' is owed' + (late ? ', ' + Math.abs(this.docDays(d.due, this.today())) + ' days late' : ', due ' + this.fmtDate(d.due)) + '. The ' + (late ? 'polite reminder' : 'friendly nudge') + ' carries the Paystack and Flutterwave link.', to: d.client.contact + ' · ' + d.client.email, subject: late ? 'A reminder about invoice ' + d.no : 'Invoice ' + d.no + ' is due ' + this.fmtDate(d.due), preview: 'Hello ' + d.client.contact.split(' ')[0] + ',\n' + (late ? 'Invoice ' + d.no + ' is past its due date.' : 'A quick note that invoice ' + d.no + ' is due on ' + this.fmtDate(d.due) + '.') + ' ' + this.docMoney(d, T.owed) + ' is open. You can pay in one tap from the link below.', ok: 'Send reminder', icon: I.mail, tone: 'var(--ad-tone-warn)',
-      onOk: function () { self.say('Sending in 8s', { delay: 8, pending: function (n) { return 'Reminder to ' + d.client.contact.split(' ')[0] + ' in ' + n + 's'; }, cancel: function () {}, cancelled: 'Cancelled. Nothing was sent.', done: function () { var nd = self.log(self.D(), 'Reminder sent to ' + d.client.name); self.persist(nd); self.setState({ doc: nd, ra: self.state.ra + 1 }); } }); } });
+      onOk: function () { self.say('Reminder sent to ' + d.client.contact.split(' ')[0] + '. It is in the history.', { delay: 8, pending: function (n) { return 'Reminder to ' + d.client.contact.split(' ')[0] + ' in ' + n + 's'; }, cancel: function () {}, cancelled: 'Cancelled. Nothing was sent.', done: function () { var nd = self.log(self.D(), 'Reminder sent to ' + d.client.name); self.persist(nd); self.setState({ doc: nd, ra: self.state.ra + 1 }); } }); } });
   }
   cancelDoc() {
     var self = this, I = this.icons(), d = this.D();
@@ -197,6 +219,54 @@
     if (d.kind === 'invoice' && !d.cancelled && T.paid <= 0) out2.push(this.menuSep(), it('Cancel invoice…', I.block || I.trash, function () { self.cancelDoc(); }, { danger: true }));
     return out2;
   }
+  /* The deck idea on a single document: what this invoice or quote needs from you now, and the two moves that answer it. */
+  nextCard(d, T, isQ, isPaid) {
+    var self = this, I = this.icons(), t = this.today(), first = d.client ? d.client.contact.split(' ')[0] : '', cur = function (n) { return self.docMoney(d, n); };
+    if (d.cancelled || !d.client) return null;
+    var H = d.history || [], sentRem = H.filter(function (h) { return /^Reminder sent|^Final notice sent/.test(h.t); }).length + this.remSteps(d).filter(function (x) { return x.on && self.addDays(d.due, x.off) < t; }).length;
+    if (isQ) {
+      if (['Sent', 'Opened'].indexOf(d.qstatus) >= 0) return { kind: 'Quote', urgency: d.qstatus === 'Opened' ? 'Opened' : 'Not opened yet', utone: '#5c5c7a', title: 'Waiting on ' + d.client.name + ' to decide', body: 'Sent ' + this.fmtDate(d.issued) + '. It is valid until ' + this.fmtDate(d.valid) + ', then it needs a fresh quote.', meta: [{ k: 'Total', v: cur(T.total) }, { k: 'Deposit to start', v: T.dep ? cur(T.dep) : 'None' }, { k: 'Valid', v: this.docDays(d.valid, t) + ' days' }], why: 'A short personal note a few days after sending answers the one question most clients are sitting on.',
+        p: ['Send a follow up', function () { self.followQuote(); }], s: ['Mark accepted', function () { self.quoteStatus('Accepted'); }] };
+      if (d.qstatus === 'Accepted' && !d.invoiced) return { kind: 'Quote', urgency: 'Accepted', utone: '#15803d', title: 'Accepted. The deposit invoice is next', body: d.client.name + ' said yes. Work starts once the deposit is paid, so send it while the decision is fresh.', meta: [{ k: 'Deposit', v: T.dep ? cur(T.dep) : 'None' }, { k: 'Total', v: cur(T.total) }], why: '', p: [T.dep ? 'Create the deposit invoice' : 'Create the invoice', function () { self.invoiceFromQuote(); }], s: ['Preview the PDF', function () { self.preview(); }] };
+      return null;
+    }
+    if (isPaid) return null;
+    var days = this.docDays(d.due, t), fin = this.addDays(d.due, 14);
+    if (d.promise && d.promise >= t) return { kind: 'Promised', urgency: 'Due ' + this.fmtDate(d.promise), utone: '#a16207', title: first + ' promised to pay by ' + this.fmtDate(d.promise), body: 'Reminders are paused until then. If the money arrives by transfer, record it here and the receipt goes at once.', meta: [{ k: 'Owed', v: cur(T.owed) }, { k: 'Promised', v: this.fmtDate(d.promise) }, { k: 'Agreed', v: 'On a call' }], why: 'If the date passes, reminders start again by themselves and this card comes back.',
+      p: ['Record a payment', function () { self.recordPay(); }], s: ['Clear the promise', function () { var nd = self.log(Object.assign({}, self.D(), { promise: '' }), 'Promise cleared, reminders back on'); self.persist(nd); self.setState({ doc: nd, ra: self.state.ra + 1 }); self.say('Promise cleared. Reminders are back on.'); }] };
+    var fs = Math.abs(days) >= 14 || H.some(function (h) { return /^Final notice sent/.test(h.t); });
+    if (days < 0 && fs) return { kind: 'Overdue', urgency: Math.abs(days) + ' days late', utone: '#c62828', title: 'Work is paused until ' + d.client.name + ' pays', body: 'The final notice has gone, so the team sees ' + (d.project || 'the project') + ' as paused. Nothing more goes out by itself.', meta: [{ k: 'Owed', v: cur(T.owed) }, { k: 'Reminders', v: sentRem + ' sent' }, { k: 'Final notice', v: 'Sent' }], why: 'If they pay, the pause lifts by itself. If not, a direct call is the last step before you decide what happens to the work.',
+      p: ['Call ' + first, function () { self.callClient(); }], s: ['Record a payment', function () { self.recordPay(); }] };
+    if (days < 0) return { kind: 'Overdue', urgency: Math.abs(days) + ' days late', utone: '#c62828', title: d.client.name + ' has not paid ' + cur(T.owed), body: sentRem + (sentRem === 1 ? ' reminder has' : ' reminders have') + ' gone to ' + (d.client.email || 'their email') + '. ' + (Math.abs(days) >= 14 ? 'The final notice has gone and work is paused.' : 'The final notice goes on ' + this.fmtDate(fin) + ' and says work pauses.'), meta: [{ k: 'Owed', v: cur(T.owed) }, { k: 'Reminders', v: sentRem + ' sent' }, { k: 'Final notice', v: Math.abs(days) >= 14 ? 'Sent' : this.fmtDate(fin) }], why: 'Emails have not worked. A call from you before the final notice keeps the relationship and usually gets a date.',
+      p: ['Call ' + first, function () { self.callClient(); }], s: ['Send the final notice now', function () { self.finalNotice(); }] };
+    if (days <= 7) return { kind: 'Due soon', urgency: days === 0 ? 'Due today' : 'Due in ' + days + (days === 1 ? ' day' : ' days'), utone: '#a16207', title: cur(T.owed) + ' is due ' + this.fmtDate(d.due), body: (H.some(function (h) { return /Viewed|opened/i.test(h.t); }) ? first + ' has opened it. ' : '') + 'The pay link takes Paystack or Flutterwave. If they pay by transfer, record it here.', meta: [{ k: 'Owed', v: cur(T.owed) }, { k: 'Due', v: this.fmtDate(d.due) }, { k: 'Next reminder', v: this.fmtDate(this.addDays(d.due, 0)) }], why: 'A reminder a couple of days early is the one most clients act on.',
+      p: ['Send a reminder', function () { self.remind(); }], s: ['Record a payment', function () { self.recordPay(); }] };
+    return { calm: true, title: 'Nothing needs you on this invoice.', body: 'It is due ' + this.fmtDate(d.due) + '. The friendly note goes by itself on ' + this.fmtDate(this.addDays(d.due, -3)) + '.' };
+  }
+  callClient() {
+    var self = this, I = this.icons(), d = this.D(), T = this.docTotals(d), first = d.client.contact.split(' ')[0];
+    var dates = [['Mon 12 Oct', '2026-10-12'], ['Wed 14 Oct', '2026-10-14'], ['Fri 16 Oct', '2026-10-16'], ['Tue 20 Oct', '2026-10-20']];
+    this.open(this.sh({ eyebrow: 'Call', title: 'Call ' + d.client.contact, icon: I.phone, rows: [{ k: 'Phone', v: d.client.phone || '+234 803 555 0142' }, { k: 'About', v: d.no + ' · ' + this.docMoney(d, T.owed) }], body: 'Ask when it will be paid and who should receive invoices from now on. Write down what they say; the history keeps it.',
+      chipSets: function (st) { var cs = [{ key: 'out', label: 'How did it go?', opts: ['Paying today', 'Gave a date', 'Disputes the invoice', 'No answer'] }]; if ((st.form || {}).out === 'Gave a date') cs.push({ key: 'when', label: 'Promised date', opts: dates.map(function (x) { return x[0]; }), hint: 'Reminders pause until then.' }); return cs; },
+      fields: [{ key: 'note', label: 'Note for the record', ph: 'What was agreed', type: 'area', wide: true }],
+      primary: 'Save the call', secondary: 'Not now', primaryDis: function (ctx) { var f = ctx.form; if (!f.out) return 'Pick how the call went to save it.'; if (f.out === 'Gave a date' && !f.when) return 'Pick the date they promised.'; return ''; },
+      onPrimary: function (ctx) { var f = ctx.form, cur = self.D(), patch = {}, line = 'Call with ' + first + ': ' + f.out.toLowerCase(), msg = 'Call saved to the history.';
+        if (f.out === 'Gave a date') { var iso = dates.filter(function (x) { return x[0] === f.when; })[0][1]; patch.promise = iso; line = first + ' promised to pay by ' + f.when + ' (call)'; msg = 'Saved. Reminders pause until ' + f.when + '.'; }
+        if (f.out === 'Disputes the invoice') msg = 'Saved. Reminders keep going unless you pause them from the schedule.';
+        if (f.out === 'No answer') msg = 'No answer logged. Try again this afternoon; the final notice date has not moved.';
+        if ((f.note || '').trim()) line += '. ' + f.note.trim();
+        var nd = self.log(Object.assign({}, cur, patch), line); self.persist(nd); self.setState({ doc: nd, ra: self.state.ra + 1 }); self.say(msg); } }));
+  }
+  finalNotice() {
+    var self = this, I = this.icons(), d = this.D(), T = this.docTotals(d), first = d.client.contact.split(' ')[0];
+    this.ask({ eyebrow: 'Final notice', title: 'Send the final notice to ' + first + ' now?', body: 'It says work on ' + (d.project || 'their project') + ' pauses until ' + this.docMoney(d, T.owed) + ' is paid. The scheduled one is then skipped.', to: d.client.contact + ' · ' + d.client.email, subject: 'Final notice: invoice ' + d.no, preview: 'Hello ' + first + ',\nInvoice ' + d.no + ' for ' + this.docMoney(d, T.owed) + ' is now well past its due date. Work on ' + (d.project || 'the project') + ' pauses until it is paid. The link below takes Paystack or Flutterwave, or reply and tell us a date.', ok: 'Send final notice', icon: I.mail, tone: 'var(--ad-tone-bad)',
+      onOk: function () { self.say('Final notice sent to ' + first + '. Work on the project is paused.', { delay: 8, pending: function (n) { return 'Final notice to ' + first + ' in ' + n + 's'; }, cancel: function () {}, cancelled: 'Cancelled. Nothing was sent.', done: function () { var nd = self.log(Object.assign({}, self.D(), { rem: Object.assign({}, self.D().rem || { b3: true, d0: true, a3: true, a7: false, a14: true }, { a14: false }) }), 'Final notice sent to ' + d.client.name + '. Work paused'); self.persist(nd); self.setState({ doc: nd, ra: self.state.ra + 1 }); } }); } });
+  }
+  followQuote() {
+    var self = this, I = this.icons(), d = this.D(), first = d.client.contact.split(' ')[0];
+    this.open(this.sh({ eyebrow: 'Quote ' + d.no, title: 'Follow up with ' + first, icon: I.msg, compose: true, composeLabel: 'Message', vis: 'client', required: true, draft: 'Hello ' + first + ', I wanted to check the quote made sense and answer anything before you decide. Happy to talk it through on a short call this week.', note: 'Goes to their email and portal from you.', primary: 'Send follow up', secondary: 'Cancel',
+      onPrimary: function () { var nd = self.log(self.D(), 'Follow up sent to ' + first); self.persist(nd); self.setState({ doc: nd, ra: self.state.ra + 1 }); self.say('Sent to ' + first + '. We tell you when they reply or open the quote.'); } }));
+  }
   renderVals() {
     var s = this.state, self = this, d = this.D(), I = this.icons(), isQ = d.kind === 'quote', edit = s.mode === 'edit', T = this.docTotals(d), st = this.docStatus(d), cur = function (n) { return self.docMoney(d, n); };
     if (/[?&]pay=1/.test((typeof window !== 'undefined' && window.location.search) || '') && !this._paid && !edit) { this._paid = true; setTimeout(function () { self.recordPay(); }, 500); }
@@ -230,7 +300,9 @@
     var title = edit ? (d.sent ? 'Edit ' : 'New ') + (isQ ? 'quote' : 'invoice') : (isQ ? 'Quote ' : 'Invoice ') + d.no;
     var lede = edit ? (d.client ? 'For ' + d.client.name + '. ' : 'Choose a client first. ') + 'Nothing is sent until you confirm the email.' : (d.client ? d.client.name : '') + (d.project ? ' · ' + d.project : '') + ' · ' + (isQ ? 'sent ' : 'issued ') + this.fmtDate(d.issued) + ' ·';
     var discOn = d.disc && d.disc.type !== 'none';
+    var NX = edit ? null : this.nextCard(d, T, isQ, isPaid);
     return Object.assign(this.kit(), this.extraVals ? this.extraVals() : {}, {
+      hasNx: !edit && !!NX && !NX.calm, nxCalm: !edit && !!NX && !!NX.calm, nx: NX ? Object.assign({}, NX, { pLabel: NX.p ? NX.p[0] : '', sLabel: NX.s ? NX.s[0] : '', pFn: NX.p ? NX.p[1] : function () {}, sFn: NX.s ? NX.s[1] : function () {}, hasWhy: !!NX.why, metaL: NX.meta || [] }) : { metaL: [] },
       hasRem: !edit && !isQ && !d.cancelled && !isPaid, remNote: 'Stops by itself when it is paid.', editRem: function () { self.editRem(); }, remRows: this.remSteps(d).map(function (x) { var iso = self.addDays(d.due, x.off), past = iso < self.today(), t = self.today() === iso; return { t: x.t, when: x.on ? self.fmtDate(iso) + ' · ' + x.note : 'Off · ' + x.note, state: !x.on ? 'Off' : (past ? 'Sent' : (t ? 'Today' : 'Booked')), tone: !x.on ? 'var(--ad-tone-flat)' : (past ? 'var(--ad-tone-good)' : (t ? 'var(--ad-tone-live)' : 'var(--ad-tone-brand)')), ink: !x.on ? 'var(--ad-on-flat)' : '#fff' }; }),
       pageTitle: title, chip: chip, chipTone: chipTone, chipInk: ink(chipTone), lede: lede, ledeB: edit ? '' : ledeB, isView: !edit, isEdit: edit, isQuote: isQ,
       act1: a1[1] || function () {}, act1Label: a1[0], act1Dis: !!a1[2], act2: a2[1] || function () {}, act2Label: a2[0],
@@ -248,7 +320,7 @@
       depChips: chipSet(['None', '30%', '50%', '70%'], function (o) { return (d.deposit || 'None') === o; }, function (o) { self.upd({ deposit: o }); }),
       fromList: function () { self.fromList(); }, addLine: function () { self.upd({ lines: d.lines.concat([{ d: '', q: 1, u: '', opt: false }]) }); setTimeout(function () { var el = document.getElementById('dl' + (self.D().lines.length - 1) + 'd'); if (el && el.focus) el.focus(); }, 60); },
       eLines: d.lines.map(function (l, i) { return { idD: 'dl' + i + 'd', idQ: 'dl' + i + 'q', idU: 'dl' + i + 'u', d: l.d, q: l.q, u: l.u === '' ? '' : l.u, a: cur((+l.q || 0) * (+l.u || 0)), n: i + 1, onD: function (e) { self.setLine(i, { d: e.target.value }); }, onQ: function (e) { self.setLine(i, { q: parseFloat(e.target.value) || 0 }); }, onU: function (e) { self.setLine(i, { u: parseInt(String(e.target.value).replace(/[^\d]/g, ''), 10) || '' }); }, menu: function (e) { if (e && e.stopPropagation) e.stopPropagation(); self.openPop(e, 'line', String(i), 250, 260, 'Actions for line ' + (i + 1)); } }; }),
-      noLines: !d.lines.length, hasLineErr: this.problems(d).some(function (p) { return /incomplete/.test(p); }), lineErr: 'A line needs a description, a quantity and a price. Finish it or remove it.',
+      noLines: !d.lines.length, hasELines: !!d.lines.length, hasLineErr: this.problems(d).some(function (p) { return /incomplete/.test(p); }), lineErr: 'A line needs a description, a quantity and a price. Finish it or remove it.',
       vatChips: chipSet(['Add 7.5% VAT', 'No VAT'], function (o) { return (o === 'Add 7.5% VAT') === !!d.vat; }, function (o) { self.upd({ vat: o === 'Add 7.5% VAT' }); }),
       discChips: chipSet(['None', 'Percent', 'Amount'], function (o) { return (o === 'None' && !discOn) || (o === 'Percent' && d.disc.type === 'pct') || (o === 'Amount' && d.disc.type === 'amt'); }, function (o) { self.upd({ disc: { type: o === 'None' ? 'none' : (o === 'Percent' ? 'pct' : 'amt'), v: 0 } }); }),
       hasDisc: discOn, discLabel: d.disc.type === 'pct' ? 'Discount percent' : 'Discount amount', discV: d.disc.v || '', onDisc: function (e) { var v = parseFloat(String(e.target.value).replace(/,/g, '')) || 0; self.upd({ disc: { type: d.disc.type, v: d.disc.type === 'pct' ? Math.min(100, v) : v } }); }, discHint: d.disc.type === 'pct' ? 'Taken off the subtotal before VAT. Up to 100.' : 'Taken off the subtotal before VAT, in ' + (d.cur === 'USD' ? 'dollars.' : 'naira.'),
