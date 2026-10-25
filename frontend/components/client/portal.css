@@ -119,54 +119,13 @@
 .cpMoney__pay { margin: 0 1.25rem; justify-content: center; }
 
 /* ---------------------------------------------------------- billing --
-   PBilling.dc.html: the balance on a navy card with the button that pays
-   it, then paid to date and credit as ordinary tiles. */
-.pBill__kpis { display: grid; gap: 1rem; margin: 0 0 1.25rem; grid-template-columns: minmax(0, 1fr); }
-@media (min-width: 760px) { .pBill__kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-.ad .pBill__owed { background: var(--ad-navy); border-color: var(--ad-navy); color: #fff; }
-.ad .pBill__owed dt, .ad .pBill__owed dd { color: #fff; }
-.ad .pBill__owed > small { color: #d6d6f5; }
-.dark .pBill__owed { background: #14145a; border-color: #2c2c80; }
-.pBill__owed { grid-column: 1 / -1; }
-.pBill__owed form { margin-top: 1rem; }
-/* The public pair on a dark ground: white fill, black label. */
-.pBill__pay {
-  min-height: 2.75rem; padding: 0 1.1rem; display: inline-flex; align-items: center; gap: .5rem;
-  border: 1px solid #fff; border-radius: 10px; background: #fff; color: #0a0a0a;
-  font: 700 .95rem var(--font-outfit), system-ui, sans-serif; cursor: pointer;
-}
-.pBill__pay svg { width: 1.1rem; height: 1.1rem; }
-.pBill__pay:hover { background: #0a0a0a; color: #fff; }
-.pBill__pay:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+   C-Billing: row actions in the invoices table, and the safe-payment line. */
 .pBill__acts { display: flex; align-items: center; justify-content: flex-end; gap: .5rem; }
 .pBill__acts form { margin: 0; }
 .pBill__acts .ad__btn, .ad__t td > .ad__btn { white-space: nowrap; }
 .ad__t td > .ad__btn svg, .pBill__acts .ad__btn svg { width: 1rem; height: 1rem; }
-.pBill__cards { display: none; margin: 0; padding: .5rem 1rem 1rem; list-style: none; gap: .6rem; }
-.pBill__cards a {
-  min-height: 4rem; padding: .8rem .9rem; display: flex; align-items: center; gap: .8rem;
-  border: 1px solid var(--ad-line); border-radius: 14px; background: var(--ad-panel); color: var(--ad-ink); text-decoration: none;
-}
-.pBill__cards a:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
-.pBill__cardMain { min-width: 0; flex: 1; display: grid; gap: .15rem; }
-.pBill__cardMain b, .pBill__cardMain small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.pBill__cardMain small { color: var(--ad-dim); font-size: .8rem; }
-.pBill__cardEnd { flex: none; display: grid; justify-items: end; gap: .3rem; }
 .pBill__safe { display: flex; align-items: center; justify-content: center; gap: .4rem; margin: 0 0 1.25rem; font-size: .84rem; }
 .pBill__safe svg { width: .95rem; height: .95rem; }
-@media (max-width: 759px) {
-  .pBill__kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .pBill__owed { grid-column: 1 / -1; }
-  .pBill__owed form, .pBill__pay { width: 100%; justify-content: center; }
-  .pBill__cards { display: grid; }
-  .pBill__table { display: none; }
-  /* PMBilling's two small cards: label, figure, nothing else. */
-  .pBill__kpis > .ad__tile:not(.pBill__owed) { padding: .9rem 1rem; }
-  .pBill__kpis > .ad__tile:not(.pBill__owed) .ad__tileIcon,
-  .pBill__kpis > .ad__tile:not(.pBill__owed) small { display: none; }
-  .pBill__kpis > .ad__tile:not(.pBill__owed) dt { min-height: 0; font-size: .82rem; font-weight: 500; }
-  .pBill__kpis > .ad__tile:not(.pBill__owed) dd { font-size: 1.2rem; margin-top: .3rem; }
-}
 
 /* --------------------------------------------------------- projects --
    PProjects.dc.html: a card per project, two across on a wide screen. */
@@ -240,7 +199,7 @@
   .pSup__list a { padding: .9rem 1rem; align-items: flex-start; }
   .pSup__when { display: none; }
 }
-.pProj__card[hidden], .pBill__cards [hidden], .pSup__list [hidden] { display: none; }
+.pProj__card[hidden], .pSup__list [hidden] { display: none; }
 
 /* ------------------------------------------------------ conversation --
    PConversation.dc.html. */
@@ -324,8 +283,6 @@
 .pAsk__chip.is-on { background: var(--ad-fill); border-color: var(--ad-fill); color: var(--ad-on-fill); }
 .pAsk__chip:has(input:focus-visible) { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
 .pAsk__foot { display: flex; justify-content: flex-end; gap: .6rem; padding-top: .9rem; border-top: 1px solid var(--ad-line); }
-.pBill__cardPay { margin: .45rem 0 0; }
-.pBill__cardPay .ad__btn { width: 100%; justify-content: center; min-height: 2.75rem; }
 
 /* Support remains visible in the portal without covering page controls. */
 .pSupport { position: sticky; top: 80px; z-index: 15; display: grid; grid-template-columns: 24px minmax(0,1fr) auto; gap: 16px; align-items: center; padding: 20px; margin-bottom: 24px; border: 1px solid var(--ad-line); border-radius: 16px; background: var(--ad-panel); color: var(--ad-ink); }
@@ -371,3 +328,56 @@
 .pSup__faq summary { min-height: 2.75rem; padding: .7rem 1rem; cursor: pointer; font-weight: 600; list-style-position: inside; }
 .pSup__faq summary:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; border-radius: 14px; }
 .pSup__faq p { margin: 0; padding: 0 1rem 1rem; color: var(--ad-dim); line-height: 1.55; white-space: pre-wrap; }
+/* Billing rail (C-Billing): the paid ring, the two ways to pay, and the test-mode notice. */
+.pBill__ring { display: flex; align-items: center; gap: 1rem; }
+.pBill__ringText { min-width: 0; display: grid; gap: .15rem; }
+.pBill__ringText b { font: 700 1.35rem/1.1 var(--font-space-grotesk), system-ui, sans-serif; }
+.pBill__ringText small { color: var(--ad-dim); font-size: .8rem; }
+.pBill__ringText .pBill__ringDue { color: var(--ad-accent-ink); font-weight: 600; }
+.pBill__ways { margin: 0; padding: 0; list-style: none; display: grid; gap: .6rem; }
+.pBill__ways li { display: flex; align-items: center; gap: .75rem; }
+.pBill__ways li > span:last-child { display: grid; min-width: 0; }
+.pBill__ways small { color: var(--ad-dim); font-size: .8rem; }
+.pBill__logo { width: 2.5rem; height: 2.5rem; flex: none; display: grid; place-items: center; border-radius: 10px; background: #fff; border: 1px solid var(--ad-line); }
+.pBill__note { margin: 0; font-size: .82rem; }
+.pBill__mode { margin: 0 0 1rem; padding: .75rem 1rem; border-radius: 12px; background: var(--ad-tone-warn); color: var(--ad-on-warn); font-size: .88rem; font-weight: 600; }
+
+/* Settings (C-Settings): tabs stand in for the section menu below 1000px, where the menu hides. */
+.pSet__tabs { margin: 0 0 1rem; }
+@media (min-width: 1000px) { .pSet__tabs { display: none; } }
+.pSet__main { display: grid; gap: 1.25rem; min-width: 0; }
+
+/* Home (D-Client): what we are doing next, and the compact projects list in the rail. */
+.pHome__next { margin: 0; padding: 0 .5rem .5rem; list-style: none; border-top: 1px solid var(--ad-line); }
+.pHome__next li + li { border-top: 1px solid var(--ad-line); }
+.pHome__next a { display: flex; align-items: center; gap: .75rem; min-height: 3.75rem; padding: .6rem .75rem; border-radius: 12px; color: var(--ad-ink); text-decoration: none; }
+@media (hover: hover) { .pHome__next a:hover { background: var(--ad-hover); } }
+.pHome__next a:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
+.pHome__nText { flex: 1; min-width: 0; display: grid; gap: .1rem; }
+.pHome__nText b, .pHome__nText small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pHome__nText small { color: var(--ad-dim); font-size: .8rem; }
+.pHome__when { flex: none; font-size: .8rem; font-weight: 600; color: var(--ad-dim); min-width: 4.5rem; text-align: right; }
+.pHome__when.is-late { color: var(--ad-bad-ink, #c62828); }
+.dark .pHome__when.is-late { color: #ff8a80; }
+.pHome__more { margin: 0; padding: .5rem 1.25rem 1rem; text-align: center; }
+.pHome__more a { display: inline-flex; align-items: center; gap: .3rem; min-height: 2.75rem; font-weight: 600; color: var(--ad-accent-ink); }
+.pHome__pay { width: 100%; justify-content: center; min-height: 2.75rem; margin-top: .25rem; }
+.pHome__projects { margin: 0; padding: 0; list-style: none; display: grid; gap: .5rem; }
+.pHome__projects a { display: grid; gap: .5rem; padding: .6rem; border-radius: 12px; border: 1px solid var(--ad-line); color: var(--ad-ink); text-decoration: none; }
+@media (hover: hover) { .pHome__projects a:hover { border-color: var(--ad-ink); } }
+.pHome__projects a:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
+.pHome__pTop { display: flex; align-items: center; gap: .6rem; min-width: 0; }
+.pHome__pTop b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .9rem; }
+@media (max-width: 480px) { .pHome__next .ad__pill { display: none; } }
+
+/* Projects (C-Projects): the switcher across a client's live projects, above the project's head. */
+.pProj__switch { display: inline-flex; max-width: 100%; overflow-x: auto; scrollbar-width: none; margin: 0 0 1rem; }
+.pProj__switch a { min-height: 2.75rem; flex: none; }
+
+/* People at your business: one row per person, the ⋮ on its own touch area. */
+.pPeople { list-style: none; margin: 0; padding: 0 1rem .5rem; display: grid; }
+.pPeople__row { display: flex; align-items: center; gap: .75rem; min-height: 3.5rem; padding: .5rem 0; border-top: 1px solid var(--ad-line); }
+.pPeople__row:first-child { border-top: 0; }
+.pPeople__text { flex: 1; min-width: 0; display: grid; }
+.pPeople__text b, .pPeople__text small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pPeople__text small { color: var(--ad-dim); }

@@ -2,7 +2,13 @@ import { notFound } from "next/navigation";
 import { PageHead } from "@/components/admin/page-head";
 import { Mail, PenSquare } from "lucide-react";
 import AreaGate from "@/components/admin/owner-only";
-import { Empty, Panel, when } from "@/components/admin/bits";
+import { Empty, when } from "@/components/admin/bits";
+import { RailCard, Workbench } from "@/components/admin/workbench";
+
+/** A card in the Flow list-card look: a heading row and what it holds. */
+function Panel({ title, children }: { title: string; children: React.ReactNode }) {
+  return <section className="adList" aria-label={title}><div className="adList__hd"><h2>{title}</h2></div>{children}</section>;
+}
 import { AfterButtons, AudienceForm, SendForm, StateButtons, TagClickers } from "@/components/admin/email/campaign-ui";
 import { CAMPAIGN_STATE } from "@/components/admin/email/campaigns-tab";
 import { DesignEditor } from "@/components/admin/email/design-editor";
@@ -37,9 +43,20 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
         </>}
         action={<StateButtons id={c.id} status={c.status} />}
       />
-      <div className="ad__stack">
-        {!draft ? (
-          <>
+      {!draft ? (
+          <Workbench railLabel="After sending" rail={<>
+            <RailCard title="What to do next"><AfterButtons id={c.id} failed={report.failed} /></RailCard>
+            <RailCard title="Who got it">
+              <p className="adCp__line">
+                {c.audience.onlyIds ? "A chosen group: people who got an earlier campaign and did not open it." : <>
+                  {c.audience.types.length ? c.audience.types.map((t) => `${t}s`).join(", ") : "Everyone who asked to hear from us"}
+                  {c.audience.tags.length ? `, with the tag ${c.audience.tags.join(" or ")}` : ""}
+                  {c.audience.excludeTags.length ? `, leaving out ${c.audience.excludeTags.join(" and ")}` : ""}.
+                </>}
+              </p>
+              <p className="ad__dim adCp__line">Subject: {c.design.subject}</p>
+            </RailCard>
+          </>}>
             {report.sent === 0 && report.pending === 0 ? (
               <section className="ad__panel"><Empty title="Nothing to report yet" icon={Mail} kind="first-use">{c.status === "scheduled" ? "The report fills in once this campaign goes out." : "Nobody has been sent this campaign, so there is nothing to count."}</Empty></section>
             ) : (
@@ -68,30 +85,18 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
                 </div>
               </Panel>
             )}
-            <Panel title="What to do next"><div className="adCp__pad"><AfterButtons id={c.id} failed={report.failed} /></div></Panel>
-            <Panel title="Who got it">
-              <div className="adCp__pad">
-                <p style={{ margin: 0 }}>
-                  {c.audience.onlyIds ? "A chosen group: people who got an earlier campaign and did not open it." : <>
-                    {c.audience.types.length ? c.audience.types.map((t) => `${t}s`).join(", ") : "Everyone who asked to hear from us"}
-                    {c.audience.tags.length ? `, with the tag ${c.audience.tags.join(" or ")}` : ""}
-                    {c.audience.excludeTags.length ? `, leaving out ${c.audience.excludeTags.join(" and ")}` : ""}.
-                  </>}
-                </p>
-                <p className="ad__dim" style={{ margin: 0 }}>Subject: {c.design.subject}</p>
-              </div>
-            </Panel>
-          </>
+          </Workbench>
         ) : (
-          <>
+          <div className="adCp__draft">
+            <div id="campaign-design">
+              <DesignEditor kind="newsletter" name="This campaign" tags={[...k.tags]} starters={[{ name: "This campaign", design: c.design }]} saved={null} history={[]} campaignId={c.id} />
+            </div>
+            <div className="adCp__pair">
             <Panel title="Who gets it">
               <div className="adCp__pad">
                 <AudienceForm id={c.id} title={c.title} audience={c.audience} track={c.track} reach={reach} />
               </div>
             </Panel>
-            <div id="campaign-design">
-              <DesignEditor kind="newsletter" name="This campaign" tags={[...k.tags]} starters={[{ name: "This campaign", design: c.design }]} saved={null} history={[]} campaignId={c.id} />
-            </div>
             <Panel title="Send it">
               <div className="adCp__pad">
                 <div className="adCp__mail">
@@ -99,13 +104,13 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
                   <div style={{ flex: 1 }}><b>{c.design.subject}</b><br /><small>From {COMPANY_NAME} · an unsubscribe link is added for you · {reaches} right now</small></div>
                   <a className="ad__btn" href="#campaign-design"><PenSquare aria-hidden="true" /> Edit the email</a>
                 </div>
-                <p className="ad__dim" style={{ margin: 0 }}>Use Send me a test above first. A test goes to you alone, with sample names.</p>
+                <p className="ad__dim" style={{ margin: 0 }}>Send yourself a test from the builder first. A test goes to you alone, with sample names.</p>
                 <SendForm id={c.id} recipients={reach} />
               </div>
             </Panel>
-          </>
+            </div>
+          </div>
         )}
-      </div>
     </AreaGate>
   );
 }

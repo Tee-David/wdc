@@ -287,6 +287,17 @@ export const ADMIN_PAGE_TOURS: Record<string, TourDef> = {
       { id: "table", target: '[data-tour="entries-table"]', icon: "clipboard", title: "The entries", content: "Open any row for the full entry. The pager sits under the table; the owner also gets CSV and Excel at the top." },
     ],
   },
+  "/admin/messages": {
+    id: "admin-page-messages",
+    version: 1,
+    kind: "page",
+    title: "This page: Messages",
+    steps: [
+      { id: "intro", target: "body", placement: "center", icon: "inbox", showEstimate: true, title: "Every conversation in one list", content: "Client questions from the portal and each project's channel, newest first." },
+      { id: "list", target: '[data-tour="messages-list"]', icon: "filter", title: "Find the one you need", content: "Search by name or words, or show only the clients waiting on us. Pick a conversation to open it beside the list." },
+      { id: "thread", target: '[data-tour="messages-thread"]', icon: "inbox", title: "Reply without leaving the page", content: "A reply to a client is emailed and shows in their portal. In a project channel, Team only keeps it inside the studio; the project lead can choose Client sees it." },
+    ],
+  },
   "/admin/reports": {
     id: "admin-page-reports",
     version: 1,
@@ -401,12 +412,13 @@ export const ADMIN_PAGE_TOURS: Record<string, TourDef> = {
   },
   "/admin/money/reconciliation": {
     id: "admin-page-reconciliation",
-    version: 1,
+    version: 2,
     kind: "page",
     title: "This page: Reconciliation",
     steps: [
       { id: "intro", target: "body", placement: "center", icon: "shieldCheck", showEstimate: true, title: "Where the books and the bank are asked to agree", content: "Not a sidebar page: reached from a banner on Money, and only when there is genuinely something in it." },
       { id: "attention", target: '[data-tour="recon-attention"]', icon: "flag", title: "Match it, or write it off", content: "Matching banks real money onto an invoice. Writing off records a decision and moves nothing. Kept as two separate buttons so neither happens by accident." },
+      { id: "import", target: '[data-tour="recon-import"]', icon: "clipboard", title: "Transfers straight to the bank", content: "Import the bank's CSV statement. Each line of money in waits on the Bank statement tab until you match it to the invoice it paid, which records the payment and sends the receipt, or set it aside with a reason." },
       { id: "log", target: '[data-tour="recon-log"]', icon: "clipboard", title: "Seeing two rows for one payment is normal", content: "A payment provider?s retry and a payer?s return from checkout often race each other. Both get logged; only one gets banked." },
     ],
   },

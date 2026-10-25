@@ -280,3 +280,53 @@ On the new layout: Clients, Client page, Marketing, Blog, Forms, Money, invoice 
 Checked: tsc and eslint on changed files; a crawl of every page reachable from the owner dashboard (253) and the client portal (73) returned 200 with a heading, no error screen and no page errors; a click-through of every control on every design board found no page error and no link to a missing board. The production build (`next build`) compiles and type checks after clearing the stale `.next/dev` types. Not run: the whole Playwright suite; the specs skip without the capture token. The three specs that opened the invoice dialog were edited to open `/admin/money/new`; they have not been run.
 
 Known limits: per-service stage names are not modelled (one six-stage flow); Services and Lists are read-only; bills payable are not tracked, so "We owe" shows client credit and work paid for in advance; scheduled and saved reports would need a migration; Messages (team chat) is not built; Cal.com checks any time chosen for a booking, so a time it will not accept comes back as its own message.
+
+### Messages page — 15 October 2026
+
+`/admin/messages` is built for the owner and staff and sits in the sidebar after Money. One list holds client questions (support tickets) and every project channel the person may read (owner: all live projects; staff: projects they lead or were added to; tickets only for those projects' clients); the open thread sits beside it with its reply box. Chips: All, Waiting on us, Clients, Projects; search covers names, companies and the last message. A ticket reply emails the client as before; a project note is Team only unless the project lead picks Client sees it (checked again on the server). Page tour `admin-page-messages` v1 and a loading skeleton in the same geometry. No migration.
+
+Checked against a local CockroachDB with sample records (not production): tsc and eslint clean; the page at 320, 390, 834 and 1440 in both themes returned 200 with one h1, no horizontal overflow and no undersized controls; an end to end run sent a team note, a client-visible note (tagged Client sees it), a ticket reply (the ticket left Waiting on us) and showed the filtered no-results state, with no page errors. Not checked: a staff account in a browser, real email delivery, the production build.
+
+Not built from the board yet: unread counts, pinning and archiving, direct and group team chats, reactions, presence and attachments. Each needs its own table (a migration) and is the next step if the owner wants them.
+
+### Overhaul, third wave: pages that were still on the old layout — 16 October 2026
+
+Each live page was screenshotted beside its board (the boards rendered locally with a small stand-in for the canvas runtime) and the gaps closed page by page. Now on the new layout: Reconciliation (deck of payments to match, payment and failed-email tabs, pulse rail), the invoice page (record head, figures, lines, payments, client copy, reminders, payment link), Money (lede with this month, tabs inside one card, status chips, one-line rows, rail with How people pay and Coming up), one form's page, one entry, All entries, New form, a user's record page, a campaign (builder first, audience beside sending), a marketing contact, and in the portal Home, Billing (Invoices, Receipts and Quotes tabs as tables on every screen), Settings (section menu and save bar), Projects (opens on the first live project with a switcher) and a conversation (two-pane Messages). The old ticket address redirects to its Messages thread.
+
+Staff now see their own work: Projects, Clients and Messages list only the projects they lead or were added to and the clients in their departments (`lib/admin/staff-scope.ts`), and any other project or client address is refused on the server. Refusals say Admin, never the owner.
+
+Checked against a local CockroachDB with sample records (not production): tsc and eslint on every changed file; each page at 320, 390, 834 and 1440 in both themes returned 200 with no horizontal overflow; screenshots compared with the boards; interaction runs for matching a payment, recording a part payment, sending notes and replies in Messages, and staff scoping (lists and refused addresses). Not checked: the production build, the full Playwright suite, real email and payment providers.
+
+Still open: the messaging upgrade on the boards (team chats, unread, pinning, clients writing in project channels) needs new tables and a migration; staff write actions on out-of-scope records are still guarded by role only, and the search palette is not yet scoped for staff; Payouts on the Money board, bank statement import and "People at your business" in client Settings have no data model yet.
+
+### Working as staff, and the messaging upgrade — 16 October 2026
+
+Working as staff (owner's call): the owner's staff view is no longer read-only, timed or reason-gated. Writes go through as the staff member on the pages staff can open; the client view stays read-only, and the staff member's own password, sign-in and settings stay off. The view lasts until Back to my account or the owner's own session ends. The audit log records "started working as staff", one line per change with the page it came from, and "stopped working as staff", and each change's own line names the owner (as the staff member). Policy spec (11) and the support check pass; checked in a browser against the local database.
+
+Messages: team chats (direct or a named group), unread, pinning and archiving, and clients writing in their project channels (shown to them with only what is shared; their messages reach the studio tagged Client sees it and notify the project team). Checked end to end in a browser: start a chat, unread for the other person, reply, pin, archive, client channel message and its notice.
+
+**Needs the owner:** apply migration `0054_messages.sql` in Settings, System. Until then Messages works as before and says what arrives with it.
+
+Production build (`next build`) at 62031a9 passes: compiled, type checked, 136 pages generated. Not run: the full Playwright suite; the deployed site was not checked.
+
+### Bank statement import on Reconciliation — 16 October 2026
+
+Reconciliation has a Bank statement tab and Import statement in its head. The bank's CSV is read in the browser (Date, Narration, Reference and Credit, or one signed Amount; a preamble above the table is skipped; money out is left out) and shown before anything is saved; the server re-checks every line and a fingerprint makes a second import of the same month add nothing. Each line of money in goes on the deck and waits until it is matched to the invoice it paid (an invoice number in the narration, or the one open invoice owing exactly that amount, is suggested) or set aside with a reason. Matching records a bank transfer on the day it reached the bank, with the receipt, and refuses a currency mismatch. `tests/statement-csv.check.cjs` pins the reader. Checked in a browser against the local database: import, suggested match with its receipt, set aside, and the tab at 320, 390, 834 and 1440 with no overflow.
+
+**Needs the owner:** apply migration `0055_bank_statements.sql` in Settings, System. Until then the tab says so and Import statement is hidden.
+
+### Payouts on Money — 16 October 2026
+
+Money has a Payouts tab: what the studio owes freelancers for work a client approved. A payout is added with who, the work, the amount, the day and (optionally) the project; it starts Ready, Admin approves it after seeing the exact total (one by one or all at once), and marking it paid records a Contractors expense for the same amount against its project, so Spent and the project's margin carry it. A payout can be cancelled with a reason and stays listed. Ready payouts go on the deck, the rail has a Next payout figure, and Coming up lists payouts due in the next fortnight beside invoices. Payouts are kept with the other admin records (no migration) and every action is Admin only; staff never see them. Checked in a browser against the local database: add two, approve both, mark one paid (its expense appears under Expenses), cancel the other, and the tab at 320, 390, 834 and 1440 with no overflow.
+
+Not built yet: the payment advice email to the freelancer (the email is kept on the payout for it), and payouts created automatically when a client approves a deliverable.
+
+### People at your business in client Settings — 16 October 2026
+
+Client Settings has a People at your business section. The main contact (the account whose email is the client record's) adds a colleague by name and email and ticks whether they can approve work and whether they can see and pay invoices; the colleague gets their own sign in on every live project of the business. A new address gets an invitation (the access waits in `invitation_project_grants` and becomes project memberships when the link is used); an address that already has a client account is given access straight away and told. The main contact can change what each person can do, cancel an invitation, or remove access. Every change is in the audit log and the project team is notified. Other colleagues see who has access but cannot change it. Temporary inboxes, staff accounts and the main contact's own address are refused. Checked in a browser against the local database: invite with invoices ticked, change it, accept the invitation (account made, memberships on both live projects with exactly those rights, the colleague sees the projects), remove access, and the section at 320, 390, 834 and 1440 with no overflow. `tests/invitations.spec.ts` was run: 2 pass, and "accepting makes a verified account" fails because the spec inserts a client invitation with no client record, which the existing linkage check withdraws; that failure does not come from this change.
+
+Known ceiling: access covers the projects live when it is given; a project that starts later needs the person saved again. A per-project choice can be added if clients ask.
+
+**Needs the owner:** apply migration `0056_colleague_invitations.sql` in Settings, System. Until then the section says it is not switched on yet.
+
+Production build (`next build`) at ae19839 passes: compiled, type checked, 136 pages generated (run without a database URL, so page-data collection logs "COCKROACHDB_URL is not configured" and carries on). Not run: the full Playwright suite; the deployed site was not checked.

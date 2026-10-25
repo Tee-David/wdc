@@ -9,7 +9,7 @@ import {
   MessageSquareReply, ScrollText,
 } from "lucide-react";
 import { getPortalRequest } from "@/lib/portal/session";
-import { getClient, getDeliverablesFor, getInvoicesFor, getProject, getUpdatesFor } from "@/lib/admin/store";
+import { getClient, getDeliverablesFor, getInvoicesFor, getProject, getProjects, getUpdatesFor } from "@/lib/admin/store";
 import { STAGES, invoiceStatus, invoiceTotals, naira } from "@/lib/admin/types";
 import { SERVICE_BY_SLUG } from "@/lib/services";
 import { ApprovalPill, Empty, HealthPill, Panel, when } from "@/components/admin/bits";
@@ -80,7 +80,8 @@ export default async function PortalProjectDetail({ params, searchParams }: { pa
   const billed = invoices.reduce((n, inv) => n + invoiceTotals(inv).total, 0);
   const paid = invoices.reduce((n, inv) => n + Math.min(inv.paid, invoiceTotals(inv).total), 0);
   const owing = invoices.filter((inv) => invoiceTotals(inv).due > 0).sort((a, b) => a.due.localeCompare(b.due))[0] ?? null;
-  const askHref = `/portal/support?new=1&project=${p.id}&subject=${encodeURIComponent(`About ${p.title}`)}`;
+  /* The project's own channel: the team reads it in Messages and is told at once. */
+  const askHref = `/portal/support/project/${p.id}`;
 
   const asked: Tab = TABS.find((t) => t === query.tab) ?? "overview";
   const tab: Tab = asked === "money" && !canBill ? "overview" : asked;
@@ -171,10 +172,18 @@ export default async function PortalProjectDetail({ params, searchParams }: { pa
     ...waiting.flatMap((d) => { const v = d.versions[d.versions.length - 1]; return v?.reviewDueAt ? [{ key: `r-${d.id}`, when: v.reviewDueAt, title: `Review ${d.name}`, sub: "Your answer is needed" }] : []; }),
   ].sort((a, b) => Date.parse(a.when) - Date.parse(b.when));
 
+  /* The switcher across this client's live projects (C-Projects), when there is more than one. */
+  const siblings = getProjects(true).filter((x) => request.allowedProjectIds.includes(x.id) && !x.archived && x.stage !== "Delivered");
   return (
     <>
+      {siblings.length > 1 || (siblings.length === 1 && siblings[0].id !== p.id) ? (
+        <nav className="ad__switch pProj__switch" aria-label="Your projects">
+          {siblings.map((x) => <Link key={x.id} href={`/portal/projects/${x.id}`} aria-current={x.id === p.id ? "true" : undefined}>{x.title}</Link>)}
+          <Link href="/portal/projects?show=all">All projects</Link>
+        </nav>
+      ) : null}
       <PageHead
-        crumbs={[{ href: "/portal/projects", label: "Your projects" }]}
+        crumbs={[{ href: "/portal/projects?show=all", label: "Your projects" }]}
         title={p.title}
         lede={<>{client.company}{p.owner ? ` · led by ${p.owner}` : ""}{p.due ? ` · due ${dateWords(p.due, now)}` : " · no due date agreed yet"}</>}
         action={<Link className="ad__btn ad__btn--primary" href={askHref}><MessageSquare aria-hidden="true" />Message the team</Link>}

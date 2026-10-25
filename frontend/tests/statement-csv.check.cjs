@@ -1,0 +1,27 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- Runs the bank statement reader without a browser. */
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+const ts = require('typescript');
+const mod = {};
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '..', 'lib/money/statement-csv.ts'), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText, { exports: mod, Date, Math, Number, String });
+const { readStatement, readDay, readKobo } = mod;
+assert.equal(readDay('14/10/2026'), '2026-10-14');
+assert.equal(readDay('14-Oct-26'), '2026-10-14');
+assert.equal(readDay('Oct 14, 2026'), '2026-10-14');
+assert.equal(readDay('2026-10-14 09:12'), '2026-10-14');
+assert.equal(readDay('31/02/2026'), null);
+assert.equal(readKobo('₦850,000.00'), 85000000);
+assert.equal(readKobo('(1,200.50)'), -120050);
+assert.equal(readKobo('abc'), null);
+const bank = '﻿Account,WDC Studio\nTrans Date,Narration,Reference,Debit,Credit,Balance\n14-Oct-2026,"TRF FROM ADA, INV-26-AB12CD",S123,,"850,000.00","1,000,000.00"\n15-Oct-2026,SMS charge,S124,4.00,,999996\nnot a date,odd,S125,,100,\n';
+const r = readStatement(bank);
+assert.equal(r.ok, true);
+assert.equal(JSON.stringify(r.rows), JSON.stringify([{ postedOn: '2026-10-14', amount: 85000000, narration: 'TRF FROM ADA, INV-26-AB12CD', reference: 'S123' }]));
+assert.equal(r.debits, 1); assert.equal(r.skipped, 1);
+const signed = readStatement('Date,Description,Amount\n2026-10-14,In,5000\n2026-10-15,Out,-200\n');
+assert.equal(signed.rows.length, 1); assert.equal(signed.debits, 1);
+assert.equal(readStatement('Name,Email\nx,y').ok, false);
+assert.equal(readStatement('Date,Debit\n2026-10-14,5').ok, false);
+console.log('Bank statement reader: dates, amounts, debits left out, preamble rows and unreadable lines passed.');

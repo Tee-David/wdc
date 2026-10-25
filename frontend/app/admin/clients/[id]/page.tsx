@@ -25,6 +25,8 @@ import { ClientDepartments } from "@/components/admin/departments";
 import AuditLog from "@/components/admin/audit-log";
 import PortalAccess from "@/components/admin/portal-access";
 import { adminRole } from "@/lib/admin/guard";
+import { inScope, staffScope } from "@/lib/admin/staff-scope";
+import { AdminState as ScopeState } from "@/components/admin/admin-state";
 import { can } from "@/lib/admin/permissions";
 import { CopyText } from "@/components/admin/copy-text";
 import { MessageActions } from "@/components/admin/log-message";
@@ -82,6 +84,10 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
   await hydrateSettings();
   const finance = financeDefaults();
   const role = await adminRole();
+  /* A staff member opens only the clients in their scope; the address of any other is refused, not shown. */
+  if (!inScope(await staffScope(role), "clients", c.id)) {
+    return <section className="ad__panel"><ScopeState kind="forbidden" title="This client is not assigned to you" description="Ask Admin to add you to one of their projects or departments." back={{ href: "/admin/clients", label: "Back to your clients" }} /></section>;
+  }
   const money = can(role, "money");
   const destructive = can(role, "destructive");
   const departments = await listDepartments();

@@ -6,9 +6,10 @@ import { getPortalRequest } from "@/lib/portal/session";
 import { syncStore } from "@/lib/admin/persist";
 import { getClient, getProject } from "@/lib/admin/store";
 import type { Project,Client } from "@/lib/admin/types";
-import { clientSupportCookiePresent, supportCookiePresent } from "@/lib/users/support";
+import { clientSupportCookiePresent, readOnlySupportPresent } from "@/lib/users/support";
 import { SITE_URL } from "@/lib/site";
 import { rateLimit } from "@/lib/rate-limit";
+import { auditStaffViewWrite } from "@/lib/admin/staff-view-audit";
 
 export type WorkspaceUser = { id:string; userId:string; name:string; email:string; role:"owner"|"staff"|"client"; kind:"client"|"staff"; readOnly:boolean; capture:boolean };
 export type WorkspaceActor = WorkspaceUser & { project:Project; clientId:string; canManage:boolean; canReview:boolean; canBilling:boolean };
@@ -16,9 +17,11 @@ export type WorkspacePermission = "read"|"manage"|"review"|"billing"|"comment";
 export type WorkspaceRecipient = { userId:string; email:string; name:string; role:"owner"|"staff"|"client"; clientId?:string; emailMode?:"immediate"|"digest"|"off" };
 export class WorkspaceAccessError extends Error { constructor(message="You cannot access this project."){super(message);this.name="WorkspaceAccessError";} }
 
-export async function requireWorkspaceUser(write=false):Promise<WorkspaceUser> {
+/** `audited` false is for bookkeeping writes that change nothing anyone sees, such as marking a thread read. */
+export async function requireWorkspaceUser(write=false,audited=true):Promise<WorkspaceUser> {
   const h=await headers();
-  const support=await supportCookiePresent();
+  /* The client view is read-only; the owner's staff view writes as the staff member, audited under the owner (below). */
+  const support=await readOnlySupportPresent();
   if(write && support)throw new WorkspaceAccessError("Exit the read-only support view first.");
   const admin=await getAdminRequest();
   const portal=await clientSupportCookiePresent() || (admin.capture && h.get("x-boneyard-capture-role")==="client") ? await getPortalRequest() : null;
@@ -41,7 +44,11 @@ export async function requireWorkspaceUser(write=false):Promise<WorkspaceUser> {
   if(!capture){const active=await db.query('SELECT 1 FROM "user" WHERE "id"=$1 AND "role"=$2 AND "deactivatedAt" IS NULL',[userId,u.role]);if(!active.rowCount)throw new WorkspaceAccessError("Your account access has ended.");}
   // Per-instance abuse control, not an account-wide quota.
   if(write && !rateLimit(`workspace:${userId}`,60,60_000).ok)throw new WorkspaceAccessError("Wait a minute, then retry.");
-  return {id:userId,userId,name:u.name?.trim()||u.email,email:u.email.toLowerCase(),role:u.role,kind:u.role==="client"?"client":"staff",readOnly,capture};
+  /* In the owner's staff view every note, event and audit line names the owner as well as the staff member they are working as. */
+  const name=u.name?.trim()||u.email;
+  const shown=!portal && admin.support ? `${admin.support.actorName} (as ${name})` : name;
+  if(write && audited && !portal && admin.support)await auditStaffViewWrite(admin.support.actorName,userId,name);
+  return {id:userId,userId,name:shown,email:u.email.toLowerCase(),role:u.role,kind:u.role==="client"?"client":"staff",readOnly,capture};
 }
 
 export async function requireProjectActor(projectId:string,permission:WorkspacePermission="read"):Promise<WorkspaceActor> {

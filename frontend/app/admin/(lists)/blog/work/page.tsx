@@ -40,7 +40,7 @@ type CQ = { q?: string; state?: string; page?: string; per?: string };
 export default async function CaseStudiesPage({ searchParams }: { searchParams: Promise<CQ> }) {
   const role = await adminRole();
   if (!can(role, "content")) {
-    return <AdminState kind="forbidden" title="Case studies are for the content team" description="Ask the owner if you need something changed here."
+    return <AdminState kind="forbidden" title="Case studies are for the content team" description="Ask Admin if you need something changed here."
       action={<Link className="ad__btn" href="/admin">Back to the dashboard</Link>} />;
   }
   const query = await searchParams;
