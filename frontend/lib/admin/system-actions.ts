@@ -7,7 +7,7 @@ import { audit } from "./store";
 import { applyPendingMigrations } from "@/lib/system/migrations";
 import { FAIL, OK, type ActionState } from "./validate";
 import { PROBES, SLOW, runProbe, type ProbeName } from "@/lib/system/probes";
-import { purgeInvitations, retryFailedFormEmails, revalidatePublic, reverifyMedia, TOOLS, type ToolName } from "@/lib/system/tools";
+import { importRealtors, purgeInvitations, retryFailedFormEmails, revalidatePublic, reverifyMedia, TOOLS, type ToolName } from "@/lib/system/tools";
 
 const PAGES = ["/admin/settings/system", "/admin/settings/integrations"];
 const refresh = () => PAGES.forEach((p) => revalidatePath(p));
@@ -47,6 +47,13 @@ export async function runTool(_prev: ActionState, fd: FormData): Promise<ActionS
       }
     });
     return OK("Started. It runs behind this page; reload in a minute to see what it did.");
+  }
+  if (name === "realtors-practice") {
+    if ((await adminRole()) !== "owner") return FAIL({}, "Bringing in records is the owner's.");
+    try { const r = await importRealtors(by); refresh(); revalidatePath("/admin", "layout"); return OK(`Done: ${r.summary}`); } catch (error) {
+      console.error("[tools] realtors-practice failed:", error instanceof Error ? error.message : error);
+      return FAIL({}, "That could not be run just now. Anything already saved stays; running it again carries on.");
+    }
   }
   try {
     const r = name === "invitations" ? await purgeInvitations(by) : await revalidatePublic(by);
