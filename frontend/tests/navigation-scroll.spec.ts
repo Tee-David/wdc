@@ -20,13 +20,12 @@ test.describe.configure({ timeout: 120_000 });
 test.beforeEach(async ({ page }) => {
   await page.route(/jotfor|userway/i, (route) => route.abort());
   /* Skip BOTH covers. The intro is gated on `wdc-intro-seen-at` and the
-     preloader on the `wdc:preloaded` session flag; skipping only the intro
-     makes the preloader play instead, and it locks body scroll while it owns
-     the viewport. */
+     preloader on `wdc-preload-seen-at`; skipping only the intro makes the
+     preloader play instead. */
   await page.addInitScript(() => {
     try {
       localStorage.setItem("wdc-intro-seen-at", String(Date.now()));
-      sessionStorage.setItem("wdc:preloaded", "1");
+      localStorage.setItem("wdc-preload-seen-at", String(Date.now()));
     } catch {}
   });
 });

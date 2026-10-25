@@ -12,9 +12,14 @@ import { expect, test, type Page } from "@playwright/test";
  * header's own button vanishing while it is open.
  */
 
+/* Both covers: the intro, and the first-load preloader, which plays on phones
+   too now and kept the menu's slide busy while this measured it. */
 const skipIntro = (page: Page) =>
   page.addInitScript(() => {
-    try { localStorage.setItem("wdc-intro-seen-at", String(Date.now())); } catch { /* private mode */ }
+    try {
+      localStorage.setItem("wdc-intro-seen-at", String(Date.now()));
+      localStorage.setItem("wdc-preload-seen-at", String(Date.now()));
+    } catch { /* private mode */ }
   });
 
 test.describe("on a desktop", () => {
