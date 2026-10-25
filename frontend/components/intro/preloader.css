@@ -219,15 +219,28 @@ html[data-preload="play"][data-loader="blueprint"] .pl-bp[data-mode="load"] { di
   color: var(--label);
 }
 
-/* PHONES: THE SHEET RISES WITH A STRAIGHT EDGE (owner's call, 2026-10-25).
-   On a narrow screen the bowed leading edge is a dome a third of the width
-   tall, and climbing the page it read as a blob rather than a sheet. Only
-   the rise between pages changes: the first-load piece and the curved lift
-   that uncovers the next page are untouched. A soft shadow keeps the edge
-   visible where it passes over the page's own paper-white. */
+/* PHONES: THE SHEET DROPS FROM THE TOP (owner's call, 2026-10-25).
+   The way out, the sheet lifting off the page on its bowed bottom edge, is
+   the move the owner likes; the way in should answer it. Rising from the
+   bottom, first bowed and then straight, it met the phone menu sliding away
+   sideways and read as something coming in from a corner. So on a phone the
+   same bowed bottom edge leads the sheet DOWN from the top, flattens as it
+   lands, and after the build that edge carries it back UP: one shape, down
+   and up, like a blind. It covers the closing menu on the way down. Desktop
+   keeps its rise, and the first-load piece is untouched. `:not(leave)`
+   because these rules come after the leave rules and would otherwise win. */
 @media (max-width: 767px) {
+  .pl-ink[data-mode="route"]:not([data-phase="leave"]) .ink-sheet { animation: ink-drop 520ms cubic-bezier(.77, 0, .18, 1) both; }
   .pl-ink[data-mode="route"] .ink-sheet::before { animation: none; transform: scaleY(0); }
-  .pl-ink[data-mode="route"]:not([data-phase="leave"]) .ink-sheet { box-shadow: 0 -14px 32px var(--shade); }
+  .pl-ink[data-mode="route"]:not([data-phase="leave"]) .ink-sheet::after { animation: ink-drop-edge 520ms cubic-bezier(.77, 0, .18, 1) both; }
+}
+@keyframes ink-drop {
+  from { transform: translateY(calc(-100% - var(--bulge))); }
+  to { transform: none; }
+}
+@keyframes ink-drop-edge {
+  0%, 50% { transform: scaleY(1); }
+  100% { transform: scaleY(0); }
 }
 
 /* Still waiting: the fingertips tap in turn, like a typing indicator. */
