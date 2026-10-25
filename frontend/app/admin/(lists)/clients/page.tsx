@@ -251,7 +251,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
             <span className="adList__sp" />
             <UrlSearch label="Search clients" placeholder="Client or contact" />
           </div>
-          <div className="adList__pad"><Chips label="Service" items={chipItems} current={service ?? ""} /></div>
+          <div className="adList__pad"><Chips label="Service" grows items={chipItems} current={service ?? ""} /></div>
           <Tabs label="Client status" items={tabItems} current={tab} />
           <div className="adList__tools">
             <ClientFilters
