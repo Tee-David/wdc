@@ -2177,3 +2177,11 @@ td:has(> .adRowPick) , .ad__pickCell { white-space: nowrap; }
   .ad__pgNav { flex-wrap: wrap; justify-content: center; row-gap: .4rem; }
   .ad__pgBtn { min-width: 2.75rem; }
 }
+
+/* Printing a dashboard page prints the page, not the chrome around it:
+   no sidebar, top bar, notices or toasts, and the work takes the full sheet. */
+@media print {
+  .ad__side, .ad__stickTop, .ad__notices, .adToasts { display: none !important; }
+  .ad__wrap { display: block !important; }
+  .ad__column { min-height: 0; }
+}
