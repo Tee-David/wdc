@@ -31,7 +31,9 @@ import "./preloader.css";
  *   one way and bottom arc the other; the cursor squashes into the nib; the
  *   name is typed. The sheet lifts away on a curved edge.
  *
- *   Blueprint (after the KANTIV reference): see `BlueprintMark`.
+ *   Blueprint (after the KANTIV reference): the mark is constructed on
+ *   hairline guides, turns once into the lockup, and the sheet parts along
+ *   an orange seam. See `Blueprint`.
  *
  * WHAT IT NEVER DOES. It never plays under reduced motion, on the admin, the
  * portal or the account and payment pages, or for a link to the page you are
@@ -50,7 +52,7 @@ const TIMES: Record<Concept, { load: number; loadExit: number; cover: number; bu
      closed and the router may swap the page. built: when the short build has
      finished. exit: how long leaving takes. */
   ink: { load: 2760, loadExit: 680, cover: 520, built: 900, exit: 640 },
-  blueprint: { load: 2760, loadExit: 680, cover: 520, built: 900, exit: 640 },
+  blueprint: { load: 3000, loadExit: 780, cover: 460, built: 960, exit: 760 },
 };
 
 /* The public pages the curtain runs between, and what it calls them. The words
@@ -379,8 +381,86 @@ function Ink({ mode, phase, label = "" }: { mode: "load" | "route"; phase: Phase
 }
 
 /* ---------------------------------------------------------------------------
-   Concept 2: Blueprint. Built after Ink is finished and verified.
+   Concept 2: Blueprint (after the KANTIV reference).
+
+   The mark is constructed rather than drawn. Hairline axes and the C's two
+   construction circles are set out first, with pen-tool anchors where they
+   cross; the arcs swing into place round the centre, each with a faint trail
+   behind it; the hand slides in along the horizontal axis and the fingertips
+   drop like rivets; the cursor falls down the vertical axis onto the centre
+   anchor and becomes the nib. The guides leave the frame, the mark turns
+   once as it settles into the lockup, and the name rises out of a baseline
+   in the brand's mute before it turns white. The sheet parts along an orange
+   seam, top half up and bottom half down, the way the C opens.
    ------------------------------------------------------------------------- */
-function Blueprint({ mode, phase }: { mode: "load" | "route"; phase: Phase; label?: string }) {
-  return <div className="pl pl-bp" data-mode={mode} data-phase={phase} aria-hidden="true" />;
+
+/* Axis lines run from the C's centre outwards, far enough to cross any
+   screen at the smallest mark size (12000 units is about 1500px there). */
+const AXES = ["M515 459H-11485", "M515 459H12515", "M515 459V-11541", "M515 459V12459"];
+/* Where the axes cross the construction circles, and the centre itself,
+   which is where the cursor lands. */
+const ANCHORS: [number, number][] = [
+  [515, 459],
+  [79, 459], [951, 459], [515, 23], [515, 895],
+  [280, 459], [750, 459], [515, 224], [515, 694],
+];
+
+function BpWord() {
+  return (
+    <span className="bp-word">
+      <Word prefix="bpm" />
+      <Word prefix="bpw" />
+    </span>
+  );
+}
+
+function Blueprint({ mode, phase, label = "" }: { mode: "load" | "route"; phase: Phase; label?: string }) {
+  return (
+    <div className="pl pl-bp" data-mode={mode} data-phase={phase} aria-hidden="true">
+      <div className="bp-half bp-half--top" />
+      <div className="bp-half bp-half--bot" />
+      <i className="bp-seam" />
+      <div className="bp-stage">
+        <div className="bp-lockup">
+          <svg className="bp-mark" viewBox="0 0 904 944" focusable="false">
+            <g className="bp-guides">
+              {AXES.map((d, k) => (
+                <path key={k} className={`bp-axis bp-axis--${k + 1}`} d={d} pathLength={1} />
+              ))}
+              {/* Circles start at twelve o'clock (the attribute rotation),
+                  so both draw from the top, clockwise. */}
+              <circle className="bp-circle bp-circle--outer" cx="515" cy="459" r="436" pathLength={1} transform="rotate(-90 515 459)" />
+              <circle className="bp-circle bp-circle--inner" cx="515" cy="459" r="235" pathLength={1} transform="rotate(-90 515 459)" />
+              {ANCHORS.map(([x, y], k) => (
+                <rect key={k} className={`bp-anchor bp-anchor--${k}`} x={x - 18} y={y - 18} width="36" height="36" style={{ "--k": k } as React.CSSProperties} />
+              ))}
+            </g>
+            <circle className="bp-trail bp-trail--top" cx="515" cy="459" r="335" pathLength={1} />
+            <circle className="bp-trail bp-trail--bot" cx="515" cy="459" r="335" pathLength={1} />
+            {use("top", "bp-arc bp-arc--top")}
+            {use("bot", "bp-arc bp-arc--bot")}
+            <g className="bp-hand">
+              {use("palm", "bp-palm")}
+              {use("thumb", "bp-thumb")}
+            </g>
+            {use("f1", "bp-f bp-f--1")}
+            {use("f2", "bp-f bp-f--2")}
+            {use("f3", "bp-f bp-f--3")}
+            {use("f4", "bp-f bp-f--4")}
+            <circle className="bp-ring" cx="525" cy="452" r="150" />
+            {mode === "load" ? <rect className="bp-caret" x="508" y="352" width="34" height="206" rx="12" /> : null}
+            {use("nib", "bp-nib")}
+            {use("bar", "bp-bar")}
+          </svg>
+          {mode === "load" ? <BpWord /> : null}
+        </div>
+        {mode === "route" && label ? (
+          <span className="bp-label">
+            <Label prefix="bpm" text={label} />
+            <Label prefix="bpw" text={label} />
+          </span>
+        ) : null}
+      </div>
+    </div>
+  );
 }
