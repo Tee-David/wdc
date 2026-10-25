@@ -1,6 +1,18 @@
 # Screens left to design or rebuild (running list, 2026-10-25)
 
-Resume here: wait for Agent B client-portal findings, then fold them in below. Owner side is complete.
+Resume here: build order below. Agent B finished (owner and client portal).
+
+## Build order (live pages onto the approved boards)
+1. Project page, all services (/admin/projects/[id]) -> board A-Project; per-service sections. IN PROGRESS
+2. Client detail (/admin/clients/[id]) -> A-Client
+3. Money detail and New invoice (/admin/money/[id], /admin/money/new) -> A-Invoice
+4. Messages (/admin/messages) -> A-Messages
+5. Forms: All entries, New form, entry page -> A-Forms, A-FormBuilder
+6. Hybrid lists: Clients, Support, Projects, Money, Reconciliation, Meetings, Notifications, Users
+7. Settings tabs still on old panels -> A-Settings
+8. Client portal: Home, Billing, Projects, Settings (Agent B: hybrid/old) -> C-* boards
+9. Staff: My Day, Projects, Clients -> S-* boards
+Then: 320px scan of every page in both themes.
 
 Sources: agentA-findings.md (35 owner routes, done), agentB-findings.md + out/agentB.jsonl (Forms, Email, Blog, all Settings done; client portal pending), hand checks in this session.
 
