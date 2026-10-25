@@ -16,8 +16,11 @@ function dismiss(key: string) {
 }
 
 /** The standing conditions, above the page. Solid tone fills, with a dismiss. */
-export default function AdminNotices({ notices }: { notices: AdminNotice[] }) {
+export default function AdminNotices({ notices: all }: { notices: AdminNotice[] }) {
   const router = useRouter();
+  /* The layout does not re-render on refresh, so a dismissed banner is also hidden here. */
+  const [gone, setGone] = useState<string[]>([]);
+  const notices = all.filter((n) => !gone.includes(n.key));
   /* On a phone, two or more banners took the first screen. They fold into
      one bar that says how many, the worst tone first, and opens on a tap. */
   const [open, setOpen] = useState(false);
@@ -37,7 +40,7 @@ export default function AdminNotices({ notices }: { notices: AdminNotice[] }) {
           <AlertTriangle aria-hidden="true" />
           <p><b>{n.title}.</b> {n.body} {n.href ? <Link href={n.href}>{n.link ?? "Open"}</Link> : null}</p>
           <button type="button" className="ad__bannerX" aria-label={`Dismiss: ${n.title}`}
-            onClick={() => { dismiss(n.key); router.refresh(); }}>
+            onClick={() => { dismiss(n.key); setGone((g) => [...g, n.key]); router.refresh(); }}>
             <X aria-hidden="true" />
           </button>
         </div>
