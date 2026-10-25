@@ -1,0 +1,156 @@
+/* THE APP CASE STUDY: device frames, the opening stage, the screen viewer, the
+   self-scrolling public site and the system diagram. Imported only by the case
+   study page, and only matters when a case study carries `app`. */
+
+/* ---------------------------------------------------------------- frames */
+.dv { position: relative; width: 100%; }
+.dv img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.dv__scr { position: relative; overflow: hidden; background: #fff; }
+
+.dv--lap .dv__lid {
+  position: relative; padding: 2.2% 2.2% 2.8%; background: #0b0b0e;
+  border-radius: 14px 14px 4px 4px / 14px 14px 4px 4px;
+  box-shadow: inset 0 0 0 1px #2c2c33, 0 0 0 1px #9a9ca4, 0 0 0 2px #5d5f66;
+}
+.dv--lap .dv__cam { position: absolute; top: .8%; left: 50%; width: 6px; height: 6px; margin-left: -3px; border-radius: 50%; background: #1d2433; }
+.dv--lap .dv__scr { aspect-ratio: 16 / 10; border-radius: 3px; }
+.dv--lap .dv__base {
+  position: relative; width: 116%; margin-left: -8%; height: clamp(8px, 1.6vw, 16px);
+  background: linear-gradient(180deg, #e8e9ed 0%, #c9cbd1 45%, #9ea1a9 100%);
+  border-radius: 2px 2px 40% 40% / 2px 2px 100% 100%; box-shadow: inset 0 1px 0 #fff;
+}
+.dv--lap .dv__base span { position: absolute; top: 0; left: 50%; width: 15%; margin-left: -7.5%; height: 46%; background: linear-gradient(180deg, #b7bac2, #d3d5da); border-radius: 0 0 8px 8px; }
+
+.dv--tablet {
+  padding: 4.5%; background: #121216; border-radius: clamp(14px, 3.4vw, 34px);
+  box-shadow: inset 0 0 0 1px #34343c, 0 0 0 1.5px #b9bbc2, 0 0 0 3px #6f7178, 0 30px 60px -18px #00000080;
+}
+.dv--tablet.dv--land { padding: 3.5%; }
+.dv--tablet .dv__scr { border-radius: clamp(6px, 1.4vw, 14px); }
+
+.dv--phone {
+  padding: 4%; background: #0e0e11; border-radius: clamp(18px, 4vw, 44px);
+  box-shadow: inset 0 0 0 1px #2a2a30, 0 0 0 1.5px #8d8f96, 0 0 0 3px #4a4c52, 0 26px 50px -14px #00000090;
+}
+.dv--phone .dv__scr { aspect-ratio: 390 / 844; border-radius: clamp(14px, 3.2vw, 36px); }
+.dv--phone::before {
+  content: ""; position: absolute; z-index: 1; top: 6%; left: 50%; width: 30%; height: 3.4%; transform: translate(-50%, -50%);
+  background: #0e0e11; border-radius: 999px;
+}
+
+.dv--win { border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 0 0 1px #d7dae6, 0 24px 50px -18px #0e0e2c55; }
+.dv__bar { display: flex; gap: 6px; padding: 9px 12px; background: #eceef4; border-bottom: 1px solid #d7dae6; }
+.dv__bar i, .ac-site__bar i { width: 10px; height: 10px; border-radius: 50%; background: #ff5f57; }
+.dv__bar i:nth-child(2), .ac-site__bar i:nth-child(2) { background: #febc2e; }
+.dv__bar i:nth-child(3), .ac-site__bar i:nth-child(3) { background: #28c840; }
+.dv--win img, .dv--panel img { height: auto; object-fit: contain; }
+.dv--panel { border-radius: 14px; overflow: hidden; box-shadow: 0 0 0 1px #d7dae6, 0 24px 50px -18px #0e0e2c55; }
+
+/* ----------------------------------------------------------------- stage */
+.ac-stage { position: relative; padding-bottom: 6%; margin-top: .5rem; }
+.ac-stage__lap { width: 66%; margin-inline: auto; }
+.ac-stage__tab, .ac-stage__ph { position: absolute; bottom: 0; }
+.ac-stage__tab { left: 0; width: 25%; }
+.ac-stage__tab--land { width: 36%; }
+.ac-stage__ph { right: 1.5%; width: 15%; }
+@media (max-width: 720px) {
+  .ac-stage { padding-bottom: 22%; }
+  .ac-stage__lap { width: 88%; margin-inline: 0; }
+  .ac-stage__tab { display: none; }
+  .ac-stage__ph { width: 30%; right: 0; }
+}
+
+/* ------------------------------------------------------------ the viewer */
+.ac-shots { display: grid; gap: 1.1rem; min-width: 0; }
+.ac-tabs { display: flex; flex-wrap: wrap; gap: .5rem; }
+.ac-tabs button, .ac-strip button { font: inherit; cursor: pointer; }
+.ac-tabs button {
+  min-height: 44px; padding: 0 1rem; border-radius: 999px; font-weight: 600;
+  background: var(--btn-ink); color: var(--btn-fill); border: 2px solid var(--btn-fill);
+  display: inline-flex; align-items: center; gap: .45rem;
+}
+.ac-tabs button span { font-family: "Space Grotesk", sans-serif; opacity: .8; }
+.ac-tabs button[aria-pressed="true"] { background: var(--btn-fill); color: var(--btn-ink); }
+.ac-tabs button:focus-visible, .ac-strip button:focus-visible, .ac-arrow:focus-visible, .ac-view__open:focus-visible, .ac-site__win:focus-visible {
+  outline: 2px solid var(--ink); outline-offset: 3px;
+}
+
+.ac-view { display: grid; gap: 1rem; min-width: 0; }
+.ac-view__open {
+  display: grid; place-items: center; padding: clamp(1rem, 4vw, 2.2rem); border: 1px solid var(--rule); border-radius: 20px;
+  background: linear-gradient(180deg, #f2f3f9, #e4e6f0); cursor: zoom-in; min-height: clamp(260px, 52vw, 460px);
+}
+.dark .ac-view__open { background: linear-gradient(180deg, #121238, #0a0a2a); }
+.ac-view__open > .dv { animation: ac-in .42s cubic-bezier(.16, 1, .3, 1) backwards; }
+.ac-view__open--laptop > .dv { max-width: 100%; }
+.ac-view__open--tablet > .dv { max-width: min(100%, 420px); }
+.ac-view__open--tablet > .dv--land { max-width: 100%; }
+.ac-view__open--phone > .dv { max-width: 220px; }
+.ac-view__open--window > .dv { max-width: 300px; }
+.ac-view__open--panel > .dv { max-width: min(100%, 440px); max-height: 520px; overflow: hidden; }
+@keyframes ac-in { from { opacity: 0; transform: translateY(10px) scale(.985); } }
+
+.ac-view__cap { display: flex; gap: 1rem; align-items: flex-start; justify-content: space-between; }
+.ac-view__txt { min-width: 0; }
+.ac-view__pos { font-family: "Space Grotesk", sans-serif; font-size: .875rem; color: var(--muted); }
+.pv .ac-view__txt h3 { font-family: "Space Grotesk", sans-serif; font-size: 1.25rem; margin: .15rem 0 .25rem; }
+.ac-view__txt p { margin: 0; }
+.ac-view__nav { display: flex; gap: .5rem; flex: none; }
+.ac-arrow {
+  width: 48px; height: 48px; border-radius: 999px; display: inline-grid; place-items: center; cursor: pointer;
+  border: 1px solid var(--rule); background: var(--paper); color: var(--ink);
+}
+.ac-arrow svg, .ac-full__x svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.ac-arrow:hover:not(:disabled) { border-color: var(--accent-ink); color: var(--accent-ink); }
+.ac-arrow:disabled { opacity: .45; cursor: not-allowed; }
+
+.ac-strip { display: flex; gap: .6rem; overflow-x: auto; padding: 4px 4px 8px; overscroll-behavior-x: contain; scrollbar-width: thin; }
+.ac-strip button {
+  flex: none; width: 128px; padding: 6px; border-radius: 14px; border: 1px solid var(--rule); background: var(--paper); color: var(--ink);
+  display: grid; gap: 6px; text-align: left;
+}
+.ac-strip img { width: 100%; height: 72px; object-fit: cover; object-position: top; border-radius: 8px; background: #f2f3f9; }
+.ac-strip span { font-size: .8125rem; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ac-strip button[aria-pressed="true"] { border: 2px solid var(--ink); padding: 5px; }
+@media (hover: hover) { .ac-strip button:hover { border-color: var(--accent-ink); } }
+
+.ac-full { width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: #04041e; color: #fff; }
+.ac-full[open] { display: grid; grid-template-rows: auto 1fr auto; }
+.ac-full::backdrop { background: #04041e; }
+.ac-full__bar, .ac-full__foot { display: flex; align-items: center; gap: .9rem; padding: .8rem max(1rem, env(safe-area-inset-left)); }
+.ac-full__bar strong { font-family: "Space Grotesk", sans-serif; flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ac-full__pos { font-family: "Space Grotesk", sans-serif; font-weight: 600; background: #1b1b4a; padding: .35rem .75rem; border-radius: 999px; }
+.ac-full__x { width: 48px; height: 48px; border-radius: 999px; border: 1px solid #33366a; background: #0e0e2e; color: #fff; display: grid; place-items: center; cursor: pointer; }
+.ac-full__x:hover { background: #c62828; border-color: #c62828; }
+.ac-full__body { overflow: auto; display: grid; place-items: start center; padding: 0 1rem; overscroll-behavior: contain; }
+.ac-full__body img { max-width: min(100%, 1400px); height: auto; border-radius: 10px; }
+.ac-full__foot { justify-content: space-between; padding-bottom: max(.8rem, env(safe-area-inset-bottom)); }
+.ac-full__foot p { margin: 0; color: #c3c6f0; text-align: center; max-width: 70ch; flex: 1 1 auto; }
+.ac-arrow--dark { background: #0e0e2e; border-color: #33366a; color: #fff; }
+.ac-arrow--dark:hover { border-color: #fff; color: #fff; }
+
+/* -------------------------------------------------------- the public site */
+.ac-site { margin: 0; border-radius: 16px; overflow: hidden; border: 1px solid #c9ccdc; background: #fff; box-shadow: 0 30px 60px -20px #0e0e2c40; }
+.ac-site__bar { display: flex; align-items: center; gap: 7px; padding: 10px 14px; background: #eceef4; border-bottom: 1px solid #d7dae6; }
+.ac-site__bar span {
+  flex: 1 1 auto; min-width: 0; margin-left: 8px; background: #fff; border: 1px solid #d7dae6; border-radius: 999px; padding: 4px 12px;
+  font-size: .8125rem; color: #2b2b4a; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+.ac-site__win { height: clamp(420px, 62vw, 620px); overflow-y: auto; overscroll-behavior: contain; }
+.ac-site__win img { display: block; width: 100%; height: auto; }
+
+/* ----------------------------------------------------- how it fits together */
+.ac-tiers { margin: 0; background: #000065; color: #fff; border-radius: 24px; padding: clamp(1.1rem, 3vw, 2rem); display: grid; gap: .7rem; }
+.ac-tier { display: grid; gap: .6rem; }
+.ac-tier__arrow { display: flex; justify-content: center; color: #ff6500; }
+.ac-tier__arrow svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.ac-tier__label { font-size: .8125rem; font-weight: 600; color: #c3c6f0; }
+.ac-tier__boxes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: .6rem; }
+.ac-tier__box { background: #14148a; border: 1px solid #3a3aa8; border-radius: 14px; padding: .75rem .9rem; min-width: 0; }
+.ac-tier__box strong { display: block; font-family: "Space Grotesk", sans-serif; font-size: 1.05rem; }
+.pv .ac-tier__box p { margin: .2rem 0 0; color: #dfe1ff; font-size: .9rem; line-height: 1.45; }
+
+/* The case study's buttons run full width on a phone. */
+@media (max-width: 720px) { .wk-visit .pv-btn { width: 100%; justify-content: center; } }
+
+@media (prefers-reduced-motion: reduce) { .ac-view__open > .dv { animation: none; } }

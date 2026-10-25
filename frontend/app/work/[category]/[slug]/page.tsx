@@ -16,6 +16,10 @@ import MotionWall from "@/components/work/motion-wall";
 import { MOTION_PIECES } from "@/lib/motion-work";
 import PageEnd from "@/components/ui/page-end";
 import { hydrateCaseStudies } from "@/lib/work-db";
+import { AppFrame } from "@/components/work/app-frame";
+import AppScreens from "@/components/work/app-screens";
+import SiteScroll from "@/components/work/site-scroll";
+import "@/components/work/app-case.css";
 
 /* One path per case study, at its CANONICAL category only. Generating every
    category a piece is tagged to would prerender the same page at three URLs,
@@ -109,7 +113,10 @@ export default async function WorkDetailPage(
   const next = i >= 0 && i < siblings.length - 1 ? siblings[i + 1] : null;
 
   const motion = MOTION_PIECES.filter((m) => cs.motion?.includes(m.id));
-  const shots = cs.gallery ?? [];
+  /* A product we built shows its screens in their device frames instead of the
+     gallery, so the gallery is skipped rather than shown twice. */
+  const app = cs.app;
+  const shots = app ? [] : cs.gallery ?? [];
   const lead = shots.slice(0, 2);
   const rest = shots.slice(2);
   /* THE REAL SHAPE OF EACH GALLERY PAGE, read at build time.
@@ -137,8 +144,11 @@ export default async function WorkDetailPage(
   const outline = [
     { id: "about-the-client", text: "About the client" },
     { id: "the-brief", text: "The brief" },
+    ...(app ? [{ id: "the-screens", text: "The screens" }] : []),
+    ...(app?.site ? [{ id: "the-public-site", text: "The public site" }] : []),
     ...(motion.length ? [{ id: "in-motion", text: "In motion" }] : []),
     { id: "the-approach", text: "The approach" },
+    ...(app ? [{ id: "how-it-fits", text: "How it fits together" }] : []),
     { id: "what-we-did", text: "What we did" },
     ...(cs.palette?.length ? [{ id: "the-palette", text: "The palette" }] : []),
     { id: "the-system", text: cs.stackLabel ?? "Built with" },
@@ -207,7 +217,21 @@ export default async function WorkDetailPage(
                 ) : null}
               </p>
 
-              {cs.cover ? (
+              {app ? (
+                /* The opening stage: the same product on a laptop, a tablet and
+                   a phone, in the frames of the devices the screens came from. */
+                <div className="ac-stage">
+                  <div className="ac-stage__lap">
+                    <AppFrame s={app.shots[app.stage[0]]} alt={`${cs.client}: ${app.shots[app.stage[0]].title}`} sizes="(max-width: 720px) 88vw, 840px" priority />
+                  </div>
+                  <div className={`ac-stage__tab${app.shots[app.stage[1]].w > app.shots[app.stage[1]].h ? " ac-stage__tab--land" : ""}`}>
+                    <AppFrame s={app.shots[app.stage[1]]} alt={`${cs.client}: ${app.shots[app.stage[1]].title}`} sizes="460px" />
+                  </div>
+                  <div className="ac-stage__ph">
+                    <AppFrame s={app.shots[app.stage[2]]} alt={`${cs.client}: ${app.shots[app.stage[2]].title}`} sizes="(max-width: 720px) 30vw, 200px" />
+                  </div>
+                </div>
+              ) : cs.cover ? (
                 /* Screenshots are landscape and crop happily; a flyer or a
                    guide page is portrait or square, and cropping one to 16:8
                    takes the masthead off the top and the details off the
@@ -284,6 +308,21 @@ export default async function WorkDetailPage(
                     </div>
                   ) : null}
 
+                  {app ? (
+                    <section id="the-screens">
+                      <h2>The screens</h2>
+                      <p>Step through the product the way the people using it see it. The product screens use sample data, so no client records are shown.</p>
+                      <AppScreens shots={app.shots} client={cs.client} />
+                    </section>
+                  ) : null}
+
+                  {app?.site && cs.url ? (
+                    <section id="the-public-site">
+                      <h2>The public site</h2>
+                      <SiteScroll {...app.site} client={cs.client} domain={new URL(cs.url).hostname.replace(/^www\./, "")} />
+                    </section>
+                  ) : null}
+
                   {motion.length ? (
                     <section id="in-motion">
                       <h2>In motion</h2>
@@ -298,6 +337,25 @@ export default async function WorkDetailPage(
                         and a wall of prose is not read. */}
                     {cs.approach.split("\n\n").map((para) => <p key={para.slice(0, 24)}>{para}</p>)}
                   </section>
+
+                  {app ? (
+                    <section id="how-it-fits">
+                      <h2>How it fits together</h2>
+                      <figure className="ac-tiers" aria-label="How the system is put together">
+                        {app.tiers.map((t, n) => (
+                          <div className="ac-tier" key={t.label}>
+                            {n > 0 ? <span className="ac-tier__arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 4v16M6 14l6 6 6-6" /></svg></span> : null}
+                            <span className="ac-tier__label">{t.label}</span>
+                            <div className="ac-tier__boxes">
+                              {t.boxes.map((b) => (
+                                <div className="ac-tier__box" key={b.name}><strong>{b.name}</strong><p>{b.detail}</p></div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </figure>
+                    </section>
+                  ) : null}
 
                   {/* Brand copy: a line off a guide page the client signed off —
                       a positioning statement, a tagline. It is what the brand
@@ -377,7 +435,7 @@ export default async function WorkDetailPage(
                   ) : null}
 
                   {cs.url ? (
-                    <div>
+                    <div className="wk-visit">
                       <a
                         className="pv-btn pv-btn--accent"
                         href={cs.url}

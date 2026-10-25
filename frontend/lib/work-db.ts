@@ -80,7 +80,7 @@ export function hydrateCaseStudies(force = false): Promise<void> {
         if (row?.hidden) return [];
         /* A version saved in the admin before a field existed does not carry it,
            so `motion` (the loops on a case study) falls back to the code's. */
-        return [row?.live ? { ...row.live, motion: row.live.motion ?? c.motion } : c];
+        return [row?.live ? { ...row.live, motion: row.live.motion ?? c.motion, app: row.live.app ?? c.app } : c];
       });
       CASE_STUDIES.splice(0, CASE_STUDIES.length, ...fresh, ...kept);
     } catch (error) {
