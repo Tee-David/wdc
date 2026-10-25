@@ -148,6 +148,14 @@ export const CORE_STEPS: Step[] = [
       },
       {
         key: "registration_number", label: "Registration number", kind: "text", placeholder: "For example BN 1234567 or RC 1234567",
+        voice: { key: "registration_body", by: {
+          "CAC business name (BN)": { label: "Business name number (BN)", placeholder: "BN 1234567" },
+          "CAC company (RC)": { label: "Company number (RC)", placeholder: "RC 1234567" },
+          "CAC incorporated trustees (IT)": { label: "Trustees number (IT)", placeholder: "IT 123456" },
+          "SMEDAN": { label: "SMEDAN number", placeholder: "As it appears on your certificate" },
+          "A professional body": { label: "Membership number", placeholder: "As it appears on your certificate" },
+          "Another registrar": { label: "Registration number", placeholder: "As it appears on your certificate" },
+        } },
         hint: "Optional. It goes on your documents and guide, and we check it before we use it.",
         showIf: { key: "registered", equals: ["Yes"] },
       },

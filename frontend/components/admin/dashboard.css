@@ -317,3 +317,9 @@ button.adDash__chartMonth:focus-visible { outline: 2px solid var(--ad-accent); o
 
 .adFlow__stack { display: grid; gap: 1rem; min-width: 0; }
 .adFlow__rail .ad__panel { min-width: 0; }
+
+/* The head's actions stay one row on a phone: the icon-only Customise on the left, New project on the right. */
+.ad__btn--icon { width: 2.75rem; min-width: 2.75rem; padding: 0; justify-content: center; }
+@media (max-width: 640px) {
+  .adFlow__head > .ad__row { width: 100%; flex-wrap: nowrap; justify-content: space-between; }
+}

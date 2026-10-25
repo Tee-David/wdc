@@ -1,5 +1,6 @@
 "use client";
 
+import { ChecklistPick } from "./reports/multi-pick";
 import {
   createContext, Fragment, useActionState, useCallback, useContext, useEffect,
   useId, useRef,
@@ -395,6 +396,10 @@ export function Checks({
         <HintTip hint={hint} label={label} />
       </span>
       {hint ? <Hint hint={hint} /> : null}
+      {!long && options.length >= 5 ? (
+        /* A list that can grow is a searchable dropdown from five options up, never a wall of chips (owner's call, 2026-10-12). Same posted values. */
+        <ChecklistPick key={gen} name={name} legend={label} hideLegend options={options} checked={kept} placeholder="Pick from the list" />
+      ) : (
       <div className={`ad__checks${long ? " ad__checks--long" : ""}`}>
         {options.map((o) => (
           <label key={`${o.value}-${gen}`} className={`ad__check${long ? " ad__check--long" : ""}`}>
@@ -403,6 +408,7 @@ export function Checks({
           </label>
         ))}
       </div>
+      )}
       {err ? <small className="ad__fe" id={`${id}-e`}>{err}</small> : null}
     </div>
   );

@@ -16,8 +16,10 @@ import { Popover, usePopover } from "@/components/admin/pick";
 type Opt = { value: string; label: string };
 const SEARCH_FROM = 5;
 
-export function ChecklistPick({ name, legend, options, checked, placeholder = "Any" }: {
+export function ChecklistPick({ name, legend, options, checked, placeholder = "Any", hideLegend = false }: {
   name: string; legend: string; options: Opt[]; checked: string[]; placeholder?: string;
+  /** For a form field that already shows its own label above. */
+  hideLegend?: boolean;
 }) {
   const listId = useId();
   const [values, setValues] = useState(checked);
@@ -33,7 +35,7 @@ export function ChecklistPick({ name, legend, options, checked, placeholder = "A
 
   return (
     <fieldset className="rp__fs">
-      <legend>{legend}{values.length ? <span className="ad__num rp__fsN">{values.length}</span> : null}</legend>
+      <legend className={hideLegend ? "ad__sr" : undefined}>{legend}{values.length ? <span className="ad__num rp__fsN">{values.length}</span> : null}</legend>
       {values.map((v) => <input key={v} type="hidden" name={name} value={v} />)}
       {values.length ? (
         <ul className="ad__ownerChips" aria-label={`${legend}, chosen`}>

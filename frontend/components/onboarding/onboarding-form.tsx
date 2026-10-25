@@ -96,6 +96,8 @@ const visible = (f: Field, a: Answers) => isVisible(f, a);
  * conditions or the stored answer.
  */
 function voiced(f: Field, a: Answers): Field {
+  const by = f.voice ? f.voice.by[String(a[f.voice.key] ?? "")] : undefined;
+  if (by) f = { ...f, label: by.label, placeholder: by.placeholder ?? f.placeholder };
   return {
     ...f,
     label: fill(f.label, a),
