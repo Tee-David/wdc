@@ -8,6 +8,9 @@ import { FAIL, OK, type ActionState } from "@/lib/admin/validate";
 import { after } from "next/server";
 import { requireProjectActor, requireWorkspaceUser, projectRecipients, WorkspaceAccessError } from "@/lib/workspace/access";
 import { dispatchWorkspaceEvents, emitWorkspaceEvent, workspaceTransaction } from "@/lib/workspace/events";
+import { confirmUploads, readUploads, saveAttachments, signChatFile } from "@/lib/messages/attachments";
+import { rateLimit } from "@/lib/rate-limit";
+import { headers } from "next/headers";
 
 const KEY = /^[tpd]-[A-Za-z0-9_-]{1,100}$/;
 const value = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim();
@@ -79,7 +82,9 @@ export async function startTeamThread(_prev: ActionState, fd: FormData): Promise
 export async function postTeamMessage(_prev: ActionState, fd: FormData): Promise<ActionState> {
   const threadId = value(fd, "threadId"), body = value(fd, "body");
   if (!/^[0-9a-f-]{36}$/i.test(threadId)) return FAIL({}, "That chat could not be found.");
-  if (!body || body.length > 5000) return FAIL({ body: "Write a message first." });
+  const uploads = readUploads(value(fd, "attachments"), `d-${threadId}`);
+  if (!uploads) return FAIL({}, "Those files could not be read. Remove them and attach them again.");
+  if ((!body && !uploads.length) || body.length > 5000) return FAIL({ body: "Write a message or attach a file first." });
   try {
     const me = await requireWorkspaceUser(true);
     const member = await db.query("SELECT 1 FROM team_thread_members WHERE thread_id=$1 AND user_id=$2", [threadId, me.userId]);
@@ -87,6 +92,8 @@ export async function postTeamMessage(_prev: ActionState, fd: FormData): Promise
     /* A quote must point at a message in this same chat. Before migration 0057 the column is missing and the message is saved without it. */
     const raw = value(fd, "replyTo");
     const replyTo = /^[0-9a-f-]{36}$/i.test(raw) && (await db.query("SELECT 1 FROM team_messages WHERE id=$1 AND thread_id=$2", [raw, threadId])).rowCount ? raw : null;
+    const files = await confirmUploads(uploads);
+    if (!files.ok) return FAIL({}, files.error);
     const id = randomUUID();
     try {
       await db.query("INSERT INTO team_messages (id,thread_id,author_id,author_name,body,reply_to) VALUES ($1,$2,$3,$4,$5,$6)", [id, threadId, me.userId, me.name, body, replyTo]);
@@ -94,6 +101,7 @@ export async function postTeamMessage(_prev: ActionState, fd: FormData): Promise
       if ((e as { code?: string }).code !== "42703") throw e;
       await db.query("INSERT INTO team_messages (id,thread_id,author_id,author_name,body) VALUES ($1,$2,$3,$4,$5)", [id, threadId, me.userId, me.name, body]);
     }
+    await saveAttachments(`d-${threadId}`, id, me.userId, files.files);
     await db.query("UPDATE team_threads SET last_message_at=now() WHERE id=$1", [threadId]);
     /* Writing to a chat you archived brings it back to your inbox. */
     await db.query("UPDATE message_reads SET archived=false,last_read_at=now() WHERE user_id=$1 AND thread_key=$2", [me.userId, `d-${threadId}`]);
@@ -125,4 +133,17 @@ export async function postClientProjectMessage(_prev: ActionState, fd: FormData)
   } catch (e) { return FAIL({}, said(e, "The message could not be sent. Reload and try again.")); }
   revalidatePath("/portal/support"); revalidatePath(`/portal/projects/${projectId}`); revalidatePath("/admin/messages");
   return OK("Sent. The team is told straight away.");
+}
+/**
+ * One presigned upload for a picture or file in a conversation. The person is
+ * checked against the conversation first (lib/messages/attachments.ts).
+ * Rate limited per caller as abuse control: lib/rate-limit.ts is one
+ * instance's memory, so the real ceiling is this times the warm instances.
+ */
+export async function signChatUpload(input: { threadKey: string; filename: string; size: number }) {
+  const h = await headers();
+  const limit = rateLimit(`chat-upload:${h.get("x-forwarded-for") ?? "local"}`, 60, 10 * 60 * 1000);
+  if (!limit.ok) return { ok: false as const, error: "Too many files at once. Give it a minute." };
+  if (!KEY.test(String(input?.threadKey ?? ""))) return { ok: false as const, error: "That conversation could not be found." };
+  return signChatFile(input.threadKey, String(input.filename ?? "").slice(0, 200), Number(input.size));
 }

@@ -23,6 +23,7 @@ import { MarkRead, NewTeamThread, TeamReply, ThreadFlags } from "@/components/ad
 import { messagesReady, othersRead, readStates, unreadCounts, teamMessages, teamThreadsFor, type TeamThread } from "@/lib/messages/store";
 import type { Project, Ticket } from "@/lib/admin/types";
 import { ThreadLines, ThreadProvider, type ThreadLine } from "@/components/admin/thread";
+import { attachmentsFor } from "@/lib/messages/attachments";
 import "@/components/admin/conversation.css";
 import "@/components/admin/messages.css";
 
@@ -117,7 +118,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
       const name = client?.name ?? "Unknown client";
       return {
         key: `t-${t.id}`, kind: "client", name, sub: `${client?.company ?? "Client"} · ${t.subject}`, ctx: t.subject, mark: initialsOf({ name }, "client"),
-        last: last ? `${last.from === "studio" ? "You: " : ""}${last.body}` : null, lastAt: last?.at ?? t.updatedAt, waiting: t.status === "Open", count: msgs.length, lastMine: !last || last.from === "studio",
+        last: last ? `${last.from === "studio" ? "You: " : ""}${last.body || "Sent an attachment"}` : null, lastAt: last?.at ?? t.updatedAt, waiting: t.status === "Open", count: msgs.length, lastMine: !last || last.from === "studio",
         ticket: t, project: t.projectId ? getProject(t.projectId) : null,
       };
     }),
@@ -125,7 +126,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
       const n = latest.get(p.id), client = getClient(p.clientId);
       return {
         key: `p-${p.id}`, kind: "project", name: p.title, sub: `${client?.company ?? "Client"} · Project channel`, ctx: client?.company ?? "Project channel", mark: initialsOf({ name: p.title }, "studio"),
-        last: n ? `${n.author_id === me ? "You" : n.author_name.split(" ")[0]}: ${n.body}` : null, lastAt: n ? iso(n.created_at) : null, waiting: false, count: counts.get(p.id) ?? 0, lastMine: !n || n.author_id === me,
+        last: n ? `${n.author_id === me ? "You" : n.author_name.split(" ")[0]}: ${n.body || "Sent an attachment"}` : null, lastAt: n ? iso(n.created_at) : null, waiting: false, count: counts.get(p.id) ?? 0, lastMine: !n || n.author_id === me,
         project: p,
       };
     }),
@@ -134,7 +135,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
       const name = t.kind === "group" ? t.title || others.map((m) => m.name.split(" ")[0]).join(", ") : others[0]?.name ?? "Just you";
       return {
         key: `d-${t.id}`, kind: "team", name, sub: t.kind === "group" ? `Team · ${others.map((m) => m.name.split(" ")[0]).join(", ")} and you` : "Team · direct", ctx: "Team", mark: initialsOf({ name }, "studio"),
-        last: t.last ? `${t.last.authorId === me ? "You" : t.last.author.split(" ")[0]}: ${t.last.body}` : null, lastAt: t.lastAt, waiting: false, count: 0, lastMine: !t.last || t.last.authorId === me,
+        last: t.last ? `${t.last.authorId === me ? "You" : t.last.author.split(" ")[0]}: ${t.last.body.trim() || "Sent an attachment"}` : null, lastAt: t.lastAt, waiting: false, count: 0, lastMine: !t.last || t.last.authorId === me,
         team: t,
       };
     }),
@@ -207,6 +208,8 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
     if (msgs) lines = msgs.map((m) => ({ id: m.id, who: m.authorName, mine: m.authorId === me, at: m.at, body: m.body, replyTo: m.replyTo ?? null }));
     else threadError = "This chat could not be read. Reload the page.";
   }
+  /* Pictures and files on the open conversation's messages, with signed links. */
+  const files = open ? await attachmentsFor(open.key, lines.map((l) => l.id)) : new Map();
   const openClient = open?.ticket ? getClient(open.ticket.clientId) : open?.project ? getClient(open.project.clientId) : null;
   /* A fresh ticket read, so a reply that just changed its status shows it. */
   const ticket = open?.ticket ? getTicket(open.ticket.id) ?? open.ticket : null;
@@ -309,7 +312,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
                     <ThreadLines label="Messages" lines={lines.map((m, i): ThreadLine => {
                       const day = dateWords(m.at, now, true), prev = lines[i - 1];
                       return {
-                        ...m, day: !prev || dateWords(prev.at, now, true) !== day ? day : undefined,
+                        ...m, files: files.get(m.id), day: !prev || dateWords(prev.at, now, true) !== day ? day : undefined,
                         time: new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" }).format(new Date(m.at)),
                         initials: initialsOf({ name: m.who }, m.mine ? "studio" : "client"),
                       };

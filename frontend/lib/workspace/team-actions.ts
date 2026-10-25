@@ -8,6 +8,7 @@ import { requireProjectActor,projectRecipients } from './access';
 import { workspaceTransaction,emitWorkspaceEvent,dispatchWorkspaceEvents,cancelWorkspaceEvents,type Queryable, type WorkspaceEvent,type WorkspaceRecipient } from './events';
 import {assertTeamActor,assertTeamRecipient} from './team-guard';
 import { dueDate } from './notifications-policy';
+import { confirmUploads, readUploads, saveAttachments } from '@/lib/messages/attachments';
 const value=(fd:FormData,key:string)=>String(fd.get(key)??'').trim();
 function refresh(projectId:string){revalidatePath(`/admin/projects/${projectId}`);revalidatePath(`/portal/projects/${projectId}`);revalidatePath('/admin');}
 async function staffRecipient(projectId:string,userId:string) {
@@ -82,7 +83,9 @@ export async function completeWorkspaceTask(_prev:ActionState,fd:FormData):Promi
 export async function addWorkspaceTeamNote(_prev:ActionState,fd:FormData):Promise<ActionState> {
  try {
   const projectId=value(fd,'projectId'),actor=await requireProjectActor(projectId,'comment'),body=value(fd,'body'),visibility=value(fd,'visibility'),handover=value(fd,'handoverId')||null,mention=value(fd,'mentionUserId')||null,replyTo=value(fd,'replyTo')||null,id=randomUUID(),events:string[]=[];
-  if(!body||body.length>5000||!['client','internal'].includes(visibility)||actor.kind==='client')return FAIL({},'Write a note and deliberately choose internal or client sharing.');
+  const uploads=readUploads(value(fd,'attachments'),`p-${projectId}`);if(!uploads)return FAIL({},'Those files could not be read. Remove them and attach them again.');
+  if((!body&&!uploads.length)||body.length>5000||!['client','internal'].includes(visibility)||actor.kind==='client')return FAIL({},'Write a note or attach a file, and deliberately choose internal or client sharing.');
+  const files=await confirmUploads(uploads);if(!files.ok)return FAIL({},files.error);
   if(visibility==='client'&&!actor.canManage)return FAIL({},'Only the project lead can publish a client update.');
   let recipients:WorkspaceRecipient[]=await projectRecipients(projectId,visibility==='internal'?'internal':'all');
   if(mention)recipients=await staffRecipient(projectId,mention);
@@ -91,6 +94,7 @@ export async function addWorkspaceTeamNote(_prev:ActionState,fd:FormData):Promis
    if(handover&&!(await tx.query('SELECT id FROM workspace_handovers WHERE id=$1 AND project_id=$2',[handover,projectId])).rowCount)throw new Error('Choose a handover from this project.');
    if(replyTo){const parent=await tx.query<{author_id:string;visibility:string}>('SELECT author_id,visibility FROM workspace_team_notes WHERE id=$1 AND project_id=$2',[replyTo,projectId]);if(!parent.rows[0]||parent.rows[0].visibility!==visibility)throw new Error('A reply must keep the original note’s visibility.');const person=(await projectRecipients(projectId,visibility==='internal'?'internal':'all')).find(r=>r.userId===parent.rows[0].author_id);if(person)recipients=[...recipients,person];}
    await tx.query('INSERT INTO workspace_team_notes(id,project_id,handover_id,author_id,author_name,visibility,body,mention_user_id,reply_to) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)',[id,projectId,handover,actor.id,actor.name,visibility,body,mention,replyTo]);
+   if(files.files.length)await saveAttachments(`p-${projectId}`,id,actor.id,files.files);
    await event({projectId,clientId:actor.clientId,kind:replyTo?'team.note_replied':visibility==='client'?'project.update_published':'team.note_added',category:mention||replyTo?'actions':'progress',actorId:actor.id,actorName:actor.name,title:replyTo?'A project note has a reply':mention?'A colleague needs your attention':visibility==='client'?'A project update is ready':'An internal project note was added',summary:body.slice(0,3000),href:`/admin/projects/${projectId}?workspace=team#note-${id}`,visibility:visibility as 'internal'|'client',recipients},tx,events);
   });schedule(events,projectId);return OK(visibility==='client'?'Published the client update.':'Saved the internal note.');
  }catch(error){return FAIL({},error instanceof Error?error.message:'The note could not be saved.');}
