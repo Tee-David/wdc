@@ -15,18 +15,18 @@ export type BulkAction = { kind: string; label: string; icon: keyof typeof ICONS
 
 /** A row's tick box. Inside the first cell, so the phone's sticky column keeps it. */
 export function RowPick({ id, label }: { id: string; label: string }) {
-  return <input type="checkbox" className="adRowPick" value={id} aria-label={`Select ${label}`} />;
+  return <label className="adPickHit"><input type="checkbox" className="adRowPick" value={id} aria-label={`Select ${label}`} /></label>;
 }
 
 /** "Select all" in the header: ticks or clears every visible row in the table. */
 export function PickAll({ label = "Select all" }: { label?: string }) {
   return (
-    <input type="checkbox" className="adRowPickAll" aria-label={label}
+    <label className="adPickHit"><input type="checkbox" className="adRowPickAll" aria-label={label}
       onChange={(e) => {
         const table = e.currentTarget.closest("table");
         table?.querySelectorAll<HTMLInputElement>("tbody tr:not([hidden]) .adRowPick").forEach((b) => { b.checked = e.currentTarget.checked; });
         table?.dispatchEvent(new Event("change", { bubbles: true }));
-      }} />
+      }} /></label>
   );
 }
 
