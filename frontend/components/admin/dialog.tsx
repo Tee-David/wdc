@@ -122,7 +122,7 @@ export function Dialog({
  * `close` lets the form inside call it without the caller wiring state.
  */
 export function DialogButton({
-  label, title, children, tone = "primary", icon: Icon, wide, dataTour, startOpen = false,
+  label, title, children, tone = "primary", icon: Icon, wide, dataTour, startOpen = false, iconOnly = false,
 }: {
   label: string;
   title: string;
@@ -135,18 +135,22 @@ export function DialogButton({
   dataTour?: string;
   /** Open on arrival, for a link that sends someone here to do this one thing. */
   startOpen?: boolean;
+  /** Show only the icon; the label becomes its name and tooltip. Needs `icon`. */
+  iconOnly?: boolean;
 }) {
   const [open, setOpen] = useState(startOpen);
   return (
     <>
       <button
         type="button"
-        className={`ad__btn${tone === "primary" ? " ad__btn--primary" : ""}`}
+        className={`ad__btn${tone === "primary" ? " ad__btn--primary" : ""}${iconOnly && Icon ? " ad__btn--icon" : ""}`}
         onClick={() => setOpen(true)}
         data-tour={dataTour}
+        aria-label={iconOnly && Icon ? label : undefined}
+        title={iconOnly && Icon ? label : undefined}
       >
         {Icon ? <Icon aria-hidden={true} /> : null}
-        {label}
+        {iconOnly && Icon ? null : label}
       </button>
       <Dialog open={open} onClose={() => setOpen(false)} title={title} wide={wide}>
         {open ? children(() => setOpen(false)) : null}

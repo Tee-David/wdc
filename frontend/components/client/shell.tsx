@@ -1,5 +1,6 @@
 "use client";
 
+import { SheetDrag } from "@/components/admin/sheet-drag";
 import { useSupportReadOnly } from "./support-context";
 import { SUPPORT_EXIT } from "@/lib/users/support-policy";
 import Link from "next/link";
@@ -231,6 +232,7 @@ export default function ClientShell({
 
   return (
     <div className={`ad__wrap${pinnedCollapsed ? " is-collapsed" : ""}`}>
+      <SheetDrag />
       <aside
         className={`ad__side${pinnedCollapsed && hoverExpanded ? " is-hoverExpanded" : ""}`}
         onMouseEnter={() => pinnedCollapsed && setHoverExpanded(true)}

@@ -9,7 +9,7 @@ import { DialogButton } from "./dialog";
 /** Choose which panels the dashboard shows. Saved to the account, so it follows the person to any device. */
 export function CustomiseDashboard({ hidden }: { hidden: string[] }) {
   return (
-    <DialogButton label="Customise" title="What the dashboard shows" icon={SlidersHorizontal} tone="plain">
+    <DialogButton label="Customise the dashboard" title="What the dashboard shows" icon={SlidersHorizontal} tone="plain" iconOnly>
       {(close) => (
         <Form action={saveDashboardPanels} onDone={close}>
           <Fields>

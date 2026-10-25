@@ -1,5 +1,6 @@
 "use client";
 
+import { SheetDrag } from "@/components/admin/sheet-drag";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -610,6 +611,7 @@ function ShellFrame({ children, counts, user, support }: { children: ReactNode; 
 
   return (
     <div className={`ad__wrap${pinnedCollapsed ? " is-collapsed" : ""}`}>
+      <SheetDrag />
       <aside
         className={`ad__side${pinnedCollapsed && hoverExpanded ? " is-hoverExpanded" : ""}`}
         onMouseEnter={() => pinnedCollapsed && setHoverExpanded(true)}

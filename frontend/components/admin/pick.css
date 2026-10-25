@@ -152,3 +152,6 @@
 .dark [data-pick-skin="public"], .dark .adPick--public { --ad-line: #2c2e62; --ad-hover: #1b1b4a; --ad-bad: #ef9a9a; }
 [data-pick-skin="public"] .adPick__btn { padding: 11px 14px; font-size: .95rem; border-color: var(--rule, var(--ad-line)); background: var(--paper, var(--ad-panel)); color: var(--ink, var(--ad-ink)); }
 [data-pick-skin="public"] .adPick__btn:hover { border-color: var(--muted); }
+
+/* The fieldset around a ChecklistPick, wherever it is used (reports, and any form list of five or more). */
+.rp__fs { border: 0; padding: 0; margin: 0; min-width: 0; display: grid; gap: .55rem; }

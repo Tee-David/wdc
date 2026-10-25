@@ -1773,7 +1773,7 @@ html.is-dragging, html.is-dragging * { cursor: grabbing !important; }
    Left alone: buttons in a table, the pager, tabs and menus, which are
    sized by what sits beside them. */
 @media (max-width: 640px) {
-  .ad :is(form, .ad__row, .adDash__attentionActions, .cpDeliv__acts, .ad__panelFoot, .ad__profileActions) .ad__btn:not(.ad__iconButton):not(:is(td, .ad__pager, .ad__switch, .ad__tabsNav, .ad__rmList, .ad__filterBar, .ad__range, .adBulk, .adEntryActs, .adCover__acts) .ad__btn) {
+  .ad :is(form, .ad__row, .adDash__attentionActions, .cpDeliv__acts, .ad__panelFoot, .ad__profileActions) .ad__btn:not(.ad__iconButton):not(.ad__btn--icon):not(:is(td, .ad__pager, .ad__switch, .ad__tabsNav, .ad__rmList, .ad__filterBar, .ad__range, .adBulk, .adEntryActs, .adCover__acts) .ad__btn) {
     flex: 1 1 12rem; width: 100%; justify-content: center;
   }
   .ad :is(form, .ad__panelFoot) > .ad__btn { width: 100%; }
@@ -2189,3 +2189,21 @@ td:has(.adRowPick) , .ad__pickCell { white-space: nowrap; }
   .ad__wrap { display: block !important; }
   .ad__column { min-height: 0; }
 }
+
+/* On a phone the date range and per-page menus are bottom sheets: a scrim, a
+   grab bar to pull them down (sheet-drag.tsx), the body scrolling inside. */
+@media (max-width: 640px) {
+  .ad__range[open]::before, .ad__perPage[open]::before { content: ""; position: fixed; inset: 0; z-index: 93; background: rgb(6 6 28 / .45); }
+  .ad__range[open] > .ad__rangeMenu, .ad__perPage[open] > .ad__perMenu,
+  .ad__filterBar .ad__range[open] > .ad__rangeMenu {
+    position: fixed; z-index: 94; top: auto; left: 0; right: 0; bottom: 0; width: auto; min-width: 0;
+    max-height: 85dvh; overflow-y: auto; overscroll-behavior: contain;
+    border-radius: 26px 26px 0 0; padding-top: 1.6rem; padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+    animation: ad-sheet-in .3s cubic-bezier(.16,1,.3,1) backwards;
+  }
+  .ad__range[open] > .ad__rangeMenu::before, .ad__perPage[open] > .ad__perMenu::before {
+    content: ""; position: absolute; top: .6rem; left: 50%; width: 2.5rem; height: 5px; margin-left: -1.25rem; border-radius: 99px; background: var(--ad-line-2);
+  }
+  .ad__perMenu a, .ad__rangePresets a { min-height: 3rem; }
+}
+@media (prefers-reduced-motion: reduce) { .ad__rangeMenu, .ad__perMenu { animation: none !important; } }
