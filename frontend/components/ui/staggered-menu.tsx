@@ -264,8 +264,29 @@ export default function StaggeredMenu({
     }
   }, [film, playOpen, playClose, onMenuOpen, onMenuClose, onFilmChange]);
 
-  const closeMenu = useCallback(() => {
+  const closeMenu = useCallback((e?: React.MouseEvent) => {
     if (!openRef.current) return;
+    /* A LINK THE PAGE CURTAIN TOOK (components/intro/preloader.tsx marks the
+       click handled and sets data-curtain before this runs). The panel's own
+       sideways exit, played under a sheet coming down from the top, read as
+       two motions crossing ("it comes from a corner", owner, 2026-10-25). So
+       the panel holds still while the sheet covers it, then closes out of
+       sight in one step. Both concepts have covered the screen by 560ms. */
+    if (e?.defaultPrevented && document.documentElement.dataset.curtain) {
+      window.setTimeout(() => {
+        if (!openRef.current) return;
+        openRef.current = false;
+        setOpen(false);
+        onMenuClose?.();
+        openTlRef.current?.kill();
+        openTlRef.current = null;
+        closeTweenRef.current?.kill();
+        const layers = preLayersRef.current ? Array.from(preLayersRef.current.querySelectorAll(".sm-prelayer")) : [];
+        if (panelRef.current && gsapRef.current) gsapRef.current.set([...layers, panelRef.current], { xPercent: 100 });
+        busyRef.current = false;
+      }, 560);
+      return;
+    }
     openRef.current = false;
     setOpen(false);
     if (openedAsFilm.current) {
