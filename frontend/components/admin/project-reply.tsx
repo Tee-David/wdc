@@ -3,7 +3,7 @@
 import { Send } from "lucide-react";
 import { addWorkspaceTeamNote } from "@/lib/workspace/team-actions";
 import { Area, Form, Hidden, Submit } from "./form";
-import { ReplyingTo, useReply } from "./thread";
+import { ChatAttach, ReplyingTo, useReply, useSent, useUploading } from "./thread";
 
 /**
  * A NOTE IN A PROJECT CHANNEL. Team only by default; the project lead can
@@ -11,13 +11,15 @@ import { ReplyingTo, useReply } from "./thread";
  * The server checks the same rule again (addWorkspaceTeamNote).
  */
 export function ProjectReply({ projectId, canPublish }: { projectId: string; canPublish: boolean }) {
-  const { reply, setReply } = useReply();
+  const { reply } = useReply();
+  const sent = useSent(), uploading = useUploading();
   /* A reply keeps the visibility of the note it answers; the server refuses anything else. */
   const fixed = reply?.visibility;
   return (
-    <Form className="adCmp" action={addWorkspaceTeamNote} resetOnDone onDone={(st) => { if (st.ok) setReply(null); }}>
+    <Form className="adCmp" action={addWorkspaceTeamNote} resetOnDone onDone={(st) => { if (st.ok) sent(); }}>
       <Hidden name="projectId" value={projectId} />
       <ReplyingTo />
+      <ChatAttach threadKey={`p-${projectId}`} />
       {fixed ? (
         <>
           <Hidden name="visibility" value={fixed} />
@@ -35,8 +37,8 @@ export function ProjectReply({ projectId, canPublish }: { projectId: string; can
           <p className="adMx__hint">Stays with the team. Only the project lead can publish to the client.</p>
         </>
       )}
-      <Area name="body" label="Your message" required rows={1} placeholder="Message the channel" />
-      <Submit tone="primary" icon={Send}><span className="ad__btnTxt">Send message</span></Submit>
+      <Area name="body" label="Your message" rows={1} placeholder="Message the channel" />
+      <Submit tone="primary" icon={Send} disabled={uploading}><span className="ad__btnTxt">Send message</span></Submit>
     </Form>
   );
 }

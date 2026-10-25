@@ -29,6 +29,7 @@ import { changeProjectRecord, changeLegacyTask, createProjectRecord } from "@/li
 import { persistSoon, syncStore, saveStore } from "@/lib/admin/persist";
 import { isIconColor, isProjectIcon, randomProjectIcon } from "@/lib/project-icons";
 import { mediaByKey } from "@/lib/media";
+import { confirmUploads, readUploads, saveAttachments } from "@/lib/messages/attachments";
 
 /**
  * THE ADMIN'S WRITE ENDPOINTS.
@@ -1588,17 +1589,24 @@ export async function replyToTicketAsStudio(_prev: ActionState, fd: FormData): P
   /* Staff write only to their own clients and projects (lib/admin/staff-scope.ts). */
   { const scoped = await outOfScope({ ticket: str(fd, "id") }); if (scoped) return scoped; }
   const body = str(fd, "body");
-  if (!body) return FAIL({ body: "Type a reply first." });
+  const uploads = readUploads(str(fd, "attachments"), `t-${str(fd, "id")}`);
+  if (!uploads) return FAIL({}, "Those files could not be read. Remove them and attach them again.");
+  if (!body && !uploads.length) return FAIL({ body: "Type a reply or attach a file first." });
+  const files = await confirmUploads(uploads);
+  if (!files.ok) return FAIL({}, files.error);
   /* Signed with the person's name: "Studio" told the client nothing about
      who they were talking to. */
   const author = await actorName();
   const t = db.addTicketMessage({ ticketId: str(fd, "id"), from: "studio", author, body, replyTo: str(fd, "replyTo") || undefined });
   if (!t) return FAIL({}, "That conversation is no longer there.");
+  if (files.files.length) await saveAttachments(`t-${t.ticketId}`, t.id, author, files.files);
   const ticket = db.getTicket(t.ticketId);
   if (ticket) {
     refresh(`/admin/clients/${ticket.clientId}`, "/admin/clients/support", `/admin/clients/support/${ticket.id}`, "/admin/messages", "/portal/support", `/portal/support/${ticket.id}`, "/portal");
     /* The client's copy goes behind the response; the row is written first. */
-    const run=await stageSupportReply({ticket,reply:body,author,messageId:t.id,by:author});
+    /* The email names the files; they are opened from the portal, where the signed links live. */
+    const reply = files.files.length ? `${body}${body ? "\n\n" : ""}Attached: ${files.files.map((f) => f.name).join(", ")}. Open the conversation in your portal to see ${files.files.length === 1 ? "it" : "them"}.` : body;
+    const run=await stageSupportReply({ticket,reply,author,messageId:t.id,by:author});
     if(typeof run==='function')after(run);
   }
   return OK("Reply saved. Any enabled email is queued; the message log shows its outcome.");

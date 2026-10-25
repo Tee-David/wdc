@@ -10,6 +10,8 @@ import { PageHead } from "@/components/admin/page-head";
 import { Chips } from "@/components/admin/chips";
 import { Empty } from "@/components/admin/bits";
 import { dateWords, nowMs, whenWords } from "@/lib/admin/when";
+import { MessageFiles } from "@/components/admin/thread";
+import { attachmentsFor } from "@/lib/messages/attachments";
 import "@/components/admin/conversation.css";
 import "@/components/admin/messages.css";
 import "@/components/client/portal.css";
@@ -20,7 +22,7 @@ const STATE: Record<string, { cls: string; label: string }> = {
   Closed: { cls: "ad__pill--flat", label: "Closed" },
 };
 const time = (iso: string) => new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" }).format(new Date(iso));
-type Note = { id: string; project_id: string; author_id: string; author_name: string; body: string; created_at: string | Date };
+type Note = { id: string; project_id: string; author_id: string; author_name: string; body: string; created_at: string | Date; reply_to?: string | null };
 type Row = { key: string; href: string; title: string; last: string; at: string | null; fresh: boolean; kind: "ticket" | "project" };
 
 /**
@@ -51,12 +53,12 @@ export async function PortalThread({ client, userId, primary, allowedProjectIds,
     ...projects.map((p): Row => {
       const n = latest.get(p.id);
       return { key: `p-${p.id}`, kind: "project", href: `/portal/support/project/${p.id}`, title: p.title, at: n ? new Date(n.created_at).toISOString() : null, fresh: false,
-        last: n ? `${n.author_id === userId ? "You" : n.author_name.split(" ")[0]}: ${n.body}` : "Project channel" };
+        last: n ? `${n.author_id === userId ? "You" : n.author_name.split(" ")[0]}: ${n.body || "Sent an attachment"}` : "Project channel" };
     }),
     ...tickets.filter((t) => (t.status === "Closed") === closedView).map((t): Row => {
       const last = getTicketMessages(t.id).at(-1);
       return { key: `t-${t.id}`, kind: "ticket", href: `/portal/support/${t.id}`, title: t.subject, at: t.updatedAt, fresh: t.status === "Answered",
-        last: last ? `${last.from === "client" ? "You" : last.author.split(/\s+/)[0]}: ${last.body}` : "No messages yet" };
+        last: last ? `${last.from === "client" ? "You" : last.author.split(/\s+/)[0]}: ${last.body || "Sent an attachment"}` : "No messages yet" };
     }),
   ].sort((a, b) => (b.at ?? "").localeCompare(a.at ?? ""));
   const openKey = open.kind === "ticket" ? `t-${open.ticket.id}` : `p-${open.projectId}`;
@@ -64,20 +66,23 @@ export async function PortalThread({ client, userId, primary, allowedProjectIds,
   const here = open.kind === "ticket" ? `/portal/support/${open.ticket.id}` : `/portal/support/project/${open.projectId}`;
 
   /* The open conversation's lines. */
-  type Line = { id: string; who: string; mine: boolean; at: string; body: string };
+  type Line = { id: string; who: string; mine: boolean; at: string; body: string; replyTo?: string | null };
   let lines: Line[] = [];
   let title = "", sub = "";
   const project = open.kind === "project" ? getProject(open.projectId) : open.ticket.projectId ? getProject(open.ticket.projectId) : null;
   if (open.kind === "ticket") {
-    lines = getTicketMessages(open.ticket.id).map((m) => ({ id: m.id, who: m.author, mine: m.from === "client", at: m.at, body: m.body }));
+    lines = getTicketMessages(open.ticket.id).map((m) => ({ id: m.id, who: m.author, mine: m.from === "client", at: m.at, body: m.body, replyTo: m.replyTo ?? null }));
     title = open.ticket.subject; sub = `Opened ${dateWords(open.ticket.createdAt, now, false)}`;
   } else {
     try {
-      const r = await db.query<Note>("SELECT id,project_id,author_id,author_name,body,created_at FROM workspace_team_notes WHERE project_id=$1 AND visibility='client' ORDER BY created_at DESC LIMIT 80", [open.projectId]);
-      lines = r.rows.reverse().map((n) => ({ id: n.id, who: n.author_name, mine: n.author_id === userId, at: new Date(n.created_at).toISOString(), body: n.body }));
+      const r = await db.query<Note>("SELECT id,project_id,author_id,author_name,body,created_at,reply_to FROM workspace_team_notes WHERE project_id=$1 AND visibility='client' ORDER BY created_at DESC LIMIT 80", [open.projectId]);
+      lines = r.rows.reverse().map((n) => ({ id: n.id, who: n.author_name, mine: n.author_id === userId, at: new Date(n.created_at).toISOString(), body: n.body, replyTo: n.reply_to ?? null }));
     } catch { lines = []; }
     title = project?.title ?? "Project"; sub = "Project channel · your team and you";
   }
+  /* The studio's pictures and files, signed for this client's own conversation only. */
+  const files = await attachmentsFor(open.kind === "ticket" ? `t-${open.ticket.id}` : `p-${open.projectId}`, lines.map((l) => l.id));
+  const byId = new Map(lines.map((l) => [l.id, l]));
   const st = open.kind === "ticket" ? STATE[open.ticket.status] ?? STATE.Open : null;
 
   return (
@@ -141,7 +146,9 @@ export async function PortalThread({ client, userId, primary, allowedProjectIds,
                           <span className={`adConv__av ad__av${m.mine ? " ad__av--live" : ""}`} aria-hidden="true">{initialsOf({ name: m.who }, m.mine ? "client" : "studio")}</span>
                           <div className="adConv__bubble">
                             <p className="adConv__who"><b>{m.mine ? "You" : m.who}</b> <time dateTime={m.at}>{time(m.at)}</time></p>
-                            <p className="adConv__body">{m.body}</p>
+                            {m.replyTo ? (() => { const q = byId.get(m.replyTo); return <p className="adTh__quote" style={{ cursor: "default" }}><b>{q ? (q.mine ? "You" : q.who) : "Earlier message"}</b><span>{q ? q.body || "A picture or file" : "Further up the conversation."}</span></p>; })() : null}
+                            {files.get(m.id)?.length ? <MessageFiles files={files.get(m.id)!} /> : null}
+                            {m.body ? <p className="adConv__body">{m.body}</p> : null}
                           </div>
                         </div>
                       </li>

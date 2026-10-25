@@ -6,7 +6,7 @@ import { markThreadRead, postTeamMessage, setThreadFlag, startTeamThread } from 
 import { DialogButton } from "./dialog";
 import { Area, Field, Form, Hidden, Submit } from "./form";
 import { RemoteChecks } from "./remote-pick";
-import { ReplyingTo, useReply } from "./thread";
+import { ChatAttach, ReplyingTo, useSent, useUploading } from "./thread";
 
 /** Remembers that this person has read the open conversation. Renders nothing. */
 export function MarkRead({ threadKey }: { threadKey: string }) {
@@ -50,13 +50,14 @@ export function NewTeamThread() {
 
 /** The reply box in a team chat. */
 export function TeamReply({ threadId }: { threadId: string }) {
-  const { setReply } = useReply();
+  const sent = useSent(), uploading = useUploading();
   return (
-    <Form className="adCmp" action={postTeamMessage} resetOnDone onDone={(st) => { if (st.ok) setReply(null); }}>
+    <Form className="adCmp" action={postTeamMessage} resetOnDone onDone={(st) => { if (st.ok) sent(); }}>
       <Hidden name="threadId" value={threadId} />
       <ReplyingTo />
-      <Area name="body" label="Your message" required rows={1} placeholder="Message" />
-      <Submit tone="primary" icon={Send}><span className="ad__btnTxt">Send message</span></Submit>
+      <ChatAttach threadKey={`d-${threadId}`} />
+      <Area name="body" label="Your message" rows={1} placeholder="Message" />
+      <Submit tone="primary" icon={Send} disabled={uploading}><span className="ad__btnTxt">Send message</span></Submit>
     </Form>
   );
 }
