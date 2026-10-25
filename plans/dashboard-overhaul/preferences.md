@@ -159,3 +159,11 @@ Model rule, binding (updated 2026-10-11): the remaining prototype pages, for eve
 - 2026-10-25 retainers: billing is chosen per client (whole term up front, monthly or quarterly). When one falls due the system drafts the invoice on Today and asks; nothing is emailed without Admin pressing Send. A retainer tracks systems covered (each with notes, access owner, renewal date), included work per period, costs passed on (VPS, database, API credits) and a monthly report. Realtors' Practice: six month retainer, maintains the scraper app, the website (complete) and the VPS.
 - 2026-10-25 social media client emails: posts ready to approve (one email per batch), reminder when approval is late, post published with its link, monthly results report.
 - 2026-10-25 people and approvals: Admin and department leads assign work; staff can hand their own task over. A project has several equal owners. A silent client gets reminders and then a card on Today; nothing is ever approved on their behalf. Staff are told in the app plus one daily email.
+
+## 2026-10-25 (responsive pass)
+
+- Segmented controls never overflow: equal columns that shrink, long labels wrap; on a phone a view switch (List, Board, Timeline, Calendar) shows icons only.
+- The registration number field follows the body picked: Business name number (BN), Company number (RC), Trustees number (IT), SMEDAN number, Membership number. BN and RC are different numbers.
+- Customise on Today is an icon on the left of New project, on one row on a phone.
+- Any pick from five options up is a searchable dropdown, never a wall of chips with a search box above it (filters, forms, the invoice builder's project).
+- Every bottom sheet on a phone drags down to close, including menus, pickers, the date range, the per-page menu and notifications.
