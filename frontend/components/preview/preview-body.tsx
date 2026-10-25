@@ -466,6 +466,9 @@ export default function PreviewBody({ faqs = FAQS }: { faqs?: Faq[] }) {
               <a
                 className="pv-job"
                 key={p.url}
+                /* A plain click opens the live preview in place, so the page
+                   curtain must not take it for a navigation. */
+                data-no-curtain=""
                 href={caseHref(p.caseSlug) ?? p.url}
                 onClick={(e) => {
                   if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;

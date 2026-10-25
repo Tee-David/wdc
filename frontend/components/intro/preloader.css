@@ -1,120 +1,348 @@
 /* ============================================================================
-   Preloader.
+   Preloader and page curtain.
 
-   Covers the page while the logo assembles, then fades. Everything here is
-   non-blocking on purpose: `pointer-events: none` so the overlay cannot
-   swallow a click, and no scroll lock anywhere, so someone who already knows
-   the site can scroll straight through it.
+   The choreography is written here, a beat at a time, as CSS animations with
+   delays. The component only switches phases (`data-phase`: enter, wait,
+   leave), which is why the first load can start before any JavaScript has
+   run: the overlay is in the server HTML and the clock starts at first paint.
+
+   Every timing is in milliseconds from the start of its phase. The numbers
+   the component also needs (when to leave, when the curtain has closed, when
+   the build is done) are repeated in TIMES in preloader.tsx.
+
+   Transform and opacity only, with two exceptions that are the drawing
+   itself: `stroke-dashoffset` on the pens that reveal the C, and
+   `stroke-dasharray` on the four swirl strokes. Both are single paths inside
+   one small SVG.
    ========================================================================== */
 
-/* HIDDEN BY DEFAULT, shown only when the pre-paint script in app/layout.tsx
-   says so. Doing it this way round means the server and the client render the
-   same markup -- there is nothing for hydration to disagree about -- and the
-   overlay is either there on the very first frame or never there at all,
-   rather than appearing a beat after the page has painted. */
-.pl { display: none; }
+/* The mark's pieces, defined once and placed with <use>. Not `display: none`,
+   which some engines treat as "do not resolve references into this". */
+.pl-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
 
-[data-preload="play"] .pl {
-  position: fixed; inset: 0; z-index: 200;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  background: var(--background);
+.pl {
+  position: fixed; inset: 0; z-index: 1000;
   pointer-events: none;
-  /* ONE number, and everything else derived from it. The mark's height is the
-     input; its width comes from the 904x944 viewBox and the box it opens into
-     is that width plus the 14px gap before the rule. Setting the two by hand
-     is what clipped the left of the mark: `width: auto` on the svg did not
-     resolve to the aspect-derived width inside this flex box, so the mark came
-     out wider than the box that was supposed to contain it and `overflow:
-     hidden` sliced it. Deriving both from `--pl-h` means they cannot disagree
-     -- too small and the mark is cut, too large and the finished lockup has a
-     gap down the middle of it. */
-  --pl-h: 64px;
-  --pl-mark: calc(var(--pl-h) * 904 / 944 + 14px);
-  opacity: 1;
-  transition: opacity .45s ease-in-out;
+  /* ONE number, the mark's height; everything else follows from it.
+     --mw   the mark's width, from the 904 x 944 viewBox
+     --fs   the wordmark's size, the header lockup's ratio (16.8 / 36)
+     --ww   the wordmark's width: "Creativity" is 4.50em in Space Grotesk
+            Bold and 4.56em in the fallback, so the wider is reserved
+     --gap  mark to wordmark, the header's 8 / 36 */
+  --h: clamp(66px, 13vmin, 120px);
+  --mw: calc(var(--h) * 904 / 944);
+  --fs: calc(var(--h) * .45);
+  --ww: calc(var(--fs) * 4.56);
+  --gap: calc(var(--h) * .22);
+  /* The orange is the brand's cursor and nib, and nothing else here. */
+  --pl-orange: #ff6500;
 }
-.pl.is-leaving { opacity: 0; }
-/* THE BAR GOES FIRST, and faster than the overlay it sits on.
 
-   The overlay fades for 450ms, and for most of that the page underneath is
-   already legible while the bar is still being painted on top of it -- a
-   2px rule lying across whatever happens to be at that height. On /services
-   that is the jump ticker, which is where this was reported from: a faint
-   line through the middle of the marquee on a freshly loaded page, gone a
-   moment later, and nothing in the ticker's own styles to explain it.
+/* The first-load overlays are in the server HTML for both concepts and stay
+   hidden unless the pre-paint script chose this one. */
+.pl[data-mode="load"] { display: none; }
+html[data-preload="play"][data-loader="ink"] .pl-ink[data-mode="load"],
+html[data-preload="play"][data-loader="blueprint"] .pl-bp[data-mode="load"] { display: block; }
 
-   120ms, so it is out of the way before the page shows through at all. */
-.pl.is-leaving .pl__bar {
-  opacity: 0;
-  transition: opacity .12s linear;
-}
-@media (min-width: 768px) { .pl { --pl-h: 104px; } }
+/* Between pages the curtain takes the clicks for the second it is up, so a
+   second click cannot land on a page that is leaving. The first load stays
+   pass-through: nobody chose to wait for it. */
+.pl[data-mode="route"] { pointer-events: auto; }
 
-.pl__lockup { display: flex; align-items: center; }
+/* Shared by both concepts' wordmarks and labels. */
+.pl svg { overflow: visible; display: block; }
+.pl svg * { transform-box: fill-box; }
 
-/* `overflow: hidden` is load-bearing. The mark starts 140px to the left of
-   here, and without the clip it would be visible sliding in across the empty
-   half of the screen rather than appearing out of the growing box. */
-.pl__markbox {
-  display: flex; justify-content: flex-end;
-  overflow: hidden;
-  width: 0;
-  animation: pl-open .65s cubic-bezier(.34, 1.56, .64, 1) .05s forwards;
-}
-.pl__mark {
-  display: inline-flex; padding-right: 14px;
-  opacity: 0; transform: translateX(-140px);
-  animation: pl-mark-in .65s cubic-bezier(.34, 1.56, .64, 1) .12s forwards;
-}
-.pl__mark svg { height: var(--pl-h); width: calc(var(--pl-h) * 904 / 944); }
-
-@keyframes pl-open { to { width: var(--pl-mark); } }
-@keyframes pl-mark-in { to { opacity: 1; transform: translateX(0); } }
-
-/* The wordmark sits at the site's own lockup proportions, so the shape the
-   preloader lands on is the shape in the header. */
-.pl__word {
-  border-left: 1px solid color-mix(in srgb, currentColor 18%, transparent);
-  padding-left: 14px;
-  line-height: 1;
-  font-family: var(--font-space-grotesk), system-ui, sans-serif;
-  color: var(--foreground);
-}
-.pl__w1, .pl__w2 { display: block; font-weight: 700; letter-spacing: -.02em; }
-.pl__w1 { font-size: clamp(1.5rem, 3.4vw, 2.4rem); }
-.pl__w2 { font-size: clamp(1.5rem, 3.4vw, 2.4rem); }
-/* "Creativity" takes the accent, the same split the wordmark uses everywhere
-   else on the site. */
-.pl__w2 { color: #ff6500; }
-
-/* The hold indicator. Thin, low-contrast and at the foot of the screen: it is
-   there to say the pause is finite, not to be looked at. Its clock matches the
-   overlay's 2.2s hold, so it arrives at full width exactly as the fade
-   starts. */
-.pl__bar {
-  position: absolute; left: 50%; bottom: clamp(38px, 7vh, 64px);
-  transform: translateX(-50%);
-  width: min(180px, 42vw); height: 2px; border-radius: 999px;
-  background: color-mix(in srgb, currentColor 14%, transparent);
-  overflow: hidden;
-}
-.pl__bar i {
-  display: block; height: 100%; width: 0; border-radius: inherit;
-  background: #ff6500;
-  animation: pl-fill 2.2s cubic-bezier(.3, .7, .3, 1) forwards;
-}
-@keyframes pl-fill { to { width: 100%; } }
-
-/* Belt and braces. The pre-paint script already refuses to set `play` when
-   reduced motion is on, so this only matters if the preference is changed
-   mid-session. */
 @media (prefers-reduced-motion: reduce) {
-  [data-preload="play"] .pl { display: none; }
+  .pl { display: none !important; }
 }
 
-/* A phone should reveal the useful page immediately. The pre-paint decision
-   already skips this path below 768px; this is a fail-safe for a live resize. */
-@media (max-width: 767px) {
-  [data-preload="play"] .pl { display: none; }
+/* ============================================================================
+   CONCEPT 1: INK.
+
+   Paper and ink. In light mode the sheet is the brand's paper (#f9f7f4) with
+   navy ink, a shade off the site's white so it reads as a sheet laid over the
+   page; in dark mode a lifted night (#08081f) with white ink. Orange only for
+   the cursor, the nib and the ring.
+
+   THE LOAD, beat by beat (ms):
+      0  the cursor fades in where the nib will be, and blinks once
+    220  four ink strokes orbit in, one every 45ms, spiralling from twice the
+         mark's size down to the radius of the fingertip each one becomes,
+         shortening as they go until each is a dot
+   ~900  the dots are the fingertips: each pops into its real shape
+    900  the palm and thumb reach in from the wrist
+   1000  the hand draws the C: the top arc clockwise, the bottom arc
+         anticlockwise 60ms behind, both from the hand outwards
+   1480  the cursor squashes and the nib pops out of it; the ring goes out
+   1760  the mark slides left to make room for the name
+   1880  the name is typed, 34ms a letter, the cursor riding ahead of it
+   2760  leave: the lockup rises away, then the sheet lifts on a curved edge
+
+   BETWEEN PAGES (ms): the sheet rises over the page with its leading edge
+   bowed (0-480); the fingertips tap in (260), the hand reaches (300), the C
+   draws (360 and 400), the nib lands (600) and the page name is typed under
+   the mark (480, 20ms a letter). If the page is not ready at 860 the
+   fingertips keep tapping, a typing indicator, until it is.
+   ========================================================================== */
+
+.pl-ink {
+  --g: #f9f7f4;
+  --ink: #000065;
+  --label: #0e0e2c;
+  --shade: rgba(14, 14, 44, .16);
+  /* How far the curved edge bows: a gentle curve on a wide screen, a deeper
+     one on a phone, where 22vh would be a third of the width. */
+  --bulge: min(20vh, 32vw);
 }
+.dark .pl-ink {
+  --g: #08081f;
+  --ink: #ffffff;
+  --label: #c9cae8;
+  --shade: rgba(0, 0, 0, .55);
+}
+
+.ink-sheet { position: absolute; inset: 0; background: var(--g); will-change: transform; }
+/* The bowed edges. ::before leads when the sheet rises over a page; ::after
+   trails when it lifts away. Each is an ellipse of the sheet's own colour
+   hung off one edge and flattened to nothing at rest. */
+.ink-sheet::before,
+.ink-sheet::after {
+  content: ""; position: absolute; left: -12%; width: 124%; height: var(--bulge);
+  background: inherit; transform: scaleY(0);
+}
+.ink-sheet::before {
+  bottom: calc(100% - 1px);
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  transform-origin: 50% 100%;
+  box-shadow: 0 -18px 40px var(--shade);
+}
+.ink-sheet::after {
+  top: calc(100% - 1px);
+  border-radius: 0 0 50% 50% / 0 0 100% 100%;
+  transform-origin: 50% 0;
+  box-shadow: 0 18px 40px var(--shade);
+}
+
+.ink-stage {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: calc(var(--h) * .3);
+}
+.ink-lockup { display: flex; align-items: center; gap: var(--gap); }
+.ink-mark { width: var(--mw); height: var(--h); flex: none; }
+
+/* --- the pieces at rest ------------------------------------------------- */
+.ink-palm, .ink-thumb, .ink-f, .ink-arc { fill: var(--ink); }
+.ink-nib, .ink-bar, .ink-caret { fill: var(--pl-orange); }
+.ink-ring { fill: none; stroke: var(--pl-orange); stroke-width: 12; opacity: 0; transform-origin: 50% 50%; }
+.ink-pen {
+  fill: none; stroke: #fff; stroke-width: 250; stroke-linecap: round;
+  stroke-dasharray: 1 2; stroke-dashoffset: 1.001;
+}
+.pl .ink-s {
+  fill: none; stroke: var(--ink); stroke-width: 44; stroke-linecap: round;
+  stroke-dasharray: 0 1; opacity: 0;
+  /* Rotates and scales about the C's centre, not the stroke's own box.
+     `.pl` in the selector so it outranks `.pl svg *` above. */
+  transform-box: view-box; transform-origin: 515px 459px;
+}
+.ink-f { transform-origin: 50% 50%; }
+.ink-hand { transform-origin: 0% 100%; }
+.ink-nib { transform-origin: 50% 62%; }
+.ink-bar { transform-origin: 0% 50%; }
+.ink-caret { transform-origin: 50% 100%; }
+
+/* --- the load ----------------------------------------------------------- */
+.pl-ink[data-mode="load"] .ink-caret { animation: ink-caret 1580ms linear both; }
+.pl-ink[data-mode="load"] .ink-s--1 { animation: ink-swirl-1 680ms cubic-bezier(.45, 0, .2, 1) 220ms both, ink-out 140ms linear 860ms forwards; }
+.pl-ink[data-mode="load"] .ink-s--2 { animation: ink-swirl-2 680ms cubic-bezier(.45, 0, .2, 1) 265ms both, ink-out 140ms linear 905ms forwards; }
+.pl-ink[data-mode="load"] .ink-s--3 { animation: ink-swirl-3 680ms cubic-bezier(.45, 0, .2, 1) 310ms both, ink-out 140ms linear 950ms forwards; }
+.pl-ink[data-mode="load"] .ink-s--4 { animation: ink-swirl-4 680ms cubic-bezier(.45, 0, .2, 1) 355ms both, ink-out 140ms linear 995ms forwards; }
+.pl-ink[data-mode="load"] .ink-f--1 { animation: ink-pop 380ms cubic-bezier(.2, .7, .3, 1) 850ms both; }
+.pl-ink[data-mode="load"] .ink-f--2 { animation: ink-pop 380ms cubic-bezier(.2, .7, .3, 1) 895ms both; }
+.pl-ink[data-mode="load"] .ink-f--3 { animation: ink-pop 380ms cubic-bezier(.2, .7, .3, 1) 940ms both; }
+.pl-ink[data-mode="load"] .ink-f--4 { animation: ink-pop 380ms cubic-bezier(.2, .7, .3, 1) 985ms both; }
+.pl-ink[data-mode="load"] .ink-hand { animation: ink-reach 420ms cubic-bezier(.34, 1.45, .64, 1) 900ms both; }
+.pl-ink[data-mode="load"] .ink-pen--top { animation: ink-draw 500ms cubic-bezier(.65, 0, .35, 1) 1000ms both; }
+.pl-ink[data-mode="load"] .ink-pen--bot { animation: ink-draw 500ms cubic-bezier(.65, 0, .35, 1) 1060ms both; }
+.pl-ink[data-mode="load"] .ink-nib { animation: ink-nib 340ms cubic-bezier(.2, .7, .3, 1) 1540ms both; }
+.pl-ink[data-mode="load"] .ink-bar { animation: ink-bar 220ms cubic-bezier(.16, 1, .3, 1) 1660ms both; }
+.pl-ink[data-mode="load"] .ink-ring { animation: ink-ring 460ms cubic-bezier(.16, 1, .3, 1) 1560ms both; }
+/* Centred on its own until the name needs the room. Half the wordmark and the
+   gap, so the finished lockup is centred as a whole. */
+.pl-ink[data-mode="load"] .ink-mark {
+  transform: translateX(calc((var(--gap) + var(--ww)) / 2));
+  animation: ink-slide 520ms cubic-bezier(.16, 1, .3, 1) 1760ms forwards;
+}
+
+/* The name. Each letter appears on its beat; its own ::after is the cursor,
+   shown only for that beat, so the cursor walks along the line and down to
+   the next one exactly as typing would. */
+.ink-word {
+  width: var(--ww); flex: none;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: var(--fs); font-weight: 700; line-height: .95; letter-spacing: -.025em;
+  color: var(--ink);
+}
+.ink-line { display: block; white-space: pre; }
+.ink-ch {
+  position: relative; opacity: 0;
+  animation: ink-type 1ms linear forwards;
+  animation-delay: calc(var(--t0) + var(--i) * var(--step));
+}
+.ink-ch::after {
+  content: ""; position: absolute; left: 100%; top: .08em;
+  width: .09em; height: .84em; margin-left: .03em; border-radius: .03em;
+  background: var(--pl-orange); opacity: 0;
+  animation: ink-slot var(--step) steps(1, end) forwards;
+  animation-delay: inherit;
+}
+/* The last letter keeps its cursor, which blinks until the lockup leaves. */
+.ink-word .ink-line:last-child .ink-ch:last-child::after,
+.ink-label .ink-ch:last-child::after {
+  animation: ink-rest 1100ms steps(1, end) forwards;
+  animation-delay: inherit;
+}
+.pl-ink[data-mode="load"] { --t0: 1880ms; --step: 34ms; }
+
+/* --- between pages ------------------------------------------------------ */
+.pl-ink[data-mode="route"] { --t0: 480ms; --step: 20ms; }
+.pl-ink[data-mode="route"] .ink-sheet { animation: ink-rise 480ms cubic-bezier(.77, 0, .18, 1) both; }
+.pl-ink[data-mode="route"] .ink-sheet::before { animation: ink-head 480ms cubic-bezier(.77, 0, .18, 1) both; }
+.pl-ink[data-mode="route"] .ink-f--1 { animation: ink-pop 340ms cubic-bezier(.2, .7, .3, 1) 260ms both; }
+.pl-ink[data-mode="route"] .ink-f--2 { animation: ink-pop 340ms cubic-bezier(.2, .7, .3, 1) 300ms both; }
+.pl-ink[data-mode="route"] .ink-f--3 { animation: ink-pop 340ms cubic-bezier(.2, .7, .3, 1) 340ms both; }
+.pl-ink[data-mode="route"] .ink-f--4 { animation: ink-pop 340ms cubic-bezier(.2, .7, .3, 1) 380ms both; }
+.pl-ink[data-mode="route"] .ink-hand { animation: ink-reach 380ms cubic-bezier(.34, 1.45, .64, 1) 300ms both; }
+.pl-ink[data-mode="route"] .ink-pen--top { animation: ink-draw 340ms cubic-bezier(.65, 0, .35, 1) 360ms both; }
+.pl-ink[data-mode="route"] .ink-pen--bot { animation: ink-draw 340ms cubic-bezier(.65, 0, .35, 1) 400ms both; }
+.pl-ink[data-mode="route"] .ink-nib { animation: ink-nib 300ms cubic-bezier(.2, .7, .3, 1) 600ms both; }
+.pl-ink[data-mode="route"] .ink-bar { animation: ink-bar 200ms cubic-bezier(.16, 1, .3, 1) 680ms both; }
+.pl-ink[data-mode="route"] .ink-ring { animation: ink-ring 420ms cubic-bezier(.16, 1, .3, 1) 620ms both; }
+
+.ink-label {
+  display: block; min-height: 1.2em; white-space: pre;
+  font-family: var(--font-outfit), system-ui, sans-serif;
+  font-size: clamp(14px, 1.5vw, 17px); font-weight: 500; line-height: 1.2; letter-spacing: .01em;
+  color: var(--label);
+}
+
+/* Still waiting: the fingertips tap in turn, like a typing indicator. */
+.pl-ink[data-phase="wait"] .ink-f { animation: ink-tap 960ms cubic-bezier(.45, 0, .55, 1) infinite; }
+.pl-ink[data-phase="wait"] .ink-f--2 { animation-delay: 120ms; }
+.pl-ink[data-phase="wait"] .ink-f--3 { animation-delay: 240ms; }
+.pl-ink[data-phase="wait"] .ink-f--4 { animation-delay: 360ms; }
+
+/* --- leaving (both modes) ----------------------------------------------- */
+/* The lockup goes first and fast; exits are quicker than entrances. Then the
+   sheet lifts, its trailing edge bowing down, so the page is uncovered from
+   the corners in. */
+.pl-ink[data-phase="leave"] .ink-stage { animation: ink-stage-out 240ms cubic-bezier(.4, 0, 1, 1) both; }
+.pl-ink[data-phase="leave"] .ink-sheet { animation: ink-lift 640ms cubic-bezier(.77, 0, .18, 1) 60ms both; }
+.pl-ink[data-phase="leave"] .ink-sheet::before { animation: none; }
+.pl-ink[data-phase="leave"] .ink-sheet::after { animation: ink-tail 640ms cubic-bezier(.77, 0, .18, 1) 60ms both; }
+.pl-ink[data-mode="load"][data-phase="leave"] .ink-sheet,
+.pl-ink[data-mode="load"][data-phase="leave"] .ink-sheet::after { animation-duration: 680ms; }
+
+/* --- keyframes ---------------------------------------------------------- */
+@keyframes ink-caret {
+  0% { opacity: 0; transform: none; }
+  4% { opacity: 1; }
+  15% { opacity: 1; }
+  16% { opacity: 0; }
+  25% { opacity: 0; }
+  26% { opacity: 1; transform: none; }
+  93.6% { opacity: 1; transform: none; }
+  97% { opacity: 1; transform: scale(1.5, .55); }
+  100% { opacity: 0; transform: scale(.2, .2); }
+}
+/* One per stroke: each ends at the angle of its fingertip (193.5, 186.2,
+   180.3 and 174.5 degrees about the C's centre), having come most of the way
+   round. The dash grows as it travels and shrinks to nothing as it lands,
+   and a nothing-long dash with round caps is a dot. */
+@keyframes ink-swirl-1 {
+  0% { opacity: 0; stroke-dasharray: 0 1; transform: rotate(-136.5deg) scale(2.15); }
+  12% { opacity: 1; }
+  38% { stroke-dasharray: .12 1; }
+  72% { stroke-dasharray: .05 1; }
+  100% { opacity: 1; stroke-dasharray: 0 1; transform: rotate(193.5deg) scale(1); }
+}
+@keyframes ink-swirl-2 {
+  0% { opacity: 0; stroke-dasharray: 0 1; transform: rotate(-143.8deg) scale(2.3); }
+  12% { opacity: 1; }
+  38% { stroke-dasharray: .1 1; }
+  72% { stroke-dasharray: .045 1; }
+  100% { opacity: 1; stroke-dasharray: 0 1; transform: rotate(186.2deg) scale(1); }
+}
+@keyframes ink-swirl-3 {
+  0% { opacity: 0; stroke-dasharray: 0 1; transform: rotate(-149.7deg) scale(2.05); }
+  12% { opacity: 1; }
+  38% { stroke-dasharray: .13 1; }
+  72% { stroke-dasharray: .05 1; }
+  100% { opacity: 1; stroke-dasharray: 0 1; transform: rotate(180.3deg) scale(1); }
+}
+@keyframes ink-swirl-4 {
+  0% { opacity: 0; stroke-dasharray: 0 1; transform: rotate(-155.5deg) scale(2.2); }
+  12% { opacity: 1; }
+  38% { stroke-dasharray: .11 1; }
+  72% { stroke-dasharray: .045 1; }
+  100% { opacity: 1; stroke-dasharray: 0 1; transform: rotate(174.5deg) scale(1); }
+}
+@keyframes ink-out { to { opacity: 0; } }
+@keyframes ink-pop {
+  0% { opacity: 0; transform: scale(.35); }
+  25% { opacity: 1; }
+  60% { transform: scale(1.12); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes ink-reach {
+  0% { opacity: 0; transform: translate(-160px, 40px) rotate(-10deg); }
+  35% { opacity: 1; }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes ink-draw { to { stroke-dashoffset: 0; } }
+@keyframes ink-nib {
+  0% { opacity: 0; transform: scale(.15); }
+  12% { opacity: 1; }
+  55% { transform: scale(1.14); }
+  78% { transform: scale(.96); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes ink-bar { from { transform: scaleX(0); } to { transform: none; } }
+/* Invisible at 0%, because `both` holds the first keyframe through the delay
+   and a ring at full strength sat behind the cursor from the first frame. */
+@keyframes ink-ring {
+  0% { opacity: 0; transform: scale(.3); }
+  1% { opacity: 1; }
+  100% { opacity: 0; transform: scale(1.9); }
+}
+@keyframes ink-slide { to { transform: none; } }
+@keyframes ink-type { to { opacity: 1; } }
+@keyframes ink-slot { 0% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes ink-rest { 0% { opacity: 1; } 30% { opacity: 0; } 55% { opacity: 1; } 85% { opacity: 0; } 100% { opacity: 1; } }
+@keyframes ink-tap {
+  0%, 60%, 100% { transform: none; }
+  25% { transform: translateY(-34px); }
+}
+@keyframes ink-rise {
+  from { transform: translateY(calc(100% + var(--bulge))); }
+  to { transform: none; }
+}
+@keyframes ink-head {
+  0%, 50% { transform: scaleY(1); }
+  100% { transform: scaleY(0); }
+}
+@keyframes ink-lift {
+  from { transform: none; }
+  to { transform: translateY(calc(-100% - var(--bulge))); }
+}
+@keyframes ink-tail {
+  0% { transform: scaleY(0); }
+  45%, 100% { transform: scaleY(1); }
+}
+@keyframes ink-stage-out { to { opacity: 0; transform: translateY(-5vh); } }
+
+/* ============================================================================
+   CONCEPT 2: BLUEPRINT. Built after Ink is finished and verified.
+   ========================================================================== */
