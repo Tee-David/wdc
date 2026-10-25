@@ -4,7 +4,7 @@
                 <span class="av0" style="width: 56px; height: 56px; border-radius: 16px; font-size: 17px; background: #1f4d3a; flex: none">MS</span>
                 <span style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
                   <h1 class="h1">Mira Skincare</h1>
-                  <span class="lede" style="font-size: 14px">{{headLine}}</span>
+                  <span class="lede" style="font-size: 14px">{{headLine}}<strong>{{headStress}}</strong></span>
                 </span>
               </div>
               <div class="headActs">
@@ -18,7 +18,7 @@
 
             <sc-if value="{{loading}}" hint-placeholder-val="{{ false }}">
               <div class="layout skWrap" role="status" aria-label="Loading">
-                <div class="col"><div class="skCard" style="gap: 14px"><span class="skel" style="height: 18px; width: 130px"></span><span class="skel" style="height: 96px"></span><span class="skel" style="height: 96px"></span></div><div class="skCard" style="gap: 12px"><span class="skel" style="height: 18px; width: 150px"></span><span class="skel" style="height: 48px"></span><span class="skel" style="height: 48px"></span><span class="skel" style="height: 48px"></span></div></div>
+                <div class="col"><div class="skHero"><span style="display: flex; gap: 8px"><span class="skel" style="height: 24px; width: 70px; border-radius: 99px"></span><span class="skel" style="height: 24px; width: 96px; border-radius: 99px"></span></span><span class="skel" style="height: 28px; width: 72%"></span><span class="skel" style="height: 16px; width: 90%"></span><span style="display: flex; gap: 8px; margin-top: 8px"><span class="skel" style="height: 44px; width: 150px; border-radius: 12px"></span><span class="skel" style="height: 44px; width: 150px; border-radius: 12px"></span></span></div><div class="skCard" style="gap: 14px"><span class="skel" style="height: 18px; width: 130px"></span><span class="skel" style="height: 96px"></span><span class="skel" style="height: 96px"></span></div><div class="skCard" style="gap: 12px"><span class="skel" style="height: 18px; width: 150px"></span><span class="skel" style="height: 48px"></span><span class="skel" style="height: 48px"></span><span class="skel" style="height: 48px"></span></div></div>
                 <div class="railCards"><div class="skCard" style="height: 230px"><span class="skel" style="height: 16px; width: 90px"></span><span class="skel" style="height: 76px; width: 76px; border-radius: 50%"></span><span class="skel" style="height: 52px"></span></div><div class="skCard" style="height: 200px"><span class="skel" style="height: 16px; width: 120px"></span><span class="skel" style="flex: 1"></span></div></div>
               </div>
             </sc-if>
@@ -27,6 +27,7 @@
             <sc-if value="{{isOverview}}" hint-placeholder-val="{{ true }}">
             <div class="layout tabIn" style="animation-name: {{tabAnim}}">
               <div class="col">
+                %%DECK%%
                 <section class="card cq" aria-label="Projects" data-tour="projects" style="padding: 16px 20px; display: flex; flex-direction: column; gap: 12px">
                   <div style="display: flex; align-items: center; gap: 10px"><h2 style="font-size: 17px; font-weight: 700; flex: 1">Projects</h2><button class="lnk viewAll" onClick="{{newProject}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>New project</button></div>
                   <sc-for list="{{projects}}" as="pj" hint-placeholder-count="2">
@@ -56,10 +57,18 @@
                     <span class="ringW" role="img" aria-label="{{billAria}}"><svg viewBox="0 0 76 76" width="76" height="76"><circle class="rTrack" cx="38" cy="38" r="32"></circle><circle class="rVal" cx="38" cy="38" r="32" pathLength="100" style="stroke-dasharray: 100; stroke-dashoffset: {{ringOff}}"></circle></svg><span class="rTxt"><strong class="num" style="font-size: 17px">{{paidPct}}%</strong><span style="font-size: 10px; color: var(--ad-dim)">paid</span></span></span>
                     <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font-size: 13px; color: var(--ad-dim)">Paid so far</span><strong class="num" style="font-size: 22px; line-height: 1.15">{{paidShort}}</strong><span style="font-size: 13px; color: var(--ad-dim)">of {{invoicedTxt}} invoiced</span></span>
                   </div>
-                  <sc-if value="{{hasDue}}" hint-placeholder-val="{{ true }}"><div class="payNext"><span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><strong class="num">₦450,000 due Wed 14 Oct</strong><span style="font-size: 12px; color: var(--ad-dim)">Social media deposit · INV-26-9QX4LM</span></span><button class="btn2" style="min-height: 44px; padding: 0 12px" onClick="{{remind}}">Remind</button></div></sc-if>
+                  <sc-if value="{{hasDue}}" hint-placeholder-val="{{ true }}"><div class="payNext"><span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><strong class="num">₦450,000 due Wed 14 Oct</strong><span style="font-size: 12px; color: var(--ad-dim)">{{remindNote}}</span></span><button class="btn2" style="min-height: 44px; padding: 0 12px" onClick="{{remind}}">{{remindLabel}}</button></div></sc-if>
                   <sc-if value="{{noDue}}" hint-placeholder-val="{{ false }}"><div class="payNext"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" style="color: var(--ad-tone-good)"><path d="M20 6 9 17l-5-5"></path></svg><span style="flex: 1; font-size: 13px"><strong>Nothing due.</strong> The brand identity balance goes with the final files on Sat 17 Oct.</span></div></sc-if>
                 </section>
 
+
+                <section class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 12px" aria-label="Social media plan" data-tour="plan">
+                  <div style="display: flex; align-items: center; gap: 8px"><h2 style="font-size: 16px; font-weight: 700; flex: 1">Social media plan</h2><span class="tag" style="background: var(--ad-tone-brand); color: #fff">Retainer</span></div>
+                  <span style="font-size: 13px; color: var(--ad-dim)">{{planTerm}} · ₦300,000 a month</span>
+                  <div class="planIncl"><sc-for list="{{planIncl}}" as="pi" hint-placeholder-count="3"><span><strong class="num disp">{{pi.t}}</strong><span>{{pi.s}}</span></span></sc-for></div>
+                  <div class="payNext"><span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><strong>{{planBill}}</strong><span style="font-size: 12px; color: var(--ad-dim)">{{planBillSub}}</span><span style="font-size: 12px; color: var(--ad-dim)">{{planNext}}</span></span></div>
+                  <span style="display: flex; gap: 8px; flex-wrap: wrap"><button class="btn2" style="flex: 1 1 130px" onClick="{{changeBilling}}">Change billing</button><button class="btn2" style="flex: 1 1 110px" onClick="{{openPlan}}">Open plan</button></span>
+                </section>
                 <section class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 12px" aria-label="Next meeting">
                   <div style="display: flex; align-items: center; gap: 8px"><h2 style="font-size: 16px; font-weight: 700; flex: 1">Next meeting</h2><span class="cdown"><span class="live"></span>{{meetIn}}</span></div>
                   <div style="display: flex; gap: 12px; align-items: center"><span class="meetDate"><span class="mm">Oct</span><span class="dd num">{{meetDay}}</span></span><span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><strong class="disp" style="font-size: 17px">{{meetTime}}</strong><span style="font-size: 13px">Logo review with Adaeze</span><span style="font-size: 12px; color: var(--ad-dim)">Google Meet · Ifeanyi leads · review 1 of 2</span></span></div>
@@ -69,6 +78,11 @@
                 <section class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 8px" aria-label="People">
                   <div style="display: flex; align-items: center"><h2 style="font-size: 16px; font-weight: 700; flex: 1">People</h2><button class="lnk viewAll" onClick="{{toPeople}}">All 3<svg class="ic arr" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"></path></svg></button></div>
                   <sc-for list="{{peopleShort}}" as="pp" hint-placeholder-count="2"><button class="rowh" onClick="{{pp.open}}" style="display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 12px; width: 100%; text-align: left"><span class="av0" style="width: 34px; height: 34px; font-size: 11px; background: {{pp.tone}}">{{pp.i}}</span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 13px"><strong>{{pp.name}}</strong><span style="color: var(--ad-dim)">{{pp.role}}</span></span><span class="tag" style="background: {{pp.ptone}}; color: #fff">{{pp.portalShort}}</span></button></sc-for>
+                </section>
+                <section class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 10px" aria-label="Team notes">
+                  <div style="display: flex; align-items: center; gap: 8px"><h2 style="font-size: 16px; font-weight: 700; flex: 1">Team notes</h2><button class="lnk viewAll" onClick="{{allNotes}}">All {{notesN}}<svg class="ic arr" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"></path></svg></button></div>
+                  <sc-for list="{{notes}}" as="nt" hint-placeholder-count="2"><div class="noteRow"><p style="font-size: 14px">{{nt.t}}</p><span style="font-size: 12px; color: var(--ad-dim)">{{nt.who}} · {{nt.when}}</span></div></sc-for>
+                  <button class="btn2" onClick="{{addNote}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Add a note</button>
                 </section>
               </aside>
             </div>
