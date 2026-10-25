@@ -3,6 +3,7 @@ import { SUPPORT_COOKIE, SUPPORT_STAFF_COOKIE, supportHome, supportKind, support
 import { getSessionCookie } from "better-auth/cookies";
 import { isAdminCapture } from "@/lib/admin/capture";
 import { maintenance, maintenancePage, PASS_COOKIE, passValid, retryAfter } from "@/lib/maintenance";
+import { preloader, PRELOADER_COOKIE } from "@/lib/preloader";
 
 /**
  * Two jobs. The admin and the portal need a session cookie (the layouts
@@ -48,7 +49,7 @@ export async function proxy(request: NextRequest) {
   }
 
   const m = await maintenance();
-  if (!m.on || passValid(m, request.cookies.get(PASS_COOKIE)?.value)) return NextResponse.next();
+  if (!m.on || passValid(m, request.cookies.get(PASS_COOKIE)?.value)) return withPreloader(request, NextResponse.next());
   return new NextResponse(await maintenancePage(m), {
     status: 503,
     headers: {
@@ -58,6 +59,24 @@ export async function proxy(request: NextRequest) {
       "cache-control": "no-store",
     },
   });
+}
+
+/*
+ * The preloader the owner chose (lib/preloader.ts), handed to the pre-paint
+ * script as a cookie on public pages. Set only when the browser's copy is out
+ * of date, so almost every response goes out without a Set-Cookie. A failure
+ * here leaves the response alone: the script falls back to the default.
+ */
+async function withPreloader(request: NextRequest, res: NextResponse) {
+  try {
+    const choice = await preloader();
+    if (request.cookies.get(PRELOADER_COOKIE)?.value !== choice) {
+      res.cookies.set(PRELOADER_COOKIE, choice, {
+        path: "/", sameSite: "lax", maxAge: 60 * 60 * 24 * 365, secure: request.nextUrl.protocol === "https:",
+      });
+    }
+  } catch { /* the default plays */ }
+  return res;
 }
 
 /*
