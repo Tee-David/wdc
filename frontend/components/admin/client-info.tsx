@@ -21,11 +21,32 @@ export function ClientInfo({ company, contact, email, phone, waHref, since, port
           <section className="adCi__part" aria-label="How to reach them">
             <h3>{contact}</h3>
             <div className="adCi__reach">
-              {email ? <a className="ad__btn" href={`mailto:${email}`}><Mail aria-hidden="true" /><span>{email}</span></a> : null}
-              {phone ? <a className="ad__btn" href={`tel:${phone.replace(/\s/g, "")}`}><Phone aria-hidden="true" /><span>{phone}</span></a> : null}
-              {waHref ? <a className="ad__btn" href={waHref} target="_blank" rel="noopener noreferrer"><MessageCircle aria-hidden="true" /><span>Open WhatsApp</span></a> : null}
+              {email ? (
+                <div className="adCi__row">
+                  <a className="adCi__link" href={`mailto:${email}`}>
+                    <span className="adCi__ic adCi__ic--mail" aria-hidden="true"><Mail /></span>
+                    <span className="adCi__txt"><small>Email</small><b>{email}</b></span>
+                  </a>
+                  <CopyText text={email} label="Copy the email address" iconOnly />
+                </div>
+              ) : null}
+              {phone ? (
+                <div className="adCi__row">
+                  <a className="adCi__link" href={`tel:${phone.replace(/\s/g, "")}`}>
+                    <span className="adCi__ic adCi__ic--phone" aria-hidden="true"><Phone /></span>
+                    <span className="adCi__txt"><small>Phone</small><b>{phone}</b></span>
+                  </a>
+                </div>
+              ) : null}
+              {waHref ? (
+                <div className="adCi__row">
+                  <a className="adCi__link" href={waHref} target="_blank" rel="noopener noreferrer">
+                    <span className="adCi__ic adCi__ic--wa" aria-hidden="true"><MessageCircle /></span>
+                    <span className="adCi__txt"><small>WhatsApp</small><b>Open a chat</b></span>
+                  </a>
+                </div>
+              ) : null}
             </div>
-            {email ? <CopyText text={email} label="Copy the email address" /> : null}
           </section>
           <dl className="adCi__facts">
             <div><dt>Status</dt><dd>{state}</dd></div>

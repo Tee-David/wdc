@@ -2217,17 +2217,29 @@ td:has(.adRowPick) , .ad__pickCell { white-space: nowrap; }
 .adCi h3 { margin: 0; font: 700 1.1rem var(--font-space-grotesk), system-ui, sans-serif; }
 .adCi h4 { margin: 0; font-size: .8rem; font-weight: 600; color: var(--ad-dim); }
 .adCi__reach { display: grid; gap: .5rem; }
-.adCi__reach .ad__btn { justify-content: flex-start; min-height: 2.75rem; min-width: 0; }
-.adCi__reach .ad__btn span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.adCi__facts { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: .75rem; padding: .9rem 1rem; border-radius: 14px; background: var(--ad-panel-2); }
+.adCi__row { display: flex; align-items: center; gap: .5rem; min-width: 0; }
+.adCi__link { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: .75rem; min-height: 3.25rem; padding: .45rem .75rem; border: 1px solid var(--ad-line); border-radius: 14px; background: var(--ad-panel); color: var(--ad-ink); text-decoration: none; }
+@media (hover: hover) { .adCi__link:hover { border-color: var(--ad-ink); } }
+.adCi__link:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
+.adCi__ic { width: 2.25rem; height: 2.25rem; flex: none; display: grid; place-items: center; border-radius: 10px; color: #fff; }
+.adCi__ic svg { width: 1.05rem; height: 1.05rem; }
+.adCi__ic--mail { background: var(--ad-tone-brand); }
+.adCi__ic--phone { background: var(--ad-tone-good); }
+.adCi__ic--wa { background: #128c4b; }
+.adCi__txt { min-width: 0; display: grid; gap: .05rem; text-align: left; }
+.adCi__txt small { font-size: .74rem; color: var(--ad-dim); }
+.adCi__txt b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adCi__row > .ad__btn--icon { flex: none; width: 2.75rem; height: 2.75rem; min-width: 2.75rem; padding: 0; justify-content: center; }
+.adCi__facts { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem 1rem; padding: .9rem 1rem; border-radius: 14px; background: var(--ad-panel-2); }
 .adCi__facts dt { font-size: .76rem; color: var(--ad-dim); }
 .adCi__facts dd { margin: .15rem 0 0; font-weight: 600; }
 .adCi__tags { margin: 0; display: flex; flex-wrap: wrap; gap: .4rem; }
-/* The client head's actions stay on one line on a phone: details, the log, the menu. */
+/* The client head on a phone: a smaller mark, and the actions across the full width (details, the log, the menu). */
 @media (max-width: 640px) {
   .adPh__acts:has(> .adCl__acts) { flex-wrap: nowrap; }
-  .adCl__acts { flex: 1 1 auto; flex-wrap: nowrap; min-width: 0; }
-  .adCl__acts > .ad__btn--icon { flex: none; }
-  .adCl__acts > .ad__row { flex: 1 1 auto; min-width: 0; flex-wrap: nowrap; }
-  .adCl__acts > .ad__row > .ad__btn { flex: 1 1 auto; min-width: 0; justify-content: center; }
+  .adPh__acts > .adCl__acts { flex: 1 1 auto; width: 100%; display: flex; flex-wrap: nowrap; gap: .5rem; min-width: 0; }
+  .adCl__acts > .ad__btn--icon { flex: none; width: 2.75rem; }
+  .adCl__acts > .ad__row { flex: 1 1 auto; min-width: 0; display: flex; flex-wrap: nowrap; }
+  .adCl__acts > .ad__row > .ad__btn { flex: 1 1 auto; width: 100%; min-width: 0; justify-content: center; }
+  .adPh__lead:has(+ *) .adMk--lg, .adPh__lead > .adMk--lg { width: 3rem; height: 3rem; font-size: .95rem; border-radius: 14px; }
 }
