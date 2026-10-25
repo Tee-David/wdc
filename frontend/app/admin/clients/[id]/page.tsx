@@ -48,6 +48,8 @@ import { dateTimeWords, dateWords, daysFrom, monthYear } from "@/lib/admin/when"
 import { portalMaps } from "@/lib/admin/client-signals";
 import { meetingList } from "@/lib/meetings/store";
 import { projectGlyph, projectTileStyle } from "@/components/client/service-glyph";
+import { Deck, type DeckItem } from "@/components/admin/deck";
+import { db } from "@/lib/db/pool";
 
 /* NO generateStaticParams. The client list is written to now, and a route
    prerendered from the list as it stood at build time would 404 on the client
@@ -160,6 +162,68 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
   const workIds = [c.id, ...projectIds, ...deliverables.map(({ deliverable }) => deliverable.id), ...forms.map((f) => f.id)];
   const only = query.only === "money" && money ? "money" : query.only === "work" ? "work" : "all";
   const auditIds = only === "money" ? moneyIds : only === "work" ? workIds : [...workIds, ...(money ? moneyIds : [])];
+  /* WHAT THIS CLIENT NEEDS FROM US, OR WE FROM THEM (the approved board's deck),
+     read only from persisted records: work waiting on their approval, changes
+     they asked for, money owed, what they still have to provide, questions
+     waiting on us, portal access and a meeting coming up. Every card opens the
+     place where it is done. */
+  const deck: DeckItem[] = [];
+  let notes: { id: string; project_id: string; author_name: string; body: string; created_at: string | Date }[] = [];
+  if (tab === "overview") {
+    const ago = (iso: string) => Math.max(0, Math.floor((now - Date.parse(iso)) / 86_400_000));
+    for (const { deliverable: d, project: p } of deliverables) {
+      const v = d.versions.at(-1);
+      if (d.approval === "Awaiting client" && v) {
+        const n = ago(v.sharedAt ?? v.at);
+        deck.push({ id: `appr-${d.id}-${v.v}`, kind: "Approval", urgency: n >= 3 ? `${n} days waiting` : "With them", tone: n >= 5 ? "bad" : "warn", label: p.title,
+          title: `${d.name} v${v.v} is waiting on ${first}`, body: `Shared ${dateWords(v.sharedAt ?? v.at, now)}. Nothing moves on ${p.title} until they approve it or ask for changes.`,
+          facts: [{ k: "Project", v: p.title }, { k: "Version", v: `v${v.v}` }], why: n >= 3 ? "A gentle nudge keeps the timeline honest." : undefined,
+          primary: { label: "Open the file", href: `/admin/projects/${p.id}?tab=files` }, secondary: { label: "Message the channel", href: `/admin/messages?c=p-${p.id}` }, open: `/admin/projects/${p.id}` });
+      }
+      if (d.approval === "Revision requested") {
+        deck.push({ id: `rev-${d.id}`, kind: "Changes", urgency: "Waiting on us", tone: "live", label: p.title,
+          title: `${first} asked for changes to ${d.name}`, body: d.approvalNote ? `In their words: “${d.approvalNote.slice(0, 160)}”` : "Read what they asked for, then share the next version.",
+          primary: { label: "Open the file", href: `/admin/projects/${p.id}?tab=files` }, open: `/admin/projects/${p.id}` });
+      }
+    }
+    if (money) for (const i of billed.filter((x) => invoiceTotals(x).due > 0 && invoiceStatus(x) === "Overdue")) {
+      deck.push({ id: `late-${i.id}`, kind: "Money", urgency: `Due ${dateWords(i.due, now)}`, tone: "bad", label: i.number,
+        title: `${c.company} owes ${formatMoney(invoiceTotals(i).due, currencyOf(i))}`, body: `${i.number} is past due. Send a reminder with the pay link, or record a payment that came in another way.`,
+        facts: [{ k: "Invoice", v: i.number }, { k: "Paid so far", v: formatMoney(i.paid, currencyOf(i)) }],
+        primary: { label: "Open the invoice", href: `/admin/money/${i.id}` }, secondary: { label: "Record a payment", href: `/admin/money/${i.id}` }, open: `/admin/money/${i.id}` });
+    }
+    for (const t of tickets.filter((x) => x.status === "Open")) {
+      deck.push({ id: `q-${t.id}`, kind: "Question", urgency: `Since ${dateWords(t.updatedAt, now)}`, tone: "warn", label: "Support",
+        title: `${first} is waiting on an answer`, body: t.subject, primary: { label: "Reply", href: `/admin/messages?c=t-${t.id}` }, open: `/admin/messages?c=t-${t.id}` });
+    }
+    if (projectIds.length) {
+      try {
+        const [asks, latest] = await Promise.all([
+          db.query<{ id: string; project_id: string; title: string; updated_at: string | Date }>(
+            "SELECT id,project_id,title,updated_at FROM workspace_service_items WHERE project_id=ANY($1::STRING[]) AND kind='request' AND state NOT IN ('received','supplied','closed') ORDER BY updated_at LIMIT 10", [projectIds]),
+          db.query<{ id: string; project_id: string; author_name: string; body: string; created_at: string | Date }>(
+            "SELECT id,project_id,author_name,body,created_at FROM workspace_team_notes WHERE project_id=ANY($1::STRING[]) AND visibility='internal' ORDER BY created_at DESC LIMIT 3", [projectIds]),
+        ]);
+        for (const r of asks.rows) {
+          const p = projects.find((x) => x.id === r.project_id);
+          deck.push({ id: `ask-${r.id}`, kind: "From them", urgency: `Asked ${dateWords(new Date(r.updated_at).toISOString(), now)}`, tone: "neutral", label: p?.title,
+            title: `Still waiting for ${r.title.charAt(0).toLowerCase()}${r.title.slice(1)}`, body: `${p?.title ?? "The project"} needs it from ${c.company} before that part of the work can start.`,
+            primary: { label: "Open the request", href: `/admin/projects/${r.project_id}?tab=work&item=${r.id}` }, secondary: { label: "Ask in the channel", href: `/admin/messages?c=p-${r.project_id}` } });
+        }
+        notes = latest.rows;
+      } catch { /* workspace tables not migrated: the deck shows the rest */ }
+    }
+    if (!hasAccount && !c.archived) {
+      deck.push({ id: `portal-${c.id}`, kind: "Access", urgency: invited ? "Invitation sent" : "No account", tone: "neutral",
+        title: invited ? `${first} has not accepted the portal invitation` : `${first} has no portal account`, body: "With an account they approve files, pay invoices and message the team in one place.",
+        primary: { label: invited ? "Resend the invitation" : "Invite to the portal", href: tabHref("people") } });
+    }
+    if (meeting && daysFrom(meeting.start, now) <= 2) {
+      deck.push({ id: `meet-${meeting.uid ?? meeting.start}`, kind: "Meeting", urgency: daysFrom(meeting.start, now) <= 0 ? "Today" : `In ${daysFrom(meeting.start, now)} days`, tone: "brand",
+        title: meeting.title, body: `${dateTimeWords(meeting.start, now)}. Check what is waiting on them above before you meet.`, primary: { label: "Open meetings", href: "/admin/meetings" } });
+    }
+  }
+
   const feed = tab === "overview" ? await activityFeed({ money, subjectIds: [...workIds, ...(money ? moneyIds : [])], limit: 4 }) : [];
 
   return (
@@ -235,8 +299,20 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
                 </div>
               ))}
             </RailCard>
+            <RailCard title="Team notes" link={projects[0] ? { href: `/admin/messages?c=p-${(notes[0]?.project_id ?? projects[0].id)}`, label: "Open the channel" } : undefined}>
+              {notes.length ? notes.map((n) => (
+                <div key={n.id} className="adRc__row">
+                  <span className="adRc__line"><strong>{n.author_name}</strong><span className="ad__dim">{dateWords(new Date(n.created_at).toISOString(), now)}</span></span>
+                  <span className="adRc__sub">{n.body.length > 120 ? `${n.body.slice(0, 119)}…` : n.body || "Shared a file"}</span>
+                </div>
+              )) : <p className="ad__dim" style={{ margin: 0 }}>No team notes on {c.company}&apos;s projects yet. Notes written in a project channel show here; the client never sees them.</p>}
+            </RailCard>
           </>}
         >
+          <Deck id={`client-${c.id}`} title={`${first} needs`} items={deck}
+            emptyTitle={`Nothing is waiting with ${c.company}.`}
+            emptyBody="No file waits on their approval, nothing is owed late and no question is unanswered."
+            emptyNext={meeting ? { label: `Next: ${meeting.title}`, href: "/admin/meetings" } : { label: "Book a meeting", href: "/admin/meetings" }} />
           <section className="adList" aria-label="Projects" data-tour="client-projects">
             <div className="adList__hd"><h2>Projects</h2><span className="adList__n">{projects.length}</span><span className="adList__sp" />{c.archived ? null : <AddProject clientId={c.id} />}</div>
             <div className="adPanelPad">
