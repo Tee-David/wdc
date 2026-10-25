@@ -168,3 +168,24 @@ export async function saveMaintenanceDesign(_prev: ActionState, fd: FormData): P
   revalidatePath(MAINTENANCE_PAGE);
   return OK(`Visitors will see “${def.name}” while the site is in maintenance.`);
 }
+
+/**
+ * Which preloader the public site plays (lib/preloader.ts). Saved like the
+ * maintenance page: one of the known concepts or refused, audited, and live
+ * for every visitor within half a minute (the proxy's copy is held that long).
+ */
+export async function savePreloader(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await allow("settings");
+  if (refused) return refused;
+  const { PRELOADERS, PRELOADER_KEY, isPreloader } = await import("@/lib/preloader-options");
+  const { forgetPreloader } = await import("@/lib/preloader");
+  const wanted = String(fd.get("preloader") ?? "");
+  if (!isPreloader(wanted)) return FAIL({ preloader: "Choose one of the preloaders." });
+  const name = PRELOADERS.find((p) => p.id === wanted)!.name;
+  const by = await actorName();
+  try { await setAppSetting(PRELOADER_KEY, wanted, by); } catch { return FAIL({}, "That could not be saved just now."); }
+  forgetPreloader();
+  audit({ actor: by, kind: "setting", subjectId: PRELOADER_KEY, subject: "Preloader", action: `chose the “${name}” preloader` });
+  revalidatePath("/admin/settings/site");
+  return OK(`Visitors will see “${name}” within half a minute.`);
+}

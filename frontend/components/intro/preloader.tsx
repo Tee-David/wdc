@@ -32,8 +32,8 @@ import "./preloader.css";
  *   name is typed. The sheet lifts away on a curved edge.
  *
  *   Blueprint (after the KANTIV reference): the mark is constructed on
- *   hairline guides, turns once into the lockup, and the sheet parts along
- *   an orange seam. See `Blueprint`.
+ *   hairline guides, turns once into the lockup, and the sheet parts down
+ *   the middle. See `Blueprint`.
  *
  * WHAT IT NEVER DOES. It never plays under reduced motion, on the admin, the
  * portal or the account and payment pages, or for a link to the page you are
@@ -390,8 +390,8 @@ function Ink({ mode, phase, label = "" }: { mode: "load" | "route"; phase: Phase
    drop like rivets; the cursor falls down the vertical axis onto the centre
    anchor and becomes the nib. The guides leave the frame, the mark turns
    once as it settles into the lockup, and the name rises out of a baseline
-   in the brand's mute before it turns white. The sheet parts along an orange
-   seam, top half up and bottom half down, the way the C opens.
+   in the brand's mute before it turns white. The sheet parts down the
+   middle, top half up and bottom half down, the way the C opens.
    ------------------------------------------------------------------------- */
 
 /* Axis lines run from the C's centre outwards, far enough to cross any
@@ -419,7 +419,6 @@ function Blueprint({ mode, phase, label = "" }: { mode: "load" | "route"; phase:
     <div className="pl pl-bp" data-mode={mode} data-phase={phase} aria-hidden="true">
       <div className="bp-half bp-half--top" />
       <div className="bp-half bp-half--bot" />
-      <i className="bp-seam" />
       <div className="bp-stage">
         <div className="bp-lockup">
           <svg className="bp-mark" viewBox="0 0 904 944" focusable="false">

@@ -6,19 +6,21 @@ import { AdminState } from "@/components/admin/admin-state";
 import { Head } from "@/components/admin/settings/kit";
 import { DescriptionForm, SocialImageForm, Visibility } from "@/components/admin/settings/site-controls";
 import { maintenance } from "@/lib/maintenance";
+import { preloader } from "@/lib/preloader";
+import { PreloaderChoice } from "@/components/admin/settings/preloader-choice";
 
 export const metadata = { title: "Website and SEO" };
 
-/** How the site presents itself to search engines. Maintenance has its own section. */
+/** How the site presents itself to search engines, and the preloader it opens with. Maintenance has its own section. */
 export default async function SitePage() {
   if (!can(await adminRole(), "settings")) {
     return <section className="ad__panel"><AdminState kind="forbidden" back={{ href: "/admin/settings", label: "Back to settings" }} title="Site and SEO are the owner's" description="The site's description and whether search engines may index it." /></section>;
   }
-  const [seo, m] = await Promise.all([siteSeo(), maintenance()]);
+  const [seo, m, loader] = await Promise.all([siteSeo(), maintenance(), preloader({ fresh: true })]);
   const host = new URL(SITE_URL).host;
   return (
     <>
-      <Head title="Website and SEO" line="How the site shows up in search.">
+      <Head title="Website and SEO" line="How the site shows up in search, and how it opens.">
         {m.on ? <a className="ad__btn" href="/api/maintenance/pass">View the site</a> : <a className="ad__btn" href="/" target="_blank" rel="noopener">View the site</a>}
       </Head>
       <div className="ad__stack">
@@ -26,6 +28,7 @@ export default async function SitePage() {
         <DescriptionForm host={host} title={`${SITE_NAME} | Web, Branding, SEO & Software Agency`}
           value={seo.description} custom={seo.customDescription} min={DESCRIPTION_MIN} max={DESCRIPTION_MAX} />
         <SocialImageForm value={seo.socialImage} host={host} />
+        <PreloaderChoice current={loader} />
       </div>
     </>
   );

@@ -236,7 +236,10 @@ label.adChip input:focus-visible + span { outline: 2px solid var(--ad-accent); o
 .adMt__set { border: 0; margin: 0; padding: 0; min-width: 0; }
 .adMt__set legend { margin-bottom: .6rem; }
 .adMt__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); gap: .9rem; }
-.adMt__card { position: relative; display: grid; gap: .5rem; align-content: start; min-width: 0; }
+/* Cards in a row share a height (the grid stretches them, and the card's
+   first row takes the slack), so a description that wraps one line longer
+   does not leave its Preview button lower than its neighbour's. */
+.adMt__card { position: relative; display: grid; grid-template-rows: 1fr auto; gap: .5rem; min-width: 0; }
 .adMt__pick { position: relative; display: grid; gap: .55rem; padding: .45rem .45rem .7rem; border: 1.5px solid var(--ad-line); border-radius: 14px; background: var(--ad-panel); cursor: pointer; transition: border-color .15s, box-shadow .15s; }
 .adMt__pick:hover { border-color: var(--ad-dim); }
 .adMt__card.is-on .adMt__pick { border-color: var(--ad-accent); box-shadow: 0 0 0 2px var(--ad-accent); }

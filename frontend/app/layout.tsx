@@ -148,11 +148,13 @@ export default function RootLayout({
           owner wants both back, so the test is gone; the intro already sizes
           its ring and its touch travel from the screen it is on.
 
-          It also picks the preloader concept (`data-loader`, "ink" or
-          "blueprint"). `?loader=` sets and remembers one and plays it on that
-          load; `?replay` plays the intro or preloader regardless of the
-          thirty-minute window. Both exist so the concepts can be reviewed on
-          the real site; `?loader=` goes when one concept is chosen.
+          It also picks the preloader (`data-loader`, "ink" or "blueprint"):
+          the one the owner chose in Settings > Website and SEO, which the
+          proxy hands over in the `wdc-loader-site` cookie (lib/preloader.ts),
+          or Ink. `?loader=` previews the other one for this tab only (it is
+          what the settings page's Preview opens) and plays it on that load;
+          `?replay` plays the intro or preloader regardless of the
+          thirty-minute window.
         */}
         {/* Native inline script (not next/script) so it ships in the initial
             server HTML and executes during parse — before the hero paints —
@@ -160,7 +162,7 @@ export default function RootLayout({
         <script
           id="intro-init"
           dangerouslySetInnerHTML={{
-            __html: `(function(){var d=document.documentElement;try{var x=location.pathname,q=location.search,a=x.indexOf("/admin")===0||x.indexOf("/portal")===0||x==="/login"||x==="/forgot-password"||x==="/reset-password"||["/i/","/r/","/q/","/invite/"].some(function(q){return x.indexOf(q)===0})||x.indexOf("/pay")===0||x==="/signed-in";d.dataset.admin=a?"1":"";var L=(q.match(/[?&]loader=(ink|blueprint)(&|$)/)||[])[1],F=!!L;if(F){try{localStorage.setItem("wdc-loader",L)}catch(e){}}else{try{L=localStorage.getItem("wdc-loader")}catch(e){}}d.dataset.loader=L==="blueprint"?"blueprint":"ink";var R=/[?&]replay(=|&|$)/.test(q),K="wdc-intro-seen-at",T=1800000,r=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches,s=0;try{s=parseInt(localStorage.getItem(K)||"0",10)||0}catch(e){}var p=!a&&!F&&x==="/"&&!r&&(R||!s||Date.now()-s>T);d.dataset.intro=p?"play":"skip";var P="wdc-preload-seen-at",ps=0;try{ps=parseInt(localStorage.getItem(P)||"0",10)||0}catch(e){}var w=!a&&!p&&!r&&(F||R||!ps||Date.now()-ps>T);if(w){try{localStorage.setItem(P,String(Date.now()))}catch(e){}}d.dataset.preload=w?"play":"skip"}catch(e){d.dataset.intro="skip";d.dataset.preload="skip"}})();`,
+            __html: `(function(){var d=document.documentElement;try{var x=location.pathname,q=location.search,a=x.indexOf("/admin")===0||x.indexOf("/portal")===0||x==="/login"||x==="/forgot-password"||x==="/reset-password"||["/i/","/r/","/q/","/invite/"].some(function(q){return x.indexOf(q)===0})||x.indexOf("/pay")===0||x==="/signed-in";d.dataset.admin=a?"1":"";var L=(q.match(/[?&]loader=(ink|blueprint)(&|$)/)||[])[1],F=!!L;if(F){try{sessionStorage.setItem("wdc-loader",L)}catch(e){}}else{try{L=sessionStorage.getItem("wdc-loader")}catch(e){}}try{localStorage.removeItem("wdc-loader")}catch(e){}if(!L){var c=document.cookie.match(/(?:^|; )wdc-loader-site=(ink|blueprint)/);L=c&&c[1]}d.dataset.loader=L==="blueprint"?"blueprint":"ink";var R=/[?&]replay(=|&|$)/.test(q),K="wdc-intro-seen-at",T=1800000,r=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches,s=0;try{s=parseInt(localStorage.getItem(K)||"0",10)||0}catch(e){}var p=!a&&!F&&x==="/"&&!r&&(R||!s||Date.now()-s>T);d.dataset.intro=p?"play":"skip";var P="wdc-preload-seen-at",ps=0;try{ps=parseInt(localStorage.getItem(P)||"0",10)||0}catch(e){}var w=!a&&!p&&!r&&(F||R||!ps||Date.now()-ps>T);if(w){try{localStorage.setItem(P,String(Date.now()))}catch(e){}}d.dataset.preload=w?"play":"skip"}catch(e){d.dataset.intro="skip";d.dataset.preload="skip"}})();`,
           }}
         />
         <JsonLd data={[organizationJsonLd(), websiteJsonLd(), ...servicesJsonLd()]} />

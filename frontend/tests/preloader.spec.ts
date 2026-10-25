@@ -16,13 +16,14 @@ import { expect, test, type Page } from "@playwright/test";
 test.describe.configure({ timeout: 120_000 });
 
 /* Runs in the page before anything else: the intro and the first-load
-   preloader count as seen, and the concept is chosen. */
+   preloader count as seen, and the concept is chosen the way the settings
+   page's Preview chooses it, for this tab. */
 const seen = (concept: string) => {
   try {
     const now = String(Date.now());
     localStorage.setItem("wdc-intro-seen-at", now);
     localStorage.setItem("wdc-preload-seen-at", now);
-    localStorage.setItem("wdc-loader", concept);
+    sessionStorage.setItem("wdc-loader", concept);
   } catch {}
 };
 
@@ -104,4 +105,32 @@ test("the intro plays on a phone", async ({ browser }) => {
   await expect(page.locator("html")).toHaveAttribute("data-intro", "play");
   await expect(page.getByRole("button", { name: "Skip intro" })).toBeVisible({ timeout: 30_000 });
   await ctx.close();
+});
+
+test("the owner's choice reaches a new visitor before the first paint", async ({ browser }) => {
+  /* The proxy hands over the choice from Settings > Website and SEO
+     (lib/preloader.ts) as a cookie; the page must play exactly that. */
+  const ctx = await browser.newContext();
+  const page = await ctx.newPage();
+  const res = await page.goto("/about", { waitUntil: "domcontentloaded" });
+  const chosen = /wdc-loader-site=(ink|blueprint)/.exec((await res!.allHeaders())["set-cookie"] ?? "")?.[1];
+  expect(chosen).toBeTruthy();
+  await expect(page.locator("html")).toHaveAttribute("data-loader", chosen!);
+  /* A preview of the other one wins in its own tab only. */
+  const other = chosen === "ink" ? "blueprint" : "ink";
+  await page.goto(`/about?loader=${other}`, { waitUntil: "domcontentloaded" });
+  await expect(page.locator("html")).toHaveAttribute("data-loader", other);
+  const tab = await ctx.newPage();
+  await tab.goto("/services", { waitUntil: "domcontentloaded" });
+  await expect(tab.locator("html")).toHaveAttribute("data-loader", chosen!);
+  await ctx.close();
+});
+
+test("ink types the name without a cursor on the letters, and blueprint has no seam", async ({ page }) => {
+  await page.goto("/about?loader=ink", { waitUntil: "domcontentloaded" });
+  const caret = await page.evaluate(() =>
+    [...document.querySelectorAll(".ink-ch")].some((el) => getComputedStyle(el, "::after").content !== "none"),
+  );
+  expect(caret).toBe(false);
+  await expect(page.locator(".bp-seam")).toHaveCount(0);
 });
