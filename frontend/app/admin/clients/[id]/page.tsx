@@ -220,7 +220,7 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
             <RailCard title="Next meeting" aside={meeting ? (daysFrom(meeting.start, now) <= 0 ? "Today" : `In ${daysFrom(meeting.start, now)} days`) : undefined}>
               {meeting ? (
                 <div className="adRc__split">
-                  <span className="adDate" aria-hidden="true"><span>{new Date(Date.parse(meeting.start) + 3_600_000).toLocaleString("en-GB", { month: "short", timeZone: "UTC" }).toUpperCase()}</span><b>{new Date(Date.parse(meeting.start) + 3_600_000).getUTCDate()}</b></span>
+                  <span className="adDateTile" aria-hidden="true"><span>{new Date(Date.parse(meeting.start) + 3_600_000).toLocaleString("en-GB", { month: "short", timeZone: "UTC" }).toUpperCase()}</span><b>{new Date(Date.parse(meeting.start) + 3_600_000).getUTCDate()}</b></span>
                   <span style={{ display: "grid" }}><b>{dateTimeWords(meeting.start, now)}</b><small className="ad__dim">{meeting.title}</small></span>
                 </div>
               ) : <p className="ad__dim" style={{ margin: 0 }}>No meeting is booked with {c.company}.</p>}

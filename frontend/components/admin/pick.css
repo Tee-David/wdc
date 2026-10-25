@@ -104,7 +104,8 @@
 .adCal__foot .ad__btn { min-height: 2.5rem; }
 
 /* A date and a time side by side; the time is the narrow half. */
-.adDT { display: grid; grid-template-columns: minmax(0, 1fr) 6.25rem; gap: .5rem; }
+.adDT { display: grid; grid-template-columns: minmax(0, 1fr) 7.5rem; gap: .5rem; }
+@media (max-width: 380px) { .adDT { grid-template-columns: minmax(0, 1fr); } }
 
 @media (max-width: 640px) {
   .adPick__scrim { display: block; position: fixed; inset: 0; z-index: 94; background: rgb(6 6 28 / .45); }

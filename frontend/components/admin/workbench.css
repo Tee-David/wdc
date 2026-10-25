@@ -197,9 +197,9 @@ a.adRc__row:hover, button.adRc__row:hover, a.adRc__row.on, button.adRc__row.on {
 .adTl__b { min-width: 0; flex: 1; display: grid; font-size: .9rem; }
 .adTl__b small { color: var(--ad-dim); font-size: .8rem; }
 .adTl__w { flex: none; font-size: .8rem; color: var(--ad-dim); white-space: nowrap; }
-.adDate { width: 3.25rem; flex: none; border-radius: 12px; overflow: hidden; text-align: center; border: 1px solid var(--ad-line-2); background: var(--ad-panel); }
-.adDate span { display: block; background: var(--ad-tone-brand); color: #fff; font: 700 .62rem/1.5 var(--font-outfit), system-ui, sans-serif; letter-spacing: .08em; }
-.adDate b { display: block; font: 700 1.3rem/1.6 var(--font-space-grotesk), system-ui, sans-serif; }
+.adDateTile { width: 3.25rem; flex: none; border-radius: 12px; overflow: hidden; text-align: center; border: 1px solid var(--ad-line-2); background: var(--ad-panel); }
+.adDateTile span { display: block; background: var(--ad-tone-brand); color: #fff; font: 700 .62rem/1.5 var(--font-outfit), system-ui, sans-serif; letter-spacing: .08em; }
+.adDateTile b { display: block; font: 700 1.3rem/1.6 var(--font-space-grotesk), system-ui, sans-serif; }
 .adPj { display: grid; gap: .75rem; padding: 1rem; border: 1px solid var(--ad-line); border-radius: 16px; background: var(--ad-panel); min-width: 0; }
 .adPj__hd { display: flex; gap: .6rem; align-items: flex-start; }
 .adPj__hd > div:first-child { min-width: 0; flex: 1; display: grid; gap: .15rem; }
