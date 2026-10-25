@@ -605,6 +605,8 @@ export type TicketMessage = {
   author: string;
   from: "client" | "studio";
   body: string;
+  /** The message in the same question this one answers, when it quotes one. */
+  replyTo?: Id;
 };
 
 /* ---------------------------------------------------------------- derived */

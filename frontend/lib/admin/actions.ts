@@ -1592,7 +1592,7 @@ export async function replyToTicketAsStudio(_prev: ActionState, fd: FormData): P
   /* Signed with the person's name: "Studio" told the client nothing about
      who they were talking to. */
   const author = await actorName();
-  const t = db.addTicketMessage({ ticketId: str(fd, "id"), from: "studio", author, body });
+  const t = db.addTicketMessage({ ticketId: str(fd, "id"), from: "studio", author, body, replyTo: str(fd, "replyTo") || undefined });
   if (!t) return FAIL({}, "That conversation is no longer there.");
   const ticket = db.getTicket(t.ticketId);
   if (ticket) {

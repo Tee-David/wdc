@@ -4,7 +4,7 @@ import { db } from "@/lib/db/pool";
 /** One person's state for one conversation (message_reads, migration 0054). */
 export type ReadState = { lastReadAt: string | null; pinned: boolean; archived: boolean };
 export type TeamThread = { id: string; kind: "direct" | "group"; title: string; members: { id: string; name: string }[]; lastAt: string; last: { author: string; authorId: string; body: string } | null };
-export type TeamMessage = { id: string; authorId: string; authorName: string; body: string; at: string };
+export type TeamMessage = { id: string; authorId: string; authorName: string; body: string; at: string; replyTo?: string | null };
 
 const iso = (v: string | Date | null) => (v ? new Date(v).toISOString() : null);
 
@@ -57,9 +57,14 @@ export async function teamMessages(threadId: string, userId: string): Promise<Te
   try {
     const member = await db.query("SELECT 1 FROM team_thread_members WHERE thread_id=$1 AND user_id=$2", [threadId, userId]);
     if (!member.rowCount) return null;
-    const r = await db.query<{ id: string; author_id: string; author_name: string; body: string; created_at: string }>(
-      "SELECT id,author_id,author_name,body,created_at FROM team_messages WHERE thread_id=$1 ORDER BY created_at DESC LIMIT 120", [threadId]);
-    return r.rows.reverse().map((m) => ({ id: m.id, authorId: m.author_id, authorName: m.author_name, body: m.body, at: iso(m.created_at)! }));
+    type Row = { id: string; author_id: string; author_name: string; body: string; created_at: string; reply_to?: string | null };
+    /* reply_to arrives with migration 0057; before it, the chat reads without quotes. */
+    const r = await db.query<Row>("SELECT id,author_id,author_name,body,created_at,reply_to FROM team_messages WHERE thread_id=$1 ORDER BY created_at DESC LIMIT 120", [threadId])
+      .catch((e: { code?: string }) => {
+        if (e.code !== "42703") throw e;
+        return db.query<Row>("SELECT id,author_id,author_name,body,created_at FROM team_messages WHERE thread_id=$1 ORDER BY created_at DESC LIMIT 120", [threadId]);
+      });
+    return r.rows.reverse().map((m) => ({ id: m.id, authorId: m.author_id, authorName: m.author_name, body: m.body, at: iso(m.created_at)!, replyTo: m.reply_to ?? null }));
   } catch { return null; }
 }
 
@@ -67,4 +72,44 @@ export async function teamMessages(threadId: string, userId: string): Promise<Te
 export async function studioPeople(): Promise<{ id: string; name: string }[]> {
   return db.query<{ id: string; name: string }>(`SELECT "id","name" FROM "user" WHERE "role" IN ('owner','staff') AND "deactivatedAt" IS NULL ORDER BY lower("name") LIMIT 200`)
     .then((r) => r.rows, () => []);
+}
+
+/**
+ * HOW MANY MESSAGES THIS PERSON HAS NOT READ, per project channel and team
+ * chat: messages from someone else after they last opened it. Two bounded
+ * queries; anything that fails counts as unknown and the row falls back to
+ * its dot.
+ */
+export async function unreadCounts(userId: string, projectIds: string[], teamIds: string[]): Promise<Map<string, number>> {
+  const out = new Map<string, number>();
+  if (!userId) return out;
+  const epoch = "1970-01-01T00:00:00Z";
+  await Promise.all([
+    projectIds.length ? db.query<{ k: string; n: string | number }>(
+      `SELECT 'p-'||n.project_id AS k,count(*) AS n FROM workspace_team_notes n
+         LEFT JOIN message_reads r ON r.user_id=$2 AND r.thread_key='p-'||n.project_id
+        WHERE n.project_id=ANY($1::STRING[]) AND n.author_id<>$2 AND n.created_at>COALESCE(r.last_read_at,$3::TIMESTAMPTZ)
+        GROUP BY n.project_id`, [projectIds, userId, epoch]).then((r) => r.rows.forEach((x) => out.set(x.k, Number(x.n))), () => {}) : null,
+    teamIds.length ? db.query<{ k: string; n: string | number }>(
+      `SELECT 'd-'||m.thread_id::STRING AS k,count(*) AS n FROM team_messages m
+         LEFT JOIN message_reads r ON r.user_id=$2 AND r.thread_key='d-'||m.thread_id::STRING
+        WHERE m.thread_id=ANY($1::UUID[]) AND m.author_id<>$2 AND m.created_at>COALESCE(r.last_read_at,$3::TIMESTAMPTZ)
+        GROUP BY m.thread_id`, [teamIds, userId, epoch]).then((r) => r.rows.forEach((x) => out.set(x.k, Number(x.n))), () => {}) : null,
+  ]);
+  return out;
+}
+
+/** When each other member of a team chat last read it, so a sender can see whether their last message has been read. */
+export async function othersRead(userId: string, keys: string[]): Promise<Map<string, Map<string, string | null>>> {
+  const out = new Map<string, Map<string, string | null>>();
+  if (!userId || !keys.length) return out;
+  try {
+    const r = await db.query<{ thread_key: string; user_id: string; last_read_at: string | null }>(
+      "SELECT thread_key,user_id,last_read_at FROM message_reads WHERE user_id<>$1 AND thread_key=ANY($2::STRING[])", [userId, keys]);
+    for (const x of r.rows) {
+      if (!out.has(x.thread_key)) out.set(x.thread_key, new Map());
+      out.get(x.thread_key)!.set(x.user_id, iso(x.last_read_at));
+    }
+  } catch { /* before 0054 nothing is known */ }
+  return out;
 }

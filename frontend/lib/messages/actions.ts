@@ -84,7 +84,16 @@ export async function postTeamMessage(_prev: ActionState, fd: FormData): Promise
     const me = await requireWorkspaceUser(true);
     const member = await db.query("SELECT 1 FROM team_thread_members WHERE thread_id=$1 AND user_id=$2", [threadId, me.userId]);
     if (!member.rowCount) return FAIL({}, "You are not in this chat.");
-    await db.query("INSERT INTO team_messages (id,thread_id,author_id,author_name,body) VALUES ($1,$2,$3,$4,$5)", [randomUUID(), threadId, me.userId, me.name, body]);
+    /* A quote must point at a message in this same chat. Before migration 0057 the column is missing and the message is saved without it. */
+    const raw = value(fd, "replyTo");
+    const replyTo = /^[0-9a-f-]{36}$/i.test(raw) && (await db.query("SELECT 1 FROM team_messages WHERE id=$1 AND thread_id=$2", [raw, threadId])).rowCount ? raw : null;
+    const id = randomUUID();
+    try {
+      await db.query("INSERT INTO team_messages (id,thread_id,author_id,author_name,body,reply_to) VALUES ($1,$2,$3,$4,$5,$6)", [id, threadId, me.userId, me.name, body, replyTo]);
+    } catch (e) {
+      if ((e as { code?: string }).code !== "42703") throw e;
+      await db.query("INSERT INTO team_messages (id,thread_id,author_id,author_name,body) VALUES ($1,$2,$3,$4,$5)", [id, threadId, me.userId, me.name, body]);
+    }
     await db.query("UPDATE team_threads SET last_message_at=now() WHERE id=$1", [threadId]);
     /* Writing to a chat you archived brings it back to your inbox. */
     await db.query("UPDATE message_reads SET archived=false,last_read_at=now() WHERE user_id=$1 AND thread_key=$2", [me.userId, `d-${threadId}`]);

@@ -12,7 +12,7 @@ import { ChipPick } from "./chip-pick";
  * services) is a searchable picker from five options instead: a wall of chips
  * past five is cut off on a phone (the owner's call, 2026-10-12).
  */
-export type ChipItem = { key: string; label: string; href: string; count?: number };
+export type ChipItem = { key: string; label: string; href: string; count?: number | string };
 
 export function Chips({ items, current, label, grows }: { items: ChipItem[]; current: string; label: string; grows?: boolean }) {
   if (grows && items.length >= 5) return <ChipPick items={items} current={current} label={label} />;
