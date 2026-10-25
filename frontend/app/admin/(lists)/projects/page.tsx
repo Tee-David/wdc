@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { CalendarDays, FolderKanban, Hourglass, KanbanSquare, List as ListIcon, GanttChart } from "lucide-react";
 import { SERVICES } from "@/lib/services";
-import { getBoard, getClients, getInvoices } from "@/lib/admin/store";
+import { getBoard, getClients, getDeliverablesFor, getInvoices } from "@/lib/admin/store";
 import { HEALTH, STAGES, invoiceStatus, invoiceTotals, naira, type Stage } from "@/lib/admin/types";
 import { adminRole } from "@/lib/admin/guard";
 import { inScope, staffScope } from "@/lib/admin/staff-scope";
@@ -15,7 +15,8 @@ import { studioStamp } from "@/components/admin/calendar/studio-time";
 import type { CalEvent } from "@/components/admin/calendar/types";
 import { Calendar } from "@/components/admin/calendar/calendar";
 import { PageHead } from "@/components/admin/page-head";
-import { StatTiles } from "@/components/admin/workbench";
+import { RailCard, StatTiles, Workbench } from "@/components/admin/workbench";
+import { Deck, type DeckItem } from "@/components/admin/deck";
 import { Chips } from "@/components/admin/chips";
 import { Tabs } from "@/components/admin/tabs";
 import { UrlSearch } from "@/components/admin/url-search";
@@ -122,6 +123,29 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
   }
   const liveMeetings = meetings.filter((b) => !["cancelled", "rejected"].includes(b.status.toLowerCase()));
   const meetingsSoon = liveMeetings.filter((b) => Date.parse(b.start) >= nowMs() && Date.parse(b.start) <= week).length;
+
+  /* PROJECTS NEEDING YOU (the approved board), from the records: blocked work,
+     dates already past, files the client has not decided on, changes they asked
+     for, and what is due in the next three days. Staff see only their own
+     projects (the rows are already scoped) and never an amount. */
+  const ago = (iso: string) => Math.max(0, Math.floor((nowMs() - Date.parse(iso)) / DAY));
+  const deck: DeckItem[] = [];
+  for (const r of live) {
+    const p = r.project, who = r.client?.company ?? "the client", open = `/admin/projects/${p.id}`;
+    if (p.health === "Blocked") deck.push({ id: `blk-${p.id}`, kind: "Blocked", urgency: "Stopped", tone: "bad", label: who, title: `${p.title} is blocked`, body: "Nothing moves until the blocker is cleared. Open it to see what it is waiting on and who can unblock it.", primary: { label: "Open the project", href: open }, secondary: { label: "Message the channel", href: `/admin/messages?c=p-${p.id}` }, open });
+    else if (r.due && r.due < today) deck.push({ id: `late-${p.id}`, kind: "Date", urgency: `Due ${dateWords(p.due!, nowMs())}`, tone: "bad", label: who, title: `${p.title} has passed its date`, body: `It is at ${p.stage}. Agree a new date with ${who}, or finish it.`, primary: { label: "Open the project", href: open }, open });
+    for (const d of getDeliverablesFor(p.id)) {
+      const v = d.versions.at(-1);
+      if (d.approval === "Awaiting client" && v && ago(v.sharedAt ?? v.at) >= 3) deck.push({ id: `appr-${d.id}-${v.v}`, kind: "Approval", urgency: `${ago(v.sharedAt ?? v.at)} days waiting`, tone: "warn", label: who, title: `${d.name} v${v.v} is waiting on ${who}`, body: `Shared ${dateWords(v.sharedAt ?? v.at, nowMs())}. A nudge in the channel keeps ${p.title} moving.`, primary: { label: "Open the file", href: `${open}?tab=files` }, secondary: { label: "Message the channel", href: `/admin/messages?c=p-${p.id}` }, open });
+      if (d.approval === "Revision requested") deck.push({ id: `rev-${d.id}`, kind: "Changes", urgency: "Waiting on us", tone: "live", label: who, title: `${who} asked for changes to ${d.name}`, body: d.approvalNote ? `In their words: “${d.approvalNote.slice(0, 140)}”` : "Read what they asked for, then share the next version.", primary: { label: "Open the file", href: `${open}?tab=files` }, open });
+    }
+    if (r.due && r.due >= today && p.due && Date.parse(p.due) <= nowMs() + 3 * DAY && p.health !== "Blocked") deck.push({ id: `soon-${p.id}`, kind: "Due soon", urgency: dateWords(p.due, nowMs()), tone: "warn", label: who, title: `${p.title} is due ${dateWords(p.due, nowMs())}`, body: `It is at ${p.stage}${r.tasksTotal ? `, ${r.tasksDone} of ${r.tasksTotal} tasks done` : ""}.`, primary: { label: "Open the project", href: open }, open });
+  }
+  /* THIS WEEK, beside the list: what is due and who we meet in the next seven days. */
+  const weekRows = [
+    ...dueSoon.filter((r) => r.due >= today).map((r) => ({ key: `p-${r.project.id}`, at: r.project.due!, title: r.project.title, sub: `${r.client?.company ?? "Client"} · due`, href: `/admin/projects/${r.project.id}` })),
+    ...liveMeetings.filter((b) => Date.parse(b.start) >= nowMs() && Date.parse(b.start) <= week).map((b) => ({ key: `m-${b.start}-${b.title}`, at: b.start, title: b.title, sub: "Meeting", href: "/admin/meetings" })),
+  ].sort((a, b) => a.at.localeCompare(b.at)).slice(0, 8);
 
   const dueNote = [
     meetingsOn && !meetingsFailed ? `${meetingsSoon} ${meetingsSoon === 1 ? "meeting" : "meetings"}` : "",
@@ -340,6 +364,11 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
         chores={<ProjectsChores exportHref={exportHref} meetings={isOwner} />}
       />
       <ExampleNote />
+      <div className="adPl__deck">
+        <Deck id="projects" title={isOwner ? "Projects needing you" : "Your projects need"} items={deck}
+          emptyTitle="Every project is moving." emptyBody="Nothing is blocked, late or waiting on a decision."
+          emptyNext={weekRows[0] ? { label: `Next: ${weekRows[0].title}`, href: weekRows[0].href } : { label: "Open the board", href: href({ view: "board" }) }} />
+      </div>
       <div className="adPl__tiles" data-tour="figures">
         <StatTiles items={[
           { label: "Live projects", value: String(live.length), note: `${usedServices} ${usedServices === 1 ? "service" : "services"}`, icon: FolderKanban, tone: "brand", href: href({ view: undefined, tab: undefined, page: undefined }) },
@@ -347,6 +376,16 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
           { label: "Due next 7 days", value: String(dueSoon.length), note: dueNote || (dueSoon.length ? "Projects with a date this week" : "Nothing is due this week"), icon: CalendarDays, tone: "live", href: href({ view: "calendar", page: undefined }) },
         ]} />
       </div>
+      <Workbench railLabel="This week" rail={view !== "list" ? null : (
+        <RailCard title="This week" aside={`${weekRows.length} ${weekRows.length === 1 ? "item" : "items"}`}>
+          {weekRows.length ? weekRows.map((w) => (
+            <Link key={w.key} href={w.href} className="adRc__row">
+              <span className="adRc__line"><strong>{w.title}</strong><span className="ad__dim">{dateWords(w.at, nowMs())}</span></span>
+              <span className="adRc__sub">{w.sub}</span>
+            </Link>
+          )) : <p className="ad__dim" style={{ margin: 0 }}>Nothing is due and no meeting is booked in the next seven days.</p>}
+        </RailCard>
+      )}>
       <section className="adList adPl" aria-label="All projects" data-tour="projects-switch">
         <div className="adList__hd adPl__hd">
           <nav className="ad__switch" aria-label="Project views">
@@ -358,6 +397,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
         <div className="adList__pad"><Chips label="Service" grows items={chipItems} current={service ?? ""} /></div>
         {body}
       </section>
+      </Workbench>
     </>
   );
 }

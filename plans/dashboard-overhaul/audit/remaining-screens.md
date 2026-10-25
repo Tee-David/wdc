@@ -3,10 +3,12 @@
 Resume here: build order below. Agent B finished (owner and client portal).
 
 ## Build order (live pages onto the approved boards)
-1. Project page, all services (/admin/projects/[id]) -> board A-Project; per-service sections. IN PROGRESS
-2. Client detail (/admin/clients/[id]) -> A-Client
-3. Money detail and New invoice (/admin/money/[id], /admin/money/new) -> A-Invoice
-4. Messages (/admin/messages) -> A-Messages
+Owner, 2026-10-25: every board already designed goes live on main, alongside the agent's new designs.
+0. Welcome (/admin/welcome) -> A-Welcome; Departments (/admin/users/departments) -> A-Users
+1. Project page, all services (/admin/projects/[id]) -> board A-Project; per-service Work tab. DONE
+2. Client detail (/admin/clients/[id]) -> A-Client. DONE (deck, team notes, decluttered head)
+3. Money detail and New invoice (/admin/money/[id], /admin/money/new) -> A-Invoice. Detail DONE (what this needs, promise, final notice); New invoice to check
+4. Messages (/admin/messages) -> A-Messages. DONE (landing, replies, attachments)
 5. Forms: All entries, New form, entry page -> A-Forms, A-FormBuilder
 6. Hybrid lists: Clients, Support, Projects, Money, Reconciliation, Meetings, Notifications, Users
 7. Settings tabs still on old panels -> A-Settings

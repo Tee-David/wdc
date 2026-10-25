@@ -1,5 +1,6 @@
 /* THE PROJECTS PAGE: three figures across, then one card holding the view switch, the search, the service
    chips and whichever view is chosen (components/admin/project-board.tsx, project-timeline.tsx, calendar). */
+.adPl__deck { margin-bottom: 1.25rem; }
 .adPl__tiles { margin-bottom: 1.25rem; }
 .adPl__tiles .adStats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
 @media (max-width: 720px) {
