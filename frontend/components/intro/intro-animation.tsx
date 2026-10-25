@@ -127,12 +127,11 @@ function getIntroDecision(): boolean {
     play = decided === "play";
   } else {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const compact = window.matchMedia("(max-width: 767px)").matches;
     let seen = 0;
     try {
       seen = parseInt(localStorage.getItem(STORAGE_KEY) || "0", 10) || 0;
     } catch {}
-    play = !compact && !reduce && (!seen || Date.now() - seen > INTRO_TTL_MS);
+    play = !reduce && (!seen || Date.now() - seen > INTRO_TTL_MS);
     document.documentElement.dataset.intro = play ? "play" : "skip";
   }
   // Returning visitor: refresh the timestamp so the away-window slides.
@@ -441,9 +440,9 @@ export default function IntroAnimation() {
                   has one. The hero's "What if we made it ..." is the page's
                   heading; this is the studio's name on a splash that fades out
                   before anybody reads anything else. Two `h1`s on one document
-                  is the thing the site's own rule forbids, and it only showed
-                  on a desktop -- the intro does not run on a phone, so every
-                  mobile check said one. Nothing visible changes: the size,
+                  is the thing the site's own rule forbids, and for a while it
+                  only showed on a desktop, because the intro did not run on a
+                  phone and every mobile check said one. Nothing visible changes: the size,
                   weight and tracking are on the classes, not on the tag. */}
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
@@ -484,15 +483,15 @@ export default function IntroAnimation() {
             <motion.div
               ref={statementRef}
               style={{ opacity: contentOpacity, y: contentY }}
-              className="pointer-events-none absolute top-[20%] z-10 flex flex-col items-center justify-center px-6 text-center md:top-[22%] xl:top-[25%]"
+              className="pointer-events-none absolute top-[20%] z-10 flex flex-col items-center justify-center px-6 text-center md:top-[22%] xl:top-[25%] [@media(max-height:640px)]:top-[13%]"
             >
-              <h2 className="mb-6 font-heading text-4xl font-bold tracking-tight text-foreground md:text-6xl xl:text-7xl 2xl:text-[5.5rem]">
+              <h2 className="mb-6 font-heading text-4xl font-bold tracking-tight text-foreground md:text-6xl xl:text-7xl 2xl:text-[5.5rem] [@media(max-height:640px)]:mb-3 [@media(max-height:640px)]:text-3xl">
                 Most brands <i className="italic">are buried.</i>
               </h2>
               {/* foreground, not muted: this paragraph is the intro's one piece of real
                   copy, and it reads at full contrast in both themes (near-black on
                   light, near-white on dark). The orange service names stay accent. */}
-              <p className="max-w-xl text-base leading-relaxed text-foreground md:text-lg xl:max-w-4xl xl:text-2xl">
+              <p className="max-w-xl text-base leading-relaxed text-foreground md:text-lg xl:max-w-4xl xl:text-2xl [@media(max-height:640px)]:text-sm">
                 Whether you&apos;re underground, fighting for visibility, shaping a new concept, or scaling an established brand; we’ve got you. Through elite <strong className="font-bold text-secondary">Branding & Design</strong>, full-stack <strong className="font-bold text-secondary">Web & App Development</strong>, dominant <strong className="font-bold text-secondary">SEO</strong>, strategic <strong className="font-bold text-secondary">Social Media</strong>, and results-driven <strong className="font-bold text-secondary">PPC & Growth Marketing</strong>. Keep scrolling to meet We Dig Creativity
               </p>
             </motion.div>

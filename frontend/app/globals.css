@@ -209,6 +209,27 @@ html[data-intro="play"]::before {
   z-index: 99;
 }
 
+/* NOTHING FLOATS OVER A SCREEN THAT OWNS THE WINDOW. The chat launcher (and
+   its "Hiii" bubble), the accessibility button and back-to-top all sit above
+   the intro's z-index, so they hovered over the logo ring like stickers on a
+   film. They step out while the intro, the first-load preloader or a page
+   transition is on screen, and come back the moment it lifts. Opacity rather
+   than `visibility`: the vendor sets `visibility: visible` on its own bubble,
+   which beats an inherited `hidden`, but no child can undo a parent's
+   opacity. Never `display`, so the vendor widget is not re-laid out. */
+html[data-intro="play"] [id^="JotformAgent-"],
+html[data-intro="play"] #wdc-userway-trigger,
+html[data-intro="play"] body > .st,
+html[data-preload="play"] [id^="JotformAgent-"],
+html[data-preload="play"] #wdc-userway-trigger,
+html[data-preload="play"] body > .st,
+html[data-curtain] [id^="JotformAgent-"],
+html[data-curtain] #wdc-userway-trigger,
+html[data-curtain] body > .st {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
