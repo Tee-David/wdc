@@ -24,6 +24,8 @@ import { RemindButton } from "@/components/admin/client-bits";
 import { Calendar } from "@/components/admin/calendar/calendar";
 import { studioStamp } from "@/components/admin/calendar/studio-time";
 import { ProjectWorkspace } from "@/components/workspace/project-workspace";
+import { ServiceWork, serviceWorkLabel } from "@/components/admin/service-work";
+import { stageName, stageNames } from "@/lib/admin/service-stages";
 import { listServiceRecords } from "@/lib/workspace/service-store";
 import type { ServiceRecord } from "@/lib/workspace/service-model";
 import { postCalendar } from "@/lib/admin/content-calendar";
@@ -58,10 +60,6 @@ type Q = { tab?: string };
 const TABS = ["overview", "tasks", "work", "approvals", "files", "money", "activity"] as const;
 type Tab = (typeof TABS)[number];
 
-/** What each service calls the working tab: the content calendar for social, design rounds for branding, and so on. */
-const WORK: Record<string, string> = {
-  social: "Content calendar", branding: "Design rounds", web: "Build and launch", apps: "Builds", software: "Milestones", seo: "Content",
-};
 const DAY = 86_400_000;
 
 /**
@@ -170,7 +168,7 @@ export default async function ProjectPage({ params, searchParams }: { params: Pr
   const stageNote = updates.slice().sort((a, b) => b.at.localeCompare(a.at))[0];
   const attentionTone = way.some((w) => w.tone === "bad") ? ("bad" as const) : way.length ? ("warn" as const) : undefined;
 
-  const workLabel = WORK[p.service] ?? "Service work";
+  const workLabel = serviceWorkLabel(p.service);
   const tabItems = [
     { key: "overview", label: "Overview", href: tabHref("overview") },
     { key: "tasks", label: "Tasks", href: tabHref("tasks"), count: openTasks.length || undefined, tone: lateTasks.length ? ("bad" as const) : undefined },
@@ -202,7 +200,7 @@ export default async function ProjectPage({ params, searchParams }: { params: Pr
       </PageHead>
 
       <section className="adPg__stage" aria-label="Stage" data-tour="proj-stage">
-        <Stepper steps={STAGES} at={at} done={p.stage === "Delivered"} label={`Stage: ${p.stage}, ${at + 1} of ${STAGES.length}`} />
+        <Stepper steps={stageNames(p.service)} at={at} done={p.stage === "Delivered"} label={`Stage: ${stageName(p.service, p.stage)}, ${at + 1} of ${STAGES.length}`} />
         <p className="adPg__note">
           {stageNote ? <><b>{p.stage}:</b> {stageNote.progress || stageNote.next || "No note yet."}</> : <><b>{p.stage}.</b> No update has been written yet.</>}
         </p>
@@ -315,6 +313,7 @@ export default async function ProjectPage({ params, searchParams }: { params: Pr
             </section>
           ) : null}
           {recordsFailed && posts ? <p className="adPg__foot" role="status">The calendar could not read this project&rsquo;s posts just now. The panel below says what to check.</p> : null}
+          {!recordsFailed ? <ServiceWork projectId={p.id} service={p.service} records={records} staff={role === "staff"} /> : null}
           <ProjectWorkspace projectId={p.id} part="service" />
         </div>
       ) : null}
