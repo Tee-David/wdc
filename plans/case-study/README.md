@@ -10,7 +10,7 @@ Where each set comes from (captured 2026-10-25):
 
 Re-capture:
 
-- Live sites: `node scripts/livecap2.js https://traxstaff.com out/trax-web` (desktop, tablet and phone at 2x, plus full length; declines cookie banners).
+- Live sites: `node scripts/livecap2.js https://traxstaff.com out/trax-web` (desktop, tablet and phone at 2x; declines cookie banners). Full-length pages: `node scripts/fullcap.js https://traxstaff.com out/trax-full.png` (reduced motion and a slow scroll, so sections that animate in on scroll are captured).
 - A running app: `node scripts/appcap.js http://localhost:3200 <email> <password> out/litch /admin /admin/requests /admin/finance` (signs in with the local seed user, hides the dev overlay).
 
 Then resize to webp: 1600px wide for desktop and tablet, 780px for phone, 1200px for full-length pages, quality 80.
