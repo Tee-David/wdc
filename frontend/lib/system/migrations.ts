@@ -64,7 +64,10 @@ export async function migrationStatus(opts: { fresh?: boolean } = {}): Promise<M
  * is simply run again from the top and picks up where it left off. The file
  * is recorded only once every statement in it has gone through.
  */
-export async function applyPendingMigrations(): Promise<{ applied: string[]; failed?: { name: string; error: string } }> {
+/** A data migration names its step on its first line (`-- data: <name>`); the caller supplies the step. */
+export const dataStep = (sql: string) => /^--\s*data:\s*([a-z0-9-]+)/i.exec(sql.trimStart())?.[1] ?? null;
+
+export async function applyPendingMigrations(steps: Record<string, () => Promise<void>> = {}): Promise<{ applied: string[]; failed?: { name: string; error: string } }> {
   await db.query("CREATE TABLE IF NOT EXISTS wdc_schema_migrations (name STRING PRIMARY KEY, applied_at TIMESTAMPTZ NOT NULL DEFAULT now())");
   const done = new Set((await db.query<{ name: string }>("SELECT name FROM wdc_schema_migrations")).rows.map((r) => r.name));
   const dir = path.join(process.cwd(), "db", "migrations");
@@ -76,7 +79,16 @@ export async function applyPendingMigrations(): Promise<{ applied: string[]; fai
       if (done.has(name)) continue;
       let at = "";
       try {
-        for (const text of statements(fs.readFileSync(path.join(dir, name), "utf8"))) {
+        const sql = fs.readFileSync(path.join(dir, name), "utf8");
+        /* A DATA MIGRATION runs its step instead of SQL, and is recorded only when the step succeeds. */
+        const step = dataStep(sql);
+        if (step) {
+          const run = steps[step];
+          if (!run) throw new Error(`no step named ${step} in this deploy`);
+          at = `data step ${step}`;
+          await run();
+        }
+        for (const text of statements(sql)) {
           at = text.replace(/\s+/g, " ").slice(0, 90);
           /* pg reads a per-query `query_timeout` (client.js), which its
              types leave out; this one overrides the pool's 20 seconds. */

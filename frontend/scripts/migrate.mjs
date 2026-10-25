@@ -21,6 +21,8 @@ try {
     if (present.rowCount) continue;
 
     const sql = fs.readFileSync(path.join(migrationsDir, name), "utf8");
+    /* A data migration needs the app's store: apply it from Settings > System, never mark it done here. */
+    if (/^--\s*data:/i.test(sql.trimStart())) { console.log(`Skipped ${name} (a data migration: apply it from Settings > System)`); continue; }
     await db.query("BEGIN");
     try {
       await db.query(sql);

@@ -1,0 +1,6 @@
+-- data: realtors-practice
+-- Realtors' Practice and Shop With Peculiar from the studio's invoice files (the owner's zip): two clients, eight
+-- projects, thirteen invoices paid in full by transfer, each with its receipt. There is no SQL here: applying this
+-- from Settings > System runs lib/system/import-realtors.ts, which finds what is already there and adds only what is
+-- missing, so it is safe to run twice. It is recorded as applied only when the import succeeds. The command line
+-- migration script skips it, because the import needs the app's store.
