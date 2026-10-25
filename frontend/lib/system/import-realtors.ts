@@ -48,11 +48,11 @@ const PECULIAR: Row[] = [
 
 type Plan = { title: string; service: ServiceSlug; ongoing: boolean; due: string | null; scope: string; dept: RegExp };
 const PROJECTS: Record<string, Plan> = {
-  aggregation: { title: "Real estate property aggregation platform", service: "software", ongoing: false, due: "2026-03-02", scope: "Version 1 (Aug 2025), Version 2 (Sep 2025) and the final Version 3 (Mar 2026).", dept: /software/i },
-  website: { title: "Real estate website platform", service: "web", ongoing: true, due: null, scope: "A custom real estate website platform, started April 2026.", dept: /web/i },
-  cloud: { title: "Cloud infrastructure", service: "software", ongoing: true, due: null, scope: "VM and database cluster capacity: overages and allocation upgrades as the platform grows.", dept: /software/i },
+  aggregation: { title: "Real estate property aggregation platform", service: "software", ongoing: false, due: "2026-03-02", scope: "The property scraper app. Version 1 (Aug 2025), Version 2 (Sep 2025) and the final Version 3 (Mar 2026). Maintained under the service agreement.", dept: /software/i },
+  website: { title: "Real estate website platform", service: "web", ongoing: false, due: "2026-04-02", scope: "A custom real estate website platform, built from April 2026 and complete. It is now looked after under the service agreement.", dept: /web/i },
+  cloud: { title: "VPS and cloud infrastructure", service: "software", ongoing: true, due: null, scope: "The server (VPS) the studio runs for the client: VM and database cluster capacity, overages and allocation upgrades as it grows.", dept: /software/i },
   seo: { title: "SEO and presentation", service: "seo", ongoing: false, due: "2026-07-29", scope: "One month of SEO work and a presentation.", dept: /seo/i },
-  retainer: { title: "Service agreement (6 month retainer)", service: "software", ongoing: true, due: "2027-02-18", scope: "A six month service agreement from 18 Aug 2026.", dept: /software/i },
+  retainer: { title: "Service agreement (6 month retainer)", service: "software", ongoing: true, due: "2027-02-18", scope: "A six month maintenance retainer from 18 Aug 2026. It covers the three systems the studio manages for Realtors' Practice: the scraper app, the real estate website and the VPS.", dept: /software/i },
   ai: { title: "AI subscription and API credits", service: "software", ongoing: true, due: "2026-12-03", scope: "Paid API credits for three months (from 3 Sep 2026) and an AI subscription for two months (from 27 Sep 2026).", dept: /software/i },
   graphics: { title: "Graphics (30 designs)", service: "branding", ongoing: false, due: "2026-09-08", scope: "Thirty graphics.", dept: /brand/i },
   shop: { title: "E-commerce website", service: "web", ongoing: false, due: "2025-07-11", scope: "An e-commerce website.", dept: /web/i },
@@ -75,6 +75,7 @@ async function bring(company: string, contact: string, rows: Row[], tags: string
     }, by);
   }
   const c = client;
+  if (company === "Realtors' Practice" && !(c.notes ?? "").includes("scraper app")) patchClient(c.id, { notes: [(c.notes ?? "").trim(), "Systems the studio manages: the scraper app, the real estate website and the VPS, under the six month service agreement."].filter(Boolean).join("\n") }, by);
   /* A second contact is added when the record already names somebody else. */
   const names = [c.name, ...(c.contacts ?? []).map((p) => p.name)].map(key);
   if (!names.includes(key(contact)) && c.name.trim()) patchClient(c.id, { contacts: [...(c.contacts ?? []), { name: contact }] }, by);
