@@ -34,4 +34,4 @@ Publishing is done by the main session (owner's call, 2026-10-25). Design runs r
 
 ## Next
 1. Hybrid lists, part 2: Clients, Support, Money, Meetings, Users (check against the standard; most already have a deck).
-3. Settings tabs, client portal pages, staff pages.
+3. Client portal pages, then staff pages.

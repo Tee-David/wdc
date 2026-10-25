@@ -89,7 +89,7 @@
         { title: 'Emails this form sends', sub: 'Preview uses the latest entry.', rows: [
           { key: 'fb.thank', type: 'switch', label: 'Send a thank you to the person who filled the form', hint: 'A short note with what happens next.', def: true },
           { key: 'fb.thankBody', type: 'area', label: 'The note', hint: 'Plain words. It is sent from the studio address.', def: 'Hello {{name}}, thank you for writing. We will reply within one working day.' },
-          { key: 'fb.test', type: 'static', label: 'Send a test', hint: 'A test goes to you alone, with sample answers.', value: 'To babatope@wendiloveee.com', action: { label: 'Send test', fn: function () { self.say('A test went to babatope@wendiloveee.com.'); } } }] }
+          { key: 'fb.test', type: 'static', label: 'Send a test', hint: 'A test goes to you alone, with sample answers.', value: 'To babatope@wdc.ng', action: { label: 'Send test', fn: function () { self.say('A test went to babatope@wdc.ng.'); } } }] }
       ] },
       { label: 'Spam and keeping', icon: 'ban', cards: [
         { title: 'Spam', sub: 'A hidden field and a rate limit are always on.', rows: [

@@ -4107,7 +4107,7 @@ class Component extends DCLogic {
     if (line) fa.push({ t: line, when: 'Just now' });
     m[id] = Object.assign({}, cur, patch, { updated: 'Just now', feedAdd: fa }); this.setState({ tstat: m, ra: this.state.ra + 1 });
   }
-  tkTone(st) { return ({ open: 'var(--ad-tone-live)', wait: 'var(--ad-tone-warn)', done: 'var(--ad-tone-good)' })[st]; }
+  tkTone(st) { return ({ open: 'var(--ad-tone-brand)', wait: 'var(--ad-tone-warn)', done: 'var(--ad-tone-neutral)' })[st]; }
   artAll() { var M = this.supModel(), role = M.role, hidden = {}; this.helpCats().forEach(function (c) { if (!c.visible) hidden[c.name] = true; }); return this.kbEdited(this.state.newA.concat(M.articles)).filter(function (a) { return role === 'admin' || (!a.draft && !hidden[a.cat]); }); }
   tkOrder(a, b) { var o = { open: 0, wait: 1, done: 2 }; return o[a.status] - o[b.status]; }
   openTicket(t) {
