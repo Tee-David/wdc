@@ -54,12 +54,15 @@ function load(file, mocks) {
     '@/lib/admin/store': {}, './support-policy': policy,
   });
   const old = { ...session, session: { ...session.session, createdAt: new Date(Date.now() - 16 * 60000) } };
-  await assert.rejects(support.createStaffSupportView(old, 'staff', 'QA reason'), /Sign in again/);
-  assert.equal(queries.length, 0);
-  await support.createStaffSupportView(session, 'staff', 'QA reason');
+  /* Working as staff needs no fresh sign-in and no reason, and is not timed: an older live owner session starts it. */
+  await support.createStaffSupportView(old, 'staff');
   assert.equal(jar.has(policy.SUPPORT_STAFF_COOKIE), true);
-  assert.ok(queries.some(q => q.sql.includes("NULL,'staff'") && q.sql.includes("INTERVAL '15 minutes'")));
-  await assert.rejects(support.createStaffSupportView(session, 'staff', 'QA reason'), /Exit the current/);
+  assert.ok(queries.some(q => q.sql.includes("NULL,'staff'") && q.sql.includes("days')::INTERVAL")));
+  assert.ok(queries.some(q => q.sql.includes('audit_log') && q.sql.includes('started working as staff')));
+  await assert.rejects(support.createStaffSupportView(session, 'staff'), /Exit the current/);
+  await support.endSupportView(old);
+  jar.clear();
+  await support.createStaffSupportView(session, 'staff');
   readRows = [{ id: 'view', target_id: 'staff', name: 'QA Staff', email: 'qa@example.com', actor_name: 'QA Owner', expires_at: new Date(Date.now() + 60000) }];
   assert.equal((await support.resolveStaffSupportView(session)).targetId, 'staff');
   const scope = queries.at(-1).sql;
@@ -69,9 +72,9 @@ function load(file, mocks) {
   await support.endSupportView(session);
   assert.equal(jar.size, 0);
   actorAllowed = false;
-  await assert.rejects(support.createStaffSupportView(session, 'staff', 'QA reason'), /not available/);
+  await assert.rejects(support.createStaffSupportView(session, 'staff'), /not available/);
   actorAllowed = true; targetAllowed = false;
-  await assert.rejects(support.createStaffSupportView(session, 'staff', 'QA reason'), /not available/);
+  await assert.rejects(support.createStaffSupportView(session, 'staff'), /not available/);
   assert.equal(jar.size, 0);
   targetAllowed = true;
   let origin = 'https://example.com', actionSession = session;
@@ -81,9 +84,7 @@ function load(file, mocks) {
     './support': support, './support-policy': policy, '@/lib/rate-limit': { rateLimit: () => ({ ok: true }) },
     '@/lib/admin/validate': { FAIL: (errors, message) => ({ ok: false, errors, message }) },
   });
-  const fd = new FormData(); fd.set('targetId', 'staff'); fd.set('reason', 'QA reason');
-  actionSession = old;
-  assert.equal((await actions.startStaffSupport({}, fd)).signIn, true);
+  const fd = new FormData(); fd.set('targetId', 'staff');
   actionSession = { ...session, user: { ...session.user, role: 'staff' } };
   assert.equal((await actions.startStaffSupport({}, fd)).ok, false);
   actionSession = session; origin = '';
@@ -92,5 +93,5 @@ function load(file, mocks) {
   await assert.rejects(actions.startStaffSupport({}, fd), /redirect:\/admin/);
   assert.equal(jar.has(policy.SUPPORT_STAFF_COOKIE), true);
   await support.endSupportView(session);
-  console.log('Fresh-login recovery, old-session magic-link polling, owner/staff locks, cookie start/expiry/revocation scope and Exit passed; no real accounts or database writes.');
+  console.log('Fresh-login recovery, old-session magic-link polling, owner/staff locks, the untimed staff view with its audit lines, revocation scope and Exit passed; no real accounts or database writes.');
 })().catch(error => { console.error(error.message); process.exitCode = 1; });

@@ -41,7 +41,7 @@ export default function TicketPanel({ clientId }: { clientId: string }) {
           <tbody>
             {tickets.map((t) => (
               <tr key={t.id}>
-                <td><Link href={`/admin/clients/support/${t.id}`}><b>{t.subject}</b></Link></td>
+                <td><Link href={`/admin/messages?c=t-${t.id}`}><b>{t.subject}</b></Link></td>
                 <td><span className={`ad__pill ${STATUS_CLASS[t.status]}`}>{LABEL[t.status]}</span></td>
                 <td className="num">{getTicketMessages(t.id).length}</td>
                 <td className="ad__dim ad__num">{when(t.updatedAt)}</td>

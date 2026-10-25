@@ -1,19 +1,24 @@
 import type { Metadata } from "next";
-import PageTourButton from "@/components/admin/tour/page-tour-button";
 import { findForm } from "@/lib/forms/find";
 import Link from "next/link";
 import { Pager } from "@/components/admin/pager";
 import { DateRange } from "@/components/admin/date-range";
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Inbox, MailOpen, ShieldOff, Star } from "lucide-react";
+import { PageHead } from "@/components/admin/page-head";
+import { Tabs as UnderlineTabs } from "@/components/admin/tabs";
+import { Chips } from "@/components/admin/chips";
+import { RailCard, RailHead, StatTiles, Workbench } from "@/components/admin/workbench";
+import { CopyText } from "@/components/admin/copy-text";
+import { SITE_URL } from "@/lib/site";
 import { stepsFor } from "@/lib/onboarding";
 import { adminRole } from "@/lib/admin/guard";
 import { can } from "@/lib/admin/permissions";
 import { columnCookie, chosenColumns, PER_PAGE, tabsFor, type FormDef } from "@/lib/forms/registry";
 import { cellText, isEntryId, listEntries, onboardingServiceOf, readFilters, type Filters } from "@/lib/forms/entries";
 import { AdminState } from "@/components/admin/admin-state";
-import { Empty, Panel, when } from "@/components/admin/bits";
+import { Empty, when } from "@/components/admin/bits";
 import { EntriesTable, type TableRow } from "@/components/admin/forms/entries-table";
 import { ColumnPicker } from "@/components/admin/forms/column-picker";
 import DemoSubmission, { demoTitle } from "@/components/admin/forms/demo-submission";
@@ -25,6 +30,7 @@ import { dataFromEntry, formEmail, tokensFor } from "@/lib/forms/emails";
 import { unsubscribeUrl } from "@/lib/newsletter";
 import { getFormSettings } from "@/lib/forms/settings-db";
 import "@/components/admin/forms/forms.css";
+import "@/components/admin/forms/form-page.css";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 import { FilterPick } from "@/components/admin/pick";
 
@@ -58,33 +64,33 @@ function query(f: Filters, patch: Partial<Record<keyof Filters, string | number>
 
 function Tabs({ form, current, settings }: { form: FormDef; current: "entries" | "questions" | "settings"; settings: boolean }) {
   return (
-    <nav aria-label={`${form.title} sections`} data-tour="form-tabs">
-      <ul className="adForms__tabs">
-        <li><Link href={`/admin/forms/${form.key}`} aria-current={current === "entries" ? "page" : undefined}>Entries</Link></li>
-        {form.custom
-          ? <li><Link href={`/admin/forms/${form.key}/build`}>Edit form</Link></li>
-          : <li><Link href={`/admin/forms/${form.key}?view=questions`} aria-current={current === "questions" ? "page" : undefined}>Questions</Link></li>}
-        {settings ? <li><Link href={`/admin/forms/${form.key}?view=settings`} aria-current={current === "settings" ? "page" : undefined}>Settings</Link></li> : null}
-      </ul>
-    </nav>
+    <div data-tour="form-tabs" className="adFormPg__tabs">
+      <UnderlineTabs label={`${form.title} sections`} current={current} items={[
+        { key: "entries", label: form.noun === "Subscriber" ? "Subscribers" : "Entries", href: `/admin/forms/${form.key}` },
+        form.custom
+          ? { key: "build", label: "Edit form", href: `/admin/forms/${form.key}/build` }
+          : { key: "questions", label: "Questions", href: `/admin/forms/${form.key}?view=questions` },
+        ...(settings ? [{ key: "settings", label: "Settings", href: `/admin/forms/${form.key}?view=settings` }] : []),
+      ]} />
+    </div>
   );
 }
 
 function Questions({ form }: { form: FormDef }) {
   if (!form.service) {
     return (
-      <Panel title="What this form asks">
+      <section className="adList" aria-label="What this form asks"><div className="adList__hd"><h2>What this form asks</h2></div>
         <dl className="adForms__dl">
           {form.columns.filter((c) => !["serial", "notice", "when", "status", "unsubscribed", "source"].includes(c.key)).map((c) => (
             <div key={c.key}><dt>{c.label}</dt></div>
           ))}
         </dl>
-      </Panel>
+      </section>
     );
   }
   const steps = stepsFor(form.service);
   return (
-    <Panel title={`${steps.reduce((n, s) => n + s.fields.length, 0)} questions across ${steps.length} steps`}>
+    <section className="adList" aria-label="Questions"><div className="adList__hd"><h2>{steps.reduce((n, s) => n + s.fields.length, 0)} questions across {steps.length} steps</h2></div>
       <div style={{ padding: ".4rem 1rem 1rem" }}>
         {steps.map((st) => (
           <section key={st.id} style={{ paddingTop: ".9rem" }}>
@@ -101,7 +107,7 @@ function Questions({ form }: { form: FormDef }) {
           </section>
         ))}
       </div>
-    </Panel>
+    </section>
   );
 }
 
@@ -131,18 +137,12 @@ export default async function FormPage({ params, searchParams }: Props) {
   const columns = chosen.map((k) => form.columns.find((c) => c.key === k)!).filter(Boolean);
 
   const head = (
-    <div className="ad__head">
-      <div>
-        <p className="ad__dim"><Link href="/admin/forms">Forms</Link></p>
-        <h1>{form.title}</h1>
-        <p>{form.noun === "Subscriber" ? "Everyone who asked for the newsletter." : `Every ${form.noun.toLowerCase()} this form has received.`}</p>
-      </div>
-      <div className="ad__row">
+    <PageHead title={form.title} crumbs={[{ href: "/admin/forms", label: "Forms" }]}
+      lede={<>Live at <strong>{form.publicPath}</strong>. {form.noun === "Subscriber" ? "Everyone who asked for the newsletter." : `Every ${form.noun.toLowerCase()} this form has received.`}</>}
+      action={<div className="ad__row">
         {form.source === "newsletter" && mayConfigure ? <ImportSubscribers /> : null}
-        <PageTourButton />
         <a className="ad__btn" href={form.publicPath} target="_blank" rel="noopener"><ExternalLink aria-hidden="true" /> Open form</a>
-      </div>
-    </div>
+      </div>} />
   );
 
   if (view === "settings") {
@@ -205,27 +205,39 @@ export default async function FormPage({ params, searchParams }: Props) {
   }));
   const exportQuery = query(f, { page: "", per: "" });
   const canExport = can(role, "exports");
+  const first = tabs[0];
+  const rail = (
+    <>
+      <RailHead title="Form pulse" />
+      <StatTiles items={form.source === "newsletter" ? [
+        { label: "Subscribed", value: String(page.counts.subscribed ?? 0), note: "On the list now", icon: MailOpen, tone: "good" },
+        { label: "Unsubscribed", value: String(page.counts.unsubscribed ?? 0), note: "Switched it off", icon: ShieldOff, tone: "neutral" },
+      ] : [
+        { label: first.label, value: String(page.counts[first.key] ?? 0), note: "Received", icon: Inbox, tone: "brand" },
+        { label: "Unread", value: String(page.counts.unread ?? 0), note: page.counts.unread ? "Waiting for a reply" : "Nothing waiting", noteTone: page.counts.unread ? "accent" : undefined, icon: MailOpen, tone: "live" },
+        { label: "Starred", value: String(page.counts.starred ?? 0), note: "Kept to come back to", icon: Star, tone: "warn" },
+        { label: "Spam stopped", value: String(page.counts.spam ?? 0), note: "Never reached your inbox", icon: ShieldOff, tone: "neutral" },
+      ]} />
+      <RailCard title="The public form" aside={form.custom ? "Built here" : "On the site"}>
+        <p className="ad__dim adFormPg__note">Share this address anywhere. Every answer lands in this list and the studio is told by email.</p>
+        <div className="adFormPg__links">
+          <CopyText text={new URL(form.publicPath, SITE_URL).toString()} label="Copy the address" />
+          <a className="ad__btn" href={form.publicPath} target="_blank" rel="noopener"><ExternalLink aria-hidden="true" />Open form</a>
+          {mayConfigure ? <Link className="ad__btn" href={`/admin/forms/${form.key}?view=settings`}>Emails and settings</Link> : null}
+        </div>
+      </RailCard>
+    </>
+  );
 
   return (
     <>
       {head}
       <Tabs form={form} current="entries" settings={mayConfigure} />
 
-      <nav aria-label="Entry states">
-        <ul className="adForms__tabs">
-          {tabs.map((t) => (
-            <li key={t.key}>
-              <Link href={`/admin/forms/${form.key}?${query(f, { tab: t.key, page: 1 })}`}
-                aria-current={t.key === f.tab ? "page" : undefined}
-                className={page.counts[t.key] ? undefined : "is-empty"}>
-                {t.label} <span className="ad__num">{page.counts[t.key] ?? 0}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
-
-      <section className="ad__panel">
+      <Workbench railLabel="About this form" rail={rail}>
+      <section className="adList" aria-label={`${form.title} entries`}>
+        <div className="adList__hd"><h2>{tabs.find((t) => t.key === f.tab)?.label ?? "Entries"}</h2><span className="adList__n">{page.total}</span></div>
+        <div className="adList__pad"><Chips label="Entry states" current={f.tab} items={tabs.map((t) => ({ key: t.key, label: t.label, count: page.counts[t.key] ?? 0, href: `/admin/forms/${form.key}?${query(f, { tab: t.key, page: 1 })}` }))} /></div>
         <form className="adForms__filters" method="get" role="search">
           <input type="hidden" name="tab" value={f.tab} />
           <label className="adForms__search">Search
@@ -289,6 +301,7 @@ export default async function FormPage({ params, searchParams }: Props) {
           )}
         />
       </section>
+      </Workbench>
     </>
   );
 }

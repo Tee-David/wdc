@@ -1,17 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { KeyRound, LogOut, Save } from "lucide-react";
+import { KeyRound, LogOut } from "lucide-react";
 import { signOutDevice, signOutOtherDevices, updateMyDetails, updateNotifyPrefs } from "@/lib/portal/actions";
 import { Field, Form, Submit } from "@/components/admin/form";
-import { Switch } from "@/components/admin/settings/kit";
+import { SettingsForm, Switch } from "@/components/admin/settings/kit";
 import { PasswordChange } from "@/components/account/password-change";
 import { NOTIFY_KINDS, notifyAllows, type Client, type NotifyKind } from "@/lib/admin/types";
 
 /** The client's own name and phone. Email and company are shown, not edited. */
 export function ProfileForm({ client }: { client: Client }) {
   return (
-    <Form action={updateMyDetails} className="pSet__form">
+    <SettingsForm action={updateMyDetails}>
+      <div className="pSet__form">
       <Field name="name" label="Contact name" required defaultValue={client.name} />
       <div className="pSet__fixed">
         <span>Company</span>
@@ -23,8 +24,8 @@ export function ProfileForm({ client }: { client: Client }) {
         <small>This is the address you sign in with, so it changes through Support rather than here.</small>
       </div>
       <Field name="phone" label="Phone" type="tel" inputMode="tel" defaultValue={client.phone} placeholder="+234 803 555 0142" />
-      <div className="pSet__act"><Submit tone="primary" icon={Save}>Save details</Submit></div>
-    </Form>
+      </div>
+    </SettingsForm>
   );
 }
 
@@ -37,12 +38,13 @@ const NOTIFY: Record<NotifyKind, { label: string; note: string }> = {
 /** What we email this client about, as switches. Every one can be turned off. */
 export function NotifyForm({ client }: { client: Client }) {
   return (
-    <Form action={updateNotifyPrefs} className="pSet__notify">
+    <SettingsForm action={updateNotifyPrefs}>
+      <div className="pSet__notify">
       {NOTIFY_KINDS.map((k) => (
         <Switch key={k} name={k} label={NOTIFY[k].label} note={NOTIFY[k].note} defaultChecked={notifyAllows(client.notify, k)} />
       ))}
-      <div className="pSet__act"><Submit tone="primary" icon={Save}>Save preferences</Submit></div>
-    </Form>
+      </div>
+    </SettingsForm>
   );
 }
 

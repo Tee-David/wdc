@@ -482,6 +482,36 @@ export const EXPENSE_CATEGORIES = [
 ] as const;
 export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number];
 
+/**
+ * MONEY OWED TO A FREELANCER for work a client approved. Ready (owed, waiting
+ * on Admin), Approved (the amount and the day are agreed), Paid (it left the
+ * account; marking it paid records the matching expense against the project,
+ * so the project's margin and Spent both carry it), or Cancelled with a reason.
+ */
+export const PAYOUT_STATES = ["Ready", "Approved", "Paid", "Cancelled"] as const;
+export type PayoutState = (typeof PAYOUT_STATES)[number];
+export type Payout = {
+  id: Id;
+  who: string;
+  email?: string;
+  work: string;
+  amount: number;
+  /** YYYY-MM-DD: the day it is meant to be paid. */
+  due: string;
+  projectId?: Id;
+  clientId?: Id;
+  state: PayoutState;
+  createdAt: string;
+  by: string;
+  approvedBy?: string;
+  approvedAt?: string;
+  paidAt?: string;
+  reference?: string;
+  /** The expense recorded when it was paid. */
+  expenseId?: Id;
+  note?: string;
+};
+
 export type Expense = {
   id: Id;
   at: string;

@@ -10,7 +10,12 @@ import { invoiceStatus, invoiceTotals, lineTotal, paymentState, refundedTotal } 
 
 /** The exact figure under a short one, only when the short one rounded it. */
 
-import { Empty, InvoicePill, Panel, Tile, when } from "@/components/admin/bits";
+import { Empty, InvoicePill, when } from "@/components/admin/bits";
+import { CalendarClock, CheckCircle2, Eye, FileText, Landmark, Wallet } from "lucide-react";
+import { PageHead } from "@/components/admin/page-head";
+import { RailCard, StatTiles, Workbench } from "@/components/admin/workbench";
+import { CopyText } from "@/components/admin/copy-text";
+import { nowMs, dateWords, daysFrom } from "@/lib/admin/when";
 import QrCode from "@/components/ui/qr-code";
 import { invoiceUrl } from "@/components/money/document";
 import { PaymentMenu } from "@/components/admin/row-actions";
@@ -20,9 +25,9 @@ import { CreditExcess, EmailInvoice, EmailReminder, SendReceipt } from "@/compon
 import { InvoiceReconciliation } from "@/components/admin/reconciliation";
 import CommsLog from "@/components/admin/comms-log";
 import InvoiceReminders from "@/components/admin/invoice-reminders";
-import PageTourButton from "@/components/admin/tour/page-tour-button";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 import "@/components/admin/dashboard.css";
+import "@/components/admin/invoice-page.css";
 
 /* NO generateStaticParams: invoices are raised at runtime, and a prerendered
    list would 404 on the one just created. */
@@ -51,7 +56,6 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
   const inv = getInvoice(id);
   if (!inv) notFound();
   const naira=(amount:number)=>money(amount,currencyOf(inv));
-  const nairaShort=naira;const exact=()=>undefined;
   const client = getClient(inv.clientId);
   const project = inv.projectId ? getProject(inv.projectId) : null;
   const payments = getPaymentsFor(inv.id);
@@ -63,21 +67,48 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
   const mailable = invoiceMailVerdict(inv).ok;
   const settled = !inv.voided && inv.status !== "Draft" && !mailable;
   const recon = reconcileInvoice(inv, payments);
+  const now = nowMs();
+  const lateDays = Math.max(0, -daysFrom(inv.due, now));
+  const link = invoiceUrl(inv.token);
+
+  const rail = (
+    <>
+      {inv.status !== "Draft" ? (
+        <RailCard title="The client's copy" aside="As the client sees it">
+          <div className="adInv__copy" data-tour="inv-client-copy">
+            <div className="ad__qr"><QrCode url={link} label={`Open invoice ${inv.number}`} animate={false} boxPx={148} /></div>
+            <p className="ad__dim">Printed, emailed or sent as a photo, the code always opens the live copy, which knows what has been paid since.</p>
+          </div>
+        </RailCard>
+      ) : (
+        <RailCard title="Not sent yet">
+          <p className="ad__dim adInv__note">A draft has no client copy and no pay link. Send it from the head of the page when it is ready.</p>
+        </RailCard>
+      )}
+      {inv.status !== "Draft" ? <InvoiceReminders invoice={inv} /> : null}
+      {inv.status !== "Draft" && !inv.voided ? (
+        <RailCard title="The payment link">
+          <p className="ad__dim adInv__note">One tap to pay with Paystack or Flutterwave. A paid invoice cannot be paid twice.</p>
+          <div className="adInv__links">
+            <CopyText text={link} label="Copy the link" />
+            <a className="ad__btn" href={`/i/${inv.token}`} target="_blank" rel="noopener noreferrer"><Eye aria-hidden="true" />See it as the client</a>
+            <Link className="ad__btn" href="/admin/money/reconciliation"><Landmark aria-hidden="true" />Match a payment</Link>
+          </div>
+        </RailCard>
+      ) : null}
+    </>
+  );
 
   return (
     <>
-      <div className="ad__head">
-        <div>
-          <p className="ad__dim"><Link href="/admin/money">Money</Link></p>
-          <h1 style={{ display: "flex", alignItems: "center", gap: ".6rem", flexWrap: "wrap" }}>{inv.number} <InvoicePill status={status} /></h1>
-          <p>
-            {client ? <Link href={`/admin/clients/${client.id}`}>{client.company}</Link> : "Unknown client"}
-            {project ? <> · <Link href={`/admin/projects/${project.id}`}>{project.title}</Link></> : null}
-            {" · issued "}{when(inv.issued)}
-          </p>
-        </div>
-        <div className="ad__row" data-tour="inv-actions">
-          <PageTourButton />
+      <PageHead title={`Invoice ${inv.number}`} crumbs={[{ href: "/admin/money", label: "Money" }]}
+        lede={<>
+          {client ? <Link href={`/admin/clients/${client.id}`}>{client.company}</Link> : "Unknown client"}
+          {project ? <> · <Link href={`/admin/projects/${project.id}`}>{project.title}</Link></> : null}
+          {inv.status === "Draft" ? " · not sent yet" : ` · issued ${dateWords(inv.issued, now)}`}
+          {" · "}<strong>{inv.voided ? "Nothing owed" : t.due > 0 ? `${naira(t.due)} owed` : "Paid in full"}</strong>
+        </>}
+        action={<div className="ad__row adInv__acts" data-tour="inv-actions">
           {/* A DRAFT AND AN ISSUED INVOICE OFFER DIFFERENT THINGS, because
               they are different objects: a draft is still being written and
               can be issued or deleted; an issued one is a document somebody
@@ -128,8 +159,9 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
               ) : null}
             </>
           )}
-        </div>
-      </div>
+        </div>}>
+        <p className="adInv__status"><InvoicePill status={status} />{status === "Overdue" ? <span className="ad__pill ad__pill--bad">{lateDays} {lateDays === 1 ? "day" : "days"} late</span> : null}</p>
+      </PageHead>
 
       {inv.voided ? (
         <p className="ad__banner" role="status">
@@ -141,9 +173,15 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
       ) : null}
 
 
-      <div className="adFlow__grid">
-        <div className="adFlow__main">
-        <Panel title="Lines">
+      <Workbench railLabel="About this invoice" rail={rail}>
+        <StatTiles items={[
+          { label: "Total", value: naira(t.total), note: inv.vatRate ? `Includes VAT at ${inv.vatRate}%` : "No VAT", icon: FileText, tone: "brand" },
+          { label: "Paid", value: naira(inv.paid), note: `${payments.length} ${payments.length === 1 ? "payment" : "payments"}`, icon: CheckCircle2, tone: "good" },
+          { label: "Owed", value: naira(t.due), note: inv.voided ? "Struck, nothing owed" : t.due ? (status === "Overdue" ? `${lateDays} ${lateDays === 1 ? "day" : "days"} late` : "Open") : "Settled", noteTone: status === "Overdue" ? "accent" : undefined, icon: Wallet, tone: t.due && status === "Overdue" ? "bad" : "neutral" },
+          { label: "Due", value: dateWords(inv.due, now), note: status === "Overdue" ? "Past its terms" : inv.status === "Draft" ? "Set when it is sent" : "On its terms", icon: CalendarClock, tone: status === "Overdue" ? "bad" : "neutral" },
+        ]} />
+        <section className="adList" aria-label="Lines">
+          <div className="adList__hd"><h2>Lines</h2><span className="adList__n">{inv.lines.length}</span></div>
           <div className="ad__scroll">
             <table className="ad__t">
               <thead>
@@ -175,9 +213,10 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
               </tfoot>
             </table>
           </div>
-        </Panel>
+        </section>
 
-        <Panel title="Payments" dataTour="inv-payments">
+        <section className="adList" aria-label="Payments" data-tour="inv-payments">
+          <div className="adList__hd"><h2>Payments</h2><span className="adList__n">{payments.length}</span></div>
           {payments.length ? (
             <div className="ad__scroll">
               <table className="ad__t">
@@ -233,7 +272,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
               {status === "Draft" ? "It has not been sent." : status === "Void" ? "Nothing was paid on this. It was cancelled, so its pay link no longer takes money." : "The pay link has not been used."}
             </Empty>
           )}
-        </Panel>
+        </section>
 
         {/* Said where it is true rather than at the top of the screen: an
             overpaid invoice is a thing somebody has to decide about, and it is
@@ -251,47 +290,6 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
         ) : null}
 
         {inv.status !== "Draft" ? <InvoiceReconciliation row={recon} /> : null}
-        </div>
-
-        <aside className="adFlow__rail" aria-label="About this invoice">
-        <dl className="adFlow__tiles">
-        {/* Short on the tile so a phone keeps each figure on one line; the
-            exact amount is the line under it. */}
-        <Tile label="Total" value={nairaShort(t.total)} note={exact()} />
-        <Tile label="Paid" value={nairaShort(inv.paid)} note={exact()} tone={inv.paid ? "good" : undefined} />
-        <Tile label="Owed" value={nairaShort(t.due)} note={exact()} tone={t.due ? "bad" : "good"} />
-        {/* Day and month on the tile, the year under it: "31 Aug 2026" wrapped
-            to two lines on a phone. */}
-        <Tile label="Due" value={when(inv.due).replace(/\s\d{4}$/, "")}
-              note={[when(inv.due).match(/\d{4}$/)?.[0], status === "Overdue" ? "past its terms" : ""].filter(Boolean).join(", ") || undefined}
-              tone={status === "Overdue" ? "bad" : undefined} />
-      </dl>
-        {/* THE CLIENT'S COPY, and the code that gets them back to it.
-
-            An invoice is printed, attached to an email, or photographed and
-            sent on WhatsApp, and at that point it is a dead piece of paper
-            that does not know whether the money has since arrived. The code
-            reopens the live version, which does.
-
-            It is addressed by a random token and NOT by the invoice number:
-            the numbers are sequential by design, so a public page at
-            /i/INV-2026-004 would hand anyone holding one invoice every other
-            one the studio has raised, by subtracting one. A draft has no
-            public page at all, because a draft has not been sent to anybody. */}
-        {inv.status !== "Draft" ? (
-          <Panel title="The client's copy" dataTour="inv-client-copy">
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "1.2rem", alignItems: "center", padding: ".9rem 1rem" }}>
-              <div className="ad__qr">
-                <QrCode url={invoiceUrl(inv.token)} label={`Open invoice ${inv.number}`} animate={false} boxPx={160} />
-              </div>
-              <a className="ad__btn" href={`/i/${inv.token}`} target="_blank" rel="noopener noreferrer">
-                Open as the client sees it
-              </a>
-            </div>
-          </Panel>
-        ) : null}
-
-        {inv.status !== "Draft" ? <InvoiceReminders invoice={inv} /> : null}
 
         {inv.status !== "Draft" ? (
           <CommsLog
@@ -299,8 +297,8 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
             title={`What we have sent about ${inv.number}`}
           />
         ) : null}
-        </aside>
-      </div>
+
+      </Workbench>
     </>
   );
 }

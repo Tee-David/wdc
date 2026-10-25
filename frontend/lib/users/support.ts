@@ -13,11 +13,17 @@ export type StaffSupportView = { id: string; targetId: string; name: string; ema
 const hash = (value: string) => createHash("sha256").update(value).digest("hex");
 const TOKEN = /^[A-Za-z0-9_-]{43}$/;
 
-/** ANY support view, client or staff: every write guard refuses on this, so a new kind of view is read-only by default. */
+/** ANY support view, client or staff. Account and security writes refuse on this: nobody changes a password or a sign-in while viewing as someone else. */
 export async function supportCookiePresent() {
   const jar = await cookies();
   return jar.has(SUPPORT_COOKIE) || jar.has(SUPPORT_STAFF_COOKIE);
 }
+/**
+ * A READ-ONLY view: the client view, or a tampered browser holding both
+ * cookies. Work writes refuse on this. The owner's staff view is not read-only:
+ * its writes go through as the staff member and are audited under the owner.
+ */
+export async function readOnlySupportPresent() { return (await cookies()).has(SUPPORT_COOKIE); }
 export async function staffSupportCookiePresent() { return (await cookies()).has(SUPPORT_STAFF_COOKIE); }
 export async function clientSupportCookiePresent() { return (await cookies()).has(SUPPORT_COOKIE); }
 
@@ -77,8 +83,16 @@ const LOCK_ACTOR = `SELECT u."id" FROM "user" u JOIN "session" s ON s."userId" =
   AND s."id" = $2 AND s."expiresAt" > now()
   AND s."createdAt" <= now() AND s."createdAt" >= now() - INTERVAL '15 minutes' FOR UPDATE`;
 
-async function setViewCookie(name: string, token: string) {
-  (await cookies()).set(name, token, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict", path: "/", maxAge: SUPPORT_MINUTES * 60 });
+/** The owner on a live session, for the staff view: no fresh sign-in, because the owner already holds more than the staff account. */
+const LOCK_OWNER = `SELECT u."id" FROM "user" u JOIN "session" s ON s."userId" = u."id"
+  WHERE u."id" = $1 AND u."role" = 'owner' AND u."deactivatedAt" IS NULL
+  AND s."id" = $2 AND s."expiresAt" > now() FOR UPDATE`;
+
+/** A staff view is not timed; the row still needs an end, so it is a year, and the owner's own session ends it far sooner. */
+const STAFF_VIEW_DAYS = 365;
+
+async function setViewCookie(name: string, token: string, maxAge = SUPPORT_MINUTES * 60) {
+  (await cookies()).set(name, token, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict", path: "/", maxAge });
 }
 
 export async function createSupportView(session: RealSession, targetId: string, clientId: string, reason: string) {
@@ -100,25 +114,27 @@ export async function createSupportView(session: RealSession, targetId: string, 
 }
 
 /**
- * Start a READ-ONLY view of the admin as an active staff member. Never the
- * owner, never yourself, never a deactivated account (the target is locked and
- * re-read inside the transaction). Needs migration 0049 (client_id nullable,
+ * Start working in the admin as an active staff member: not read-only, not
+ * timed, no reason asked. Never the owner, never yourself, never a deactivated
+ * account (the target is locked and re-read inside the transaction). Start,
+ * end and every change made in it are in the security history and the audit
+ * log under the owner's name. Needs migration 0049 (client_id nullable,
  * target_role); without it the insert is refused by the database and this says so.
  */
-export async function createStaffSupportView(session: RealSession, targetId: string, reason: string) {
+export async function createStaffSupportView(session: RealSession, targetId: string) {
   if (await supportCookiePresent()) throw new Error("Exit the current support view first.");
-  assertStartable(reason, session);
   if (!targetId || targetId === session.user.id) throw new Error("That support view is not available.");
   const token = randomBytes(32).toString("base64url");
   try {
     await transaction(async (c) => {
-      const actor = await c.query(LOCK_ACTOR, [session.user.id, session.session.id]);
+      const actor = await c.query(LOCK_OWNER, [session.user.id, session.session.id]);
       const target = await c.query('SELECT 1 FROM "user" WHERE "id" = $1 AND "role" = $2 AND "deactivatedAt" IS NULL FOR UPDATE', [targetId, "staff"]);
       if (!actor.rowCount || !target.rowCount) throw new Error("That support view is not available.");
       await c.query(`UPDATE user_support_sessions SET revoked_at = now() WHERE actor_id = $1 AND actor_session_id = $2 AND revoked_at IS NULL`, [session.user.id, session.session.id]);
       await c.query(`INSERT INTO user_support_sessions(token_hash, actor_id, actor_session_id, target_id, client_id, target_role, reason, expires_at)
-        VALUES($1,$2,$3,$4,NULL,'staff',$5,now() + INTERVAL '15 minutes')`, [hash(token), session.user.id, session.session.id, targetId, reason.trim()]);
-      await c.query(`INSERT INTO user_security_events(actor_id,target_id,event,detail) VALUES($1,$2,'support-started',$3)`, [session.user.id, targetId, `Staff view: ${reason.trim()}`]);
+        VALUES($1,$2,$3,$4,NULL,'staff','Working as staff',now() + ($5 || ' days')::INTERVAL)`, [hash(token), session.user.id, session.session.id, targetId, String(STAFF_VIEW_DAYS)]);
+      await c.query(`INSERT INTO user_security_events(actor_id,target_id,event,detail) VALUES($1,$2,'support-started','Working as staff')`, [session.user.id, targetId]);
+      await c.query(`INSERT INTO audit_log(at,actor,kind,subject_id,subject,action) SELECT now(),a."name",'setting',t."id",t."name",'started working as staff' FROM "user" a, "user" t WHERE a."id"=$1 AND t."id"=$2`, [session.user.id, targetId]);
     });
   } catch (error) {
     // 42703 = column missing (target_role), 23502 = client_id still NOT NULL: migration 0049 is not applied.
@@ -126,7 +142,7 @@ export async function createStaffSupportView(session: RealSession, targetId: str
     if (code === "42703" || code === "23502") throw new Error(SUPPORT_STAFF_MIGRATION);
     throw error;
   }
-  await setViewCookie(SUPPORT_STAFF_COOKIE, token);
+  await setViewCookie(SUPPORT_STAFF_COOKIE, token, STAFF_VIEW_DAYS * 86_400);
 }
 
 /** Ends whichever view the browser holds and always clears both cookies, even when the audit write fails. */
@@ -135,9 +151,10 @@ export async function endSupportView(session: RealSession | null) {
   const tokens = [jar.get(SUPPORT_COOKIE)?.value, jar.get(SUPPORT_STAFF_COOKIE)?.value].filter((t): t is string => Boolean(t) && TOKEN.test(t!));
   try {
     if (session) for (const token of tokens) await transaction(async (c) => {
-      const r = await c.query<{ target_id: string }>(`UPDATE user_support_sessions SET revoked_at = now()
-        WHERE token_hash = $1 AND actor_id = $2 AND actor_session_id = $3 AND revoked_at IS NULL RETURNING target_id`, [hash(token), session.user.id, session.session.id]);
+      const r = await c.query<{ target_id: string; client_id: string | null }>(`UPDATE user_support_sessions SET revoked_at = now()
+        WHERE token_hash = $1 AND actor_id = $2 AND actor_session_id = $3 AND revoked_at IS NULL RETURNING target_id, client_id`, [hash(token), session.user.id, session.session.id]);
       if (r.rows[0]) await c.query(`INSERT INTO user_security_events(actor_id,target_id,event) VALUES($1,$2,'support-ended')`, [session.user.id, r.rows[0].target_id]);
+      if (r.rows[0] && !r.rows[0].client_id) await c.query(`INSERT INTO audit_log(at,actor,kind,subject_id,subject,action) SELECT now(),a."name",'setting',t."id",t."name",'stopped working as staff' FROM "user" a, "user" t WHERE a."id"=$1 AND t."id"=$2`, [session.user.id, r.rows[0].target_id]);
     });
   } finally { jar.delete(SUPPORT_COOKIE); jar.delete(SUPPORT_STAFF_COOKIE); }
 }

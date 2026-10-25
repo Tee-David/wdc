@@ -16,6 +16,7 @@ import {
   LifeBuoy,
   LogOut,
   Mail,
+  MessagesSquare,
   Moon,
   Newspaper,
   PanelLeft,
@@ -82,6 +83,8 @@ const NAV: NavItem[] = [
       { href: "/admin/money/reconciliation", label: "Reconciliation" },
     ],
   },
+  /* Client questions and project channels in one list, for the owner and staff alike; each thread is scoped on the server. */
+  { href: "/admin/messages", label: "Messages", Icon: MessagesSquare, group: "main", tour: "nav-messages" },
   /* The books and the work, filtered and exportable. Owner only, like Money. */
   { href: "/admin/reports", label: "Reports", Icon: ChartColumn, group: "main", tour: "nav-reports" },
   /* Campaigns, the calendar of sends, automations, templates and contacts. */
@@ -529,7 +532,7 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
   );
 }
 
-export type ShellSupport = { name: string; expiresAt: string; minutes: number };
+export type ShellSupport = { name: string; actorName: string };
 
 export default function AdminShell({ children, counts = {}, user, role = "owner", support }: { children: ReactNode; counts?: Record<string, number>; user: AdminUser; role?: AdminRole; support?: ShellSupport | null }) {
   return (
@@ -616,7 +619,7 @@ function ShellFrame({ children, counts, user, support }: { children: ReactNode; 
       </aside>
 
       <div className="ad__column">
-        {support ? <div className="ad__stickTop"><SupportBar name={support.name} expiresAt={support.expiresAt} minutes={support.minutes} />{topbar}</div> : topbar}
+        {support ? <div className="ad__stickTop"><SupportBar name={support.name} actorName={support.actorName} />{topbar}</div> : topbar}
         <main className="ad__main">{children}</main>
         <TableScroll />
         <ToastHost />

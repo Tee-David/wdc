@@ -43,7 +43,8 @@ async function waitForTarget(target: string) {
 }
 
 async function ensureOnPage(href: string, target: string, navigate: (href: string) => void) {
-  if (window.location.pathname !== href) navigate(href);
+  /* Path and query: a step can name a section of a page ("/portal/settings?s=signin"). */
+  if (window.location.pathname + window.location.search !== href) navigate(href);
   await waitForTarget(target);
 }
 

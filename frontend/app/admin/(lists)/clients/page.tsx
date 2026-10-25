@@ -5,6 +5,7 @@ import { SERVICES } from "@/lib/services";
 import { getEstimates, getProjects } from "@/lib/admin/store";
 import { estimateTotals, naira } from "@/lib/admin/types";
 import { adminRole } from "@/lib/admin/guard";
+import { inScope, staffScope } from "@/lib/admin/staff-scope";
 import { can } from "@/lib/admin/permissions";
 import { nairaTile } from "@/lib/admin/short-money";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
@@ -74,7 +75,10 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
   const sort: Sort = SORTS.includes(query.sort as Sort) && (money || query.sort !== "owed") ? (query.sort as Sort) : "since";
   const direction = query.dir === "asc" || query.dir === "desc" ? query.dir : sort === "company" ? "asc" : "desc";
 
-  const { rows: all, portalKnown } = await buildClientRows({ money });
+  /* Staff see the clients in their scope; the owner sees every one. */
+  const scope = await staffScope(role);
+  const { rows: allRows, portalKnown } = await buildClientRows({ money });
+  const all = allRows.filter((r) => inScope(scope, "clients", r.client.id));
 
   /* ONE FILTER, APPLIED WITH ONE FACET LEFT OUT, so each tab and chip counts
      what it would show if pressed, with every other choice kept. */
@@ -160,7 +164,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
   ];
 
   const lede = <>
-    {active.length} active {active.length === 1 ? "client" : "clients"} and {leads.length} {leads.length === 1 ? "lead" : "leads"}.{" "}
+    {scope ? `${active.length} ${active.length === 1 ? "client is" : "clients are"} assigned to you.` : `${active.length} active ${active.length === 1 ? "client" : "clients"} and ${leads.length} ${leads.length === 1 ? "lead" : "leads"}.`}{" "}
     <strong>{deck.length ? `${deck.length} need${deck.length === 1 ? "s" : ""} you today.` : "Nobody is waiting on you."}</strong>
     {money ? ` ${naira(owedTotal)} outstanding.` : ""}
   </>;

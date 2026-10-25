@@ -117,6 +117,50 @@ export async function createInvitation(input: {
   });
 }
 
+/**
+ * A COLLEAGUE OF A CLIENT, invited by the client's primary contact (People at
+ * your business). The inviter must be the active client account whose email
+ * is the client record's, every project must be that client's and live, and
+ * the access waits in invitation_project_grants until the link is used.
+ */
+export async function createColleagueInvitation(input: {
+  email: string; name: string; actorId: string; clientId: string; by: string;
+  projects: { id: string; review: boolean; billing: boolean }[];
+}): Promise<{ invitation: Invitation; token: string }> {
+  const email = normaliseEmail(input.email);
+  const token = randomBytes(32).toString("base64url");
+  return transaction(async (c) => {
+    const linked = await c.query<{ data: { email?: string; archived?: boolean; mergedInto?: string } | null }>(`SELECT data FROM admin_records WHERE collection='CLIENTS' AND id=$1 FOR UPDATE`, [input.clientId]);
+    const client = linked.rows[0]?.data;
+    if (!client || client.archived || client.mergedInto) throw new ClientInvitationError("Your business record is not available just now. Ask Admin.");
+    const actor = await c.query<{ email: string }>(`SELECT "email" FROM "user" WHERE "id"=$1 AND "role"='client' AND "deactivatedAt" IS NULL FOR UPDATE`, [input.actorId]);
+    if (!actor.rows[0] || normaliseEmail(actor.rows[0].email) !== normaliseEmail(client.email ?? "")) throw new ClientInvitationError("Only the main contact for your business can add people.");
+    if (email === normaliseEmail(client.email ?? "")) throw new ClientInvitationError("That is the main contact's own address.");
+    if (!input.projects.length) throw new ClientInvitationError("There is no live project to share yet.");
+    for (const p of input.projects) {
+      const row = await c.query<{ data: { clientId?: string; archived?: boolean } | null }>(`SELECT data FROM admin_records WHERE collection='PROJECTS' AND id=$1`, [p.id]);
+      if (row.rows[0]?.data?.clientId !== input.clientId || row.rows[0]?.data?.archived) throw new ClientInvitationError("A project changed. Reload and try again.");
+    }
+    await c.query(`INSERT INTO user_invitation_targets(email) VALUES($1) ON CONFLICT(email) DO UPDATE SET email=excluded.email`, [email]);
+    await c.query(`SELECT email FROM user_invitation_targets WHERE email=$1 FOR UPDATE`, [email]);
+    const account = await c.query(`SELECT 1 FROM "user" WHERE lower("email")=$1`, [email]);
+    if (account.rowCount) throw new ClientInvitationError("An account already exists for this email.");
+    await c.query(`UPDATE invitations SET revoked_at = now(), revoked_by = $2 WHERE email = $1 AND redeemed_at IS NULL AND revoked_at IS NULL`, [email, `${input.by} (replaced)`]);
+    const r = await c.query<Row>(
+      `INSERT INTO invitations (token_hash, email, name, role, client_id, invited_by, expires_at)
+       VALUES ($1, $2, $3, 'client', $4, $5, now() + ($6 || ' days')::INTERVAL)
+       RETURNING ${COLUMNS}`,
+      [hashToken(token), email, input.name.trim().slice(0, 120), input.clientId, input.by, String(INVITE_TTL_DAYS)],
+    );
+    for (const p of input.projects) {
+      await c.query(`INSERT INTO invitation_project_grants (invitation_id, project_id, can_review, can_billing, granted_by) VALUES ($1,$2,$3,$4,$5)`, [r.rows[0].id, p.id, p.review, p.billing, input.actorId]);
+    }
+    await c.query(`INSERT INTO user_security_events(actor_id,target_id,event) VALUES($1,$2,'invitation-created')`, [input.actorId, r.rows[0].id]);
+    await c.query(`INSERT INTO user_invitation_delivery(invitation_id,state) VALUES($1,'queued')`, [r.rows[0].id]);
+    return { invitation: toInvitation(r.rows[0]), token };
+  });
+}
+
 /** The invitation a link names, whatever state it is in, or null. */
 export async function invitationForToken(token: string): Promise<Invitation | null> {
   if (!/^[A-Za-z0-9_-]{20,100}$/.test(token)) return null;
@@ -199,10 +243,16 @@ export async function redeemInvitation(token: string, input: { name: string; pas
     const state = inviteState(toInvitation(row));
     if (state !== "pending") return { ok: false, reason: state } as const;
 
+    /* A colleague's invitation carries its project grants; anyone else's is the client's own and must still match the record's email. */
+    /* Checked with to_regclass, not a caught error: a failed query would abort this transaction before migration 0056 is applied. */
+    const grantsReady = row.role === "client" && (await c.query<{ t: string | null }>(`SELECT to_regclass('invitation_project_grants')::STRING AS t`)).rows[0]?.t;
+    const grants = grantsReady
+      ? (await c.query<{ project_id: string; can_review: boolean; can_billing: boolean; granted_by: string }>(`SELECT project_id, can_review, can_billing, granted_by FROM invitation_project_grants WHERE invitation_id=$1`, [row.id])).rows
+      : [];
     if (row.role === "client") {
       const linked = await c.query<{data:{email?:string;archived?:boolean;mergedInto?:string}|null}>(`SELECT data FROM admin_records WHERE collection='CLIENTS' AND id=$1 FOR UPDATE`, [row.client_id ?? ""]);
       const client = linked.rows[0]?.data;
-      if (!client || client.archived || client.mergedInto || normaliseEmail(client.email ?? "") !== row.email) {
+      if (!client || client.archived || client.mergedInto || (!grants.length && normaliseEmail(client.email ?? "") !== row.email)) {
         await c.query(`UPDATE invitations SET revoked_at=now(),revoked_by='Client linkage changed' WHERE id=$1`, [row.id]);
         return {ok:false,reason:"revoked"} as const;
       }
@@ -222,6 +272,11 @@ export async function redeemInvitation(token: string, input: { name: string; pas
         'INSERT INTO "account" ("id", "accountId", "providerId", "userId", "password") VALUES ($1, $2, $3, $4, $5)',
         [randomUUID(), userId, "credential", userId, hashed],
       );
+    }
+    for (const g of grants) {
+      const project = await c.query<{ data: { clientId?: string; archived?: boolean } | null }>(`SELECT data FROM admin_records WHERE collection='PROJECTS' AND id=$1`, [g.project_id]);
+      if (project.rows[0]?.data?.clientId !== row.client_id || project.rows[0]?.data?.archived) continue;
+      await c.query(`INSERT INTO workspace_project_members(project_id,user_id,can_manage,can_review,can_billing,granted_by) VALUES($1,$2,false,$3,$4,$5) ON CONFLICT(project_id,user_id) DO UPDATE SET can_review=excluded.can_review,can_billing=excluded.can_billing,granted_by=excluded.granted_by,granted_at=now(),revoked_at=NULL`, [g.project_id, userId, g.can_review, g.can_billing, g.granted_by]);
     }
     await c.query("UPDATE invitations SET redeemed_at = now(), redeemed_user_id = $2 WHERE id = $1", [row.id, userId]);
     return { ok: true, email: row.email, userId, role: row.role, name, clientId: row.client_id } as const;
