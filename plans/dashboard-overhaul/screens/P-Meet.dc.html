@@ -18,7 +18,7 @@ body{margin:0}
 .wdc *{box-sizing:border-box;scrollbar-width:thin;scrollbar-color:var(--ad-line-2) transparent}
 .wdc ::selection{background:var(--ad-fill);color:var(--ad-on-fill)}
 .wdc h1,.wdc h2,.wdc h3,.disp{font-family:'Space Grotesk',system-ui,sans-serif;letter-spacing:-.02em;margin:0}
-.wdc p{margin:0;text-wrap:pretty}
+.wdc p{margin:0;text-wrap:wrap}
 .num{font-family:'Space Grotesk',system-ui,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
 :where(.wdc) a{color:inherit;text-decoration:none}
 :where(.wdc) button{font:inherit;color:inherit;cursor:pointer;background:none;border:0;padding:0;text-align:inherit;-webkit-tap-highlight-color:transparent}
@@ -1326,14 +1326,14 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .bClient .bDue{font-weight:700;font-size:12px;white-space:nowrap}
 .tlWrap{overflow:auto;margin:0 20px 18px;border:1px solid var(--ad-line);border-radius:16px;max-height:720px;overscroll-behavior:contain}
 .tl{min-width:980px}
-.tlHead,.tlRow{display:grid;grid-template-columns:220px minmax(0,1fr)}
-.tlHead{position:sticky;top:0;z-index:5;background:var(--ad-panel-2);border-bottom:1px solid var(--ad-line)}
+.gtHead,.gtRow{display:grid;grid-template-columns:220px minmax(0,1fr)}
+.gtHead{position:sticky;top:0;z-index:5;background:var(--ad-panel-2);border-bottom:1px solid var(--ad-line)}
 .tlCorner{position:sticky;left:0;z-index:6;background:var(--ad-panel-2);padding:12px 14px;font-size:12px;font-weight:600;color:var(--ad-dim)}
 .tlAxis{display:grid;grid-template-columns:repeat(var(--wk),minmax(0,1fr))}
 .tlWk{padding:12px 8px;font-size:12px;font-weight:600;color:var(--ad-dim);border-left:1px solid var(--ad-line)}
 .tlBody{position:relative}
-.tlRow{border-bottom:1px solid var(--ad-line);min-height:64px}
-.tlRow:last-child{border-bottom:0}
+.gtRow{border-bottom:1px solid var(--ad-line);min-height:64px}
+.gtRow:last-child{border-bottom:0}
 .tlName{position:sticky;left:0;z-index:3;background:var(--ad-panel);display:flex;flex-direction:column;justify-content:center;gap:1px;text-align:left;padding:8px 14px;border-right:1px solid var(--ad-line)}
 .tlName strong{font-size:14px}.tlName span{font-size:12px;color:var(--ad-dim)}
 .tlName:hover{background:var(--ad-hover)}
@@ -1342,13 +1342,214 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .tlBar{position:absolute;top:10px;min-width:56px;height:44px;display:flex;flex-direction:column;justify-content:center;gap:6px;text-align:left;border-radius:10px;transition:transform .18s var(--ease)}
 .tlBar::after{content:"";position:absolute;inset:-2px -4px}
 .tlBar:hover{transform:translateY(-1px)}
-.tlBar:hover .tlRail{box-shadow:0 0 0 3px var(--ad-ring)}
-.tlRail{display:block;height:12px;border-radius:99px;background:var(--ad-tone-flat);overflow:hidden;transition:box-shadow .15s}
+.tlBar:hover .gtRail{box-shadow:0 0 0 3px var(--ad-ring)}
+.gtRail{display:block;height:12px;border-radius:99px;background:var(--ad-tone-flat);overflow:hidden;transition:box-shadow .15s}
 .tlFill{display:block;height:100%;border-radius:99px;background:var(--c);transform-origin:left;animation:growx .8s var(--ease) backwards}
 .tlTxt{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tlNone{position:absolute;left:14px;top:22px;font-size:12px;color:var(--ad-dim)}
 .tlToday{position:absolute;top:0;bottom:0;left:calc(220px + (100% - 220px) * var(--today,0));width:0;z-index:4;pointer-events:none;border-left:2px solid var(--ad-act)}
 .tlTodayPill{position:absolute;top:-1px;left:-1px;transform:translateX(-50%);background:var(--ad-act);color:#fff;font:700 11px/1 'Space Grotesk',system-ui,sans-serif;padding:5px 8px;border-radius:0 0 8px 8px}
+
+/* The client's copy as a document: title and number, meta, from and to, a table, totals, note, payment and signature. */
+.docPaper{padding:22px 22px 18px;gap:12px;font-size:13px;line-height:1.45;box-shadow:var(--ad-sh-1)}
+.dpTop{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.dpTitle{margin:0;font:700 26px/1.1 'Space Grotesk',system-ui,sans-serif;letter-spacing:-.02em}
+.dpNo{color:#5c5c7a;font-size:13px}
+.dpMark{font:700 18px 'Space Grotesk',system-ui,sans-serif;letter-spacing:.08em;color:#000065;padding:6px 10px;border:2px solid #000065;border-radius:10px}
+.dpRule{height:1px;background:#e4e6f0}
+.dpMeta2{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.dpMeta2 small,.dpParty small,.dpBottom small{display:block;color:#5c5c7a;font-size:11px;margin-bottom:2px}
+.dpMeta2 b{font-weight:600;overflow-wrap:anywhere}
+.dpParty{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.dpParty div{display:flex;flex-direction:column;min-width:0}.dpParty span{color:#5c5c7a;font-size:12px;overflow-wrap:anywhere}.dpParty .r,.dpBottom .r{text-align:right;align-items:flex-end}
+.dpTbl{display:flex;flex-direction:column;border-radius:10px;overflow:hidden;border:1px solid #e4e6f0}
+.dpTh,.dpTr{display:grid;grid-template-columns:minmax(0,1fr) 44px 92px 100px;gap:8px;padding:8px 12px;align-items:start}
+.dpTh{background:#f2f3f9;color:#5c5c7a;font-size:11px;font-weight:600}
+.dpTr{border-top:1px solid #e4e6f0}.dpTr span:first-child{overflow-wrap:anywhere}
+.dpTbl .n{text-align:right}
+.docPaper .dpTot{display:flex;flex-direction:column;gap:4px;margin-left:auto;width:min(100%,260px)}
+.docPaper .dpTot > div{display:flex;justify-content:space-between;gap:12px;color:#5c5c7a}
+.docPaper .dpTot .tot{color:#0e0e2c;font-weight:700;font-size:15px;border-top:1px solid #c9ccdc;padding-top:6px;margin-top:2px}
+.dpNote{border:1px solid #e4e6f0;border-radius:10px;padding:10px 12px;color:#0e0e2c}
+.dpBottom{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}.dpBottom span{color:#5c5c7a;font-size:12px}
+.dpSign{font:italic 600 18px 'Space Grotesk',system-ui,sans-serif;color:#000065}
+.dpMail{gap:10px}.dpMail small{color:#5c5c7a}.dpMail p{margin:0}
+.dpBtn{align-self:flex-start;padding:10px 16px;border-radius:12px;background:#000065;color:#fff;font-weight:600}
+.layoutWide .railCards .docPaper{min-height:420px}
+@container app (min-width:1181px){
+  .layoutWide{grid-template-columns:minmax(0,1fr) minmax(0,500px)}
+  .layoutWide .railCards{position:sticky;top:12px;align-self:start;max-height:calc(100vh - 24px);overflow:auto;overscroll-behavior:contain}
+}
+@container card (max-width:520px){.dpTh,.dpTr{grid-template-columns:minmax(0,1fr) 34px 78px 84px;padding:8px}.docPaper{padding:16px 14px}.dpTitle{font-size:22px}.dpMeta2{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* ===== Reports page ===== */
+.rpBar{padding:16px 20px;display:grid;gap:12px;overflow:visible}
+.rpRow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-width:0}
+.rpRow2{gap:12px 24px}
+.rpChips{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}
+.rpChip{display:inline-flex;align-items:center;min-height:44px;padding:0 15px;border-radius:999px;border:1px solid var(--ad-line-2);background:var(--ad-panel);color:var(--ad-ink);font-weight:600;font-size:14px;transition:background .14s,border-color .14s,color .14s,transform .2s var(--spring)}
+.rpChip:hover{background:var(--ad-hover)}
+.rpChip:active{transform:scale(.97)}
+.rpChip[aria-pressed="true"]{background:var(--ad-ink);border-color:var(--ad-ink);color:var(--ad-panel)}
+.rpChip:focus-visible,.rpSeg button:focus-visible,.rpOnChip:focus-visible,.rpClear:focus-visible{outline:2px solid var(--ad-focus);outline-offset:2px}
+.rpSeg{display:inline-flex;align-items:center;gap:4px;flex-wrap:wrap}
+.rpSegL{font-size:13px;color:var(--ad-dim);font-weight:600;margin-right:4px}
+.rpSeg button{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border-radius:12px;color:var(--ad-dim);font-weight:600;font-size:14px}
+.rpSeg button:hover{background:var(--ad-hover);color:var(--ad-ink)}
+.rpSeg button[aria-pressed="true"]{background:var(--ad-hover);color:var(--ad-ink);box-shadow:inset 0 0 0 1.5px var(--ad-ink)}
+.rpFilterBtn{gap:8px}
+.rpBadge{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:var(--ad-tone-live);color:#fff;font-size:12px;font-weight:700}
+.rpOn{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding-top:12px;border-top:1px solid var(--ad-line)}
+.rpOnChip{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 10px 0 14px;border-radius:999px;background:var(--ad-tone-flat);color:var(--ad-on-flat);font-size:13px;font-weight:600;transition:background .14s,color .14s}
+.rpOnChip svg{width:16px;height:16px}
+.rpOnChip:hover{background:var(--ad-tone-bad);color:#fff}
+.rpClear{display:inline-flex;align-items:center;min-height:44px;padding:0 8px;color:var(--ad-accent-ink);font-weight:650;font-size:14px}
+.rpKpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0}
+.rpKpi{padding:14px 16px;display:grid;gap:6px;min-width:0}
+.rpKpi dt{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;color:var(--ad-dim);font-weight:600;margin:0}
+.rpKpi dd{margin:0;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font:700 24px/1.1 'Space Grotesk',sans-serif;color:var(--ad-ink)}
+.rpKpi small{color:var(--ad-dim);font-size:12.5px}
+.rpIc{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:10px;color:#fff;flex:none}
+.rpDelta{font:600 12px/1 'Outfit',sans-serif;padding:4px 8px}
+.rpPanelHead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:16px 20px 4px}
+.rpPanelHead h2{font-size:17px;font-weight:700;margin:0}
+.rpPanelHead span{font-size:13px;color:var(--ad-dim)}
+.rpEmpty{margin:0;padding:20px;color:var(--ad-dim);font-size:14.5px}
+.rpNote{margin:0;padding:0 20px 16px;color:var(--ad-dim);font-size:13.5px}
+.rpPlot{position:relative;height:208px;padding:16px 20px 8px}
+.rpCols{list-style:none;margin:0;padding:0;display:flex;align-items:flex-end;gap:clamp(4px,1vw,12px);height:100%;overflow-x:auto;scrollbar-width:thin}
+.rpCols li{flex:1 1 0;min-width:38px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px}
+.rpPair{width:100%;max-width:56px;flex:1 1 auto;display:flex;align-items:flex-end;gap:3px;min-height:0}
+.rpPair i{display:block;flex:1 1 0;border-radius:5px 5px 0 0;transform-origin:bottom}
+.rpPair.one i{border-radius:8px 8px 0 0}
+.rpIn{background:var(--ad-series-1)}
+.rpOut{background:var(--ad-series-2)}
+.rpCols small{color:var(--ad-dim);font-size:11.5px;white-space:nowrap}
+.rpCols b{font-size:13px}
+.rpFew{height:176px;padding:16px 20px 12px;overflow:visible}
+.rpKey{display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:8px 20px 14px;font-size:13px;color:var(--ad-dim)}
+.rpKey span{display:inline-flex;align-items:center;gap:6px}
+.rpKey i{width:13px;height:13px;border-radius:3px;display:inline-block}
+.rpHl{list-style:none;margin:0;padding:10px 20px 18px;display:grid;gap:14px}
+.rpHl li{display:grid;gap:5px;min-width:0}
+.rpHlTop{display:flex;justify-content:space-between;gap:16px;align-items:baseline;min-width:0}
+.rpHlTop b{overflow-wrap:anywhere}
+.rpHlTop .num{white-space:nowrap;font-weight:600}
+.rpTrack{display:block;height:9px;border-radius:99px;background:var(--ad-tone-flat);overflow:hidden}
+.rpTrack i{display:block;height:100%;border-radius:99px;background:var(--ad-series-1);transform-origin:left}
+.rpHl small{color:var(--ad-dim);font-size:12.5px}
+.rpHeld{list-style:none;margin:0;padding:6px 20px 16px;display:grid}
+.rpHeld li{display:flex;justify-content:space-between;gap:16px;align-items:center;padding:11px 0;border-bottom:1px solid var(--ad-line);min-width:0}
+.rpHeld li:last-child{border-bottom:0}
+.rpHeld li>span{display:grid;min-width:0}
+.rpHeld small{color:var(--ad-dim);font-size:12.5px}
+.rpNames{list-style:none;margin:0;padding:10px 20px 18px;display:flex;flex-wrap:wrap;gap:6px}
+.rpNames li{padding:6px 13px;border-radius:999px;background:var(--ad-tone-flat);color:var(--ad-on-flat);font-size:13.5px;font-weight:600}
+.rpRules{margin:0;padding:6px 0 4px 18px;list-style:disc;display:grid;gap:9px;color:var(--ad-dim);font-size:13.5px}
+.rpRules b{color:var(--ad-ink)}
+.rpQuick{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--ad-line);min-width:0;flex-wrap:wrap}
+.rpQuick:last-child{border-bottom:0}
+.rpQuick>span:first-child{display:grid;min-width:0;flex:1 1 140px}
+.rpQuick small{color:var(--ad-dim);font-size:12.5px}
+.rpQuickActs{display:flex;gap:6px}
+@media(prefers-reduced-motion:no-preference){.rpPair i{animation:rpGrow .6s cubic-bezier(.2,.7,.2,1) backwards}.rpTrack i{animation:rpGrowX .7s cubic-bezier(.2,.7,.2,1) backwards}}
+@keyframes rpGrow{from{transform:scaleY(0)}}
+@keyframes rpGrowX{from{transform:scaleX(0)}}
+@media(max-width:1180px){.rpKpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.rpBar{padding:14px 16px}.rpChips{flex-wrap:nowrap;overflow-x:auto;width:100%;padding-bottom:4px;scrollbar-width:none;overscroll-behavior-x:contain}.rpChips>*{flex:none}}
+@media(max-width:420px){.rpKpis{gap:8px}.rpKpi dd{font-size:21px}}
+.rpAge{background:var(--ad-series-1)}
+.rpAge1{background:var(--ad-tone-warn)}
+.rpAge2,.rpAge3{background:var(--ad-series-2)}
+.rpAge4{background:var(--ad-tone-bad)}
+@media(max-width:760px){.rpSeg{flex-wrap:nowrap;overflow-x:auto;width:100%;scrollbar-width:none;overscroll-behavior-x:contain}.rpSeg>*{flex:none}}
+
+.rpTfind{padding:10px 20px;border-bottom:1px solid var(--ad-line)}
+.rpTfind .input{width:100%}
+@media(max-width:560px){.rpKpis{grid-template-columns:minmax(0,1fr)}.rpTfind{padding:10px 16px}}
+@media(max-width:760px){.rpCols--dense li:nth-child(even) small{visibility:hidden}.rpCols small{font-size:10.5px}.rpCols li{min-width:0}.rpCols{overflow-x:clip}}
+
+/* The document keeps what the real one has: a centred watermark, the QR code and the stamp. */
+.docPaper{position:relative;isolation:isolate;overflow:hidden}
+.dpWater{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-12deg);z-index:-1;font:700 clamp(72px,22cqw,150px)/1 'Space Grotesk',system-ui,sans-serif;letter-spacing:.06em;color:#000065;opacity:.06;pointer-events:none;user-select:none}
+.dpQrRow{display:flex;align-items:center;gap:12px;color:#5c5c7a;font-size:11.5px;min-width:0}
+.dpQrRow span:not(.dpStamp){flex:1 1 0;min-width:0}
+.dpQr{flex:none;border:1px solid #c9ccdc;border-radius:8px;padding:4px;background:#fff}
+.dpStamp{flex:none;font:700 15px/1 'Space Grotesk',system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#15803d;border:3px solid #15803d;border-radius:8px;padding:8px 12px;transform:rotate(-8deg)}
+/* One figure card per row on a phone (owner's call, 2026-10-12). */
+@container app (max-width:520px){.tiles{grid-template-columns:minmax(0,1fr)}.tiles .stat:last-child:nth-child(odd){grid-column:auto}}
+@media(max-width:520px){.tiles{grid-template-columns:minmax(0,1fr)}}
+.tbl th:nth-child(2),.tbl td:nth-child(2){padding-left:22px}
+.tbl.hasCk th:nth-child(2),.tbl.hasCk td:nth-child(2){padding-left:14px}
+.tbl.hasCk th:nth-child(3),.tbl.hasCk td:nth-child(3){padding-left:22px}
+
+/* Searchable dropdown for any pick from five options up (owner's call, 2026-10-12): a field, a list with its own search, ticks for several. */
+.cbx{display:flex;flex-direction:column;gap:8px;min-width:0}
+.cbxBtn{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:48px;text-align:left;cursor:pointer;font:inherit;color:var(--ad-ink)}
+.cbxBtn[aria-expanded="true"]{border-color:var(--ad-ink);box-shadow:0 0 0 4px var(--ad-ring)}
+.cbxBtn[aria-expanded="true"] .cbxChev{transform:rotate(180deg)}
+.cbxChev{transition:transform .2s var(--ease);flex:none}
+.cbxVal{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cbxPh{color:var(--ad-dim)}
+.cbxTokens{display:flex;flex-wrap:wrap;gap:6px}
+.cbxTok{display:inline-flex;align-items:center;gap:4px;padding:4px 4px 4px 12px;border-radius:999px;background:var(--ad-tone-brand);color:#fff;font-size:13px;font-weight:600}
+.cbxTok button{width:28px;height:28px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;color:#fff;position:relative}
+.cbxTok button::after{content:"";position:absolute;inset:-8px}
+.cbxTok button:hover{background:var(--ad-tone-bad)}
+.cbxPop{border:1px solid var(--ad-line-2);border-radius:14px;background:var(--ad-panel);box-shadow:var(--ad-sh-2);overflow:hidden;animation:rise .2s var(--ease)}
+.cbxSearch{margin:8px;border-radius:10px}
+.cbxList{max-height:260px;overflow-y:auto;overscroll-behavior:contain;padding:0 6px 6px;display:flex;flex-direction:column}
+.cbxRow{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 10px;border-radius:10px;text-align:left;font:inherit;color:var(--ad-ink);cursor:pointer}
+.cbxRow:hover{background:var(--ad-hover)}
+.cbxRow.on{font-weight:600}
+.cbxTick{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--ad-line-2);display:inline-flex;align-items:center;justify-content:center;flex:none;color:transparent}
+.cbxRow.on .cbxTick{background:var(--ad-fill);border-color:var(--ad-fill);color:#fff}
+.cbxFoot{display:flex;justify-content:flex-end;padding:8px;border-top:1px solid var(--ad-line)}
+
+/* A segmented control never grows past its box: equal columns that can shrink, long labels wrap to two lines, and on a phone a view switch keeps only its icons. */
+.seg{max-width:100%;grid-auto-columns:minmax(0,1fr)}
+.seg button,.seg a{white-space:normal;text-align:center;line-height:1.2;min-width:0;padding:6px 10px}
+@container app (max-width:640px){.segIco .segL{display:none}.segIco button,.segIco a{min-width:44px}}
+/* Timeline layers: the pinned project names stay above the Today line when the chart scrolls sideways; the header stays above both, so the line starts under it. */
+.gtHead{z-index:6}
+.tlCorner{z-index:7}
+.tlName{z-index:5;min-width:0;overflow:hidden}
+.tlName strong,.tlName span{overflow-wrap:anywhere}
+.tlToday{top:var(--tlHead,43px);z-index:4}
+.cbxSearch{width:auto;box-sizing:border-box}
+.cbxPop{max-width:100%;box-sizing:border-box}
+.tlName{margin-bottom:-1px;border-bottom:1px solid var(--ad-line)}
+.cbxNone{margin:0;padding:12px 10px;color:var(--ad-dim);font-size:14px}
+.selBtn{display:flex;align-items:center;gap:8px;width:min(100%,320px);min-height:44px;cursor:pointer;font:inherit;color:var(--ad-ink);text-align:left}
+.selBtn[aria-expanded="true"]{border-color:var(--ad-ink);box-shadow:0 0 0 4px var(--ad-ring)}
+.selLbl{font-size:13px;color:var(--ad-dim);font-weight:600}
+.selVal{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.selN{font-size:13px;color:var(--ad-dim)}
+
+/* Client page: what a retainer includes, and team notes (2026-10-25) */
+.planIncl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.planIncl > span { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 10px 12px; border-radius: 12px; background: var(--ad-panel-2); font-size: 12px; color: var(--ad-dim); }
+.planIncl strong { font-size: 16px; color: var(--ad-ink); }
+.noteRow { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: 12px; background: var(--ad-panel-2); min-width: 0; }
+.noteRow p { margin: 0; overflow-wrap: anywhere; }
+
+/* The client's copy in a narrow rail: a line's description takes its own row, parties stack (2026-10-25) */
+@container card (max-width:420px){
+  .dpTh,.dpTr{grid-template-columns:34px minmax(0,1fr) minmax(0,1fr);row-gap:4px}
+  .dpTh span:first-child,.dpTr span:first-child{grid-column:1/-1}
+  .dpTr span:first-child{font-weight:600}
+  .dpParty{grid-template-columns:minmax(0,1fr)}
+  .dpParty .r{text-align:left;align-items:flex-start}
+  .dpParty span{overflow-wrap:break-word;word-break:normal}
+}
+.nxCalm { display: flex; align-items: center; gap: 12px; padding: 14px 18px; font-size: 14px; }
+.nxCard .deckActs { flex-wrap: wrap; }
+.docLineH { font-size: 12px; font-weight: 600; color: var(--ad-dim); min-height: 0; }
+.docLineH span { padding: 0 4px; }
+.docLineH .dlQ, .docLineH .dlU { padding: 0 14px; }
+.docLineH .dlA { text-align: right; }
+@container app (max-width:760px) { .docLineH { display: none; } }
+.segTall button { min-height: 44px; }
 
 </style>
 </helmet>
@@ -1551,7 +1752,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
                 <span class="num" style="min-width: 52px; text-align: center; font-weight: 600">{{zoomLabel}}</span>
                 <button class="ibtn" style="width: 40px; height: 40px" aria-label="Zoom in" onClick="{{zoomIn}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg></button>
                 <span style="flex: 1"></span>
-                <span class="num" style="font-size: 13px; color: var(--ad-dim)">{{file.pages}}</span>
+                <sc-if value="{{file.isPdf}}" hint-placeholder-val="{{ false }}"><span style="display: inline-flex; align-items: center; gap: 4px; flex: none"><button class="ibtn" style="width: 40px; height: 40px" aria-label="Previous page" onClick="{{pdfPrev}}" disabled="{{pdfFirst}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></button><span class="num" style="font-size: 13px; color: var(--ad-dim); min-width: 84px; text-align: center">Page {{pdfN}} of {{file.pageCount}}</span><button class="ibtn" style="width: 40px; height: 40px" aria-label="Next page" onClick="{{pdfNext}}" disabled="{{pdfLast}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></button></span></sc-if><sc-if value="{{file.notPdf}}" hint-placeholder-val="{{ true }}"><span class="num" style="font-size: 13px; color: var(--ad-dim)">{{file.pages}}</span></sc-if>
                 <button class="ibtn" style="width: 40px; height: 40px" aria-label="Print" onClick="{{printFile}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"></path></svg></button>
                 <button class="ibtn" style="width: 40px; height: 40px" aria-label="Download" onClick="{{downloadFile}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg></button>
               </div>
@@ -1559,6 +1760,18 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
                 <div style="transform: scale({{zoom}}); transform-origin: top center; transition: transform .3s var(--ease)">
                   <sc-if value="{{file.isImage}}" hint-placeholder-val="{{ false }}"><img src="{{file.url}}" alt="{{sheet.title}}" style="display: block; max-width: 100%; margin: 0 auto; border-radius: 10px"></sc-if>
                   <sc-if value="{{file.isVideo}}" hint-placeholder-val="{{ false }}"><video src="{{file.url}}" controls playsinline style="display: block; max-width: 100%; margin: 0 auto; border-radius: 10px"></video></sc-if>
+                  <sc-if value="{{file.isPdf}}" hint-placeholder-val="{{ false }}">
+                    <div style="position: relative; aspect-ratio: 1 / 1.414; width: 100%; max-width: 380px; margin: 0 auto; background: #fff; color: #0e0e2c; border-radius: 6px; box-shadow: var(--ad-sh-2); padding: 7% 7% 6%; display: flex; flex-direction: column; gap: 10px; overflow: hidden; container-type: inline-size">
+                      <span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font: 700 64px 'Space Grotesk',sans-serif; color: rgb(0 0 101/.05); transform: rotate(-28deg); pointer-events: none">WDC</span>
+                      <span style="display: flex; justify-content: space-between; align-items: center; gap: 8px"><strong style="font: 700 15px 'Space Grotesk',sans-serif; color: #000065">WDC Studio</strong><span style="font-size: 10px; color: #5c5c7a; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{sheet.title}}</span></span>
+                      <span style="height: 3px; width: 48px; background: #ff6500; border-radius: 3px"></span>
+                      <strong style="font: 700 17px 'Space Grotesk',sans-serif">{{pdfHead}}</strong>
+                      <sc-if value="{{pdfSwatches}}" hint-placeholder-val="{{ false }}"><div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px"><sc-for list="{{file.swatches}}" as="sw" hint-placeholder-count="4"><span style="display: flex; flex-direction: column; gap: 3px; font-size: 10px"><span style="aspect-ratio: 1; border-radius: 8px; background: {{sw.c}}; box-shadow: inset 0 0 0 1px rgb(0 0 0/.12)"></span><span>{{sw.n}}</span></span></sc-for></div></sc-if>
+                      <sc-if value="{{pdfArt}}" hint-placeholder-val="{{ false }}"><span style="aspect-ratio: 4 / 3; border-radius: 8px; background: {{file.bg}}; display: flex; align-items: center; justify-content: center"><span style="font: 700 38px 'Space Grotesk',sans-serif; color: {{file.fg}}; letter-spacing: -.04em">{{file.mark}}</span></span></sc-if>
+                      <sc-for list="{{file.lines}}" as="ln" hint-placeholder-count="6"><span style="display: block; height: 7px; border-radius: 4px; background: #e4e6f0; width: {{ln}}"></span></sc-for>
+                      <span style="margin-top: auto; display: flex; justify-content: space-between; font-size: 10px; color: #5c5c7a"><span>wedigcreativity.com</span><span>Page {{pdfN}} of {{file.pageCount}}</span></span>
+                    </div>
+                  </sc-if>
                   <sc-if value="{{file.isDoc}}" hint-placeholder-val="{{ false }}">
                     <div style="position: relative; aspect-ratio: 1 / 1.414; max-width: 380px; margin: 0 auto; background: #fff; color: #0e0e2c; border-radius: 6px; box-shadow: var(--ad-sh-2); padding: 26px 24px; display: flex; flex-direction: column; gap: 10px; overflow: hidden">
                       <span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font: 700 64px 'Space Grotesk',sans-serif; color: rgb(0 0 101/.05); transform: rotate(-28deg); pointer-events: none">WDC</span>
@@ -1814,7 +2027,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
             </sc-for></div>
           </sc-if>
           <sc-if value="{{sheet.hasChipSets}}" hint-placeholder-val="{{ false }}">
-            <sc-for list="{{sheet.chipSets}}" as="cs" hint-placeholder-count="1"><div class="field {{sheet.chipsCls}}"><span>{{cs.label}}</span><div class="chips" role="{{cs.role}}" aria-label="{{cs.label}}"><sc-for list="{{cs.opts}}" as="o" hint-placeholder-count="4"><button class="chip {{o.cls}}" role="{{o.role}}" aria-checked="{{o.checked}}" onClick="{{o.pick}}">{{o.t}}</button></sc-for></div><sc-if value="{{cs.hasHint}}" hint-placeholder-val="{{ false }}"><span class="hint">{{cs.hint}}</span></sc-if></div></sc-for>
+            <sc-for list="{{sheet.chipSets}}" as="cs" hint-placeholder-count="1"><div class="field {{sheet.chipsCls}}"><span>{{cs.label}}</span><sc-if value="{{cs.searchable}}" hint-placeholder-val="{{ false }}"><div class="cbx"><button type="button" class="input cbxBtn" aria-haspopup="listbox" aria-expanded="{{cs.expanded}}" onClick="{{cs.toggleOpen}}"><span class="cbxVal {{cs.isEmptyVal}}">{{cs.valText}}</span><svg class="ic cbxChev" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button><sc-if value="{{cs.hasTokens}}" hint-placeholder-val="{{ false }}"><div class="cbxTokens"><sc-for list="{{cs.tokens}}" as="tk" hint-placeholder-count="2"><span class="cbxTok">{{tk.t}}<button type="button" aria-label="Remove {{tk.t}}" onClick="{{tk.remove}}"><svg class="ic" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></span></sc-for></div></sc-if><sc-if value="{{cs.open}}" hint-placeholder-val="{{ false }}"><div class="cbxPop"><label class="input ssIn cbxSearch"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"></path></svg><span class="sr">Search {{cs.label}}</span><input id="cbxq-{{cs.key}}" value="{{cs.q}}" placeholder="Search" autocomplete="off" autoFocus="{{ true }}" onChange="{{cs.onQ}}" onInput="{{cs.onQ}}"><sc-if value="{{cs.hasQ}}" hint-placeholder-val="{{ false }}"><button type="button" class="ssX" aria-label="Clear the search" onClick="{{cs.clearQ}}"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></sc-if></label><div class="cbxList" role="listbox" aria-label="{{cs.label}}" aria-multiselectable="{{cs.multi}}"><sc-for list="{{cs.rows}}" as="r" hint-placeholder-count="5"><button type="button" class="cbxRow {{r.cls}}" role="option" aria-selected="{{r.sel}}" onClick="{{r.pick}}"><span class="cbxTick" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="13" height="13"><path d="M20 6 9 17l-5-5"></path></svg></span><span>{{r.t}}</span></button></sc-for><sc-if value="{{cs.noRows}}" hint-placeholder-val="{{ false }}"><p class="cbxNone">Nothing matches “{{cs.q}}”. <button type="button" class="lnk" onClick="{{cs.clearQ}}">Clear the search</button></p></sc-if></div><sc-if value="{{cs.multi}}" hint-placeholder-val="{{ false }}"><div class="cbxFoot"><button type="button" class="btn" onClick="{{cs.closeIt}}">Done</button></div></sc-if></div></sc-if></div></sc-if><sc-if value="{{cs.chipsOnly}}" hint-placeholder-val="{{ true }}"><div class="chips" role="{{cs.role}}" aria-label="{{cs.label}}"><sc-for list="{{cs.opts}}" as="o" hint-placeholder-count="4"><button class="chip {{o.cls}}" role="{{o.role}}" aria-checked="{{o.checked}}" onClick="{{o.pick}}">{{o.t}}</button></sc-for></div></sc-if><sc-if value="{{cs.noMatch}}" hint-placeholder-val="{{ false }}"><span class="hint">Nothing matches. Clear the search to see everything.</span></sc-if><sc-if value="{{cs.hasHint}}" hint-placeholder-val="{{ false }}"><span class="hint">{{cs.hint}}</span></sc-if></div></sc-for>
           </sc-if>
           <sc-if value="{{sheet.hasChecks}}" hint-placeholder-val="{{ false }}">
             <div style="display: flex; flex-direction: column; gap: 8px">
@@ -1866,7 +2079,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
     <sc-if value="{{bellOpen}}" hint-placeholder-val="{{ false }}">
       <div class="scrim" style="background: transparent" onClick="{{toggleBell}}"></div>
       <section class="popP" role="dialog" aria-label="Notifications">
-        <span class="grabZone"><span class="grab"></span></span>
+        <span class="grabZone" onPointerDown="{{grabBell}}"><span class="grab"></span></span>
         <div style="display: flex; align-items: center; gap: 10px; padding: 14px 16px 8px"><h2 style="font-size: 17px; font-weight: 700; flex: 1">Notifications</h2><button class="lnk" onClick="{{markAll}}">Mark all read</button><sc-if value="{{hasAllNotes}}" hint-placeholder-val="{{ false }}"><a class="lnk" href="{{allNotesHref}}">See all</a></sc-if></div>
         <div style="padding: 0 16px 8px"><div class="seg" role="group" aria-label="Show" style="--n: 2; --i: {{bellI}}"><span class="pill" aria-hidden="true"></span><button class="{{bAll}}" aria-pressed="{{bAllP}}" onClick="{{tabAll}}">All</button><button class="{{bUn}}" aria-pressed="{{bUnP}}" onClick="{{tabUnread}}">Unread <span class="num">{{unread}}</span></button></div></div>
         <div style="overflow-y: auto; overscroll-behavior: contain; padding: 0 8px 8px">
@@ -2045,7 +2258,7 @@ class Component extends DCLogic {
     if (opt.delay) {
       var left = opt.delay;
       this.setState({ ta: n, toast: { msg: opt.pending(left), undo: function () { clearInterval(self.ti); if (opt.cancel) opt.cancel(); self.say(opt.cancelled || 'Cancelled. Nothing was sent.'); }, auto: false } });
-      this.ti = setInterval(function () { left--; if (left <= 0) { clearInterval(self.ti); self.say(msg); } else if (self.state.toast) self.setState({ toast: Object.assign({}, self.state.toast, { msg: opt.pending(left) }) }); }, 1000);
+      this.ti = setInterval(function () { left--; if (left <= 0) { clearInterval(self.ti); if (typeof opt.done === 'function') opt.done(); self.say(msg); } else if (self.state.toast) self.setState({ toast: Object.assign({}, self.state.toast, { msg: opt.pending(left) }) }); }, 1000);
       return;
     }
     var dur = opt.undo ? 8000 : 5000;
@@ -2059,7 +2272,7 @@ class Component extends DCLogic {
   open(sh, push) {
     var s = this.state;
     var stack = push && s.sheet ? s.stack.concat([{ sheet: s.sheet, draft: s.draft, reason: s.reason, ack: s.ack, spick: s.spick, ck: s.ck, zoom: s.zoom, form: s.form, lextra: s.lextra, lsel: s.lsel, lq: s.lq, lpg: s.lpg }]) : [];
-    this.setState({ sheet: sh, stack: stack, sheetFull: false, bell: false, pal: false, drawer: false, menu: null, pop: null, tour: -1, draft: sh.draft || '', reason: '', ack: false, ck: {}, spick: sh.pick != null ? sh.pick : -1, vis: sh.vis || 'team', zoom: 1, cmt: '', form: Object.assign({}, sh.form || {}), lq: '', lpg: 0, lcreate: false, lcf: {}, lextra: [], lsel: Object.assign({}, sh.lsel || {}), ui: null, edMode: 'write', shTab: 0 });
+    this.setState({ sheet: sh, stack: stack, sheetFull: false, bell: false, pal: false, drawer: false, menu: null, pop: null, tour: -1, fpg: 0, draft: sh.draft || '', reason: '', ack: false, ck: {}, spick: sh.pick != null ? sh.pick : -1, vis: sh.vis || 'team', zoom: 1, cmt: '', form: Object.assign({}, sh.form || {}), lq: '', lpg: 0, lcreate: false, lcf: {}, lextra: [], lsel: Object.assign({}, sh.lsel || {}), ui: null, edMode: 'write', shTab: 0 });
   }
   closeSheet(force) {
     var self = this, raw = this.state.sheet;
@@ -2075,7 +2288,7 @@ class Component extends DCLogic {
     this.open(this.sh({
       kind: 'confirm', eyebrow: cf.eyebrow || 'Please confirm', title: cf.title, body: cf.body || '', icon: cf.icon || I.check, iconTone: cf.tone || 'var(--ad-tone-brand)',
       preview: cf.to ? { to: cf.to, subject: cf.subject || '', text: cf.preview || '' } : null,
-      ack: cf.needAck ? (cf.ackText || 'This cannot be undone.') : '', reason: cf.input ? { label: cf.inputLabel || 'Reason', ph: cf.inputPh || '', required: true } : null,
+      ack: cf.needAck ? (cf.ackText || 'This cannot be undone.') : '', reason: cf.input ? { label: cf.inputLabel || 'Reason', ph: cf.inputPh || '', required: true, why: cf.inputWhy || ('Write ' + (/^your /i.test(cf.inputLabel || '') ? (cf.inputLabel || '').toLowerCase() : 'your ' + (cf.inputLabel || 'reason').toLowerCase()) + ' to continue.') } : null,
       primary: cf.ok || 'Confirm', back: !!cf.back, danger: !!cf.danger, green: !!cf.green, secondary: cf.cancel || 'Cancel', note: cf.note || '',
       onPrimary: function (ctx) { if (cf.onOk) cf.onOk(ctx.reason); if (cf.okToast) self.say(cf.okToast); },
       onSecondary: function () { if (cf.onCancel) { cf.onCancel(); return 'stay'; } if (self.state.stack.length) self.sheetBack(); else self.closeSheet(); return 'stay'; }
@@ -2140,6 +2353,12 @@ class Component extends DCLogic {
       base.x = Math.round(x); base.y = Math.round(y);
     }
     this.setState({ pop: base, menu: null, dq: '' });
+  }
+  /* A row of filter chips as one searchable pick: a button showing the current choice, opening the menu (a popover, a bottom sheet on a phone). Search from five options. */
+  chipsAsPick(id, label, items) {
+    var self = this, on = items.filter(function (c) { return /\bon\b/.test(c.cls || ''); })[0] || items[0];
+    return { cur: on ? on.t : label, n: on && on.n != null ? on.n : '', label: label, expanded: this.popOn('pick', id),
+      open: function (e) { self.openPop(e, 'pick', id, 280, Math.min(380, (items.length >= 5 ? 70 : 16) + items.length * 46), label, { search: items.length >= 5, searchPh: 'Search ' + label.toLowerCase(), items: items }); } };
   }
   closePop() { var self = this; this.exitThen('.mSheet, .mSheet ~ .scrim, .menuF', function () { self.setState({ pop: null }); }); }
   menuItem(label, d, fn, opt) {
@@ -2374,7 +2593,13 @@ class Component extends DCLogic {
     var fields = this.fieldViews(raw, s);
     var chipSets = (typeof raw.chipSets === 'function' ? raw.chipSets(s) : (raw.chipSets || [])).map(function (cs) {
       var cur = F[cs.key] != null ? F[cs.key] : (cs.multi ? [] : '');
-      return { label: cs.label, hint: cs.hint || '', hasHint: !!cs.hint, role: cs.multi ? 'group' : 'radiogroup', opts: cs.opts.map(function (o) {
+      var cq = (F['~q' + cs.key] || '').toLowerCase(), srch = cs.search !== false && cs.opts.length >= 5;
+      var shownOpts = cs.opts.filter(function (o) { return !srch || !cq || o.toLowerCase().indexOf(cq) >= 0 || (cs.multi ? cur.indexOf(o) >= 0 : cur === o); });
+      var open = !!F['~open' + cs.key], picked = cs.multi ? cur : (cur ? [cur] : []);
+      var lc = cs.label.toLowerCase();
+      var valText = !picked.length ? (cs.multi ? 'Any ' + lc : 'Pick ' + (/^[aeiou]/.test(lc) ? 'an ' : 'a ') + lc) : (picked.length === 1 ? picked[0] : picked.length + ' ' + lc + (/s$/.test(lc) ? '' : 's') + ' picked');
+      var toggle = function (v) { var c = self.state.form[cs.key] != null ? self.state.form[cs.key] : (cs.multi ? [] : ''); if (cs.multi) { c = c.indexOf(v) >= 0 ? c.filter(function (x) { return x !== v; }) : c.concat([v]); setF(cs.key, c); } else { var m = Object.assign({}, self.state.form); m[cs.key] = v; m['~open' + cs.key] = false; m['~q' + cs.key] = ''; self.setState({ form: m }); } };
+      return { noRows: srch && !!cq && !shownOpts.length, key: cs.key, label: cs.label, hint: cs.hint || '', hasHint: !!cs.hint, role: cs.multi ? 'group' : 'radiogroup', searchable: srch, chipsOnly: !srch, open: open, expanded: open ? 'true' : 'false', valText: valText, isEmptyVal: !picked.length ? 'cbxPh' : '', multi: !!cs.multi, hasTokens: !!cs.multi && picked.length > 0, tokens: (cs.multi ? picked : []).map(function (v) { return { t: v, remove: function () { toggle(v); } }; }), toggleOpen: function () { setF('~open' + cs.key, !open); }, closeIt: function () { setF('~open' + cs.key, false); }, rows: shownOpts.map(function (o) { var on = picked.indexOf(o) >= 0; return { t: o, sel: on ? 'true' : 'false', on: on, cls: on ? 'on' : '', pick: function () { toggle(o); } }; }), q: F['~q' + cs.key] || '', hasQ: !!F['~q' + cs.key], noMatch: srch && !!cq && shownOpts.every(function (o) { return o.toLowerCase().indexOf(cq) < 0; }), onQ: function (e) { setF('~q' + cs.key, e.target.value); }, clearQ: function () { setF('~q' + cs.key, ''); }, opts: shownOpts.map(function (o) {
         var on = cs.multi ? cur.indexOf(o) >= 0 : cur === o;
         return { t: o, cls: on ? 'on' : '', checked: on ? 'true' : 'false', role: cs.multi ? 'checkbox' : 'radio', pick: function () { var c = self.state.form[cs.key] != null ? self.state.form[cs.key] : (cs.multi ? [] : ''); if (cs.multi) { c = c.indexOf(o) >= 0 ? c.filter(function (x) { return x !== o; }) : c.concat([o]); } else c = o; setF(cs.key, c); } };
       }) };
@@ -2383,7 +2608,7 @@ class Component extends DCLogic {
     var plabel = typeof raw.primary === 'function' ? raw.primary(ctx, s) : raw.primary;
     var dis = '', reqText = '';
     if (raw.required && !ctx.draft) { dis = 'y'; reqText = raw.requiredWhy || 'Write a message to send it.'; }
-    if (raw.reason && raw.reason.required && !ctx.reason) { dis = 'y'; reqText = 'Write a reason to continue.'; }
+    if (raw.reason && raw.reason.required && !ctx.reason) { dis = 'y'; reqText = raw.reason.why || 'Write a reason to continue.'; }
     if (raw.ack && !ctx.ack) { dis = 'y'; reqText = 'Tick "I understand" to continue.'; }
     if (raw.select && raw.selectRequired !== false && (raw.multi ? ctx.picks.length === 0 : ctx.pick < 0)) { dis = 'y'; reqText = raw.selectWhy || 'Choose one to continue.'; }
     if (raw.primaryDis) { var pd = raw.primaryDis(ctx, s); if (pd) { dis = 'y'; reqText = pd; } }
@@ -2402,6 +2627,7 @@ class Component extends DCLogic {
       if (s.pop.kind === 'per') popItems = this.perItems(s.pop.id);
       else if (s.pop.kind === 'snooze') popItems = this.snoozeItems();
       else if (s.pop.kind === 'delegate') popItems = this.delegateItems();
+      else if (s.pop.kind === 'pick') popItems = (s.pop.items || []).filter(function (c) { var q = (s.dq || '').trim().toLowerCase(); return !q || c.t.toLowerCase().indexOf(q) >= 0; }).map(function (c) { var on = /\bon\b/.test(c.cls || ''); return self.menuItem(c.t, on ? self.icons().check : '', function () { c.pick(); self.setState({ pop: null }); }, { role: 'menuitemradio', checked: on, on: on, hint: c.n != null ? String(c.n) : '' }); });
       else if (this.popItems) popItems = this.popItems(s.pop) || [];
       popItems = popItems.map(function (m, i) { return Object.assign({ anim: self.anim(s.dq.length), delay: Math.min(i, 8) * 0.025 + 's' }, m); });
     }
@@ -2434,7 +2660,7 @@ class Component extends DCLogic {
       attach: function () { self.say('The file picker opens here. Up to 50 MB a file.'); },
       isTourPick: raw.kind === 'tour', tourOpts: tourOpts, isFile: raw.kind === 'file', isPost: raw.kind === 'post', isPay: raw.kind === 'pay', isFollow: raw.kind === 'follow', isQuote: raw.kind === 'quote',
       popOpen: !!s.pop && (popItems.length > 0 || s.pop.search), popAsMenu: !!s.pop && !s.pop.asSheet, popAsSheet: !!s.pop && s.pop.asSheet, pop: Object.assign({ hasNote: !!(s.pop && s.pop.note) }, s.pop || {}), popItems: popItems, popEmpty: !!s.pop && s.pop.search && !popItems.length, popEmptyText: 'Nobody matches "' + s.dq + '".',
-      closePop: function () { self.closePop(); }, grabPop: function (e) { self.grabStart(e, '.mSheet', function () { self.setState({ pop: null }); }); },
+      closePop: function () { self.closePop(); }, grabPop: function (e) { self.grabStart(e, '.mSheet', function () { self.setState({ pop: null }); }); }, grabBell: function (e) { self.grabStart(e, '.popP', function () { self.setState({ bell: false }); }); },
       dq: s.dq, onDq: function (e) { self.setState({ dq: e.target.value }); },
       bellOpen: s.bell, bellExp: s.bell ? 'true' : 'false', toggleBell: function () { if (self.state.bell) { self.exitThen('.popP, .scrim', function () { self.setState({ bell: false }); }); return; } self.setState({ bell: true, menu: null, pop: null }); },
       notes: shown, notesEmpty: !shown.length, unread: unread, hasUnread: unread > 0, bellLabel: 'Notifications, ' + unread + ' unread', bellI: s.bellTab === 'unread' ? 1 : 0,
@@ -2463,7 +2689,7 @@ class Component extends DCLogic {
   roleNav() {
     var I = this.icons(), c = this.navCounts ? this.navCounts() : {};
     var R = {
-      admin: [['Today', I.home, 'D-Admin.dc.html'], ['Clients', I.users, 'A-Clients.dc.html'], ['Projects', I.folder, 'A-Projects.dc.html'], ['Money', I.wallet, 'A-Money.dc.html'], ['Messages', I.msg, 'A-Messages.dc.html'], ['Marketing', I.mail, 'A-Email.dc.html'], ['Forms', I.inbox, 'A-Forms.dc.html'], ['Blog', I.pen, 'A-Blog.dc.html'], ['Settings', I.gear, 'A-Settings.dc.html'], ['Support', I.life, 'A-Support.dc.html', 1]],
+      admin: [['Today', I.home, 'D-Admin.dc.html'], ['Clients', I.users, 'A-Clients.dc.html'], ['Projects', I.folder, 'A-Projects.dc.html'], ['Money', I.wallet, 'A-Money.dc.html'], ['Reports', I.chart, 'A-Reports.dc.html'], ['Messages', I.msg, 'A-Messages.dc.html'], ['Marketing', I.mail, 'A-Email.dc.html'], ['Forms', I.inbox, 'A-Forms.dc.html'], ['Blog', I.pen, 'A-Blog.dc.html'], ['Settings', I.gear, 'A-Settings.dc.html'], ['Support', I.life, 'A-Support.dc.html', 1]],
       staff: [['My Day', I.home, 'D-Staff.dc.html'], ['Projects', I.folder, 'S-Projects.dc.html'], ['Clients', I.users, 'S-Clients.dc.html'], ['Messages', I.msg, 'S-Messages.dc.html'], ['Settings', I.gear, 'S-Settings.dc.html'], ['Support', I.life, 'S-Support.dc.html', 1]],
       client: [['Home', I.home, 'D-Client.dc.html'], ['Projects', I.folder, 'C-Projects.dc.html'], ['Billing', I.card, 'C-Billing.dc.html'], ['Messages', I.msg, 'C-Messages.dc.html'], ['Settings', I.gear, 'C-Settings.dc.html'], ['Support', I.life, 'C-Support.dc.html', 1]]
     }[this.role()];
@@ -2607,7 +2833,11 @@ class Component extends DCLogic {
   extraVals() {
     var s = this.state, self = this, raw = s.sheet || {}, out = {};
     var f = raw.file || {};
-    out.file = { isImage: f.view === 'image', isVideo: f.view === 'video', url: f.url || '', isDoc: f.view === 'doc', isPalette: f.view === 'palette', isArt: f.view === 'art', ref: f.ref || '', docTitle: f.docTitle || f.name, lines: ['92%', '78%', '86%', '60%', '88%', '70%', '82%', '54%'], pageCount: f.pageCount || 1, pages: (f.pageCount || 1) + (f.pageCount > 1 ? ' pages' : ' page'), swatches: f.swatches || [], bg: f.bg || '#000065', fg: f.fg || '#fff', mark: f.mark || '' };
+    var isPdf = /\.pdf$/i.test(f.name || '') && f.view !== 'image' && f.view !== 'video', pc = f.pageCount || (isPdf ? 2 : 1), pg = Math.min(pc, Math.max(1, (s.fpg || 0) + 1));
+    out.pdfN = pg; out.pdfFirst = pg <= 1; out.pdfLast = pg >= pc; out.pdfSwatches = isPdf && f.view === 'palette' && pg === 1; out.pdfArt = isPdf && f.view === 'art' && pg === 1;
+    out.pdfHead = pg === 1 ? (f.docTitle || f.name) : (f.name || '').replace(/\.pdf$/i, '') + ', page ' + pg;
+    out.pdfPrev = function () { self.setState({ fpg: Math.max(0, (self.state.fpg || 0) - 1) }); }; out.pdfNext = function () { self.setState({ fpg: Math.min(pc - 1, (self.state.fpg || 0) + 1) }); };
+    out.file = { isPdf: isPdf, notPdf: !isPdf, isImage: f.view === 'image', isVideo: f.view === 'video', url: f.url || '', isDoc: !isPdf && f.view === 'doc', isPalette: !isPdf && f.view === 'palette', isArt: !isPdf && f.view === 'art', ref: f.ref || '', docTitle: f.docTitle || f.name, lines: pg === 1 ? ['92%', '78%', '86%', '60%', '88%', '70%', '82%', '54%'] : ['88%', '94%', '72%', '90%', '66%', '84%', '78%', '92%'], pageCount: pc, pages: pc + (pc > 1 ? ' pages' : ' page'), swatches: f.swatches || [], bg: f.bg || '#000065', fg: f.fg || '#fff', mark: f.mark || '' };
     out.zoom = s.zoom; out.zoomLabel = Math.round(s.zoom * 100) + '%';
     out.zoomIn = function () { self.setState({ zoom: Math.min(2, Math.round((self.state.zoom + 0.25) * 100) / 100) }); };
     out.zoomOut = function () { self.setState({ zoom: Math.max(0.5, Math.round((self.state.zoom - 0.25) * 100) / 100) }); };
@@ -3323,10 +3553,14 @@ class Component extends DCLogic {
   /* The studio's projects: 14 live (Branding 4, Social 3, Web 3, SEO 2, Apps 1, Software & AI 1), 2 waiting on clients, as on Today. */
   bookSheet(client, push, onBooked) {
     var self = this, I = this.icons(), slots = [['Wed 14 Oct, 11:00', 'Daniel is free · 60 min'], ['Thu 15 Oct, 15:00', 'Daniel is free · 60 min'], ['Fri 16 Oct, 14:00', 'Daniel and you are free · 60 min']];
-    this.open(this.sh({ eyebrow: 'Handover meeting · ' + client, title: 'Pick a time to offer', icon: I.cal, iconTone: 'var(--ad-tone-brand)', body: 'We send ' + client + ' a booking link with these times. The Google Meet is recorded and the handover document goes out after it.', listTitle: 'Times that suit the team', select: true, pick: 2, list: slots.map(function (x) { return { t: x[0], s: x[1] }; }),
-      primary: function (ctx) { return ctx.pick >= 0 ? 'Offer ' + slots[ctx.pick][0] : 'Offer this time'; }, selectWhy: 'Choose a time to offer.', secondary: 'Let them choose any time', sToast: 'Booking link sent with all open times.',
-      onPrimary: function (ctx) { var sl = slots[ctx.pick]; if (onBooked) onBooked(sl[0]); } }), push);
+    var D = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], M = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    var own = function (f) { if (!f || !f.own) return ''; var p = f.own.split('-'), d = new Date(+p[0], +p[1] - 1, +p[2]); return D[d.getDay()] + ' ' + d.getDate() + ' ' + M[d.getMonth()] + ', ' + (f.ownT || '09:00'); };
+    this.open(this.sh({ eyebrow: 'Handover meeting · ' + client, title: 'Pick a time to offer', icon: I.cal, iconTone: 'var(--ad-tone-brand)', body: 'We send ' + client + ' a booking link with the time you choose. The Google Meet is recorded and the handover document goes out after it.', listTitle: 'Times that suit the team', select: true, pick: 2, list: slots.map(function (x) { return { t: x[0], s: x[1] }; }),
+      form: { own: '', ownT: '' }, fields: [{ key: 'own', type: 'datetime', label: 'Or suggest your own time', hint: 'Any day and time. We check it against the studio calendar before the link goes out.', clearable: true }],
+      primary: function (ctx) { var o = own(ctx.form); return o ? 'Offer ' + o : (ctx.pick >= 0 ? 'Offer ' + slots[ctx.pick][0] : 'Offer this time'); }, selectWhy: 'Choose a time to offer, or set your own.', secondary: 'Let them choose any time', sToast: 'Booking link sent with all open times.',
+      onPrimary: function (ctx) { var o = own(ctx.form), sl = slots[ctx.pick]; if (onBooked) onBooked(o || (sl && sl[0])); } }), push);
   }
+
   clearId(id, how, label, msg, opt) { var it = this.deck().filter(function (d) { return d.id === id; })[0]; if (it && !this.state.gone[id] && !this.state.snoozed[id]) this.clear(it, how, label, msg, opt); else if (msg) this.say(msg); }
   hideMoney() { return false; }
   projScope(p) { return true; }

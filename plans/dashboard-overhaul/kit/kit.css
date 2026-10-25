@@ -1519,3 +1519,21 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .planIncl strong { font-size: 16px; color: var(--ad-ink); }
 .noteRow { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: 12px; background: var(--ad-panel-2); min-width: 0; }
 .noteRow p { margin: 0; overflow-wrap: anywhere; }
+
+/* The client's copy in a narrow rail: a line's description takes its own row, parties stack (2026-10-25) */
+@container card (max-width:420px){
+  .dpTh,.dpTr{grid-template-columns:34px minmax(0,1fr) minmax(0,1fr);row-gap:4px}
+  .dpTh span:first-child,.dpTr span:first-child{grid-column:1/-1}
+  .dpTr span:first-child{font-weight:600}
+  .dpParty{grid-template-columns:minmax(0,1fr)}
+  .dpParty .r{text-align:left;align-items:flex-start}
+  .dpParty span{overflow-wrap:break-word;word-break:normal}
+}
+.nxCalm { display: flex; align-items: center; gap: 12px; padding: 14px 18px; font-size: 14px; }
+.nxCard .deckActs { flex-wrap: wrap; }
+.docLineH { font-size: 12px; font-weight: 600; color: var(--ad-dim); min-height: 0; }
+.docLineH span { padding: 0 4px; }
+.docLineH .dlQ, .docLineH .dlU { padding: 0 14px; }
+.docLineH .dlA { text-align: right; }
+@container app (max-width:760px) { .docLineH { display: none; } }
+.segTall button { min-height: 44px; }

@@ -1526,6 +1526,31 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .selVal{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
 .selN{font-size:13px;color:var(--ad-dim)}
 
+/* Client page: what a retainer includes, and team notes (2026-10-25) */
+.planIncl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.planIncl > span { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 10px 12px; border-radius: 12px; background: var(--ad-panel-2); font-size: 12px; color: var(--ad-dim); }
+.planIncl strong { font-size: 16px; color: var(--ad-ink); }
+.noteRow { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: 12px; background: var(--ad-panel-2); min-width: 0; }
+.noteRow p { margin: 0; overflow-wrap: anywhere; }
+
+/* The client's copy in a narrow rail: a line's description takes its own row, parties stack (2026-10-25) */
+@container card (max-width:420px){
+  .dpTh,.dpTr{grid-template-columns:34px minmax(0,1fr) minmax(0,1fr);row-gap:4px}
+  .dpTh span:first-child,.dpTr span:first-child{grid-column:1/-1}
+  .dpTr span:first-child{font-weight:600}
+  .dpParty{grid-template-columns:minmax(0,1fr)}
+  .dpParty .r{text-align:left;align-items:flex-start}
+  .dpParty span{overflow-wrap:break-word;word-break:normal}
+}
+.nxCalm { display: flex; align-items: center; gap: 12px; padding: 14px 18px; font-size: 14px; }
+.nxCard .deckActs { flex-wrap: wrap; }
+.docLineH { font-size: 12px; font-weight: 600; color: var(--ad-dim); min-height: 0; }
+.docLineH span { padding: 0 4px; }
+.docLineH .dlQ, .docLineH .dlU { padding: 0 14px; }
+.docLineH .dlA { text-align: right; }
+@container app (max-width:760px) { .docLineH { display: none; } }
+.segTall button { min-height: 44px; }
+
 </style>
 </helmet>
 <div class="{{rootCls}}" onClick="{{rootClick}}">
@@ -2485,7 +2510,7 @@ class Component extends DCLogic {
     if (opt.delay) {
       var left = opt.delay;
       this.setState({ ta: n, toast: { msg: opt.pending(left), undo: function () { clearInterval(self.ti); if (opt.cancel) opt.cancel(); self.say(opt.cancelled || 'Cancelled. Nothing was sent.'); }, auto: false } });
-      this.ti = setInterval(function () { left--; if (left <= 0) { clearInterval(self.ti); self.say(msg); } else if (self.state.toast) self.setState({ toast: Object.assign({}, self.state.toast, { msg: opt.pending(left) }) }); }, 1000);
+      this.ti = setInterval(function () { left--; if (left <= 0) { clearInterval(self.ti); if (typeof opt.done === 'function') opt.done(); self.say(msg); } else if (self.state.toast) self.setState({ toast: Object.assign({}, self.state.toast, { msg: opt.pending(left) }) }); }, 1000);
       return;
     }
     var dur = opt.undo ? 8000 : 5000;
@@ -2585,7 +2610,7 @@ class Component extends DCLogic {
   chipsAsPick(id, label, items) {
     var self = this, on = items.filter(function (c) { return /\bon\b/.test(c.cls || ''); })[0] || items[0];
     return { cur: on ? on.t : label, n: on && on.n != null ? on.n : '', label: label, expanded: this.popOn('pick', id),
-      open: function (e) { self.openPop(e, 'pick', id, 280, 360, label, { search: items.length >= 5, searchPh: 'Search ' + label.toLowerCase(), items: items }); } };
+      open: function (e) { self.openPop(e, 'pick', id, 280, Math.min(380, (items.length >= 5 ? 70 : 16) + items.length * 46), label, { search: items.length >= 5, searchPh: 'Search ' + label.toLowerCase(), items: items }); } };
   }
   closePop() { var self = this; this.exitThen('.mSheet, .mSheet ~ .scrim, .menuF', function () { self.setState({ pop: null }); }); }
   menuItem(label, d, fn, opt) {
