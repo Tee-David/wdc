@@ -355,7 +355,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
           <span className="adList__sp" />
           <UrlSearch label="Search projects" placeholder="Project or client" />
         </div>
-        <div className="adList__pad"><Chips label="Service" items={chipItems} current={service ?? ""} /></div>
+        <div className="adList__pad"><Chips label="Service" grows items={chipItems} current={service ?? ""} /></div>
         {body}
       </section>
     </>
