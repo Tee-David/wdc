@@ -456,6 +456,9 @@ export default function FilmStripMenu({
                   tabIndex={centre ? 0 : -1}
                   draggable={false}
                   prefetch={false}
+                  /* The film strip zooms its own frame into the page; the
+                     preloader's curtain stands aside for it. */
+                  data-no-curtain=""
                   aria-label={`${p.label}. ${p.desc}. Frame ${i + 1} of ${count}.${centre ? " Press to open." : " Press to bring into view."}`}
                   aria-current={i === current ? "page" : undefined}
                   onClick={(e) => {
