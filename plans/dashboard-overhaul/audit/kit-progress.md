@@ -21,6 +21,11 @@ Publishing is done by the main session (owner's call, 2026-10-25). Design runs r
   - Checked: harness 1440, phone, dark tablet for new invoice and two overdue invoices: no overflow, no small targets. Scenario: call with a promised date, clear it, final notice, record full payment, all passed.
   - Found, not yet fixed: Notifications and Reconciliation say Mira paid INV-26-4KQ8ZD (₦850,000), which is Kora's invoice. Fix in the hybrid lists pass.
 
+- 2026-10-25 Forms. READY TO PUBLISH: A-Entry.dc.html (new board), A-Forms.dc.html, and canvas.json (A-Entry added to the Admin row after Forms; boards below it moved one slot).
+  - New board A-Entry: a long onboarding entry read as a page (Mira Skincare's social media brief). Opens with "This brief needs" (advice asked on the ad budget, three product photos too small, the body oil launch to plan, an approver with no portal), then the answers by section with settled and open marks, a searchable Section pick, platform profiles on their real tiles, product photos with size warnings and a preview. Rail: how complete it is (ring), the entry facts, the client match (one record, one portal) and project, history with notes.
+  - Every card changes the brief: answers move from "Please advise" or "To plan" to settled, the ring and the lede count follow, history logs each step, and clearing the deck shows the next step.
+  - Forms board: the Mira entry is now the social media onboarding (new form "Onboarding, social media"), its sheet opens the full brief; New form gains "Start from" and continues into the form builder.
+  - Checked: 1440, phone, dark tablet, 320: no overflow, no small targets (crumb links now 44 wide in the kit). Scenario of all four cards, the section pick and the photo preview passed.
+
 ## Next
-1. Forms: all entries, new form, entry page.
-2. Hybrid lists, Settings tabs, client portal pages, staff pages.
+1. Hybrid lists, Settings tabs, client portal pages, staff pages.

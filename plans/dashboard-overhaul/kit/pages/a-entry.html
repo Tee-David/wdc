@@ -1,0 +1,74 @@
+<nav class="crumbs rise" aria-label="Breadcrumb"><a href="A-Forms.dc.html">Forms</a><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg><span aria-current="page">Mira Skincare · social media brief</span></nav>
+            <div class="pageHead rise">
+              <div>
+                <h1 class="h1">Mira Skincare’s social media brief</h1>
+                <p class="lede">{{ledeA}} <strong>{{ledeB}}</strong></p>
+              </div>
+              <div class="headActs">
+                <button class="btn" onClick="{{reply}}" data-tour="reply"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></svg>Reply to Adaeze</button>
+                <button class="ibtn" data-menu="chores" aria-label="More for this entry" aria-haspopup="menu" aria-expanded="{{choresX}}" onClick="{{openChores}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg></button>
+              </div>
+            </div>
+
+            <sc-if value="{{loading}}" hint-placeholder-val="{{ false }}">
+              <div class="layout skWrap" role="status" aria-label="Loading">
+                <div class="col"><div class="skHero"><span style="display: flex; gap: 8px"><span class="skel" style="height: 24px; width: 70px; border-radius: 99px"></span><span class="skel" style="height: 24px; width: 96px; border-radius: 99px"></span></span><span class="skel" style="height: 28px; width: 72%"></span><span class="skel" style="height: 16px; width: 90%"></span><span style="display: flex; gap: 8px; margin-top: 8px"><span class="skel" style="height: 44px; width: 150px; border-radius: 12px"></span><span class="skel" style="height: 44px; width: 150px; border-radius: 12px"></span></span></div><div class="skCard" style="gap: 12px"><span class="skel" style="height: 18px; width: 150px"></span><span class="skel" style="height: 40px"></span><span class="skel" style="height: 40px"></span><span class="skel" style="height: 40px"></span><span class="skel" style="height: 40px"></span></div></div>
+                <div class="railCards"><div class="skCard" style="height: 220px"><span class="skel" style="height: 16px; width: 90px"></span><span class="skel" style="height: 76px; width: 76px; border-radius: 50%"></span><span class="skel" style="height: 40px"></span></div><div class="skCard" style="height: 180px"><span class="skel" style="height: 16px; width: 120px"></span><span class="skel" style="flex: 1"></span></div></div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ready}}" hint-placeholder-val="{{ true }}">
+            <div class="layout">
+              <div class="col">
+                %%DECK%%
+
+                <div class="card ansNav rise d2" data-tour="sections"><button type="button" class="input selBtn" data-menu="pick" aria-haspopup="menu" aria-expanded="{{secSel.expanded}}" onClick="{{secSel.open}}"><span class="selLbl">Section</span><span class="selVal">{{secSel.cur}}</span><span class="num selN">{{secSel.n}}</span><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button><span class="ansNavNote">{{secNote}}</span></div>
+
+                <sc-for list="{{secs}}" as="sc" hint-placeholder-count="3">
+                  <section class="card cq ansSec rowIn" aria-label="{{sc.t}}" style="animation-name: {{sc.anim}}">
+                    <header class="ansHead"><span class="statIc" style="background: {{sc.tone}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="{{sc.ic}}"></path></svg></span><h2>{{sc.t}}</h2><span class="ansCount">{{sc.count}}</span></header>
+                    <dl class="ansList">
+                      <sc-for list="{{sc.rows}}" as="a" hint-placeholder-count="3">
+                        <div class="ansRow {{a.cls}}">
+                          <dt>{{a.q}}</dt>
+                          <dd>
+                            <sc-if value="{{a.isText}}" hint-placeholder-val="{{ true }}"><span class="ansV">{{a.v}}</span></sc-if>
+                            <sc-if value="{{a.isChips}}" hint-placeholder-val="{{ false }}"><span class="ansChips"><sc-for list="{{a.chips}}" as="c" hint-placeholder-count="3"><span class="tag" style="background: var(--ad-tone-flat); color: var(--ad-on-flat)">{{c}}</span></sc-for></span></sc-if>
+                            <sc-if value="{{a.isProfiles}}" hint-placeholder-val="{{ false }}"><span class="ansProf"><sc-for list="{{a.profiles}}" as="pf" hint-placeholder-count="3"><a class="profRow" href="#" onClick="{{pf.open}}"><span class="profTile" style="background: {{pf.c}}"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="#fff"><path d="{{pf.d}}"></path></svg></span><span style="min-width: 0; display: flex; flex-direction: column"><strong>{{pf.handle}}</strong><span style="font-size: 12px; color: var(--ad-dim)">{{pf.note}}</span></span></a></sc-for></span></sc-if>
+                            <sc-if value="{{a.isPhotos}}" hint-placeholder-val="{{ false }}"><span class="ansPhotos"><sc-for list="{{a.photos}}" as="ph" hint-placeholder-count="4"><button class="phTile" style="background: {{ph.bg}}" aria-label="{{ph.aria}}" onClick="{{ph.open}}"><span class="phName">{{ph.n}}</span><sc-if value="{{ph.small}}" hint-placeholder-val="{{ false }}"><span class="tag phTag" style="background: var(--ad-tone-warn); color: #fff">{{ph.px}}</span></sc-if></button></sc-for></span></sc-if>
+                            <sc-if value="{{a.hasFlag}}" hint-placeholder-val="{{ false }}"><span class="ansFlag"><span class="tag" style="background: {{a.flagTone}}; color: {{a.flagInk}}">{{a.flag}}</span><span style="font-size: 13px; color: var(--ad-dim)">{{a.flagNote}}</span></span></sc-if>
+                          </dd>
+                        </div>
+                      </sc-for>
+                    </dl>
+                  </section>
+                </sc-for>
+              </div>
+
+              <aside class="railCards" aria-label="About this entry" data-tour="rail">
+                <section class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 12px" aria-label="How complete it is">
+                  <h2 style="font-size: 16px; font-weight: 700">How complete it is</h2>
+                  <div class="billTop">
+                    <span class="ringW" role="img" aria-label="{{ringAria}}"><svg viewBox="0 0 76 76" width="76" height="76"><circle class="rTrack" cx="38" cy="38" r="32"></circle><circle class="rVal" cx="38" cy="38" r="32" pathLength="100" style="stroke-dasharray: 100; stroke-dashoffset: {{ringOff}}"></circle></svg><span class="rTxt"><strong class="num" style="font-size: 17px">{{donePct}}%</strong><span style="font-size: 10px; color: var(--ad-dim)">settled</span></span></span>
+                    <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><strong class="num" style="font-size: 20px">{{settledTxt}}</strong><span style="font-size: 13px; color: var(--ad-dim)">{{openTxt}}</span></span>
+                  </div>
+                </section>
+
+                <section class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 10px" aria-label="The entry">
+                  <h2 style="font-size: 16px; font-weight: 700">The entry</h2>
+                  <dl class="factList"><sc-for list="{{facts}}" as="f" hint-placeholder-count="4"><div><dt>{{f.k}}</dt><dd>{{f.v}}</dd></div></sc-for></dl>
+                </section>
+
+                <section class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 10px" aria-label="Client and project">
+                  <h2 style="font-size: 16px; font-weight: 700">Client and project</h2>
+                  <a class="rowh linkRow" href="A-Client.dc.html"><span class="av0" style="width: 34px; height: 34px; font-size: 11px; background: #1f4d3a">MS</span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 13px"><strong>Mira Skincare</strong><span style="color: var(--ad-dim)">Matched by email · one record, one portal</span></span><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="color: var(--ad-dim)"><path d="m9 18 6-6-6-6"></path></svg></a>
+                  <a class="rowh linkRow" href="A-Project.dc.html?p=mira-so"><span class="statIc" style="background: var(--ad-tone-brand)"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 13px"><strong>Social media management</strong><span style="color: var(--ad-dim)">{{projNote}}</span></span><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="color: var(--ad-dim)"><path d="m9 18 6-6-6-6"></path></svg></a>
+                </section>
+
+                <section class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 8px" aria-label="History">
+                  <div style="display: flex; align-items: center"><h2 style="font-size: 16px; font-weight: 700; flex: 1">History</h2><button class="lnk viewAll" onClick="{{addNote}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Add a note</button></div>
+                  <ol class="histList"><sc-for list="{{hist}}" as="h" hint-placeholder-count="4"><li><span class="hDot {{h.cls}}" aria-hidden="true"></span><span style="min-width: 0; display: flex; flex-direction: column"><span style="font-size: 14px">{{h.t}}</span><span style="font-size: 12px; color: var(--ad-dim)">{{h.when}}</span></span></li></sc-for></ol>
+                </section>
+              </aside>
+            </div>
+            </sc-if>
