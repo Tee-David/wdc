@@ -1,0 +1,589 @@
+/* ============================================================================
+   THE PAYMENT RECEIPT PRINTER. See receipt-printer.tsx for what it is and
+   where the design came from.
+
+   ON A STAGE. The reference reads clean because white paper sits on a dark
+   ground; cream paper on our white document sheet had no edge to speak of.
+   So the printer brings its own ground: a rounded navy panel inside the
+   sheet, with a dark status card, a navy chassis, and plain white paper.
+
+   OUR COLOURS: navy for every dark surface, the bright orange only for the
+   light while it works, green for the light once it is ready (the one
+   colour here that is a signal rather than the brand), and the site's ink on
+   the paper. Solid fills only.
+
+   IT DRAWS ITS OWN COLOURS, like the documents it sits on: /pay/done is a
+   white sheet in both themes, so nothing here reads a theme token.
+
+   EVERYTHING THAT MOVES IS TRANSFORM OR OPACITY, and only while `.rp--run` is
+   on the printer (the one exception is pulling a long slip out, which grows
+   the window under the reader's own finger -- see the end of this file).
+   ========================================================================== */
+
+.rp {
+  --rp-stage: #070826;
+  --rp-navy: #0f1046;
+  --rp-edge-dark: #23245a;
+  --rp-edge: #d9d9e0;
+  --rp-ink: #0e0e2c;
+  --rp-dim: #5c5c78;
+  --rp-paper: #fbfbfa;
+  --rp-rule: rgb(14 14 44 / .2);
+  --rp-orange: #ff6500;
+  --rp-green: #22c55e;
+  --rp-on-dark: #c9cae6;
+  --rp-mono: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  --rp-sans: var(--font-outfit, var(--font-space-grotesk)), system-ui, sans-serif;
+  --rp-feed: 2.4s;
+  --rp-start: .4s;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .75rem;
+  width: 100%;
+  max-width: 26rem;
+  margin: 0 auto;
+  padding: clamp(.75rem, 3.5vw, 1.25rem);
+  border-radius: 24px;
+  background: var(--rp-stage);
+  color: var(--rp-ink);
+}
+
+/* ---- 1. status card ---------------------------------------------------- */
+.rp__status {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  width: 100%;
+  padding: .8rem .95rem;
+  border-radius: 16px;
+  background: var(--rp-navy);
+  border: 1px solid var(--rp-edge-dark);
+  color: #fff;
+}
+.rp__tick {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  background: #0a0b33;
+  border: 2px solid var(--rp-green);
+  color: var(--rp-green);
+}
+.rp__tick svg { width: 1rem; height: 1rem; }
+.rp__said { display: grid; min-width: 0; flex: 1 1 auto; line-height: 1.3; }
+.rp__said b {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+}
+.rp__said small { font-size: .82rem; color: var(--rp-on-dark); overflow-wrap: anywhere; }
+.rp__lamp {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  flex: none;
+  font-size: .85rem;
+  color: var(--rp-on-dark);
+}
+.rp__dot { width: .6rem; height: .6rem; }
+
+/* THE TWO LIGHTS (the card's dot and the printer's LED) are one lamp drawn
+   twice: an unlit ground, an ORANGE layer that blinks while the printer
+   works, and a GREEN layer that comes on when it is done -- the way a real
+   printer's light goes from busy to ready. Green is the resting state, so a
+   page that is not animating says "ready", which is true. */
+.rp__dot,
+.rp__led {
+  position: relative;
+  flex: none;
+  border-radius: 999px;
+  background: #2a2b55;
+}
+.rp__dot::before,
+.rp__dot::after,
+.rp__led::before,
+.rp__led::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+.rp__dot::before,
+.rp__led::before {
+  background: var(--rp-orange);
+  box-shadow: 0 0 8px rgb(255 101 0 / .85);
+  visibility: hidden;
+}
+.rp__dot::after,
+.rp__led::after {
+  background: var(--rp-green);
+  box-shadow: 0 0 8px rgb(34 197 94 / .7);
+}
+
+/* The two labels on the light: "Printing"/"Feed" while it runs, "Ready" /
+   "Online" when it is done, sharing one cell and swapping on opacity. */
+.rp__lbl { display: inline-grid; }
+.rp__busy,
+.rp__done { grid-area: 1 / 1; }
+.rp__busy { opacity: 0; }
+
+/* ---- 2. the printer ---------------------------------------------------- */
+.rp__machine {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  padding: .85rem .95rem .95rem;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #16175a 0%, var(--rp-navy) 60%, #0a0b33 100%);
+  border: 1px solid var(--rp-edge-dark);
+  box-shadow: 0 16px 30px -14px rgb(0 0 0 / .8), inset 0 1px 0 rgb(255 255 255 / .08);
+}
+.rp__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .6rem;
+  padding-bottom: .7rem;
+  margin-bottom: .7rem;
+  border-bottom: 1px solid var(--rp-edge-dark);
+}
+.rp__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  /* Basis 0, not its text: a nowrap line would otherwise set the printer's
+     minimum width and push a 320px page sideways. It still takes the room. */
+  flex: 1 1 0;
+  contain: inline-size;
+  min-width: 0;
+  font-family: var(--rp-mono);
+  font-size: .82rem;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rp__brand img { width: 1.1rem; height: 1.1rem; flex: none; }
+.rp__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  flex: none;
+  padding: .25rem .65rem;
+  border-radius: 999px;
+  background: #05061f;
+  border: 1px solid var(--rp-edge-dark);
+  font-family: var(--rp-mono);
+  font-size: .68rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--rp-on-dark);
+}
+.rp__led { width: .45rem; height: .45rem; }
+.rp__slot {
+  display: block;
+  height: .8rem;
+  border-radius: 999px;
+  background: #03031a;
+  border: 1px solid var(--rp-edge-dark);
+  box-shadow: inset 0 2px 4px rgb(0 0 0 / .8);
+}
+
+/* ---- 3. the slip ------------------------------------------------------- */
+/* The window the paper comes out through. It clips the slip while it is
+   still "inside" the printer, and it is also the slip's scroll box: capped to
+   the screen height left after the status card, the printer, the buttons and
+   the stage's own padding, so on a phone the whole printer and its buttons
+   stay in view and a long slip scrolls inside it. A slip that fits never
+   scrolls. Translating the slip UP (the feed) adds no scroll area, so the
+   animation runs inside the same box. */
+.rp__win {
+  position: relative;
+  /* IN FRONT OF THE PRINTER, starting at the slot's centre line. The paper
+     used to sit BEHIND the chassis and show from its bottom edge, a
+     centimetre under the hole it was meant to leave. Now the window opens at
+     the middle of the slot and sits over the chassis, so the slip is seen
+     coming out of the hole itself and sliding down over the lip. The window
+     clips what is still "inside" (everything above its top edge). */
+  z-index: 3;
+  width: 100%;
+  /* the flex gap (.75rem), the machine's bottom padding (.95rem) and half the slot (.4rem) */
+  margin-top: -2.1rem;
+}
+.rp__out {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  max-height: max(15rem, calc(100svh - 19.5rem));
+  padding: 0 0 1.25rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(255 255 255 / .25) transparent;
+}
+.rp__out:focus-visible { outline: 2px solid #fff; outline-offset: 2px; border-radius: 8px; }
+/* The fade that says "there is more below", in the stage's colour, over the
+   window so it stays put while the paper moves under it. */
+.rp__win::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 3.5rem;
+  pointer-events: none;
+  background: linear-gradient(rgb(7 8 38 / 0), var(--rp-stage) 85%);
+  opacity: 0;
+  transition: opacity .2s ease;
+}
+.rp--more .rp__win::after { opacity: 1; }
+
+.rp__slip {
+  --rp-tooth: 14px;
+  position: relative;
+  flex: none;
+  width: 92%;
+  padding: 1.6rem 1.35rem 1.5rem;
+  background: var(--rp-paper);
+  border-radius: 0 0 6px 6px;
+  font-family: var(--rp-mono);
+  font-size: .875rem;
+  line-height: 1.5;
+  color: var(--rp-ink);
+}
+/* Where the paper leaves the slot it is in the printer's shadow (and the
+   slot's own shadow falls on it). */
+.rp__slip::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2.75rem;
+  pointer-events: none;
+  background: linear-gradient(rgb(0 0 20 / .28), rgb(0 0 20 / 0));
+}
+/* The torn foot: large teeth cut from the paper's own colour. */
+.rp__slip::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--rp-tooth) * -1 + 1px);
+  height: var(--rp-tooth);
+  background:
+    linear-gradient(-45deg, transparent calc(var(--rp-tooth) * .72), var(--rp-paper) 0) 0 0 / calc(var(--rp-tooth) * 2) var(--rp-tooth) repeat-x,
+    linear-gradient(45deg, transparent calc(var(--rp-tooth) * .72), var(--rp-paper) 0) 0 0 / calc(var(--rp-tooth) * 2) var(--rp-tooth) repeat-x;
+}
+.rp__slip p { margin: 0; }
+
+/* Ticket notches, punched in the stage's colour either side of the first
+   rule. */
+.rp__notch {
+  position: absolute;
+  top: 9.1rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 999px;
+  background: var(--rp-stage);
+}
+.rp__notch--l { left: -.55rem; }
+.rp__notch--r { right: -.55rem; }
+
+.rp__head {
+  display: grid;
+  justify-items: center;
+  gap: .2rem;
+  padding-bottom: 1.1rem;
+  border-bottom: 1px dashed var(--rp-rule);
+  text-align: center;
+}
+.rp__mark {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-bottom: .45rem;
+  border-radius: 999px;
+  background: #ececef;
+}
+.rp__mark img { width: 1.5rem; height: 1.5rem; }
+.rp__who {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.rp__what { font-family: var(--rp-sans); font-size: .85rem; color: var(--rp-dim); }
+
+.rp__rows { display: grid; gap: .35rem; margin: 0; padding: 1rem 0; border-bottom: 1px dashed var(--rp-rule); }
+.rp__rows > div { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+.rp__rows dt { min-width: 0; color: var(--rp-dim); text-transform: uppercase; letter-spacing: .02em; }
+.rp__rows dd { margin: 0; min-width: 0; text-align: right; overflow-wrap: anywhere; }
+.rp__strong { font-weight: 700; }
+
+.rp__items { padding: 1rem 0; border-bottom: 1px dashed var(--rp-rule); }
+.rp__cols {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: .6rem !important;
+  color: var(--rp-dim);
+  text-transform: uppercase;
+  letter-spacing: .02em;
+}
+.rp__items ul { display: grid; gap: .6rem; margin: 0; padding: 0; list-style: none; }
+.rp__items li { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: .1rem 1rem; }
+/* Real descriptions are long. They wrap; the amount never does. When the
+   description would get less than about eleven characters' room beside the
+   amount, the amount drops under it on the right. That follows the slip's
+   own width, not the screen's, so a narrow column on a desktop reads the
+   same as a phone. */
+.rp__item { flex: 1 1 11rem; min-width: 0; overflow-wrap: anywhere; }
+.rp__n { flex: none; margin-left: auto; font-weight: 700; white-space: nowrap; }
+
+/* Figures never break: "₦1,812,450.0" over "0" is not a number anybody can
+   read. The label beside them gives way instead. */
+.rp__sums dd { white-space: nowrap; overflow-wrap: normal; color: var(--rp-dim); }
+.rp__paid {
+  margin-top: .4rem;
+  padding-top: .65rem;
+  border-top: 1.5px solid var(--rp-rule);
+}
+.rp__paid dt { color: var(--rp-ink) !important; font-weight: 700; font-size: 1rem; }
+.rp__paid dd { color: var(--rp-ink) !important; font-size: 1.35rem; font-weight: 700; letter-spacing: -.01em; }
+.rp__bal dd { color: var(--rp-ink) !important; font-weight: 600; }
+
+.rp__code {
+  display: grid;
+  justify-items: center;
+  gap: .35rem;
+  padding-top: 1.1rem;
+  color: #2b2b3d;
+}
+.rp__code svg { width: min(13rem, 82%); height: 2.4rem; }
+.rp__code p { font-size: .8rem; letter-spacing: .2em; color: var(--rp-dim); }
+
+.rp__foot { display: grid; gap: .25rem; padding-top: 1rem; text-align: center; font-family: var(--rp-sans); }
+.rp__ta { font-size: .95rem; font-weight: 500; color: #3a3a52; }
+.rp__fine { font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; color: #8a8aa3; }
+
+/* ---- 4. actions -------------------------------------------------------- */
+/* On the navy stage, so the dark ground's pair: the secondary is black with
+   a white edge and swaps to white on hover. Set here because /pay/done is a
+   light page and the tokens at :root would be the light pair. */
+.rp__actions {
+  --btn-fill: #fff;
+  --btn-ink: #000;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: .5rem;
+  width: 100%;
+}
+.rp__act {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  min-height: 2.75rem;
+  padding: 0 1.1rem;
+  border: 1.5px solid;
+  border-radius: 999px;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .9rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color .2s ease, color .2s ease;
+}
+.rp__act svg { width: 1rem; height: 1rem; flex: none; }
+.rp__act-short { display: none; }
+.rp__act:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+/* ---- the run ------------------------------------------------------------ */
+@media (prefers-reduced-motion: no-preference) {
+  .rp--run .rp__status { animation: rp-in .5s cubic-bezier(.2, .8, .2, 1) both; }
+  .rp--run .rp__actions { animation: rp-rise .5s cubic-bezier(.2, .8, .2, 1) calc(var(--rp-start) + var(--rp-feed)) both; }
+
+  /* The slip: from wholly above the slot to at rest, so its foot clears the
+     slot first. */
+  .rp--run .rp__slip { animation: rp-feed var(--rp-feed) cubic-bezier(.16, 1, .3, 1) var(--rp-start) both; }
+
+  /* The chassis shivers while it feeds: 13 shivers of .18s cover the feed. */
+  .rp--run .rp__machine { animation: rp-shiver .18s ease-in-out var(--rp-start) 13; }
+
+  /* The lights: orange and blinking while it prints, green when it is done.
+     Seven blinks of .4s, alternating, span the feed. */
+  .rp--run .rp__led::before,
+  .rp--run .rp__dot::before {
+    animation:
+      rp-blink .4s ease-in-out var(--rp-start) 7 alternate,
+      rp-vis-off calc(var(--rp-start) + var(--rp-feed)) step-end both;
+  }
+  .rp--run .rp__led::after,
+  .rp--run .rp__dot::after { animation: rp-vis-on calc(var(--rp-start) + var(--rp-feed)) step-end both; }
+
+  /* "Printing" until the feed ends, then "Ready". */
+  .rp--run .rp__busy { animation: rp-show calc(var(--rp-start) + var(--rp-feed)) step-end both; }
+  .rp--run .rp__done { animation: rp-hide calc(var(--rp-start) + var(--rp-feed)) step-end both; }
+}
+
+@keyframes rp-feed {
+  from { transform: translateY(-100%); opacity: .4; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes rp-shiver {
+  0%, 100% { transform: none; }
+  20% { transform: translate(-.6px, -.2px); }
+  40% { transform: translate(.6px, .2px); }
+  60% { transform: translate(-.4px, 0); }
+  80% { transform: translate(.4px, -.2px); }
+}
+@keyframes rp-blink {
+  from { opacity: 1; }
+  to { opacity: .15; }
+}
+@keyframes rp-vis-off {
+  from { visibility: visible; }
+  to { visibility: hidden; }
+}
+@keyframes rp-vis-on {
+  from { visibility: hidden; }
+  to { visibility: visible; }
+}
+@keyframes rp-in {
+  from { opacity: 0; transform: translateY(-8px) scale(.97); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes rp-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+/* The two labels share one cell and swap on opacity, held by `step-end`
+   until the run ends. */
+@keyframes rp-show {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes rp-hide {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ---- pulling a long slip out -------------------------------------------
+   A slip longer than its window carries a paper tab at the window's foot.
+   Dragging it pulls the paper further out of the printer (the window grows
+   under the finger); tapping it feeds the rest out in one go. While paper is
+   moving the printer is "feeding" again: orange blinking light, the shiver,
+   "Printing". Wholly out, the tab and the fade go and the torn foot shows.
+   The tab only appears once JavaScript has measured the slip (`rp--more` is
+   set from receipt-actions.tsx), so without it the window simply scrolls. */
+.rp__pull {
+  position: absolute;
+  left: 50%;
+  bottom: .35rem;
+  z-index: 3;
+  display: none;
+  align-items: center;
+  gap: .45rem;
+  min-height: 2.75rem;
+  padding: .55rem 1rem .5rem;
+  transform: translateX(-50%);
+  border: 1px solid var(--rp-edge);
+  border-radius: 12px;
+  background: var(--rp-paper);
+  box-shadow: 0 8px 18px -10px rgb(0 0 26 / .45);
+  color: var(--rp-ink);
+  font-family: var(--rp-mono);
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: grab;
+  /* The tab is the only thing that takes the gesture, so the page around
+     it keeps scrolling normally on a phone. */
+  touch-action: none;
+  user-select: none;
+  transition: box-shadow .2s ease, transform .2s ease;
+}
+.rp__pull:hover { box-shadow: 0 10px 22px -10px rgb(0 0 26 / .6); }
+.rp__pull:active { cursor: grabbing; }
+.rp__pull:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+/* The grip: three short rules, the universal "you can pull this". */
+.rp__grip { display: grid; gap: 2px; }
+.rp__grip i { display: block; width: .9rem; height: 1.5px; border-radius: 2px; background: currentColor; opacity: .55; }
+.rp__pull svg { width: .9rem; height: .9rem; }
+.rp--more .rp__pull { display: inline-flex; }
+/* Not while the first print is still running: the tab arrives with the
+   finished slip, not on top of moving paper. */
+.rp--run .rp__pull { visibility: hidden; }
+@media (prefers-reduced-motion: no-preference) {
+  /* A small nudge once the print has finished: the tab dips twice, as if the
+     paper had settled, so the eye goes to it. */
+  .rp--printed.rp--more .rp__pull {
+    animation: rp-nudge .9s cubic-bezier(.3, 0, .2, 1) .3s 2;
+  }
+}
+@keyframes rp-nudge {
+  0%, 100% { transform: translateX(-50%); }
+  40% { transform: translate(-50%, 5px); }
+}
+
+/* Paper moving under a pull: the printer works again. */
+.rp--feeding .rp__machine { animation: rp-shiver .18s ease-in-out infinite; }
+.rp--feeding .rp__led::before,
+.rp--feeding .rp__dot::before { visibility: visible; animation: rp-blink .25s ease-in-out infinite alternate; }
+.rp--feeding .rp__led::after,
+.rp--feeding .rp__dot::after { visibility: hidden; animation: none; }
+.rp--feeding .rp__busy { opacity: 1; animation: none; }
+.rp--feeding .rp__done { opacity: 0; animation: none; }
+
+/* Wholly out: no cap, no tab, no fade. */
+.rp--full .rp__out { max-height: none !important; overflow-y: visible; }
+.rp--full .rp__pull,
+.rp--full .rp__win::after { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rp__act--replay { display: none; }
+  .rp--feeding .rp__machine,
+  .rp--feeding .rp__led::before,
+  .rp--feeding .rp__dot::before { animation: none; }
+}
+
+/* ---- narrow phones ------------------------------------------------------
+   Under ~400px the slip is barely 250px wide. An item's description gets the
+   whole line and its amount sits under it on the right, rather than being
+   squeezed into a column a word wide; the type steps down a notch; the
+   status card keeps its light and drops the label; the buttons stay on one
+   row, with the shorter "Copy number". */
+@media (max-width: 400px) {
+  .rp__slip { padding: 1.4rem 1rem 1.3rem; font-size: .8rem; }
+  .rp__notch { top: 8.4rem; }
+  .rp__paid dd { font-size: 1.15rem; }
+  .rp__lamp .rp__lbl { display: none; }
+  .rp__status { padding-inline: .8rem; }
+  .rp__actions { flex-wrap: nowrap; gap: .4rem; }
+  .rp__act { padding: 0 .85rem; }
+  .rp__act-long { display: none; }
+  .rp__act-short { display: inline; }
+}
+
+/* The smallest phones (320px): the stage gives back its padding, a row whose
+   label and value cannot share a line lets the value drop under it, and the
+   two buttons may share the width over two rows rather than push the page
+   sideways. */
+@media (max-width: 360px) {
+  .rp { padding: .6rem; border-radius: 18px; }
+  .rp__slip { padding-inline: .8rem; }
+  .rp__pill .rp__lbl { display: none; }
+  .rp__pill { padding: .45rem; }
+  .rp__rows > div { flex-wrap: wrap; column-gap: .5rem; }
+  .rp__rows dt { font-size: .7rem; letter-spacing: 0; }
+  .rp__rows dd { margin-left: auto; }
+  .rp__actions { flex-wrap: wrap; }
+  .rp__act { flex: 1 1 auto; }
+}
