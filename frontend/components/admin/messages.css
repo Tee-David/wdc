@@ -5,25 +5,40 @@
 .adMxBox { container-type: inline-size; min-width: 0; }
 .adMx { display: grid; grid-template-columns: minmax(17rem, 21rem) minmax(0, 1fr); gap: 16px; height: clamp(36rem, calc(100dvh - 12rem), 52rem); min-height: 0; }
 .adMx__list, .adMx__thread { display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; background: var(--ad-panel); border: 1px solid var(--ad-line); border-radius: 20px; box-shadow: var(--ad-sh-1); }
-.adMx__tools { padding: 0 1rem .5rem; }
+.adMx__tools { padding: 1rem 1rem .5rem; }
+.adMx__tools .adUs { flex: 1 1 auto; min-width: 0; }
+.adMx__tools .adUs input { border-radius: 999px; background: var(--ad-panel-2); border-color: var(--ad-line); }
 .adMx__kinds { padding: 0 1rem .5rem; }
 .adMx__kinds .adChips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
-.adMx__rows { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; margin: 0; padding: .25rem .5rem .5rem; list-style: none; border-top: 1px solid var(--ad-line); }
+.adMx__rows { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; margin: 0; padding: .25rem .5rem .5rem; list-style: none; }
 .adMx__list .ad__pager { border-top: 1px solid var(--ad-line); }
 .adMx__row { position: relative; display: flex; align-items: flex-start; gap: .75rem; min-height: 4.5rem; padding: .7rem .75rem; border-radius: 14px; color: var(--ad-ink); text-decoration: none; transition: background .15s; }
 @media (hover: hover) { .adMx__row:hover { background: var(--ad-hover); } }
 .adMx__row:active { background: var(--ad-panel-2); }
 .adMx__row:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
-.adMx__row.is-on { background: var(--ad-nav-on); color: var(--ad-nav-on-ink); }
-.adMx__row.is-on .adMx__rowSub, .adMx__row.is-on .adMx__rowLast, .adMx__row.is-on time { color: var(--ad-nav-on-ink); }
+/* The one being read is a solid soft fill, not a navy block: the list stays calm and the thread carries the weight. */
+.adMx__row.is-on, .adMx__row.is-default { background: var(--ad-hover); }
 .adMx__rowText { flex: 1; min-width: 0; display: grid; gap: .1rem; }
 .adMx__rowTop { display: flex; align-items: baseline; gap: .5rem; min-width: 0; }
-.adMx__rowTop b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .92rem; }
+.adMx__rowTop b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 600 1rem var(--font-space-grotesk), system-ui, sans-serif; }
+.adMx__row.is-unread .adMx__rowTop b { font-weight: 700; }
+.adMx__row.is-unread .adMx__rowTop time { color: var(--ad-accent-ink); font-weight: 700; }
+.adMx__rowBottom { display: flex; align-items: center; gap: .5rem; min-width: 0; }
+.adMx__rowBottom .adMx__rowLast { flex: 1 1 auto; min-width: 0; }
+.adMx__ctxWord { font-weight: 600; }
+.adMx__pin { width: .9rem; height: .9rem; flex: none; color: var(--ad-dim); }
+.adMx__av { width: 3rem; height: 3rem; border-radius: 50%; font-size: .95rem; flex: none; }
 .adMx__rowTop time { flex: none; font-size: .75rem; color: var(--ad-dim); }
-.adMx__rowSub, .adMx__rowLast { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .8rem; color: var(--ad-dim); }
-.adMx__rowLast { color: var(--ad-ink); opacity: 1; }
-.adMx__row:not(.is-on) .adMx__rowLast { color: var(--ad-dim); }
-.adMx__tag { flex: none; align-self: center; }
+.adMx__rowLast { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .86rem; color: var(--ad-dim); }
+.adMx__row.is-unread .adMx__rowLast { color: var(--ad-ink); }
+.adMx__tag { flex: none; }
+/* Archived, as a quiet row at the top of the list. */
+.adMx__arch { display: flex; align-items: center; gap: .9rem; min-height: 3rem; margin: 0 .5rem; padding: 0 .75rem 0 1.6rem; border-radius: 14px; color: var(--ad-ink); text-decoration: none; font-weight: 600; font-size: .92rem; }
+.adMx__arch svg { width: 1.15rem; height: 1.15rem; color: var(--ad-dim); flex: none; }
+.adMx__arch span { flex: 1; }
+.adMx__arch b { font-weight: 600; font-size: .82rem; color: var(--ad-dim); }
+@media (hover: hover) { .adMx__arch:hover { background: var(--ad-hover); } }
+.adMx__arch:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
 
 .adMx__head { display: flex; align-items: center; gap: .75rem; padding: .9rem 1rem; border-bottom: 1px solid var(--ad-line); min-width: 0; flex-wrap: wrap; }
 .adMx__headText { flex: 1 1 0; min-width: 0; }
@@ -68,6 +83,15 @@
 @container (max-width: 760px) {
   .adMx { grid-template-columns: minmax(0, 1fr); height: auto; }
   .adMx.is-list .adMx__thread { display: none; }
+  /* A phone's list is the page: no card around it, rows edge to edge, nothing lit until one is opened. */
+  .adMx__list { background: transparent; border: 0; box-shadow: none; border-radius: 0; overflow: visible; }
+  .adMx__tools { padding: 0 0 .5rem; }
+  .adMx__kinds { padding: 0 0 .25rem; margin-inline: -1px; }
+  .adMx__rows { padding: 0; }
+  .adMx__row { padding: .7rem .25rem; border-radius: 12px; }
+  .adMx__row.is-default { background: none; }
+  .adMx__arch { margin: 0; padding-left: 1.1rem; }
+  .adMx__list .ad__pager { border-top: 0; }
   .adMx.is-thread .adMx__list { display: none; }
   .adMx__list { max-height: none; }
   .adMx__rows { overflow: visible; }
@@ -85,9 +109,16 @@
   .adMx__ctx { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
   .adMx__ctx > * { flex: none; max-width: 16rem; }
 }
-/* Inbox tabs, the unread dot and the notice before migration 0054. */
-.adMx__boxes .adTabs { padding: 0 .75rem; overflow-x: auto; scrollbar-width: none; flex-wrap: nowrap; }
-.adMx__boxes .adTabs__tab { padding-inline: .45rem; font-size: .84rem; flex: none; }
-.adMx__dot { display: inline-block; width: .55rem; height: .55rem; margin-right: .4rem; border-radius: 50%; background: var(--ad-dot, #ff6500); vertical-align: middle; }
-.adMx__row.is-on .adMx__dot { background: var(--ad-nav-on-ink); }
+/* The unread dot and the notice before migration 0054. */
+.adMx__dot { flex: none; width: .7rem; height: .7rem; border-radius: 50%; background: var(--ad-dot, #ff6500); }
 .adMx__note { margin: 0 0 12px; padding: .75rem 1rem; border-radius: 12px; background: var(--ad-tone-flat); color: var(--ad-on-flat); font-size: .88rem; font-weight: 600; }
+
+/* The head: Messages and its one action on one line. On a phone the action is a round + (its label stays for screen readers). */
+.adMxHead .adPh { flex-wrap: nowrap; align-items: center; }
+@media (max-width: 640px) {
+  .adMxHead .adPh { margin-bottom: .75rem; }
+  .adMxHead .adPh__acts { flex: none; }
+  .adMxHead .adPh__acts > .ad__btn--primary { flex: none; width: 3rem; min-width: 3rem; height: 3rem; padding: 0; border-radius: 999px; justify-content: center; }
+  .adMxHead .adPh__acts > .ad__btn--primary .ad__btnTxt { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .adMxHead .adPh__acts > .ad__btn--primary svg { width: 1.35rem; height: 1.35rem; }
+}

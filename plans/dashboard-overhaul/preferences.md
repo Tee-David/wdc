@@ -167,3 +167,12 @@ Model rule, binding (updated 2026-10-11): the remaining prototype pages, for eve
 - Customise on Today is an icon on the left of New project, on one row on a phone.
 - Any pick from five options up is a searchable dropdown, never a wall of chips with a search box above it (filters, forms, the invoice builder's project).
 - Every bottom sheet on a phone drags down to close, including menus, pickers, the date range, the per-page menu and notifications.
+
+## 2026-10-25, Messages landing (owner: "compare it to WhatsApp", simpler without losing features)
+
+- The conversation list is the page: one search pill, one row of filters (All, Unread, Waiting on us, Clients, Projects, Team, Pinned), Archived as a quiet row at the top of the list. No "Conversations" card head, no second row of tabs.
+- New message is a round + on a phone, labelled on wider screens. The lede appears only when a client is waiting; a quiet inbox has no sentence.
+- On a phone the list sits edge to edge with no card, and nothing is lit until a conversation is opened. On a wide screen the conversation being read is a soft solid fill, not navy.
+- Each row is two lines: name and time, then the context (question, client or Team) with the last message, the Waiting tag, the unread dot and the pin. Unread rows are bold with an orange time.
+- The chat list shows 20 before it pages, and the pager only appears past 5.
+- Case studies: buttons run full width on a phone; the public site scrolls itself without end and pauses on hover or touch, with no caption explaining it; "Look through screens" carries no count.
