@@ -89,7 +89,11 @@
   extraVals() {
     var s = this.state, self = this, raw = s.sheet || {}, out = {};
     var f = raw.file || {};
-    out.file = { isImage: f.view === 'image', isVideo: f.view === 'video', url: f.url || '', isDoc: f.view === 'doc', isPalette: f.view === 'palette', isArt: f.view === 'art', ref: f.ref || '', docTitle: f.docTitle || f.name, lines: ['92%', '78%', '86%', '60%', '88%', '70%', '82%', '54%'], pageCount: f.pageCount || 1, pages: (f.pageCount || 1) + (f.pageCount > 1 ? ' pages' : ' page'), swatches: f.swatches || [], bg: f.bg || '#000065', fg: f.fg || '#fff', mark: f.mark || '' };
+    var isPdf = /\.pdf$/i.test(f.name || '') && f.view !== 'image' && f.view !== 'video', pc = f.pageCount || (isPdf ? 2 : 1), pg = Math.min(pc, Math.max(1, (s.fpg || 0) + 1));
+    out.pdfN = pg; out.pdfFirst = pg <= 1; out.pdfLast = pg >= pc; out.pdfSwatches = isPdf && f.view === 'palette' && pg === 1; out.pdfArt = isPdf && f.view === 'art' && pg === 1;
+    out.pdfHead = pg === 1 ? (f.docTitle || f.name) : (f.name || '').replace(/\.pdf$/i, '') + ', page ' + pg;
+    out.pdfPrev = function () { self.setState({ fpg: Math.max(0, (self.state.fpg || 0) - 1) }); }; out.pdfNext = function () { self.setState({ fpg: Math.min(pc - 1, (self.state.fpg || 0) + 1) }); };
+    out.file = { isPdf: isPdf, notPdf: !isPdf, isImage: f.view === 'image', isVideo: f.view === 'video', url: f.url || '', isDoc: !isPdf && f.view === 'doc', isPalette: !isPdf && f.view === 'palette', isArt: !isPdf && f.view === 'art', ref: f.ref || '', docTitle: f.docTitle || f.name, lines: pg === 1 ? ['92%', '78%', '86%', '60%', '88%', '70%', '82%', '54%'] : ['88%', '94%', '72%', '90%', '66%', '84%', '78%', '92%'], pageCount: pc, pages: pc + (pc > 1 ? ' pages' : ' page'), swatches: f.swatches || [], bg: f.bg || '#000065', fg: f.fg || '#fff', mark: f.mark || '' };
     out.zoom = s.zoom; out.zoomLabel = Math.round(s.zoom * 100) + '%';
     out.zoomIn = function () { self.setState({ zoom: Math.min(2, Math.round((self.state.zoom + 0.25) * 100) / 100) }); };
     out.zoomOut = function () { self.setState({ zoom: Math.max(0.5, Math.round((self.state.zoom - 0.25) * 100) / 100) }); };

@@ -5,7 +5,7 @@ body{margin:0}
 .wdc *{box-sizing:border-box;scrollbar-width:thin;scrollbar-color:var(--ad-line-2) transparent}
 .wdc ::selection{background:var(--ad-fill);color:var(--ad-on-fill)}
 .wdc h1,.wdc h2,.wdc h3,.disp{font-family:'Space Grotesk',system-ui,sans-serif;letter-spacing:-.02em;margin:0}
-.wdc p{margin:0;text-wrap:pretty}
+.wdc p{margin:0;text-wrap:wrap}
 .num{font-family:'Space Grotesk',system-ui,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
 :where(.wdc) a{color:inherit;text-decoration:none}
 :where(.wdc) button{font:inherit;color:inherit;cursor:pointer;background:none;border:0;padding:0;text-align:inherit;-webkit-tap-highlight-color:transparent}
@@ -1313,14 +1313,14 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .bClient .bDue{font-weight:700;font-size:12px;white-space:nowrap}
 .tlWrap{overflow:auto;margin:0 20px 18px;border:1px solid var(--ad-line);border-radius:16px;max-height:720px;overscroll-behavior:contain}
 .tl{min-width:980px}
-.tlHead,.tlRow{display:grid;grid-template-columns:220px minmax(0,1fr)}
-.tlHead{position:sticky;top:0;z-index:5;background:var(--ad-panel-2);border-bottom:1px solid var(--ad-line)}
+.gtHead,.gtRow{display:grid;grid-template-columns:220px minmax(0,1fr)}
+.gtHead{position:sticky;top:0;z-index:5;background:var(--ad-panel-2);border-bottom:1px solid var(--ad-line)}
 .tlCorner{position:sticky;left:0;z-index:6;background:var(--ad-panel-2);padding:12px 14px;font-size:12px;font-weight:600;color:var(--ad-dim)}
 .tlAxis{display:grid;grid-template-columns:repeat(var(--wk),minmax(0,1fr))}
 .tlWk{padding:12px 8px;font-size:12px;font-weight:600;color:var(--ad-dim);border-left:1px solid var(--ad-line)}
 .tlBody{position:relative}
-.tlRow{border-bottom:1px solid var(--ad-line);min-height:64px}
-.tlRow:last-child{border-bottom:0}
+.gtRow{border-bottom:1px solid var(--ad-line);min-height:64px}
+.gtRow:last-child{border-bottom:0}
 .tlName{position:sticky;left:0;z-index:3;background:var(--ad-panel);display:flex;flex-direction:column;justify-content:center;gap:1px;text-align:left;padding:8px 14px;border-right:1px solid var(--ad-line)}
 .tlName strong{font-size:14px}.tlName span{font-size:12px;color:var(--ad-dim)}
 .tlName:hover{background:var(--ad-hover)}
@@ -1329,8 +1329,8 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .tlBar{position:absolute;top:10px;min-width:56px;height:44px;display:flex;flex-direction:column;justify-content:center;gap:6px;text-align:left;border-radius:10px;transition:transform .18s var(--ease)}
 .tlBar::after{content:"";position:absolute;inset:-2px -4px}
 .tlBar:hover{transform:translateY(-1px)}
-.tlBar:hover .tlRail{box-shadow:0 0 0 3px var(--ad-ring)}
-.tlRail{display:block;height:12px;border-radius:99px;background:var(--ad-tone-flat);overflow:hidden;transition:box-shadow .15s}
+.tlBar:hover .gtRail{box-shadow:0 0 0 3px var(--ad-ring)}
+.gtRail{display:block;height:12px;border-radius:99px;background:var(--ad-tone-flat);overflow:hidden;transition:box-shadow .15s}
 .tlFill{display:block;height:100%;border-radius:99px;background:var(--c);transform-origin:left;animation:growx .8s var(--ease) backwards}
 .tlTxt{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tlNone{position:absolute;left:14px;top:22px;font-size:12px;color:var(--ad-dim)}
@@ -1466,3 +1466,6 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 /* One figure card per row on a phone (owner's call, 2026-10-12). */
 @container app (max-width:520px){.tiles{grid-template-columns:minmax(0,1fr)}.tiles .stat:last-child:nth-child(odd){grid-column:auto}}
 @media(max-width:520px){.tiles{grid-template-columns:minmax(0,1fr)}}
+.tbl th:nth-child(2),.tbl td:nth-child(2){padding-left:22px}
+.tbl.hasCk th:nth-child(2),.tbl.hasCk td:nth-child(2){padding-left:14px}
+.tbl.hasCk th:nth-child(3),.tbl.hasCk td:nth-child(3){padding-left:22px}

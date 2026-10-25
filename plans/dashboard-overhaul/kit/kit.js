@@ -103,7 +103,7 @@
   open(sh, push) {
     var s = this.state;
     var stack = push && s.sheet ? s.stack.concat([{ sheet: s.sheet, draft: s.draft, reason: s.reason, ack: s.ack, spick: s.spick, ck: s.ck, zoom: s.zoom, form: s.form, lextra: s.lextra, lsel: s.lsel, lq: s.lq, lpg: s.lpg }]) : [];
-    this.setState({ sheet: sh, stack: stack, sheetFull: false, bell: false, pal: false, drawer: false, menu: null, pop: null, tour: -1, draft: sh.draft || '', reason: '', ack: false, ck: {}, spick: sh.pick != null ? sh.pick : -1, vis: sh.vis || 'team', zoom: 1, cmt: '', form: Object.assign({}, sh.form || {}), lq: '', lpg: 0, lcreate: false, lcf: {}, lextra: [], lsel: Object.assign({}, sh.lsel || {}), ui: null, edMode: 'write', shTab: 0 });
+    this.setState({ sheet: sh, stack: stack, sheetFull: false, bell: false, pal: false, drawer: false, menu: null, pop: null, tour: -1, fpg: 0, draft: sh.draft || '', reason: '', ack: false, ck: {}, spick: sh.pick != null ? sh.pick : -1, vis: sh.vis || 'team', zoom: 1, cmt: '', form: Object.assign({}, sh.form || {}), lq: '', lpg: 0, lcreate: false, lcf: {}, lextra: [], lsel: Object.assign({}, sh.lsel || {}), ui: null, edMode: 'write', shTab: 0 });
   }
   closeSheet(force) {
     var self = this, raw = this.state.sheet;
@@ -119,7 +119,7 @@
     this.open(this.sh({
       kind: 'confirm', eyebrow: cf.eyebrow || 'Please confirm', title: cf.title, body: cf.body || '', icon: cf.icon || I.check, iconTone: cf.tone || 'var(--ad-tone-brand)',
       preview: cf.to ? { to: cf.to, subject: cf.subject || '', text: cf.preview || '' } : null,
-      ack: cf.needAck ? (cf.ackText || 'This cannot be undone.') : '', reason: cf.input ? { label: cf.inputLabel || 'Reason', ph: cf.inputPh || '', required: true } : null,
+      ack: cf.needAck ? (cf.ackText || 'This cannot be undone.') : '', reason: cf.input ? { label: cf.inputLabel || 'Reason', ph: cf.inputPh || '', required: true, why: cf.inputWhy || ('Write ' + (/^your /i.test(cf.inputLabel || '') ? (cf.inputLabel || '').toLowerCase() : 'your ' + (cf.inputLabel || 'reason').toLowerCase()) + ' to continue.') } : null,
       primary: cf.ok || 'Confirm', back: !!cf.back, danger: !!cf.danger, green: !!cf.green, secondary: cf.cancel || 'Cancel', note: cf.note || '',
       onPrimary: function (ctx) { if (cf.onOk) cf.onOk(ctx.reason); if (cf.okToast) self.say(cf.okToast); },
       onSecondary: function () { if (cf.onCancel) { cf.onCancel(); return 'stay'; } if (self.state.stack.length) self.sheetBack(); else self.closeSheet(); return 'stay'; }
@@ -429,7 +429,7 @@
     var plabel = typeof raw.primary === 'function' ? raw.primary(ctx, s) : raw.primary;
     var dis = '', reqText = '';
     if (raw.required && !ctx.draft) { dis = 'y'; reqText = raw.requiredWhy || 'Write a message to send it.'; }
-    if (raw.reason && raw.reason.required && !ctx.reason) { dis = 'y'; reqText = 'Write a reason to continue.'; }
+    if (raw.reason && raw.reason.required && !ctx.reason) { dis = 'y'; reqText = raw.reason.why || 'Write a reason to continue.'; }
     if (raw.ack && !ctx.ack) { dis = 'y'; reqText = 'Tick "I understand" to continue.'; }
     if (raw.select && raw.selectRequired !== false && (raw.multi ? ctx.picks.length === 0 : ctx.pick < 0)) { dis = 'y'; reqText = raw.selectWhy || 'Choose one to continue.'; }
     if (raw.primaryDis) { var pd = raw.primaryDis(ctx, s); if (pd) { dis = 'y'; reqText = pd; } }

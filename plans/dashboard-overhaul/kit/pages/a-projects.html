@@ -93,12 +93,12 @@
               <sc-if value="{{isTl}}" hint-placeholder-val="{{ false }}">
                 <div class="tlWrap tabIn" style="animation-name: {{viewAnim}}" data-lenis-prevent tabindex="0" aria-label="Timeline, scrolls sideways">
                   <div class="tl" style="--wk: {{tl.nWeeks}}; --today: {{tl.today}}">
-                    <div class="tlHead"><span class="tlCorner">Project</span><div class="tlAxis"><sc-for list="{{tl.weeks}}" as="w" hint-placeholder-count="8"><span class="tlWk num">{{w}}</span></sc-for></div></div>
+                    <div class="gtHead"><span class="tlCorner">Project</span><div class="tlAxis"><sc-for list="{{tl.weeks}}" as="w" hint-placeholder-count="8"><span class="tlWk num">{{w}}</span></sc-for></div></div>
                     <div class="tlBody">
                       <span class="tlToday" aria-hidden="true"><span class="tlTodayPill num">Today</span></span>
                       <sc-for list="{{tl.rows}}" as="r" hint-placeholder-count="6">
-                        <div class="tlRow"><button class="tlName" onClick="{{r.open}}"><strong>{{r.name}}</strong><span>{{r.client}}</span></button>
-                          <div class="tlTrack"><sc-if value="{{r.hasBar}}" hint-placeholder-val="{{ true }}"><button class="tlBar" style="left: {{r.left}}%; width: {{r.w}}%; --c: {{r.color}}" onClick="{{r.open}}" aria-label="{{r.aria}}"><span class="tlTxt">{{r.txt}}</span><span class="tlRail"><span class="tlFill" style="width: {{r.pct}}%"></span></span></button></sc-if><sc-if value="{{r.noBar}}" hint-placeholder-val="{{ false }}"><span class="tlNone">{{r.none}}</span></sc-if></div></div>
+                        <div class="gtRow"><button class="tlName" onClick="{{r.open}}"><strong>{{r.name}}</strong><span>{{r.client}}</span></button>
+                          <div class="tlTrack"><sc-if value="{{r.hasBar}}" hint-placeholder-val="{{ true }}"><button class="tlBar" style="left: {{r.left}}%; width: {{r.w}}%; --c: {{r.color}}" onClick="{{r.open}}" aria-label="{{r.aria}}"><span class="tlTxt">{{r.txt}}</span><span class="gtRail"><span class="tlFill" style="width: {{r.pct}}%"></span></span></button></sc-if><sc-if value="{{r.noBar}}" hint-placeholder-val="{{ false }}"><span class="tlNone">{{r.none}}</span></sc-if></div></div>
                       </sc-for>
                     </div>
                   </div>
