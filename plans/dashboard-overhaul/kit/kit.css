@@ -1597,3 +1597,33 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .svcBar.on .svcBarTrack span { background: #fff; }
 @keyframes barGrow { from { transform: scaleX(0); } }
 @media (prefers-reduced-motion: reduce) { .svcBarTrack span { animation: none; } }
+.avStack button.av{position:relative}.avStack button.av::after{content:"";position:absolute;inset:-5px;border-radius:50%}
+
+/* A record's head stays uncluttered (owner, 2026-10-25): actions on one row down to 320px, long labels get a short one below 420px */
+.pageHead .headActs.oneRow{flex-wrap:nowrap;flex:none}
+.lblS{display:none}
+@container app (max-width:420px){.lblL{display:none}.lblS{display:inline}}
+.pageHead.recHead .recId{min-width:0}
+@container app (max-width:640px){.pageHead.recHead{flex-direction:column;align-items:stretch;gap:12px}.pageHead.recHead>div{flex:none !important;min-height:0}.pageHead.recHead .recId{width:100%}.pageHead.recHead .recId .av0{width:44px !important;height:44px !important;border-radius:12px !important;font-size:14px !important}.pageHead.recHead .headActs{justify-content:flex-start}}
+.pageHead.recHead .headActs{margin-left:0}
+
+/* List rows of the shape checkbox, tile, text, tag, labelled button, ⋮ (Trash, audit log and every Settings list): on a phone the text keeps the width, the tag and button move to a second line under it (2026-10-25) */
+.lrActs{display:contents}
+@container app (max-width:640px){
+  .listRow{display:grid;grid-template-columns:auto 40px minmax(0,1fr) auto;grid-template-areas:"ck tile text text" ". . acts menu";align-items:center;column-gap:10px;row-gap:4px;padding:10px 4px}
+  .listRow > .lrMenu{justify-self:end}
+  .listRow:has(.lrMenu) .lrBtn{display:none}
+  .listRow:not(:has(.lrMenu)) > .lrActs{grid-column:3 / 5}
+  .listRow > .ckb{grid-area:ck}
+  .listRow > .lrTile{grid-area:tile;width:40px;height:40px}
+  .listRow > .lrText{grid-area:text}
+  .listRow > .lrMenu{grid-area:menu}
+  .listRow > .lrActs{grid-area:acts;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+  .listRow > .lrActs:empty{display:none}
+  .listRow .lrText strong{white-space:normal;overflow-wrap:break-word}
+  .saveBar{flex-wrap:wrap;padding:10px 10px 10px 14px;gap:8px}
+  .saveBar .sbText{flex:1 1 140px;font-size:14px}
+  .saveBar .sbBtns{display:flex;gap:8px;flex:none;margin-left:auto}
+}
+.saveBar .sbBtns{display:flex;gap:8px;flex:none}
+.saveBar .sbBtns span{flex:none;font-weight:inherit}

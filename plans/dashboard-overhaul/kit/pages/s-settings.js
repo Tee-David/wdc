@@ -9,6 +9,7 @@
           { key: 'p.email', type: 'text', label: 'Email', hint: 'Where your notifications go.', def: 'chiamaka@wdc.ng', check: function (v) { return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.trim()) ? '' : 'Check the email address.'; } },
           { key: 'p.phone', type: 'text', label: 'Phone', hint: 'Only Admin sees it.', def: '+234 810 000 0000' },
           { key: 'p.dept', type: 'static', label: 'Department', hint: 'Decides which projects and clients you see.', value: 'Social & Ads', tag: ['Set by Admin', F], lock: { why: 'Only Admin can change your department.', fix: 'Ask Admin if your work has moved.' }, action: { label: 'Ask Admin', fn: function () { window.location.href = 'S-Support.dc.html'; } } }] },
+        { title: 'Password', sub: 'No old password needed: we email you a code. A password found in a breach is refused.', rows: [{ key: 'ac.pw', type: 'static', label: 'Password', hint: 'Every other session is signed out when you change it.', value: '••••••••••', action: { label: 'Change password', fn: function () { self.pwChange('chiamaka@wdc.ng'); } } }] },
         { title: 'Working week', sub: 'Tells teammates when to expect a reply.', rows: [
           { key: 'w.days', type: 'select', label: 'Working days', hint: 'Alerts are held outside these days.', def: 'Monday to Friday', opts: ['Monday to Friday', 'Monday to Saturday', 'Custom'] },
           { key: 'w.hours', type: 'select', label: 'Working hours', hint: 'Push alerts wait until the morning.', def: '09:00 to 17:30', opts: ['08:00 to 16:30', '09:00 to 17:30', '10:00 to 18:30'] }] }

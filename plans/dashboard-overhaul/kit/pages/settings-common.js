@@ -56,7 +56,9 @@
     }
     if (pop.kind === 'item') {
       var p = pop.id.split(':'), sec = M.sections[+p[0]], card = sec && sec.cards[+p[1]], items = card && card.list ? card.list(this) : [], row = items[+p[2]];
-      return row && row.menu ? row.menu.map(function (m) { return m.sep ? self.menuSep() : it(m.t, I[m.icon] || I.open, m.fn, m.danger ? { danger: true } : (m.hint ? { hint: m.hint } : undefined)); }) : [];
+      if (!row || !row.menu) return [];
+      var sc0 = document.querySelector('.scroller'), narrow = sc0 && sc0.clientWidth <= 640, b0 = row.btn, lead = narrow && b0 && !b0.dis && !row.menu.some(function (m) { return m.t === b0.label; }) ? [it(b0.label, I.check, b0.fn, b0.kind === 'danger' ? { danger: true } : undefined)] : [];
+      return lead.concat(row.menu.map(function (m) { return m.sep ? self.menuSep() : it(m.t, I[m.icon] || I.open, m.fn, m.danger ? { danger: true } : (m.hint ? { hint: m.hint } : undefined)); }));
     }
     if (pop.kind === 'chores') return M.chores(this, it, I);
     return [];
@@ -115,7 +117,7 @@
     });
     var keysS = this.secKeys(sec), n = Object.keys(s.sv).filter(function (k) { return keysS.indexOf(k) >= 0; }).length, others = Object.keys(s.sv).length - n;
     return Object.assign(this.kit(), this.extraVals(), {
-      pageTitle: M.title || 'Settings', hasHeadAct: !!M.headAct, headActLabel: M.headAct ? M.headAct.label : '', headAct: M.headAct ? function () { M.headAct.fn(self); } : null, lede: M.lede, sections: sections, cards: cards, dirty: n > 0, secName: sec.label, dirtyText: n ? n + (n === 1 ? ' change not saved' : ' changes not saved') : 'Nothing to save on ' + sec.label, otherNote: others ? others + (others === 1 ? ' change' : ' changes') + ' waiting on other tabs.' : '', hasOther: others > 0, saveDis: n === 0 || errs > 0, discardDis: n === 0, saveWhy: n === 0 ? 'Change a setting on this tab and Save lights up.' : 'Fix the highlighted fields to save.', showWhy: n === 0 || errs > 0,
+      pageTitle: M.title || 'Settings', hasHeadAct: !!M.headAct, headActLabel: M.headAct ? M.headAct.label : '', headAct: M.headAct ? function () { M.headAct.fn(self); } : null, lede: M.lede, sections: sections, cards: cards, dirty: n > 0, secName: sec.label, dirtyText: n ? n + (n === 1 ? ' change not saved' : ' changes not saved') : 'Nothing to save here', otherNote: others ? others + ' on other tabs' : '', hasOther: others > 0, saveDis: n === 0 || errs > 0, discardDis: n === 0, saveWhy: n === 0 ? 'Change a setting on this tab and Save lights up.' : 'Fix the highlighted fields to save.', showWhy: n === 0 || errs > 0,
       discard: function () { self.discardSection(si); },
       save: function () { self.saveSection(si); },
       openChores: function (e) { self.openPop(e, 'chores', 'chores', 260, 200, 'More for settings'); }, choresX: this.popOn('chores', 'chores')

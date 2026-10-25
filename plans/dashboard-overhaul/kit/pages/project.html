@@ -1,14 +1,14 @@
 <sc-if value="{{hasCrumbs}}" hint-placeholder-val="{{ true }}"><nav class="crumbs rise" aria-label="Breadcrumb"><a href="{{crumbHref}}">{{crumbLabel}}</a><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg><span aria-current="page">{{pj.name}}</span></nav></sc-if>
             <sc-if value="{{hasSwitch}}" hint-placeholder-val="{{ false }}"><div class="seg projSwitch rise" role="group" aria-label="Your projects" style="--n: {{switchN}}; --i: {{switchI}}"><span class="pill" aria-hidden="true"></span><sc-for list="{{switches}}" as="sw" hint-placeholder-count="2"><button class="{{sw.cls}}" aria-pressed="{{sw.pressed}}" onClick="{{sw.pick}}">{{sw.t}}</button></sc-for></div></sc-if>
             <sc-if value="{{hasPause}}" hint-placeholder-val="{{ false }}"><div class="pauseBan rise" role="status"><span class="pbIc" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="20" height="20"><path d="M10 4H6v16h4zM18 4h-4v16h4z"></path></svg></span><span class="pbT"><strong>{{pause.title}}</strong><span>{{pause.why}}. {{pause.body}}</span></span><button class="btn" style="min-height: 44px" onClick="{{pauseAct}}">{{pause.act}}</button></div></sc-if>
-            <div class="pageHead rise">
-              <div>
-                <span style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap"><span class="tag" style="background: var(--ad-tone-flat); color: var(--ad-on-flat)">{{pj.svc}}</span><sc-if value="{{pj.hasFlag}}" hint-placeholder-val="{{ false }}"><span class="tag" style="background: {{pj.flagTone}}; color: #fff">{{pj.flag}}</span></sc-if></span>
+            <div class="pageHead recHead rise">
+              <div class="recId">
                 <h1 class="h1">{{pj.name}}</h1>
-                <p class="lede">{{pj.lede}}</p>
+                <p class="lede">{{pj.client}}<sc-if value="{{pjExc}}" hint-placeholder-val="{{ false }}"> <span class="tag" style="background: {{pj.flagTone}}; color: #fff; vertical-align: middle">{{pj.flag}}</span></sc-if></p>
               </div>
-              <div class="headActs">
-                <sc-if value="{{hasHeadAct}}" hint-placeholder-val="{{ true }}"><button class="btn" onClick="{{headAct}}" data-tour="act"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="{{headActIcon}}"></path></svg>{{headActLabel}}</button></sc-if>
+              <div class="headActs oneRow">
+                <button class="ibtn" aria-label="Details for this project" onClick="{{openPjInfo}}" data-tour="info"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 16v-4M12 8h.01"></path></svg></button>
+                <sc-if value="{{hasHeadAct}}" hint-placeholder-val="{{ true }}"><button class="btn" onClick="{{headAct}}" data-tour="act"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="{{headActIcon}}"></path></svg><span class="lblL">{{headActLabel}}</span><span class="lblS">{{headActShort}}</span></button></sc-if>
                 <sc-if value="{{hasChores}}" hint-placeholder-val="{{ true }}"><button class="ibtn" data-menu="chores" aria-label="More for this project" aria-haspopup="menu" onClick="{{openChores}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg></button></sc-if>
               </div>
             </div>
