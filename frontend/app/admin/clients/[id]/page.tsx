@@ -30,6 +30,7 @@ import { AdminState as ScopeState } from "@/components/admin/admin-state";
 import { can } from "@/lib/admin/permissions";
 import { CopyText } from "@/components/admin/copy-text";
 import { MessageActions } from "@/components/admin/log-message";
+import { ClientInfo } from "@/components/admin/client-info";
 import { whatsappLink } from "@/lib/admin/whatsapp";
 import { SITE_URL } from "@/lib/site";
 import { nairaTile } from "@/lib/admin/short-money";
@@ -235,16 +236,23 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
         title={c.company}
         mark={initials(c.company)}
         markTone={avTone(c.company)}
-        lede={<>{c.name} · {c.email}{c.phone ? ` · ${c.phone}` : ""} · client since {monthYear(c.since)}{hasAccount ? " · has a portal account" : invited ? " · portal invitation sent" : ""}</>}
-        action={<MessageActions clientId={c.id} clientName={c.name} waHref={whatsappLink(c.phone, `Hi ${first}, it's We Dig Creativity.`)} />}
+        /* The head says who and what is wrong; everything else is behind Client details. */
+        lede={<>{c.name}{people.length > 1 ? ` and ${people.length - 1} more` : ""}</>}
+        action={<div className="ad__row adCl__acts">
+          <ClientInfo company={c.company} contact={c.name} email={c.email} phone={c.phone ?? ""} waHref={whatsappLink(c.phone, `Hi ${first}, it's We Dig Creativity.`)}
+            since={monthYear(c.since)} state={state} portal={hasAccount ? { label: "Has an account", tone: "good" } : invited ? { label: "Invitation sent", tone: "warn" } : { label: "No account", tone: "flat" }}
+            services={c.services.map((sv) => SERVICES.find((x) => x.slug === sv)?.short ?? sv)} tags={c.tags ?? []} />
+          <MessageActions clientId={c.id} clientName={c.name} waHref={null} />
+        </div>}
         chores={<ClientChores client={c} likely={likely} hasOthers={destructive && getClients().some((x) => x.id !== c.id)} />}
       >
-        <p className="adT__row" style={{ marginTop: ".6rem" }}>
-          <span className={`ad__pill ad__pill--${c.archived ? "flat" : "good"}`}>{state}</span>
-          {overdue && money ? <span className="ad__pill ad__pill--bad">Overdue</span> : null}
-          {c.services.map((s) => <span key={s} className="ad__pill ad__pill--flat">{SERVICES.find((x) => x.slug === s)?.short ?? s}</span>)}
-          {(c.tags ?? []).map((t) => <span key={t} className="ad__pill ad__pill--flat">{t}</span>)}
-        </p>
+        {/* Only what is out of the ordinary: a routine "Active" says nothing. */}
+        {c.archived || (overdue && money) ? (
+          <p className="adT__row" style={{ marginTop: ".5rem" }}>
+            {c.archived ? <span className="ad__pill ad__pill--flat">{state}</span> : null}
+            {overdue && money ? <span className="ad__pill ad__pill--bad">Overdue</span> : null}
+          </p>
+        ) : null}
       </PageHead>
 
       {c.mergedInto ? (

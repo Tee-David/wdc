@@ -2207,3 +2207,27 @@ td:has(.adRowPick) , .ad__pickCell { white-space: nowrap; }
   .ad__perMenu a, .ad__rangePresets a { min-height: 3rem; }
 }
 @media (prefers-reduced-motion: reduce) { .ad__rangeMenu, .ad__perMenu { animation: none !important; } }
+/* A button's short label for narrow phones (DialogButton shortLabel). */
+.ad__lblShort { display: none; }
+@media (max-width: 420px) { .ad__lblLong { display: none; } .ad__lblShort { display: inline; } }
+
+/* Client details sheet (components/admin/client-info.tsx). */
+.adCi { display: grid; gap: 1.25rem; }
+.adCi__part { display: grid; gap: .6rem; }
+.adCi h3 { margin: 0; font: 700 1.1rem var(--font-space-grotesk), system-ui, sans-serif; }
+.adCi h4 { margin: 0; font-size: .8rem; font-weight: 600; color: var(--ad-dim); }
+.adCi__reach { display: grid; gap: .5rem; }
+.adCi__reach .ad__btn { justify-content: flex-start; min-height: 2.75rem; min-width: 0; }
+.adCi__reach .ad__btn span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adCi__facts { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: .75rem; padding: .9rem 1rem; border-radius: 14px; background: var(--ad-panel-2); }
+.adCi__facts dt { font-size: .76rem; color: var(--ad-dim); }
+.adCi__facts dd { margin: .15rem 0 0; font-weight: 600; }
+.adCi__tags { margin: 0; display: flex; flex-wrap: wrap; gap: .4rem; }
+/* The client head's actions stay on one line on a phone: details, the log, the menu. */
+@media (max-width: 640px) {
+  .adPh__acts:has(> .adCl__acts) { flex-wrap: nowrap; }
+  .adCl__acts { flex: 1 1 auto; flex-wrap: nowrap; min-width: 0; }
+  .adCl__acts > .ad__btn--icon { flex: none; }
+  .adCl__acts > .ad__row { flex: 1 1 auto; min-width: 0; flex-wrap: nowrap; }
+  .adCl__acts > .ad__row > .ad__btn { flex: 1 1 auto; min-width: 0; justify-content: center; }
+}

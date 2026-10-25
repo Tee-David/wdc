@@ -22,7 +22,7 @@ export function MessageActions({ clientId, clientName, waHref }: {
           <MessageCircle aria-hidden="true" /> Open WhatsApp
         </a>
       ) : null}
-      <DialogButton label="Log a call or message" title={`Write down a conversation with ${clientName}`} icon={NotebookPen}>
+      <DialogButton label="Log a call or message" shortLabel="Log a call" title={`Write down a conversation with ${clientName}`} icon={NotebookPen}>
         {(close) => (
           <Form action={logMessage} onDone={() => close()} resetOnDone>
             <Hidden name="clientId" value={clientId} />
