@@ -18,7 +18,7 @@ body{margin:0}
 .wdc *{box-sizing:border-box;scrollbar-width:thin;scrollbar-color:var(--ad-line-2) transparent}
 .wdc ::selection{background:var(--ad-fill);color:var(--ad-on-fill)}
 .wdc h1,.wdc h2,.wdc h3,.disp{font-family:'Space Grotesk',system-ui,sans-serif;letter-spacing:-.02em;margin:0}
-.wdc p{margin:0;text-wrap:pretty}
+.wdc p{margin:0;text-wrap:wrap}
 .num{font-family:'Space Grotesk',system-ui,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
 :where(.wdc) a{color:inherit;text-decoration:none}
 :where(.wdc) button{font:inherit;color:inherit;cursor:pointer;background:none;border:0;padding:0;text-align:inherit;-webkit-tap-highlight-color:transparent}
@@ -1326,14 +1326,14 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .bClient .bDue{font-weight:700;font-size:12px;white-space:nowrap}
 .tlWrap{overflow:auto;margin:0 20px 18px;border:1px solid var(--ad-line);border-radius:16px;max-height:720px;overscroll-behavior:contain}
 .tl{min-width:980px}
-.tlHead,.tlRow{display:grid;grid-template-columns:220px minmax(0,1fr)}
-.tlHead{position:sticky;top:0;z-index:5;background:var(--ad-panel-2);border-bottom:1px solid var(--ad-line)}
+.gtHead,.gtRow{display:grid;grid-template-columns:220px minmax(0,1fr)}
+.gtHead{position:sticky;top:0;z-index:5;background:var(--ad-panel-2);border-bottom:1px solid var(--ad-line)}
 .tlCorner{position:sticky;left:0;z-index:6;background:var(--ad-panel-2);padding:12px 14px;font-size:12px;font-weight:600;color:var(--ad-dim)}
 .tlAxis{display:grid;grid-template-columns:repeat(var(--wk),minmax(0,1fr))}
 .tlWk{padding:12px 8px;font-size:12px;font-weight:600;color:var(--ad-dim);border-left:1px solid var(--ad-line)}
 .tlBody{position:relative}
-.tlRow{border-bottom:1px solid var(--ad-line);min-height:64px}
-.tlRow:last-child{border-bottom:0}
+.gtRow{border-bottom:1px solid var(--ad-line);min-height:64px}
+.gtRow:last-child{border-bottom:0}
 .tlName{position:sticky;left:0;z-index:3;background:var(--ad-panel);display:flex;flex-direction:column;justify-content:center;gap:1px;text-align:left;padding:8px 14px;border-right:1px solid var(--ad-line)}
 .tlName strong{font-size:14px}.tlName span{font-size:12px;color:var(--ad-dim)}
 .tlName:hover{background:var(--ad-hover)}
@@ -1342,8 +1342,8 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .tlBar{position:absolute;top:10px;min-width:56px;height:44px;display:flex;flex-direction:column;justify-content:center;gap:6px;text-align:left;border-radius:10px;transition:transform .18s var(--ease)}
 .tlBar::after{content:"";position:absolute;inset:-2px -4px}
 .tlBar:hover{transform:translateY(-1px)}
-.tlBar:hover .tlRail{box-shadow:0 0 0 3px var(--ad-ring)}
-.tlRail{display:block;height:12px;border-radius:99px;background:var(--ad-tone-flat);overflow:hidden;transition:box-shadow .15s}
+.tlBar:hover .gtRail{box-shadow:0 0 0 3px var(--ad-ring)}
+.gtRail{display:block;height:12px;border-radius:99px;background:var(--ad-tone-flat);overflow:hidden;transition:box-shadow .15s}
 .tlFill{display:block;height:100%;border-radius:99px;background:var(--c);transform-origin:left;animation:growx .8s var(--ease) backwards}
 .tlTxt{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tlNone{position:absolute;left:14px;top:22px;font-size:12px;color:var(--ad-dim)}
@@ -1469,6 +1469,70 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 @media(max-width:560px){.rpKpis{grid-template-columns:minmax(0,1fr)}.rpTfind{padding:10px 16px}}
 @media(max-width:760px){.rpCols--dense li:nth-child(even) small{visibility:hidden}.rpCols small{font-size:10.5px}.rpCols li{min-width:0}.rpCols{overflow-x:clip}}
 
+/* The document keeps what the real one has: a centred watermark, the QR code and the stamp. */
+.docPaper{position:relative;isolation:isolate;overflow:hidden}
+.dpWater{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-12deg);z-index:-1;font:700 clamp(72px,22cqw,150px)/1 'Space Grotesk',system-ui,sans-serif;letter-spacing:.06em;color:#000065;opacity:.06;pointer-events:none;user-select:none}
+.dpQrRow{display:flex;align-items:center;gap:12px;color:#5c5c7a;font-size:11.5px;min-width:0}
+.dpQrRow span:not(.dpStamp){flex:1 1 0;min-width:0}
+.dpQr{flex:none;border:1px solid #c9ccdc;border-radius:8px;padding:4px;background:#fff}
+.dpStamp{flex:none;font:700 15px/1 'Space Grotesk',system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#15803d;border:3px solid #15803d;border-radius:8px;padding:8px 12px;transform:rotate(-8deg)}
+/* One figure card per row on a phone (owner's call, 2026-10-12). */
+@container app (max-width:520px){.tiles{grid-template-columns:minmax(0,1fr)}.tiles .stat:last-child:nth-child(odd){grid-column:auto}}
+@media(max-width:520px){.tiles{grid-template-columns:minmax(0,1fr)}}
+.tbl th:nth-child(2),.tbl td:nth-child(2){padding-left:22px}
+.tbl.hasCk th:nth-child(2),.tbl.hasCk td:nth-child(2){padding-left:14px}
+.tbl.hasCk th:nth-child(3),.tbl.hasCk td:nth-child(3){padding-left:22px}
+
+/* Searchable dropdown for any pick from five options up (owner's call, 2026-10-12): a field, a list with its own search, ticks for several. */
+.cbx{display:flex;flex-direction:column;gap:8px;min-width:0}
+.cbxBtn{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:48px;text-align:left;cursor:pointer;font:inherit;color:var(--ad-ink)}
+.cbxBtn[aria-expanded="true"]{border-color:var(--ad-ink);box-shadow:0 0 0 4px var(--ad-ring)}
+.cbxBtn[aria-expanded="true"] .cbxChev{transform:rotate(180deg)}
+.cbxChev{transition:transform .2s var(--ease);flex:none}
+.cbxVal{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cbxPh{color:var(--ad-dim)}
+.cbxTokens{display:flex;flex-wrap:wrap;gap:6px}
+.cbxTok{display:inline-flex;align-items:center;gap:4px;padding:4px 4px 4px 12px;border-radius:999px;background:var(--ad-tone-brand);color:#fff;font-size:13px;font-weight:600}
+.cbxTok button{width:28px;height:28px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;color:#fff;position:relative}
+.cbxTok button::after{content:"";position:absolute;inset:-8px}
+.cbxTok button:hover{background:var(--ad-tone-bad)}
+.cbxPop{border:1px solid var(--ad-line-2);border-radius:14px;background:var(--ad-panel);box-shadow:var(--ad-sh-2);overflow:hidden;animation:rise .2s var(--ease)}
+.cbxSearch{margin:8px;border-radius:10px}
+.cbxList{max-height:260px;overflow-y:auto;overscroll-behavior:contain;padding:0 6px 6px;display:flex;flex-direction:column}
+.cbxRow{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 10px;border-radius:10px;text-align:left;font:inherit;color:var(--ad-ink);cursor:pointer}
+.cbxRow:hover{background:var(--ad-hover)}
+.cbxRow.on{font-weight:600}
+.cbxTick{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--ad-line-2);display:inline-flex;align-items:center;justify-content:center;flex:none;color:transparent}
+.cbxRow.on .cbxTick{background:var(--ad-fill);border-color:var(--ad-fill);color:#fff}
+.cbxFoot{display:flex;justify-content:flex-end;padding:8px;border-top:1px solid var(--ad-line)}
+
+/* A segmented control never grows past its box: equal columns that can shrink, long labels wrap to two lines, and on a phone a view switch keeps only its icons. */
+.seg{max-width:100%;grid-auto-columns:minmax(0,1fr)}
+.seg button,.seg a{white-space:normal;text-align:center;line-height:1.2;min-width:0;padding:6px 10px}
+@container app (max-width:640px){.segIco .segL{display:none}.segIco button,.segIco a{min-width:44px}}
+/* Timeline layers: the pinned project names stay above the Today line when the chart scrolls sideways; the header stays above both, so the line starts under it. */
+.gtHead{z-index:6}
+.tlCorner{z-index:7}
+.tlName{z-index:5;min-width:0;overflow:hidden}
+.tlName strong,.tlName span{overflow-wrap:anywhere}
+.tlToday{top:var(--tlHead,43px);z-index:4}
+.cbxSearch{width:auto;box-sizing:border-box}
+.cbxPop{max-width:100%;box-sizing:border-box}
+.tlName{margin-bottom:-1px;border-bottom:1px solid var(--ad-line)}
+.cbxNone{margin:0;padding:12px 10px;color:var(--ad-dim);font-size:14px}
+.selBtn{display:flex;align-items:center;gap:8px;width:min(100%,320px);min-height:44px;cursor:pointer;font:inherit;color:var(--ad-ink);text-align:left}
+.selBtn[aria-expanded="true"]{border-color:var(--ad-ink);box-shadow:0 0 0 4px var(--ad-ring)}
+.selLbl{font-size:13px;color:var(--ad-dim);font-weight:600}
+.selVal{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.selN{font-size:13px;color:var(--ad-dim)}
+
+/* Client page: what a retainer includes, and team notes (2026-10-25) */
+.planIncl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.planIncl > span { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 10px 12px; border-radius: 12px; background: var(--ad-panel-2); font-size: 12px; color: var(--ad-dim); }
+.planIncl strong { font-size: 16px; color: var(--ad-ink); }
+.noteRow { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: 12px; background: var(--ad-panel-2); min-width: 0; }
+.noteRow p { margin: 0; overflow-wrap: anywhere; }
+
 </style>
 </helmet>
 <div class="{{rootCls}}" onClick="{{rootClick}}">
@@ -1564,7 +1628,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
                 <span class="av0" style="width: 56px; height: 56px; border-radius: 16px; font-size: 17px; background: #1f4d3a; flex: none">MS</span>
                 <span style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
                   <h1 class="h1">Mira Skincare</h1>
-                  <span class="lede" style="font-size: 14px">{{headLine}}</span>
+                  <span class="lede" style="font-size: 14px">{{headLine}}<strong>{{headStress}}</strong></span>
                 </span>
               </div>
               <div class="headActs">
@@ -1578,7 +1642,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 
             <sc-if value="{{loading}}" hint-placeholder-val="{{ false }}">
               <div class="layout skWrap" role="status" aria-label="Loading">
-                <div class="col"><div class="skCard" style="gap: 14px"><span class="skel" style="height: 18px; width: 130px"></span><span class="skel" style="height: 96px"></span><span class="skel" style="height: 96px"></span></div><div class="skCard" style="gap: 12px"><span class="skel" style="height: 18px; width: 150px"></span><span class="skel" style="height: 48px"></span><span class="skel" style="height: 48px"></span><span class="skel" style="height: 48px"></span></div></div>
+                <div class="col"><div class="skHero"><span style="display: flex; gap: 8px"><span class="skel" style="height: 24px; width: 70px; border-radius: 99px"></span><span class="skel" style="height: 24px; width: 96px; border-radius: 99px"></span></span><span class="skel" style="height: 28px; width: 72%"></span><span class="skel" style="height: 16px; width: 90%"></span><span style="display: flex; gap: 8px; margin-top: 8px"><span class="skel" style="height: 44px; width: 150px; border-radius: 12px"></span><span class="skel" style="height: 44px; width: 150px; border-radius: 12px"></span></span></div><div class="skCard" style="gap: 14px"><span class="skel" style="height: 18px; width: 130px"></span><span class="skel" style="height: 96px"></span><span class="skel" style="height: 96px"></span></div><div class="skCard" style="gap: 12px"><span class="skel" style="height: 18px; width: 150px"></span><span class="skel" style="height: 48px"></span><span class="skel" style="height: 48px"></span><span class="skel" style="height: 48px"></span></div></div>
                 <div class="railCards"><div class="skCard" style="height: 230px"><span class="skel" style="height: 16px; width: 90px"></span><span class="skel" style="height: 76px; width: 76px; border-radius: 50%"></span><span class="skel" style="height: 52px"></span></div><div class="skCard" style="height: 200px"><span class="skel" style="height: 16px; width: 120px"></span><span class="skel" style="flex: 1"></span></div></div>
               </div>
             </sc-if>
@@ -1587,6 +1651,83 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
             <sc-if value="{{isOverview}}" hint-placeholder-val="{{ true }}">
             <div class="layout tabIn" style="animation-name: {{tabAnim}}">
               <div class="col">
+                <section aria-label="{{deckTitle}}" data-tour="deck">
+                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap">
+                    <h2 style="font-size: 17px; font-weight: 700">{{deckTitle}}</h2>
+                    <span class="strip" role="img" aria-label="{{stripLabel}}"><sc-for list="{{strip}}" as="sg" hint-placeholder-count="6"><span class="{{sg.cls}}"></span></sc-for></span>
+                    <span class="num" style="color: var(--ad-dim); font-size: 13px">{{stripText}}</span>
+                    <span class="hideS" style="margin-left: auto; color: var(--ad-dim); font-size: 12px">{{deckKeys}}</span>
+                  </div>
+                  <sc-if value="{{hasTop}}" hint-placeholder-val="{{ true }}">
+                    <div class="deck {{top.deckCls}}">
+                      <sc-if value="{{hasG1}}" hint-placeholder-val="{{ true }}"><span class="ghost" aria-hidden="true"></span></sc-if>
+                      <sc-if value="{{hasG2}}" hint-placeholder-val="{{ true }}"><span class="ghost g2" aria-hidden="true"></span></sc-if>
+                      <article class="topCard onDark {{top.kidCls}}" tabindex="0" onKeyDown="{{deckKey}}" aria-label="{{top.aria}}" style="animation-name: {{top.anim}}; animation-duration: {{top.dur}}; animation-timing-function: {{top.ease}}; animation-fill-mode: {{top.fill}}">
+                        <div class="tags">
+                          <span class="tag" style="background: #fff; color: #000065">{{top.kind}}</span>
+                          <span class="tag" style="background: {{top.utone}}; color: #fff">{{top.urgency}}</span>
+                          <span class="projLbl num" style="margin-left: auto; font-size: 13px; color: var(--ad-hero-dim)">{{top.label}}</span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 8px">
+                          <h3 class="cardH">{{top.title}}</h3>
+                          <p style="color: var(--ad-hero-dim); font-size: 15px">{{top.body}}</p>
+                        </div>
+                        <sc-if value="{{top.hasSteps}}" hint-placeholder-val="{{ false }}">
+                          <div style="display: flex; flex-direction: column; gap: 8px">
+                            <span style="display: flex; justify-content: space-between; font-size: 13px; color: var(--ad-hero-dim)"><span>Steps</span><span class="num">{{top.stepText}}</span></span>
+                            <span style="height: 8px; border-radius: 99px; background: rgb(255 255 255/.14); overflow: hidden"><span style="display: block; height: 100%; width: {{top.stepPct}}%; background: #ff6500; border-radius: 99px; transition: width .45s var(--ease)"></span></span>
+                            <div style="display: flex; flex-wrap: wrap; gap: 6px">
+                              <sc-for list="{{top.stepList}}" as="st" hint-placeholder-count="4">
+                                <button class="stepChip {{st.cls}}" role="checkbox" aria-checked="{{st.pressed}}" onClick="{{st.toggle}}"><span class="stepBox"><sc-if value="{{st.on}}" hint-placeholder-val="{{ false }}"><svg class="ic" viewBox="0 0 24 24" width="10" height="10" aria-hidden="true" style="stroke-width: 3.4"><path pathLength="1" d="M20 6 9 17l-5-5"></path></svg></sc-if></span>{{st.t}}</button>
+                              </sc-for>
+                            </div>
+                          </div>
+                        </sc-if>
+                        <sc-if value="{{top.isLogo}}" hint-placeholder-val="{{ false }}">
+                          <div style="display: flex; flex-direction: column; gap: 8px">
+                            <div class="routes" id="routes" role="radiogroup" aria-label="Choose a route" onScroll="{{routeScroll}}">
+                              <sc-for list="{{routes}}" as="r" hint-placeholder-count="2">
+                                <button class="route {{r.cls}}" role="radio" aria-checked="{{r.checked}}" onClick="{{r.pick}}">
+                                  <span class="routePrev" style="background: {{r.bg}}"><span class="disp" style="font-size: clamp(20px, 5cqi, 30px); font-weight: 700; color: {{r.fg}}; letter-spacing: -.04em">{{r.mark}}</span><sc-if value="{{r.isSel}}" hint-placeholder-val="{{ false }}"><span class="tag pickTag"><svg class="ic" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true" style="stroke-width: 3"><path d="M20 6 9 17l-5-5"></path></svg>Your pick</span></sc-if></span>
+                                  <strong style="font-size: 14px; padding: 0 4px">{{r.name}}</strong>
+                                  <span class="rNote" style="font-size: 12px; color: var(--ad-hero-dim); padding: 0 4px 4px">{{r.note}}</span>
+                                </button>
+                              </sc-for>
+                            </div>
+                            <span class="railDots" aria-hidden="true"><sc-for list="{{routeDots}}" as="rd" hint-placeholder-count="2"><span class="{{rd}}"></span></sc-for></span>
+                            <button class="lnk" style="color: #fff; align-self: flex-start; min-height: 44px" onClick="{{openRouteFile}}">See both routes full size<svg class="ic arr" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"></path></svg></button>
+                          </div>
+                        </sc-if>
+                        <sc-if value="{{top.hasMeta}}" hint-placeholder-val="{{ true }}">
+                          <dl class="meta"><sc-for list="{{top.meta}}" as="m" hint-placeholder-count="3"><div style="display: flex; flex-direction: column; min-width: 0"><dt>{{m.k}}</dt><dd class="num">{{m.v}}</dd></div></sc-for></dl>
+                        </sc-if>
+                        <sc-if value="{{top.hasWhy}}" hint-placeholder-val="{{ true }}">
+                          <p class="why"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="margin-top: 2px; color: #ffb27a"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"></path></svg><span>{{top.why}}</span></p>
+                        </sc-if>
+                        <div class="deckActs">
+                          <button class="hb grow" onClick="{{top.primary}}">{{top.primaryLabel}}<svg class="ic arr" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"></path></svg></button>
+                          <button class="hb2 grow" onClick="{{top.secondary}}">{{top.secondaryLabel}}</button>
+                          <span class="sp"></span>
+                          <div class="deckTools">
+                            <button class="hb2 tipU" data-menu="snooze" data-tip="{{snoozeLabel}}" onClick="{{openSnooze}}" aria-haspopup="menu" aria-label="{{snoozeLabel}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 6v6l4 2"></path></svg><span class="tLbl">{{snoozeShort}}</span></button>
+                            <sc-if value="{{canPass}}" hint-placeholder-val="{{ true }}"><button class="hb2 tipU" data-menu="delegate" data-tip="Hand over" onClick="{{openDelegate}}" aria-haspopup="dialog" aria-label="Hand over"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M19 8v6M22 11h-6"></path></svg><span class="tLbl">Hand over</span></button></sc-if>
+                            <button class="hb2 tipU ib" data-tip="Open details" onClick="{{top.details}}" aria-label="Open details" style="padding: 0 14px"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg></button>
+                          </div>
+                        </div>
+                        <sc-if value="{{top.stamp}}" hint-placeholder-val="{{ false }}"><span class="stamp" style="--st: {{top.stampTone}}; --cx: {{top.cx}}; --cy: {{top.cy}}" aria-hidden="true"><span class="stampRing"></span><span class="stampIn"><svg class="stampIc" viewBox="0 0 52 52" width="64" height="64"><circle class="stC" cx="26" cy="26" r="23" pathLength="1"></circle><path class="stP" d="{{top.stampD}}" pathLength="1"></path></svg><span class="stampL">{{top.stampLabel}}</span></span></span></sc-if>
+                      </article>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{deckEmpty}}" hint-placeholder-val="{{ false }}">
+                    <div class="card empty" role="status">
+                      <span class="emptyIc"><svg class="ic" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true" style="stroke-width: 2.6"><path pathLength="1" d="M20 6 9 17l-5-5"></path></svg></span>
+                      <h3>{{emptyTitle}}</h3>
+                      <p style="color: var(--ad-dim)">{{emptyBody}} <strong style="color: var(--ad-ink)">{{emptyNext}}</strong></p>
+                      <div class="emptyActs"><button class="btn" onClick="{{emptyPrimary}}">{{emptyPrimaryLabel}}</button><button class="btn2" onClick="{{restoreDeck}}">{{emptySecondaryLabel}}</button></div>
+                    </div>
+                  </sc-if>
+                </section>
+
                 <section class="card cq" aria-label="Projects" data-tour="projects" style="padding: 16px 20px; display: flex; flex-direction: column; gap: 12px">
                   <div style="display: flex; align-items: center; gap: 10px"><h2 style="font-size: 17px; font-weight: 700; flex: 1">Projects</h2><button class="lnk viewAll" onClick="{{newProject}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>New project</button></div>
                   <sc-for list="{{projects}}" as="pj" hint-placeholder-count="2">
@@ -1616,10 +1757,18 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
                     <span class="ringW" role="img" aria-label="{{billAria}}"><svg viewBox="0 0 76 76" width="76" height="76"><circle class="rTrack" cx="38" cy="38" r="32"></circle><circle class="rVal" cx="38" cy="38" r="32" pathLength="100" style="stroke-dasharray: 100; stroke-dashoffset: {{ringOff}}"></circle></svg><span class="rTxt"><strong class="num" style="font-size: 17px">{{paidPct}}%</strong><span style="font-size: 10px; color: var(--ad-dim)">paid</span></span></span>
                     <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font-size: 13px; color: var(--ad-dim)">Paid so far</span><strong class="num" style="font-size: 22px; line-height: 1.15">{{paidShort}}</strong><span style="font-size: 13px; color: var(--ad-dim)">of {{invoicedTxt}} invoiced</span></span>
                   </div>
-                  <sc-if value="{{hasDue}}" hint-placeholder-val="{{ true }}"><div class="payNext"><span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><strong class="num">₦450,000 due Wed 14 Oct</strong><span style="font-size: 12px; color: var(--ad-dim)">Social media deposit · INV-26-9QX4LM</span></span><button class="btn2" style="min-height: 44px; padding: 0 12px" onClick="{{remind}}">Remind</button></div></sc-if>
+                  <sc-if value="{{hasDue}}" hint-placeholder-val="{{ true }}"><div class="payNext"><span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><strong class="num">₦450,000 due Wed 14 Oct</strong><span style="font-size: 12px; color: var(--ad-dim)">{{remindNote}}</span></span><button class="btn2" style="min-height: 44px; padding: 0 12px" onClick="{{remind}}">{{remindLabel}}</button></div></sc-if>
                   <sc-if value="{{noDue}}" hint-placeholder-val="{{ false }}"><div class="payNext"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" style="color: var(--ad-tone-good)"><path d="M20 6 9 17l-5-5"></path></svg><span style="flex: 1; font-size: 13px"><strong>Nothing due.</strong> The brand identity balance goes with the final files on Sat 17 Oct.</span></div></sc-if>
                 </section>
 
+
+                <section class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 12px" aria-label="Social media plan" data-tour="plan">
+                  <div style="display: flex; align-items: center; gap: 8px"><h2 style="font-size: 16px; font-weight: 700; flex: 1">Social media plan</h2><span class="tag" style="background: var(--ad-tone-brand); color: #fff">Retainer</span></div>
+                  <span style="font-size: 13px; color: var(--ad-dim)">{{planTerm}} · ₦300,000 a month</span>
+                  <div class="planIncl"><sc-for list="{{planIncl}}" as="pi" hint-placeholder-count="3"><span><strong class="num disp">{{pi.t}}</strong><span>{{pi.s}}</span></span></sc-for></div>
+                  <div class="payNext"><span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><strong>{{planBill}}</strong><span style="font-size: 12px; color: var(--ad-dim)">{{planBillSub}}</span><span style="font-size: 12px; color: var(--ad-dim)">{{planNext}}</span></span></div>
+                  <span style="display: flex; gap: 8px; flex-wrap: wrap"><button class="btn2" style="flex: 1 1 130px" onClick="{{changeBilling}}">Change billing</button><button class="btn2" style="flex: 1 1 110px" onClick="{{openPlan}}">Open plan</button></span>
+                </section>
                 <section class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 12px" aria-label="Next meeting">
                   <div style="display: flex; align-items: center; gap: 8px"><h2 style="font-size: 16px; font-weight: 700; flex: 1">Next meeting</h2><span class="cdown"><span class="live"></span>{{meetIn}}</span></div>
                   <div style="display: flex; gap: 12px; align-items: center"><span class="meetDate"><span class="mm">Oct</span><span class="dd num">{{meetDay}}</span></span><span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><strong class="disp" style="font-size: 17px">{{meetTime}}</strong><span style="font-size: 13px">Logo review with Adaeze</span><span style="font-size: 12px; color: var(--ad-dim)">Google Meet · Ifeanyi leads · review 1 of 2</span></span></div>
@@ -1629,6 +1778,11 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
                 <section class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 8px" aria-label="People">
                   <div style="display: flex; align-items: center"><h2 style="font-size: 16px; font-weight: 700; flex: 1">People</h2><button class="lnk viewAll" onClick="{{toPeople}}">All 3<svg class="ic arr" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"></path></svg></button></div>
                   <sc-for list="{{peopleShort}}" as="pp" hint-placeholder-count="2"><button class="rowh" onClick="{{pp.open}}" style="display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 12px; width: 100%; text-align: left"><span class="av0" style="width: 34px; height: 34px; font-size: 11px; background: {{pp.tone}}">{{pp.i}}</span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 13px"><strong>{{pp.name}}</strong><span style="color: var(--ad-dim)">{{pp.role}}</span></span><span class="tag" style="background: {{pp.ptone}}; color: #fff">{{pp.portalShort}}</span></button></sc-for>
+                </section>
+                <section class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 10px" aria-label="Team notes">
+                  <div style="display: flex; align-items: center; gap: 8px"><h2 style="font-size: 16px; font-weight: 700; flex: 1">Team notes</h2><button class="lnk viewAll" onClick="{{allNotes}}">All {{notesN}}<svg class="ic arr" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"></path></svg></button></div>
+                  <sc-for list="{{notes}}" as="nt" hint-placeholder-count="2"><div class="noteRow"><p style="font-size: 14px">{{nt.t}}</p><span style="font-size: 12px; color: var(--ad-dim)">{{nt.who}} · {{nt.when}}</span></div></sc-for>
+                  <button class="btn2" onClick="{{addNote}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Add a note</button>
                 </section>
               </aside>
             </div>
@@ -1875,7 +2029,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
                 <span class="num" style="min-width: 52px; text-align: center; font-weight: 600">{{zoomLabel}}</span>
                 <button class="ibtn" style="width: 40px; height: 40px" aria-label="Zoom in" onClick="{{zoomIn}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg></button>
                 <span style="flex: 1"></span>
-                <span class="num" style="font-size: 13px; color: var(--ad-dim)">{{file.pages}}</span>
+                <sc-if value="{{file.isPdf}}" hint-placeholder-val="{{ false }}"><span style="display: inline-flex; align-items: center; gap: 4px; flex: none"><button class="ibtn" style="width: 40px; height: 40px" aria-label="Previous page" onClick="{{pdfPrev}}" disabled="{{pdfFirst}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></button><span class="num" style="font-size: 13px; color: var(--ad-dim); min-width: 84px; text-align: center">Page {{pdfN}} of {{file.pageCount}}</span><button class="ibtn" style="width: 40px; height: 40px" aria-label="Next page" onClick="{{pdfNext}}" disabled="{{pdfLast}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></button></span></sc-if><sc-if value="{{file.notPdf}}" hint-placeholder-val="{{ true }}"><span class="num" style="font-size: 13px; color: var(--ad-dim)">{{file.pages}}</span></sc-if>
                 <button class="ibtn" style="width: 40px; height: 40px" aria-label="Print" onClick="{{printFile}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"></path></svg></button>
                 <button class="ibtn" style="width: 40px; height: 40px" aria-label="Download" onClick="{{downloadFile}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg></button>
               </div>
@@ -1883,6 +2037,18 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
                 <div style="transform: scale({{zoom}}); transform-origin: top center; transition: transform .3s var(--ease)">
                   <sc-if value="{{file.isImage}}" hint-placeholder-val="{{ false }}"><img src="{{file.url}}" alt="{{sheet.title}}" style="display: block; max-width: 100%; margin: 0 auto; border-radius: 10px"></sc-if>
                   <sc-if value="{{file.isVideo}}" hint-placeholder-val="{{ false }}"><video src="{{file.url}}" controls playsinline style="display: block; max-width: 100%; margin: 0 auto; border-radius: 10px"></video></sc-if>
+                  <sc-if value="{{file.isPdf}}" hint-placeholder-val="{{ false }}">
+                    <div style="position: relative; aspect-ratio: 1 / 1.414; width: 100%; max-width: 380px; margin: 0 auto; background: #fff; color: #0e0e2c; border-radius: 6px; box-shadow: var(--ad-sh-2); padding: 7% 7% 6%; display: flex; flex-direction: column; gap: 10px; overflow: hidden; container-type: inline-size">
+                      <span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font: 700 64px 'Space Grotesk',sans-serif; color: rgb(0 0 101/.05); transform: rotate(-28deg); pointer-events: none">WDC</span>
+                      <span style="display: flex; justify-content: space-between; align-items: center; gap: 8px"><strong style="font: 700 15px 'Space Grotesk',sans-serif; color: #000065">WDC Studio</strong><span style="font-size: 10px; color: #5c5c7a; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{sheet.title}}</span></span>
+                      <span style="height: 3px; width: 48px; background: #ff6500; border-radius: 3px"></span>
+                      <strong style="font: 700 17px 'Space Grotesk',sans-serif">{{pdfHead}}</strong>
+                      <sc-if value="{{pdfSwatches}}" hint-placeholder-val="{{ false }}"><div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px"><sc-for list="{{file.swatches}}" as="sw" hint-placeholder-count="4"><span style="display: flex; flex-direction: column; gap: 3px; font-size: 10px"><span style="aspect-ratio: 1; border-radius: 8px; background: {{sw.c}}; box-shadow: inset 0 0 0 1px rgb(0 0 0/.12)"></span><span>{{sw.n}}</span></span></sc-for></div></sc-if>
+                      <sc-if value="{{pdfArt}}" hint-placeholder-val="{{ false }}"><span style="aspect-ratio: 4 / 3; border-radius: 8px; background: {{file.bg}}; display: flex; align-items: center; justify-content: center"><span style="font: 700 38px 'Space Grotesk',sans-serif; color: {{file.fg}}; letter-spacing: -.04em">{{file.mark}}</span></span></sc-if>
+                      <sc-for list="{{file.lines}}" as="ln" hint-placeholder-count="6"><span style="display: block; height: 7px; border-radius: 4px; background: #e4e6f0; width: {{ln}}"></span></sc-for>
+                      <span style="margin-top: auto; display: flex; justify-content: space-between; font-size: 10px; color: #5c5c7a"><span>wedigcreativity.com</span><span>Page {{pdfN}} of {{file.pageCount}}</span></span>
+                    </div>
+                  </sc-if>
                   <sc-if value="{{file.isDoc}}" hint-placeholder-val="{{ false }}">
                     <div style="position: relative; aspect-ratio: 1 / 1.414; max-width: 380px; margin: 0 auto; background: #fff; color: #0e0e2c; border-radius: 6px; box-shadow: var(--ad-sh-2); padding: 26px 24px; display: flex; flex-direction: column; gap: 10px; overflow: hidden">
                       <span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font: 700 64px 'Space Grotesk',sans-serif; color: rgb(0 0 101/.05); transform: rotate(-28deg); pointer-events: none">WDC</span>
@@ -2138,7 +2304,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
             </sc-for></div>
           </sc-if>
           <sc-if value="{{sheet.hasChipSets}}" hint-placeholder-val="{{ false }}">
-            <sc-for list="{{sheet.chipSets}}" as="cs" hint-placeholder-count="1"><div class="field {{sheet.chipsCls}}"><span>{{cs.label}}</span><sc-if value="{{cs.searchable}}" hint-placeholder-val="{{ false }}"><label class="input ssIn"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"></path></svg><span class="sr">Search {{cs.label}}</span><input value="{{cs.q}}" placeholder="Search {{cs.label}}" autocomplete="off" onChange="{{cs.onQ}}" onInput="{{cs.onQ}}"><sc-if value="{{cs.hasQ}}" hint-placeholder-val="{{ false }}"><button type="button" class="ssX" aria-label="Clear the search" onClick="{{cs.clearQ}}"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></sc-if></label></sc-if><div class="chips" role="{{cs.role}}" aria-label="{{cs.label}}"><sc-for list="{{cs.opts}}" as="o" hint-placeholder-count="4"><button class="chip {{o.cls}}" role="{{o.role}}" aria-checked="{{o.checked}}" onClick="{{o.pick}}">{{o.t}}</button></sc-for></div><sc-if value="{{cs.noMatch}}" hint-placeholder-val="{{ false }}"><span class="hint">Nothing matches. Clear the search to see everything.</span></sc-if><sc-if value="{{cs.hasHint}}" hint-placeholder-val="{{ false }}"><span class="hint">{{cs.hint}}</span></sc-if></div></sc-for>
+            <sc-for list="{{sheet.chipSets}}" as="cs" hint-placeholder-count="1"><div class="field {{sheet.chipsCls}}"><span>{{cs.label}}</span><sc-if value="{{cs.searchable}}" hint-placeholder-val="{{ false }}"><div class="cbx"><button type="button" class="input cbxBtn" aria-haspopup="listbox" aria-expanded="{{cs.expanded}}" onClick="{{cs.toggleOpen}}"><span class="cbxVal {{cs.isEmptyVal}}">{{cs.valText}}</span><svg class="ic cbxChev" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button><sc-if value="{{cs.hasTokens}}" hint-placeholder-val="{{ false }}"><div class="cbxTokens"><sc-for list="{{cs.tokens}}" as="tk" hint-placeholder-count="2"><span class="cbxTok">{{tk.t}}<button type="button" aria-label="Remove {{tk.t}}" onClick="{{tk.remove}}"><svg class="ic" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></span></sc-for></div></sc-if><sc-if value="{{cs.open}}" hint-placeholder-val="{{ false }}"><div class="cbxPop"><label class="input ssIn cbxSearch"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"></path></svg><span class="sr">Search {{cs.label}}</span><input id="cbxq-{{cs.key}}" value="{{cs.q}}" placeholder="Search" autocomplete="off" autoFocus="{{ true }}" onChange="{{cs.onQ}}" onInput="{{cs.onQ}}"><sc-if value="{{cs.hasQ}}" hint-placeholder-val="{{ false }}"><button type="button" class="ssX" aria-label="Clear the search" onClick="{{cs.clearQ}}"><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></sc-if></label><div class="cbxList" role="listbox" aria-label="{{cs.label}}" aria-multiselectable="{{cs.multi}}"><sc-for list="{{cs.rows}}" as="r" hint-placeholder-count="5"><button type="button" class="cbxRow {{r.cls}}" role="option" aria-selected="{{r.sel}}" onClick="{{r.pick}}"><span class="cbxTick" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="13" height="13"><path d="M20 6 9 17l-5-5"></path></svg></span><span>{{r.t}}</span></button></sc-for><sc-if value="{{cs.noRows}}" hint-placeholder-val="{{ false }}"><p class="cbxNone">Nothing matches “{{cs.q}}”. <button type="button" class="lnk" onClick="{{cs.clearQ}}">Clear the search</button></p></sc-if></div><sc-if value="{{cs.multi}}" hint-placeholder-val="{{ false }}"><div class="cbxFoot"><button type="button" class="btn" onClick="{{cs.closeIt}}">Done</button></div></sc-if></div></sc-if></div></sc-if><sc-if value="{{cs.chipsOnly}}" hint-placeholder-val="{{ true }}"><div class="chips" role="{{cs.role}}" aria-label="{{cs.label}}"><sc-for list="{{cs.opts}}" as="o" hint-placeholder-count="4"><button class="chip {{o.cls}}" role="{{o.role}}" aria-checked="{{o.checked}}" onClick="{{o.pick}}">{{o.t}}</button></sc-for></div></sc-if><sc-if value="{{cs.noMatch}}" hint-placeholder-val="{{ false }}"><span class="hint">Nothing matches. Clear the search to see everything.</span></sc-if><sc-if value="{{cs.hasHint}}" hint-placeholder-val="{{ false }}"><span class="hint">{{cs.hint}}</span></sc-if></div></sc-for>
           </sc-if>
           <sc-if value="{{sheet.hasChecks}}" hint-placeholder-val="{{ false }}">
             <div style="display: flex; flex-direction: column; gap: 8px">
@@ -2190,7 +2356,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
     <sc-if value="{{bellOpen}}" hint-placeholder-val="{{ false }}">
       <div class="scrim" style="background: transparent" onClick="{{toggleBell}}"></div>
       <section class="popP" role="dialog" aria-label="Notifications">
-        <span class="grabZone"><span class="grab"></span></span>
+        <span class="grabZone" onPointerDown="{{grabBell}}"><span class="grab"></span></span>
         <div style="display: flex; align-items: center; gap: 10px; padding: 14px 16px 8px"><h2 style="font-size: 17px; font-weight: 700; flex: 1">Notifications</h2><button class="lnk" onClick="{{markAll}}">Mark all read</button><sc-if value="{{hasAllNotes}}" hint-placeholder-val="{{ false }}"><a class="lnk" href="{{allNotesHref}}">See all</a></sc-if></div>
         <div style="padding: 0 16px 8px"><div class="seg" role="group" aria-label="Show" style="--n: 2; --i: {{bellI}}"><span class="pill" aria-hidden="true"></span><button class="{{bAll}}" aria-pressed="{{bAllP}}" onClick="{{tabAll}}">All</button><button class="{{bUn}}" aria-pressed="{{bUnP}}" onClick="{{tabUnread}}">Unread <span class="num">{{unread}}</span></button></div></div>
         <div style="overflow-y: auto; overscroll-behavior: contain; padding: 0 8px 8px">
@@ -2383,7 +2549,7 @@ class Component extends DCLogic {
   open(sh, push) {
     var s = this.state;
     var stack = push && s.sheet ? s.stack.concat([{ sheet: s.sheet, draft: s.draft, reason: s.reason, ack: s.ack, spick: s.spick, ck: s.ck, zoom: s.zoom, form: s.form, lextra: s.lextra, lsel: s.lsel, lq: s.lq, lpg: s.lpg }]) : [];
-    this.setState({ sheet: sh, stack: stack, sheetFull: false, bell: false, pal: false, drawer: false, menu: null, pop: null, tour: -1, draft: sh.draft || '', reason: '', ack: false, ck: {}, spick: sh.pick != null ? sh.pick : -1, vis: sh.vis || 'team', zoom: 1, cmt: '', form: Object.assign({}, sh.form || {}), lq: '', lpg: 0, lcreate: false, lcf: {}, lextra: [], lsel: Object.assign({}, sh.lsel || {}), ui: null, edMode: 'write', shTab: 0 });
+    this.setState({ sheet: sh, stack: stack, sheetFull: false, bell: false, pal: false, drawer: false, menu: null, pop: null, tour: -1, fpg: 0, draft: sh.draft || '', reason: '', ack: false, ck: {}, spick: sh.pick != null ? sh.pick : -1, vis: sh.vis || 'team', zoom: 1, cmt: '', form: Object.assign({}, sh.form || {}), lq: '', lpg: 0, lcreate: false, lcf: {}, lextra: [], lsel: Object.assign({}, sh.lsel || {}), ui: null, edMode: 'write', shTab: 0 });
   }
   closeSheet(force) {
     var self = this, raw = this.state.sheet;
@@ -2399,7 +2565,7 @@ class Component extends DCLogic {
     this.open(this.sh({
       kind: 'confirm', eyebrow: cf.eyebrow || 'Please confirm', title: cf.title, body: cf.body || '', icon: cf.icon || I.check, iconTone: cf.tone || 'var(--ad-tone-brand)',
       preview: cf.to ? { to: cf.to, subject: cf.subject || '', text: cf.preview || '' } : null,
-      ack: cf.needAck ? (cf.ackText || 'This cannot be undone.') : '', reason: cf.input ? { label: cf.inputLabel || 'Reason', ph: cf.inputPh || '', required: true } : null,
+      ack: cf.needAck ? (cf.ackText || 'This cannot be undone.') : '', reason: cf.input ? { label: cf.inputLabel || 'Reason', ph: cf.inputPh || '', required: true, why: cf.inputWhy || ('Write ' + (/^your /i.test(cf.inputLabel || '') ? (cf.inputLabel || '').toLowerCase() : 'your ' + (cf.inputLabel || 'reason').toLowerCase()) + ' to continue.') } : null,
       primary: cf.ok || 'Confirm', back: !!cf.back, danger: !!cf.danger, green: !!cf.green, secondary: cf.cancel || 'Cancel', note: cf.note || '',
       onPrimary: function (ctx) { if (cf.onOk) cf.onOk(ctx.reason); if (cf.okToast) self.say(cf.okToast); },
       onSecondary: function () { if (cf.onCancel) { cf.onCancel(); return 'stay'; } if (self.state.stack.length) self.sheetBack(); else self.closeSheet(); return 'stay'; }
@@ -2464,6 +2630,12 @@ class Component extends DCLogic {
       base.x = Math.round(x); base.y = Math.round(y);
     }
     this.setState({ pop: base, menu: null, dq: '' });
+  }
+  /* A row of filter chips as one searchable pick: a button showing the current choice, opening the menu (a popover, a bottom sheet on a phone). Search from five options. */
+  chipsAsPick(id, label, items) {
+    var self = this, on = items.filter(function (c) { return /\bon\b/.test(c.cls || ''); })[0] || items[0];
+    return { cur: on ? on.t : label, n: on && on.n != null ? on.n : '', label: label, expanded: this.popOn('pick', id),
+      open: function (e) { self.openPop(e, 'pick', id, 280, Math.min(380, (items.length >= 5 ? 70 : 16) + items.length * 46), label, { search: items.length >= 5, searchPh: 'Search ' + label.toLowerCase(), items: items }); } };
   }
   closePop() { var self = this; this.exitThen('.mSheet, .mSheet ~ .scrim, .menuF', function () { self.setState({ pop: null }); }); }
   menuItem(label, d, fn, opt) {
@@ -2700,7 +2872,11 @@ class Component extends DCLogic {
       var cur = F[cs.key] != null ? F[cs.key] : (cs.multi ? [] : '');
       var cq = (F['~q' + cs.key] || '').toLowerCase(), srch = cs.search !== false && cs.opts.length >= 5;
       var shownOpts = cs.opts.filter(function (o) { return !srch || !cq || o.toLowerCase().indexOf(cq) >= 0 || (cs.multi ? cur.indexOf(o) >= 0 : cur === o); });
-      return { label: cs.label, hint: cs.hint || '', hasHint: !!cs.hint, role: cs.multi ? 'group' : 'radiogroup', searchable: srch, q: F['~q' + cs.key] || '', hasQ: !!F['~q' + cs.key], noMatch: srch && !!cq && shownOpts.every(function (o) { return o.toLowerCase().indexOf(cq) < 0; }), onQ: function (e) { setF('~q' + cs.key, e.target.value); }, clearQ: function () { setF('~q' + cs.key, ''); }, opts: shownOpts.map(function (o) {
+      var open = !!F['~open' + cs.key], picked = cs.multi ? cur : (cur ? [cur] : []);
+      var lc = cs.label.toLowerCase();
+      var valText = !picked.length ? (cs.multi ? 'Any ' + lc : 'Pick ' + (/^[aeiou]/.test(lc) ? 'an ' : 'a ') + lc) : (picked.length === 1 ? picked[0] : picked.length + ' ' + lc + (/s$/.test(lc) ? '' : 's') + ' picked');
+      var toggle = function (v) { var c = self.state.form[cs.key] != null ? self.state.form[cs.key] : (cs.multi ? [] : ''); if (cs.multi) { c = c.indexOf(v) >= 0 ? c.filter(function (x) { return x !== v; }) : c.concat([v]); setF(cs.key, c); } else { var m = Object.assign({}, self.state.form); m[cs.key] = v; m['~open' + cs.key] = false; m['~q' + cs.key] = ''; self.setState({ form: m }); } };
+      return { noRows: srch && !!cq && !shownOpts.length, key: cs.key, label: cs.label, hint: cs.hint || '', hasHint: !!cs.hint, role: cs.multi ? 'group' : 'radiogroup', searchable: srch, chipsOnly: !srch, open: open, expanded: open ? 'true' : 'false', valText: valText, isEmptyVal: !picked.length ? 'cbxPh' : '', multi: !!cs.multi, hasTokens: !!cs.multi && picked.length > 0, tokens: (cs.multi ? picked : []).map(function (v) { return { t: v, remove: function () { toggle(v); } }; }), toggleOpen: function () { setF('~open' + cs.key, !open); }, closeIt: function () { setF('~open' + cs.key, false); }, rows: shownOpts.map(function (o) { var on = picked.indexOf(o) >= 0; return { t: o, sel: on ? 'true' : 'false', on: on, cls: on ? 'on' : '', pick: function () { toggle(o); } }; }), q: F['~q' + cs.key] || '', hasQ: !!F['~q' + cs.key], noMatch: srch && !!cq && shownOpts.every(function (o) { return o.toLowerCase().indexOf(cq) < 0; }), onQ: function (e) { setF('~q' + cs.key, e.target.value); }, clearQ: function () { setF('~q' + cs.key, ''); }, opts: shownOpts.map(function (o) {
         var on = cs.multi ? cur.indexOf(o) >= 0 : cur === o;
         return { t: o, cls: on ? 'on' : '', checked: on ? 'true' : 'false', role: cs.multi ? 'checkbox' : 'radio', pick: function () { var c = self.state.form[cs.key] != null ? self.state.form[cs.key] : (cs.multi ? [] : ''); if (cs.multi) { c = c.indexOf(o) >= 0 ? c.filter(function (x) { return x !== o; }) : c.concat([o]); } else c = o; setF(cs.key, c); } };
       }) };
@@ -2709,7 +2885,7 @@ class Component extends DCLogic {
     var plabel = typeof raw.primary === 'function' ? raw.primary(ctx, s) : raw.primary;
     var dis = '', reqText = '';
     if (raw.required && !ctx.draft) { dis = 'y'; reqText = raw.requiredWhy || 'Write a message to send it.'; }
-    if (raw.reason && raw.reason.required && !ctx.reason) { dis = 'y'; reqText = 'Write a reason to continue.'; }
+    if (raw.reason && raw.reason.required && !ctx.reason) { dis = 'y'; reqText = raw.reason.why || 'Write a reason to continue.'; }
     if (raw.ack && !ctx.ack) { dis = 'y'; reqText = 'Tick "I understand" to continue.'; }
     if (raw.select && raw.selectRequired !== false && (raw.multi ? ctx.picks.length === 0 : ctx.pick < 0)) { dis = 'y'; reqText = raw.selectWhy || 'Choose one to continue.'; }
     if (raw.primaryDis) { var pd = raw.primaryDis(ctx, s); if (pd) { dis = 'y'; reqText = pd; } }
@@ -2728,6 +2904,7 @@ class Component extends DCLogic {
       if (s.pop.kind === 'per') popItems = this.perItems(s.pop.id);
       else if (s.pop.kind === 'snooze') popItems = this.snoozeItems();
       else if (s.pop.kind === 'delegate') popItems = this.delegateItems();
+      else if (s.pop.kind === 'pick') popItems = (s.pop.items || []).filter(function (c) { var q = (s.dq || '').trim().toLowerCase(); return !q || c.t.toLowerCase().indexOf(q) >= 0; }).map(function (c) { var on = /\bon\b/.test(c.cls || ''); return self.menuItem(c.t, on ? self.icons().check : '', function () { c.pick(); self.setState({ pop: null }); }, { role: 'menuitemradio', checked: on, on: on, hint: c.n != null ? String(c.n) : '' }); });
       else if (this.popItems) popItems = this.popItems(s.pop) || [];
       popItems = popItems.map(function (m, i) { return Object.assign({ anim: self.anim(s.dq.length), delay: Math.min(i, 8) * 0.025 + 's' }, m); });
     }
@@ -2760,7 +2937,7 @@ class Component extends DCLogic {
       attach: function () { self.say('The file picker opens here. Up to 50 MB a file.'); },
       isTourPick: raw.kind === 'tour', tourOpts: tourOpts, isFile: raw.kind === 'file', isPost: raw.kind === 'post', isPay: raw.kind === 'pay', isFollow: raw.kind === 'follow', isQuote: raw.kind === 'quote',
       popOpen: !!s.pop && (popItems.length > 0 || s.pop.search), popAsMenu: !!s.pop && !s.pop.asSheet, popAsSheet: !!s.pop && s.pop.asSheet, pop: Object.assign({ hasNote: !!(s.pop && s.pop.note) }, s.pop || {}), popItems: popItems, popEmpty: !!s.pop && s.pop.search && !popItems.length, popEmptyText: 'Nobody matches "' + s.dq + '".',
-      closePop: function () { self.closePop(); }, grabPop: function (e) { self.grabStart(e, '.mSheet', function () { self.setState({ pop: null }); }); },
+      closePop: function () { self.closePop(); }, grabPop: function (e) { self.grabStart(e, '.mSheet', function () { self.setState({ pop: null }); }); }, grabBell: function (e) { self.grabStart(e, '.popP', function () { self.setState({ bell: false }); }); },
       dq: s.dq, onDq: function (e) { self.setState({ dq: e.target.value }); },
       bellOpen: s.bell, bellExp: s.bell ? 'true' : 'false', toggleBell: function () { if (self.state.bell) { self.exitThen('.popP, .scrim', function () { self.setState({ bell: false }); }); return; } self.setState({ bell: true, menu: null, pop: null }); },
       notes: shown, notesEmpty: !shown.length, unread: unread, hasUnread: unread > 0, bellLabel: 'Notifications, ' + unread + ' unread', bellI: s.bellTab === 'unread' ? 1 : 0,
@@ -2933,7 +3110,11 @@ class Component extends DCLogic {
   extraVals() {
     var s = this.state, self = this, raw = s.sheet || {}, out = {};
     var f = raw.file || {};
-    out.file = { isImage: f.view === 'image', isVideo: f.view === 'video', url: f.url || '', isDoc: f.view === 'doc', isPalette: f.view === 'palette', isArt: f.view === 'art', ref: f.ref || '', docTitle: f.docTitle || f.name, lines: ['92%', '78%', '86%', '60%', '88%', '70%', '82%', '54%'], pageCount: f.pageCount || 1, pages: (f.pageCount || 1) + (f.pageCount > 1 ? ' pages' : ' page'), swatches: f.swatches || [], bg: f.bg || '#000065', fg: f.fg || '#fff', mark: f.mark || '' };
+    var isPdf = /\.pdf$/i.test(f.name || '') && f.view !== 'image' && f.view !== 'video', pc = f.pageCount || (isPdf ? 2 : 1), pg = Math.min(pc, Math.max(1, (s.fpg || 0) + 1));
+    out.pdfN = pg; out.pdfFirst = pg <= 1; out.pdfLast = pg >= pc; out.pdfSwatches = isPdf && f.view === 'palette' && pg === 1; out.pdfArt = isPdf && f.view === 'art' && pg === 1;
+    out.pdfHead = pg === 1 ? (f.docTitle || f.name) : (f.name || '').replace(/\.pdf$/i, '') + ', page ' + pg;
+    out.pdfPrev = function () { self.setState({ fpg: Math.max(0, (self.state.fpg || 0) - 1) }); }; out.pdfNext = function () { self.setState({ fpg: Math.min(pc - 1, (self.state.fpg || 0) + 1) }); };
+    out.file = { isPdf: isPdf, notPdf: !isPdf, isImage: f.view === 'image', isVideo: f.view === 'video', url: f.url || '', isDoc: !isPdf && f.view === 'doc', isPalette: !isPdf && f.view === 'palette', isArt: !isPdf && f.view === 'art', ref: f.ref || '', docTitle: f.docTitle || f.name, lines: pg === 1 ? ['92%', '78%', '86%', '60%', '88%', '70%', '82%', '54%'] : ['88%', '94%', '72%', '90%', '66%', '84%', '78%', '92%'], pageCount: pc, pages: pc + (pc > 1 ? ' pages' : ' page'), swatches: f.swatches || [], bg: f.bg || '#000065', fg: f.fg || '#fff', mark: f.mark || '' };
     out.zoom = s.zoom; out.zoomLabel = Math.round(s.zoom * 100) + '%';
     out.zoomIn = function () { self.setState({ zoom: Math.min(2, Math.round((self.state.zoom + 0.25) * 100) / 100) }); };
     out.zoomOut = function () { self.setState({ zoom: Math.max(0.5, Math.round((self.state.zoom - 0.25) * 100) / 100) }); };
@@ -3713,12 +3894,13 @@ class Component extends DCLogic {
   }
 
   /* ======================= Owner · Client page: Mira Skincare ======================= */
-  pageState() { return { creditUsed: {}, ptab: 'overview', ta: 0, mtab: 'inv', mpage: 0, mper: 5, ftab: 'all', fpage: 0, fper: 5, fq: '', fa: 0, apage: 0, aper: 5, afil: 'all', aa: 0, slot: 0, people: null, reminded: false, ra: 0 }; }
+  pageState() { return { creditUsed: {}, ptab: 'overview', ta: 0, mtab: 'inv', mpage: 0, mper: 5, ftab: 'all', fpage: 0, fper: 5, fq: '', fa: 0, apage: 0, aper: 5, afil: 'all', aa: 0, slot: 0, people: null, reminded: false, ra: 0, route: '', routeAsk: false, paidDep: false, access: false, inviteSent: false, agendaSent: false, accessAsked: false, billing: 'Two parts', feedAdd: [], notes: null }; }
   pageName() { return 'Mira Skincare'; }
   navSection() { return 'Clients'; }
   tourSteps() {
     var I = this.icons();
     return [
+      { target: 'deck', title: 'What Mira needs from you', icon: I.target, body: 'Only this client\'s open items: a late approval, a payment, a missing login, a meeting. Act on one and the next rises.', hint: 'Focus the card: D done, S snooze.' },
       { target: 'tabs', title: 'Everything about Mira in one place', icon: I.layers, body: 'Overview, money, files, people and the full history. Each tab keeps its own search and pages.' },
       { target: 'projects', title: 'Their projects', icon: I.folder, body: 'Each project shows its stage and the next step. Tap one to open it.' },
       { target: 'rail', title: 'Money, meetings, people', icon: I.wallet, body: 'What they have paid, what is due, the next meeting and who to talk to.' },
@@ -3732,13 +3914,14 @@ class Component extends DCLogic {
       { id: 'p3', name: 'Kunle M.', i: 'KM', tone: '#5c5c7a', email: 'accounts@miraskincare.ng', role: 'Accounts', gets: 'Invoices and receipts by email', portal: 'No portal access', ptone: 'var(--ad-tone-neutral)', short: 'Email only' }
     ];
   }
+  peopleNow() { var L = this.peopleData(); if (!this.state.inviteSent) return L; return L.map(function (x) { return x.id === 'p2' && x.short === 'Invited' ? Object.assign({}, x, { portal: 'Fresh invite sent today' }) : x; }); }
   setPeople(list) { this.setState({ people: list, ra: this.state.ra + 1 }); }
   docs() {
     var paid = this.state.paidDep;
     return {
-      inv: [{ no: 'INV-26-9QX4LM', for: 'Social media, deposit 50%', amount: '₦450,000', date: 'Wed 14 Oct', status: 'Due in 4 days', tone: 'var(--ad-tone-warn)', kind: 'inv', open: true }, { no: 'INV-26-2FT7RB', for: 'Brand identity, deposit 50%', amount: '₦600,000', date: '30 Sep', status: 'Paid', tone: 'var(--ad-tone-good)', kind: 'inv' }],
+      inv: [paid ? { no: 'INV-26-9QX4LM', for: 'Social media, deposit 50%', amount: '₦450,000', date: 'Paid today', status: 'Paid', tone: 'var(--ad-tone-good)', kind: 'inv' } : { no: 'INV-26-9QX4LM', for: 'Social media, deposit 50%', amount: '₦450,000', date: 'Wed 14 Oct', status: 'Due in 4 days', tone: 'var(--ad-tone-warn)', kind: 'inv', open: true }, { no: 'INV-26-2FT7RB', for: 'Brand identity, deposit 50%', amount: '₦600,000', date: '30 Sep', status: 'Paid', tone: 'var(--ad-tone-good)', kind: 'inv' }],
       est: [{ no: 'EST-2026-011', for: 'Social media management, 3 months', amount: '₦900,000', date: '3 Oct', status: 'Accepted', tone: 'var(--ad-tone-good)', kind: 'est' }, { no: 'EST-2026-009', for: 'Brand identity', amount: '₦1,200,000', date: '18 Sep', status: 'Accepted', tone: 'var(--ad-tone-good)', kind: 'est' }],
-      rct: [{ no: 'RCT-2026-028', for: 'Brand identity deposit, Paystack card', amount: '₦600,000', date: '30 Sep', status: 'Sent', tone: 'var(--ad-tone-good)', kind: 'rct' }]
+      rct: (paid ? [{ no: 'RCT-2026-031', for: 'Social media deposit, ' + (this.state.paidHow || 'bank transfer').toLowerCase(), amount: '₦450,000', date: 'Today', status: 'Sent', tone: 'var(--ad-tone-good)', kind: 'rct' }] : []).concat([{ no: 'RCT-2026-028', for: 'Brand identity deposit, Paystack card', amount: '₦600,000', date: '30 Sep', status: 'Sent', tone: 'var(--ad-tone-good)', kind: 'rct' }])
     };
   }
   docFile(d) { return { name: d.no + '.pdf', project: 'Mira Skincare', view: 'doc', ref: d.no, docTitle: ({ inv: 'Invoice', est: 'Quote', rct: 'Receipt' })[d.kind] + ' · ' + d.amount, when: d.date, size: '190 KB', tone: 'var(--ad-tone-bad)', by: 'Funmi K.' }; }
@@ -3750,7 +3933,7 @@ class Component extends DCLogic {
       onPrimary: function () { setTimeout(function () { self.openFile(self.docFile(d)); }, 30); },
       onSecondary: function () { self.closeSheet(); self.sendReminder(); return 'stay'; } });
   }
-  sendReminder() { var self = this; this.say('Reminder sent to Adaeze with the Paystack and Flutterwave link.', { delay: 8, pending: function (n) { return 'Sending the reminder to Adaeze in ' + n + 's'; }, cancel: function () { self.setState({ reminded: false }); } }); this.setState({ reminded: true }); }
+  sendReminder() { var self = this, it = this.deck()[1]; if (!this.state.gone.deposit && !this.state.snoozed.deposit) { this.clear(it, 'done', '', '', { delayed: { pending: function (n) { return 'Sending the reminder to Adaeze in ' + n + 's'; }, done: 'Reminder sent to Adaeze with the Paystack and Flutterwave link.' }, extra: { reminded: true }, undoPatch: { reminded: false } }); return; } this.say('Reminder sent to Adaeze with the Paystack and Flutterwave link.', { delay: 8, pending: function (n) { return 'Sending the reminder to Adaeze in ' + n + 's'; }, cancel: function () { self.setState({ reminded: false }); } }); this.setState({ reminded: true }); }
   filesData() {
     return [
       ['Logo round 2.pdf', 'brand', 'Today', '4.2 MB', 'palette', 1, 'Ifeanyi N.'], ['Colour and type sheet.png', 'brand', 'Wed 7 Oct', '1.1 MB', 'palette', 1, 'Ifeanyi N.'],
@@ -3811,17 +3994,89 @@ class Component extends DCLogic {
     this.open(this.sh({ eyebrow: 'Their balance', title: 'Put a credit against an invoice', icon: I.wallet, body: 'The credit becomes an ordinary payment on the invoice, with a receipt number like any other. There is no other way out, so every balance can be reconciled.', listTitle: 'Open invoices', select: true, searchPh: 'Search invoices', list: open.map(function (r) { return { t: r.no, s: '₦' + r.owed.toLocaleString('en-NG') + ' owing' }; }), selectWhy: 'Choose the invoice.', primary: function (ctx) { return ctx.pick >= 0 ? 'Apply ₦' + Math.min(cr[0].amt, open[ctx.pick].owed).toLocaleString('en-NG') + ' to ' + open[ctx.pick].no : 'Apply the credit'; }, secondary: 'Cancel',
       onPrimary: function (ctx) { var inv = open[ctx.pick], c = cr[0], u = Object.assign({}, self.state.creditUsed); u[c.id] = inv.no; self.setState({ creditUsed: u, ra: self.state.ra + 1 }); self.say('₦' + Math.min(c.amt, inv.owed).toLocaleString('en-NG') + ' applied to ' + inv.no + '. Receipt RCT-2026-0' + (50 + Object.keys(u).length) + ' sent.'); } }));
   }
+  /* The Focus deck, narrowed to one client: only what Mira is waiting on from us, or we on them. */
+  logFeed(i, tone, who, what, where, kind) { this.setState({ feedAdd: [{ i: i, tone: tone, who: who, what: what, where: where, when: 'Just now', kind: kind || 'Work' }].concat(this.state.feedAdd) }); }
+  clearId(id, how, label, msg, opt) { var it = this.deck().filter(function (d) { return d.id === id; })[0]; if (it && !this.state.gone[id] && !this.state.snoozed[id]) this.clear(it, how, label, msg, opt); else if (msg) this.say(msg); }
+  snoozeTitle() { return 'Bring it back'; }
+  callAdaeze(onDone) {
+    var self = this, I = this.icons();
+    this.open(this.sh({ eyebrow: 'Call', title: 'Call Adaeze', icon: I.phone, deckId: 'route', rows: [{ k: 'Phone', v: '+234 802 114 3390' }, { k: 'About', v: 'Logo round 2 · routes A and B' }],
+      body: 'She asked about the green in route B this morning. Ifeanyi can show it on linen and on the bottle label if that helps her decide. Nothing is chosen for her: write down what she says.',
+      chipSets: [{ key: 'out', label: 'How did it go?', opts: ['Chose route A', 'Chose route B', 'Wants changes first', 'No answer'], hint: 'Saved to Mira Skincare’s activity.' }],
+      fields: [{ key: 'note', label: 'Note for the record', ph: 'What she said, in her words', type: 'area', wide: true }],
+      primary: 'Save the call', secondary: 'Not now', primaryDis: function (ctx) { return ctx.form.out ? '' : 'Pick how the call went to save it.'; },
+      onPrimary: function (ctx) { onDone(ctx.form.out, (ctx.form.note || '').trim()); } }));
+  }
+  routeOutcome(out) {
+    if (out === 'No answer') { this.logFeed('BA', '#000065', 'Babatope', 'called Adaeze, no answer', 'Brand identity'); this.clearId('route', 'snooze', 'Tomorrow, 09:00', 'No answer logged. This card comes back tomorrow at 09:00.'); return; }
+    if (out === 'Wants changes first') { this.setState({ routeAsk: true }); this.logFeed('BA', '#000065', 'Babatope', 'called Adaeze: she wants changes first', 'Brand identity'); this.clearId('route', 'done', '', 'Saved. Ifeanyi has a task to revise route B, and this is review 2 of 2.', { final: true }); return; }
+    var r = out === 'Chose route A' ? 'A' : 'B';
+    this.setState({ route: r }); this.logFeed('AO', '#1f4d3a', 'Adaeze', 'chose route ' + r + ' on a call', 'Brand identity');
+    this.clearId('route', 'done', '', 'Route ' + r + ' recorded from the call. Adaeze confirms it in her portal, then Ifeanyi starts the final files.', { final: true });
+  }
+  recordDeposit() {
+    var self = this, I = this.icons();
+    this.open(this.sh({ eyebrow: 'INV-26-9QX4LM · Social media deposit', title: 'Record a payment', icon: I.cash, iconTone: 'var(--ad-tone-good)', deckId: 'deposit',
+      rows: [{ k: 'Owed', v: '₦450,000' }, { k: 'Due', v: 'Wed 14 Oct' }],
+      form: { amt: '450000', how: '', when: this.today ? this.today() : '' },
+      fields: [{ key: 'amt', label: 'Amount received (₦)', mode: 'numeric', check: function (v) { var n = +String(v).replace(/[^\d]/g, ''); if (!n) return 'Enter the amount that arrived.'; if (n > 450000) return 'More than is owed. The extra is held as their balance.'; return ''; } }, { key: 'when', label: 'Date received', type: 'date' }],
+      chipSets: [{ key: 'how', label: 'How they paid', opts: ['Bank transfer', 'Paystack', 'Flutterwave'] }],
+      note: 'A receipt goes to Adaeze and Kunle in accounts as soon as you save.',
+      primary: function (ctx) { var n = +String(ctx.form.amt || '').replace(/[^\d]/g, ''); return n && n < 450000 ? 'Save part payment' : 'Save payment'; }, secondary: 'Cancel',
+      primaryDis: function (ctx) { if (!ctx.form.how) return 'Pick how they paid.'; if (!+String(ctx.form.amt || '').replace(/[^\d]/g, '')) return 'Enter the amount received.'; return ''; },
+      onPrimary: function (ctx) { var n = +String(ctx.form.amt).replace(/[^\d]/g, ''); if (n < 450000) { self.logFeed('AO', '#1f4d3a', 'Adaeze', 'paid ₦' + n.toLocaleString('en-NG') + ' of the deposit', 'INV-26-9QX4LM', 'Money'); self.clearId('deposit', 'snooze', 'Wed 14 Oct, 09:00', 'Part payment saved. ₦' + (450000 - n).toLocaleString('en-NG') + ' is still owed; the card comes back on the due date.'); return; }
+        self.setState({ paidDep: true, paidHow: ctx.form.how, ra: self.state.ra + 1 }); self.logFeed('AO', '#1f4d3a', 'Adaeze', 'paid the social media deposit by ' + ctx.form.how.toLowerCase(), 'RCT-2026-031 · ₦450,000', 'Money');
+        self.clearId('deposit', 'done', '', 'Payment saved. INV-26-9QX4LM is paid and receipt RCT-2026-031 has gone to Adaeze.', { final: true }); } }));
+  }
+  askAccess() {
+    var self = this, I = this.icons();
+    this.open(this.sh({ eyebrow: 'Social media · setup', title: 'Ask Bola for Instagram access', icon: I.key, deckId: 'access',
+      rows: [{ k: 'To', v: 'Bola T. · bola@miraskincare.ng' }, { k: 'Copy', v: 'Adaeze O.' }, { k: 'Attached', v: 'Instagram access guide.pdf' }],
+      compose: true, composeLabel: 'Message', vis: 'client', required: true,
+      draft: 'Hi Bola, to start on 1 November we need partner access to the Mira Instagram account and the Facebook page through Meta Business Suite. The guide attached takes about five minutes. We never ask for the password. Chiamaka',
+      checksTitle: 'What we ask for', checks: [{ t: 'Instagram, partner access', s: 'Posts, stories and insights', on: true }, { t: 'Facebook page, editor', s: 'Needed for scheduling', on: true }, { t: 'Ad account, analyst', s: 'Only if ads are added later' }],
+      primary: 'Send request', secondary: 'Cancel',
+      onPrimary: function () { self.setState({ accessAsked: true }); self.logFeed('CA', '#b84a00', 'Chiamaka', 'asked Bola for Instagram access', 'Social media'); self.clearId('access', 'snooze', 'Tue 13 Oct, 09:00', 'Sent to Bola with the guide. If access has not arrived by Tuesday, this card comes back.'); } }));
+  }
+  deck() {
+    var self = this, I = this.icons();
+    return [
+      { id: 'route', kind: 'Approval', urgency: 'Late · 9 days', utone: '#c62828', label: 'Brand identity', dept: 'Branding & Design', title: 'Adaeze has not chosen a logo route', body: 'Round 2 went to her on Thu 1 Oct. She asked about the green in route B this morning but has not chosen.', meta: [{ k: 'Round', v: '2 of 2' }, { k: 'Reminders', v: '2 sent' }, { k: 'Final files', v: 'Sat 17 Oct' }], why: 'We never choose for a client. Two reminders have gone, so a short call is next. A reply by Tuesday still keeps Sat 17 Oct.',
+        primaryLabel: 'Call Adaeze', primaryFn: function () { self.callAdaeze(function (out) { self.routeOutcome(out); }); },
+        secondaryLabel: 'Move the final date', secondaryFn: function () { self.open(self.sh({ eyebrow: 'Brand identity', title: 'Move the final files date', icon: I.cal, deckId: 'route', body: 'Adaeze and Ifeanyi are told. The balance invoice moves with the final files.', listTitle: 'New date', select: true, list: [{ t: 'Tue 20 Oct', s: 'If she chooses by Wednesday' }, { t: 'Fri 23 Oct', s: 'Room for one more change' }, { t: 'Fri 30 Oct', s: 'After the social media start is planned' }], primary: function (ctx) { return ctx.pick >= 0 ? 'Move to ' + ctx.item.t : 'Move the date'; }, secondary: 'Cancel', onPrimary: function (ctx) { var d = ctx.item.t; self.setState({ finalDate: d }); self.logFeed('BA', '#000065', 'Babatope', 'moved the final files to ' + d, 'Brand identity'); self.clearId('route', 'snooze', 'Wed 14 Oct, 09:00', 'Final files moved to ' + d + '. The card comes back on Wednesday if she still has not chosen.'); } })); },
+        sheet: this.sh({ eyebrow: 'Brand identity · round 2', title: 'Waiting on Adaeze', chip: 'Late', tone: 'var(--ad-tone-bad)', icon: I.clock, iconTone: 'var(--ad-tone-bad)', rows: [{ k: 'Sent', v: 'Thu 1 Oct · Ifeanyi' }, { k: 'Opened', v: '4 times, last today 10:12' }, { k: 'Reminders', v: 'Mon 5 Oct, Thu 8 Oct' }], feed: [{ t: 'Adaeze asked about the green in route B', when: 'Today 10:12' }, { t: 'Second reminder sent', when: 'Thu 8 Oct' }, { t: 'First reminder sent', when: 'Mon 5 Oct' }, { t: 'Round 2 sent', when: 'Thu 1 Oct' }], primary: 'Open the project', onPrimary: function () { window.location.href = 'A-Project.dc.html?p=mira-br'; } }) },
+      { id: 'deposit', kind: 'Payment', urgency: 'Due Wed 14 Oct', utone: '#a16207', label: 'INV-26-9QX4LM', dept: 'Finance', title: 'The social media deposit is not in yet', body: 'Social media starts on 1 November once the ₦450,000 deposit arrives. Adaeze opened the invoice on Friday.', meta: [{ k: 'Amount', v: '₦450,000' }, { k: 'Opened', v: 'Fri 9 Oct' }, { k: 'Reminders', v: 'None yet' }], why: 'A reminder two days before the date is the one most clients act on. If she has paid by transfer, record it here.',
+        primaryLabel: 'Send a reminder', primaryFn: function (at) { var it = self.deck()[1]; self.clear(it, 'done', '', '', { at: at, delayed: { pending: function (n) { return 'Sending the reminder to Adaeze in ' + n + 's'; }, done: 'Reminder sent to Adaeze with the Paystack and Flutterwave link. It is in the invoice history.' }, extra: { reminded: true }, undoPatch: { reminded: false } }); },
+        secondaryLabel: 'Record a payment', secondaryFn: function () { self.recordDeposit(); },
+        sheet: this.docSheet(this.docs().inv[0]) },
+      { id: 'access', kind: 'Blocker', urgency: '3 days', utone: '#5c5c7a', label: 'Social media', dept: 'Social & Ads', title: 'Instagram access is still missing', body: 'Chiamaka asked on Wed 7 Oct. Bola, the marketing lead, holds the account and has not replied.', meta: [{ k: 'Needed by', v: 'Mon 26 Oct' }, { k: 'Holds it', v: 'Bola T.' }, { k: 'Lead', v: 'Chiamaka' }], why: 'November’s calendar is planned from their last 90 days of insights, so access is needed two weeks before the start.',
+        primaryLabel: 'Ask Bola directly', primaryFn: function () { self.askAccess(); },
+        secondaryLabel: 'Access received', secondaryFn: function () { self.ask({ eyebrow: 'Social media · setup', title: 'Mark Instagram access as received?', body: 'Chiamaka is told and the setup step ticks off. Check the account shows WDC Studio as a partner first.', ok: 'Mark as received', icon: I.key, tone: 'var(--ad-tone-good)', green: true, onOk: function () { self.setState({ access: true }); self.logFeed('CA', '#b84a00', 'Chiamaka', 'confirmed Instagram access', 'Social media'); self.clearId('access', 'done', '', 'Access recorded. Chiamaka can start planning November.', { final: true }); } }); },
+        sheet: this.sh({ eyebrow: 'Social media · setup', title: 'Instagram access', chip: 'Waiting', tone: 'var(--ad-tone-warn)', icon: I.key, rows: [{ k: 'Asked', v: 'Wed 7 Oct · Chiamaka' }, { k: 'Guide', v: 'Instagram access guide.pdf' }, { k: 'Holds it', v: 'Bola T., marketing lead' }], primary: 'Open the project', onPrimary: function () { window.location.href = 'A-Project.dc.html?p=mira-so'; } }) },
+      { id: 'invite', kind: 'Portal', urgency: '8 days', utone: '#5c5c7a', label: 'People', dept: 'Social & Ads', title: 'Bola has not accepted her portal invite', body: 'She approves the social posts, so she needs the portal before the first batch goes out in late October.', meta: [{ k: 'Invited', v: 'Fri 2 Oct' }, { k: 'Email', v: 'bola@miraskincare.ng' }, { k: 'Link', v: 'Expired' }], why: 'The first link has expired. A fresh one works for 7 days.',
+        primaryLabel: 'Send a fresh invite', primaryFn: function (at) { var it = self.deck()[3]; self.clear(it, 'done', '', '', { at: at, delayed: { pending: function (n) { return 'Sending a fresh invite to Bola in ' + n + 's'; }, done: 'Invite sent to bola@miraskincare.ng. It works for 7 days.' }, extra: { inviteSent: true }, undoPatch: { inviteSent: false } }); },
+        secondaryLabel: 'Copy the link', secondaryFn: function () { self.say('Invite link copied. It works for 7 days. Send it on WhatsApp if email is slow.'); },
+        sheet: this.personSheet(this.peopleData()[1]) },
+      { id: 'agenda', kind: 'Meeting', urgency: 'Wed 15:30', utone: '#5c5c7a', label: 'Logo review', dept: 'Branding & Design', title: 'Send the agenda for the logo review', body: 'Review 1 of 2 with Adaeze and Ifeanyi on Google Meet. The agenda is drafted from the round 2 file.', meta: [{ k: 'When', v: 'Wed 14 Oct, 15:30' }, { k: 'Length', v: '30 min' }, { k: 'Leads', v: 'Ifeanyi' }], why: 'Clients who see the agenda a day early come with a decision instead of first thoughts.',
+        primaryLabel: 'Send the agenda', primaryFn: function (at) { var it = self.deck()[4]; self.clear(it, 'done', '', '', { at: at, delayed: { pending: function (n) { return 'Sending the agenda to Adaeze in ' + n + 's'; }, done: 'Agenda sent to Adaeze and Ifeanyi with the Meet link.' }, extra: { agendaSent: true }, undoPatch: { agendaSent: false } }); },
+        secondaryLabel: 'See the agenda', sheetSecondary: true,
+        sheet: this.sh({ eyebrow: 'Logo review · Wed 14 Oct, 15:30', title: 'Agenda', icon: I.cal, checksTitle: 'What we cover', checks: [{ t: 'Walk through both routes', s: 'Ifeanyi, 10 min' }, { t: 'Adaeze chooses a route or lists changes', s: '10 min' }, { t: 'Agree the final files and brand guide date', s: '5 min' }, { t: 'Confirm the balance invoice timing', s: 'Babatope, 5 min' }], note: 'The Google Meet link and this agenda go to Adaeze 1 hour before unless you send it now.', primary: 'Close' }) }
+    ];
+  }
+  messageAdaeze() { var self = this, I = this.icons(); this.open(this.sh({ eyebrow: 'Message', title: 'Message Adaeze', icon: I.msg, compose: true, composeLabel: 'Message', composePh: 'Write to Adaeze', vis: 'client', required: true, primary: 'Send', onPrimary: function (ctx) { self.logFeed('BA', '#000065', 'Babatope', ctx.vis === 'client' ? 'messaged Adaeze' : 'added a team note', ctx.draft.slice(0, 60), 'Message'); self.say(ctx.vis === 'client' ? 'Sent to Adaeze. She gets an email and a portal notice.' : 'Saved as a team note on Mira Skincare.'); } })); }
+  notesList() { return this.state.notes || [{ t: 'Prefers WhatsApp for quick questions. Approvals and invoices go through the portal so there is a record.', who: 'Babatope', when: '18 Sep' }, { t: 'Kunle in accounts pays by transfer on Fridays. Send invoices by Thursday.', who: 'Funmi', when: '30 Sep' }]; }
   renderVals() {
     var s = this.state, self = this, p = s.p, I = this.icons(), S = this.sh.bind(this), L = this.socialLogos();
-    var tabs = [['overview', 'Overview'], ['money', 'Money', 5], ['files', 'Files', 10], ['people', 'People', this.peopleData().length], ['activity', 'Activity']];
+    var tabs = [['overview', 'Overview'], ['money', 'Money', this.docs().inv.length + this.docs().est.length + this.docs().rct.length], ['files', 'Files', 10], ['people', 'People', this.peopleNow().length], ['activity', 'Activity']];
     var ptabs = tabs.map(function (t) { var on = s.ptab === t[0]; return { label: t[1], n: t[2] || 0, hasN: !!t[2], cls: on ? 'on' : '', sel: on ? 'true' : 'false', pick: function () { if (!on) self.setState({ ptab: t[0], ta: self.state.ta + 1 }); } }; });
     var trk = function (labels, cur) { return labels.map(function (l, i) { return { l: l, n: i + 1, cls: i < cur ? 'done' : (i === cur ? 'cur' : 'todo'), isDone: i < cur, notDone: i >= cur, delay: (0.3 + i * 0.08) + 's' }; }); };
+    var blk = [s.paidDep ? '' : 'the deposit', s.access ? '' : 'Instagram access'].filter(Boolean);
     var IN = { i: 'IN', c: '#000065' }, CA = { i: 'CA', c: '#b84a00' }, FK = { i: 'FK', c: '#15803d' };
     var projects = [
-      { name: 'Brand identity', status: 'With the client', tone: 'var(--ad-tone-warn)', meta: 'Branding & Design · ₦1,200,000 · due Sat 17 Oct', track: trk(['Discovery', 'Concepts', 'Review', 'Final files', 'Handover'], 2), team: [IN], next: 'Waiting 9 days for Adaeze to choose a route', open: function () { window.location.href = 'A-Project.dc.html?p=mira-br'; } },
-      { name: 'Social media management', status: 'Setup', tone: 'var(--ad-tone-live)', meta: 'Social & Ads · ₦300,000 a month · starts 1 Nov', track: trk(['Setup', 'Plan', 'Approve', 'Publish', 'Report'], 0), team: [CA, IN], next: 'Blocked on the deposit and Instagram access', open: function () { window.location.href = 'A-Project.dc.html?p=mira-so'; } }
+      { name: 'Brand identity', status: s.route ? 'In progress' : 'With the client', tone: s.route ? 'var(--ad-tone-brand)' : 'var(--ad-tone-warn)', meta: 'Branding & Design · ₦1,200,000 · due ' + (s.finalDate || 'Sat 17 Oct'), track: trk(['Discovery', 'Concepts', 'Review', 'Final files', 'Handover'], s.route ? 3 : 2), team: [IN], next: s.route ? 'Route ' + s.route + ' chosen · Ifeanyi prepares the final files' : (s.routeAsk ? 'Adaeze wants changes · Ifeanyi revises for review 2 of 2' : 'Waiting 9 days for Adaeze to choose a route'), open: function () { window.location.href = 'A-Project.dc.html?p=mira-br'; } },
+      { name: 'Social media management', status: blk.length ? 'Setup' : 'Planning', tone: blk.length ? 'var(--ad-tone-live)' : 'var(--ad-tone-brand)', meta: 'Social & Ads · ₦300,000 a month · starts 1 Nov', track: trk(['Setup', 'Plan', 'Approve', 'Publish', 'Report'], blk.length ? 0 : 1), team: [CA, IN], next: blk.length ? 'Blocked on ' + blk.join(' and ') : 'Ready for 1 Nov · Chiamaka is planning November', open: function () { window.location.href = 'A-Project.dc.html?p=mira-so'; } }
     ].map(function (pj) { var c = pj.track.filter(function (x) { return x.cls === 'cur'; })[0]; return Object.assign({}, pj, { stepAria: pj.name + ': stage ' + c.n + ' of ' + pj.track.length + ', ' + c.l }); });
-    var A = this.activity();
+    var A = s.feedAdd.map(function (a) { return Object.assign({}, a, { ktone: a.kind === 'Money' ? 'var(--ad-tone-good)' : (a.kind === 'Message' ? 'var(--ad-tone-brand)' : 'var(--ad-tone-neutral)') }); }).concat(this.activity());
     var actOpen = function (a) { return function () { self.open(S({ eyebrow: a.kind, title: a.who + ' ' + a.what, icon: a.kind === 'Money' ? I.cash : (a.kind === 'Message' ? I.msg : I.layers), iconTone: a.ktone, rows: [{ k: 'Where', v: a.where }, { k: 'When', v: a.when }], primary: 'Close' })); }; };
     var recent = A.slice(0, 4).map(function (a, i) { return Object.assign({}, a, { dotCls: i === 0 ? 'now' : '', open: actOpen(a) }); });
 
@@ -3837,7 +4092,7 @@ class Component extends DCLogic {
     var ftabs = [['all', 'All'], ['brand', 'Brand identity'], ['social', 'Social media'], ['billing', 'Billing']].map(function (t) { var on = s.ftab === t[0]; return { label: t[1], n: F.filter(function (f) { return (t[0] === 'all' || f.cat === t[0]) && (!fq || f.name.toLowerCase().indexOf(fq) >= 0); }).length, cls: on ? 'on' : '', sel: on ? 'true' : 'false', pick: function () { if (!on) self.setState({ ftab: t[0], fpage: 0, fa: self.state.fa + 1 }); } }; });
     var FP = Object.assign(this.pager('files', fl.length, s.fper, fp, function (k) { self.setState({ fpage: k, fa: self.state.fa + 1 }); }, function (n) { self.setState({ fper: n, fpage: 0 }); }), { all: function () { self.setState({ fper: 20, fpage: 0 }); } });
 
-    var PP = this.peopleData();
+    var PP = this.peopleNow();
     var people = PP.map(function (pp) { var open = function () { self.open(self.personSheet(pp)); }; return Object.assign({}, pp, { anim: self.anim(s.ra), aria: pp.name + ', ' + pp.role + '. Press Enter to open.', menuAria: 'Actions for ' + pp.name, open: function (e) { if (e && e.target && e.target.closest && e.target.closest('[data-menu]')) return; open(); }, key: function (e) { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); open(); } }, menuX: self.popOn('person', pp.id), menu: function (e) { if (e && e.stopPropagation) e.stopPropagation(); self.openPop(e, 'person', pp.id, 240, 220, 'Actions for ' + pp.name); } }); });
 
     var afs = [['all', 'All'], ['Money', 'Money'], ['Work', 'Work']], aI = 0; afs.forEach(function (a, i) { if (a[0] === s.afil) aI = i; });
@@ -3847,16 +4102,26 @@ class Component extends DCLogic {
     var AP = Object.assign(this.pager('acts', al.length, s.aper, ap, function (k) { self.setState({ apage: k, aa: self.state.aa + 1 }); }, function (n) { self.setState({ aper: n, apage: 0 }); }), { all: function () { self.setState({ aper: 20, apage: 0, aa: self.state.aa + 1 }); } });
 
     var slots = [['14', 'Wed 14 Oct, 15:30', 'In 4 days'], ['15', 'Thu 15 Oct, 11:00', 'In 5 days'], ['16', 'Fri 16 Oct, 14:00', 'In 6 days']], sl = slots[s.slot];
-    var invoiced = 1050000, paid = 600000, pct = Math.round(paid / invoiced * 100);
-    return Object.assign(this.kit(), this.extraVals(), {
-      headLine: 'Adaeze O. · adaeze@miraskincare.ng · client since Sep 2026 · signed in Tuesday',
+    var dk = this.deck(), dv = this.deckView(dk), queue = dk.filter(function (d) { return !s.gone[d.id] && !s.snoozed[d.id]; }), NL = this.notesList();
+    var BILL = [['Two parts', '₦450,000 before the start, ₦450,000 on 1 Dec'], ['Monthly', '₦300,000 on the 1st of each month'], ['Whole term up front', '₦900,000 once, before the start']], bill = BILL.filter(function (b) { return b[0] === s.billing; })[0];
+    var invoiced = 1050000, paid = 600000 + (s.paidDep ? 450000 : 0), pct = Math.round(paid / invoiced * 100);
+    return Object.assign(this.kit(), this.extraVals(), dv, {
+      headLine: 'Adaeze O. · client since Sep 2026 · ', headStress: queue.length ? queue.length + (queue.length === 1 ? ' thing needs you' : ' things need you') : 'nothing needs you today',
+      deckTitle: 'Mira needs', deckKeys: 'Focus the card: D done, S snooze', snoozeLabel: 'Snooze', snoozeShort: 'Snooze', canPass: true,
+      emptyTitle: 'Nothing for Mira needs you.', emptyBody: 'Every reply, payment and login is in hand. Next:', emptyNext: 'logo review, ' + sl[1] + '.', emptyPrimaryLabel: 'Message Adaeze', emptySecondaryLabel: 'Bring the cards back', emptyPrimary: function () { self.messageAdaeze(); },
+      planTerm: '1 Nov 2026 to 31 Jan 2027', planBill: bill[0], planBillSub: bill[1], planNext: s.billing === 'Monthly' ? 'Draft on Today, 1 Dec · ₦300,000' : (s.billing === 'Two parts' ? 'Draft on Today, 1 Dec · ₦450,000' : 'Nothing more after the first invoice'),
+      planIncl: [{ t: '12 posts', s: 'a month' }, { t: '4 reels', s: 'a month' }, { t: '1 report', s: 'on the 1st' }],
+      changeBilling: function () { self.open(S({ eyebrow: 'Social media · EST-2026-011', title: 'How Mira pays for social media', icon: I.wallet, body: 'Billing is set per client. A draft invoice appears on Today when each part falls due; nothing is emailed until you press Send.', listTitle: 'Billing', select: true, pick: BILL.map(function (b) { return b[0]; }).indexOf(s.billing), list: BILL.map(function (b) { return { t: b[0], s: b[1] }; }), note: 'INV-26-9QX4LM already went out for ₦450,000. A change only affects invoices not yet sent.', primary: function (ctx) { return ctx.pick >= 0 && BILL[ctx.pick][0] !== self.state.billing ? 'Change to ' + BILL[ctx.pick][0].toLowerCase() : 'Keep this billing'; }, secondary: 'Cancel', onPrimary: function (ctx) { var nb = BILL[ctx.pick][0], prev = self.state.billing; if (nb === prev) return; self.setState({ billing: nb }); self.say('Updated. Social media is billed ' + nb.toLowerCase() + ' from the next invoice.', { undo: function () { self.setState({ billing: prev }); } }); } })); },
+      openPlan: function () { window.location.href = 'A-Project.dc.html?p=mira-so'; },
+      notes: NL.slice(0, 2), notesN: NL.length, addNote: function () { self.open(S({ eyebrow: 'Mira Skincare', title: 'Add a team note', icon: I.edit, compose: true, composeLabel: 'Note', composePh: 'Something the team should know about Mira', required: true, requiredWhy: 'Write the note to save it.', note: 'Team notes never reach the client.', primary: 'Save note', secondary: 'Cancel', onPrimary: function (ctx) { self.setState({ notes: [{ t: ctx.draft, who: 'Babatope', when: 'Just now' }].concat(self.notesList()) }); self.say('Saved. Everyone on Mira’s projects sees it.'); } })); },
+      allNotes: function () { self.open(S({ eyebrow: 'Mira Skincare', title: 'Team notes', chip: NL.length + ' notes', icon: I.edit, listTitle: 'Newest first', list: self.notesList().map(function (n) { return { t: n.t, s: n.who + ' · ' + n.when }; }), primary: 'Add a note', secondary: 'Close', onPrimary: function () { setTimeout(function () { self.open(S({ eyebrow: 'Mira Skincare', title: 'Add a team note', icon: I.edit, compose: true, composeLabel: 'Note', required: true, primary: 'Save note', onPrimary: function (ctx) { self.setState({ notes: [{ t: ctx.draft, who: 'Babatope', when: 'Just now' }].concat(self.notesList()) }); self.say('Saved. Everyone on Mira’s projects sees it.'); } })); }, 30); } })); },
       ptabs: ptabs, tabAnim: s.ta % 2 ? 'kidIn' : 'kidIn2',
       isOverview: s.ptab === 'overview', isMoney: s.ptab === 'money', isFiles: s.ptab === 'files', isPeople: s.ptab === 'people', isActivity: s.ptab === 'activity',
       projects: projects, recent: recent,
       toActivity: function () { self.setState({ ptab: 'activity', ta: self.state.ta + 1 }); }, toMoney: function () { self.setState({ ptab: 'money', ta: self.state.ta + 1 }); }, toPeople: function () { self.setState({ ptab: 'people', ta: self.state.ta + 1 }); },
       newProject: function () { window.location.href = 'A-Projects.dc.html'; },
-      billAria: pct + '% of invoices paid', paidPct: Math.round(pct * p), ringOff: (100 - pct * p).toFixed(1), paidShort: self.short(paid * p), invoicedTxt: self.ngn(invoiced), hasDue: !s.reminded, noDue: false,
-      remind: function () { self.sendReminder(); },
+      billAria: pct + '% of invoices paid', paidPct: Math.round(pct * p), ringOff: (100 - pct * p).toFixed(1), paidShort: self.short(paid * p), invoicedTxt: self.ngn(invoiced), hasDue: !s.paidDep, noDue: !!s.paidDep, remindLabel: s.reminded ? 'Reminded' : 'Remind', remindNote: s.reminded ? 'Reminder sent today · INV-26-9QX4LM' : 'Social media deposit · INV-26-9QX4LM',
+      remind: function () { if (self.state.reminded) { self.say('A reminder already went today. The next one is offered on the due date.'); return; } self.sendReminder(); },
       meetDay: sl[0], meetTime: sl[1], meetIn: sl[2],
       agenda: function () { self.open(S({ eyebrow: 'Logo review · ' + sl[1], title: 'Agenda', icon: I.cal, checksTitle: 'What we cover', checks: [{ t: 'Walk through both routes', s: 'Ifeanyi, 10 min' }, { t: 'Adaeze picks a route or lists changes', s: '10 min' }, { t: 'Agree the final files and brand guide date', s: '5 min' }, { t: 'Confirm the balance invoice timing', s: 'Babatope, 5 min' }], note: 'The Google Meet link and this agenda go to Adaeze 1 hour before.', primary: 'Close' })); },
       moveMeeting: function () { self.open(S({ eyebrow: 'Logo review', title: 'Move the meeting', icon: I.cal, body: 'Adaeze gets the new time by email and in her portal. It stays review 1 of 2.', listTitle: 'Times that suit Ifeanyi and you', select: true, pick: s.slot, list: slots.map(function (x, i) { return { t: x[1], s: i === s.slot ? 'Current time' : '30 min · Google Meet' }; }), primary: function (ctx) { return ctx.pick === self.state.slot ? 'Keep this time' : 'Move to ' + slots[ctx.pick][1]; }, onPrimary: function (ctx) { if (ctx.pick === self.state.slot) return; var prev = self.state.slot; self.setState({ slot: ctx.pick }); self.say('Moved to ' + slots[ctx.pick][1] + '. Adaeze has been told.', { undo: function () { self.setState({ slot: prev }); } }); } })); },
@@ -3866,7 +4131,7 @@ class Component extends DCLogic {
       upload: function () { self.open(S({ eyebrow: 'Upload to Mira Skincare', title: 'Add files', icon: I.upload, body: 'Up to 50 MB a file. Choose who sees them before they land.', chipSets: [{ key: 'proj', label: 'Project', opts: ['Brand identity', 'Social media', 'Billing'] }], form: { proj: 'Brand identity', who: 'Team only' }, compose: false, list: [], fields: [], checks: [], note: '', primary: 'Choose files', secondary: 'Cancel', onPrimary: function (ctx) { self.say('The file picker opens here. Files go to ' + ctx.form.proj + '.'); } })); },
       people: people, addPerson: function () { self.open(S({ eyebrow: 'Mira Skincare', title: 'Add a person', icon: I.users, fields: [{ key: 'name', label: 'Full name' }, { key: 'role', label: 'Role', ph: 'For example: Operations' }, { key: 'email', label: 'Email', type: 'email', mode: 'email', wide: true, check: function (v) { v = v.trim(); if (!v) return ''; if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) return 'Check the email address.'; return ''; } }], chipSets: [{ key: 'gets', label: 'They get', multi: true, opts: ['Approvals', 'Invoices and receipts', 'Meeting invites', 'Portal access'] }], primary: 'Add person', secondary: 'Cancel', primaryDis: function (ctx) { var f = ctx.form; return (f.name || '').trim() && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test((f.email || '').trim()) ? '' : 'Add a name and a valid email.'; }, onPrimary: function (ctx) { var f = ctx.form, gets = f.gets || [], portal = gets.indexOf('Portal access') >= 0; self.setPeople(self.peopleData().concat([{ id: 'p' + Date.now(), name: f.name.trim(), i: f.name.trim().split(/\s+/).map(function (w) { return w.charAt(0); }).join('').slice(0, 2).toUpperCase(), tone: '#23239b', email: f.email.trim(), role: (f.role || 'Team member').trim(), gets: gets.filter(function (g) { return g !== 'Portal access'; }).join(', ') || 'Nothing yet', portal: portal ? 'Invited today' : 'No portal access', ptone: portal ? 'var(--ad-tone-warn)' : 'var(--ad-tone-neutral)', short: portal ? 'Invited' : 'Email only' }])); self.say(portal ? 'Added. ' + f.email.trim() + ' gets a portal invite.' : 'Added. They get email only.'); } })); },
       actI: aI, actFilters: afs.map(function (a) { var on = s.afil === a[0]; return { t: a[1], cls: on ? 'on' : '', pressed: on ? 'true' : 'false', pick: function () { self.setState({ afil: a[0], apage: 0, aa: self.state.aa + 1 }); } }; }), acts: acts, AP: AP,
-      messageMain: function () { self.open(S({ eyebrow: 'Message', title: 'Message Adaeze', icon: I.msg, compose: true, composeLabel: 'Message', composePh: 'Write to Adaeze', vis: 'client', required: true, primary: 'Send', onPrimary: function (ctx) { self.say(ctx.vis === 'client' ? 'Sent to Adaeze. She gets an email and a portal notice.' : 'Saved as a team note on Mira Skincare.'); } })); },
+      messageMain: function () { self.messageAdaeze(); },
       openChores: function (e) { self.openPop(e, 'chores', 'chores', 240, 230, 'More for Mira Skincare'); }
     });
   }
