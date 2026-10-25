@@ -9,6 +9,7 @@
       { target: 'tabs', title: 'Everything about Mira in one place', icon: I.layers, body: 'Overview, money, files, people and the full history. Each tab keeps its own search and pages.' },
       { target: 'projects', title: 'Their projects', icon: I.folder, body: 'Each project shows its stage and the next step. Tap one to open it.' },
       { target: 'rail', title: 'Money, meetings, people', icon: I.wallet, body: 'What they have paid, what is due, the next meeting and who to talk to.' },
+      { target: 'info', title: 'Contact details live here', icon: I.users, body: 'Email, phone, client since, portal access, services and tags, one tap away so the head stays calm.' },
       { target: 'msg', title: 'Talk to Adaeze', icon: I.msg, body: 'Messages go to her portal and her email. Mark a note Team only to keep it inside the studio.' }
     ];
   }
@@ -211,7 +212,8 @@
     var BILL = [['Two parts', '₦450,000 before the start, ₦450,000 on 1 Dec'], ['Monthly', '₦300,000 on the 1st of each month'], ['Whole term up front', '₦900,000 once, before the start']], bill = BILL.filter(function (b) { return b[0] === s.billing; })[0];
     var invoiced = 1050000, paid = 600000 + (s.paidDep ? 450000 : 0), pct = Math.round(paid / invoiced * 100);
     return Object.assign(this.kit(), this.extraVals(), dv, {
-      headLine: 'Adaeze O. · client since Sep 2026 · ', headStress: queue.length ? queue.length + (queue.length === 1 ? ' thing needs you' : ' things need you') : 'nothing needs you today',
+      hasOverdue: false,
+      openInfo: function () { var P2 = self.peopleNow(); self.open(S({ eyebrow: 'Client details', title: 'Mira Skincare', icon: I.users, iconTone: '#1f4d3a', attrs: [{ ic: I.users, k: 'Main contact', v: 'Adaeze O., founder' }, { ic: I.mail, k: 'Email', v: 'adaeze@miraskincare.ng' }, { ic: I.phone, k: 'Phone', v: '+234 802 114 3390' }, { ic: I.clock, k: 'Client since', v: 'Sep 2026, from the contact form' }, { ic: I.key, k: 'Portal', v: P2.filter(function (x) { return x.short === 'Active'; }).length + ' signed in, ' + P2.filter(function (x) { return x.short === 'Invited'; }).length + ' invited · Adaeze last signed in Tuesday' }, { ic: I.layers, k: 'Services', chips: [{ t: 'Branding & Design', tone: 'var(--ad-tone-flat)', ink: 'var(--ad-on-flat)' }, { t: 'Social & Ads', tone: 'var(--ad-tone-flat)', ink: 'var(--ad-on-flat)' }] }, { ic: I.star, k: 'Tags', chips: [{ t: 'Skincare', tone: 'var(--ad-tone-flat)', ink: 'var(--ad-on-flat)' }, { t: 'Retainer', tone: 'var(--ad-tone-flat)', ink: 'var(--ad-on-flat)' }] }, { ic: I.file, k: 'Registered', v: 'Business name number (BN) 3418820' }], primary: 'Edit details', secondary: 'Close', onPrimary: function () { setTimeout(function () { self.editDetails(); }, 30); } })); },
       deckTitle: 'Mira needs', deckKeys: 'Focus the card: D done, S snooze', snoozeLabel: 'Snooze', snoozeShort: 'Snooze', canPass: true,
       emptyTitle: 'Nothing for Mira needs you.', emptyBody: 'Every reply, payment and login is in hand. Next:', emptyNext: 'logo review, ' + sl[1] + '.', emptyPrimaryLabel: 'Message Adaeze', emptySecondaryLabel: 'Bring the cards back', emptyPrimary: function () { self.messageAdaeze(); },
       planTerm: '1 Nov 2026 to 31 Jan 2027', planBill: bill[0], planBillSub: bill[1], planNext: s.billing === 'Monthly' ? 'Draft on Today, 1 Dec · ₦300,000' : (s.billing === 'Two parts' ? 'Draft on Today, 1 Dec · ₦450,000' : 'Nothing more after the first invoice'),

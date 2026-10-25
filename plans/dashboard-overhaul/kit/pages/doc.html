@@ -1,12 +1,12 @@
-<div class="pageHead rise">
-              <div>
-                <a href="A-Money.dc.html" class="lnk" style="display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-weight: 600"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m15 6-6 6 6 6"></path></svg>Back to Money</a>
-                <h1 class="h1">{{pageTitle}} <span class="tag" style="vertical-align: middle; background: {{chipTone}}; color: {{chipInk}}; font-size: 13px">{{chip}}</span></h1>
-                <p class="lede">{{lede}} <strong style="color: var(--ad-ink)">{{ledeB}}</strong></p>
+<div class="pageHead recHead rise">
+              <div class="recId">
+                <a href="A-Money.dc.html" class="lnk" style="display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-weight: 600; align-self: flex-start"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m15 6-6 6 6 6"></path></svg>Back to Money</a>
+                <h1 class="h1">{{pageTitle}}<sc-if value="{{chipExc}}" hint-placeholder-val="{{ false }}"> <span class="tag" style="vertical-align: middle; background: {{chipTone}}; color: {{chipInk}}; font-size: 13px">{{chip}}</span></sc-if></h1>
+                <p class="lede">{{lede}}<sc-if value="{{hasLedeB}}" hint-placeholder-val="{{ false }}"> <strong style="color: var(--ad-ink)">{{ledeB}}</strong></sc-if></p>
               </div>
-              <div class="headActs">
-                <sc-if value="{{isView}}" hint-placeholder-val="{{ true }}"><button class="btn2" style="min-height: 44px" onClick="{{act2}}">{{act2Label}}</button><button class="btn" onClick="{{act1}}" disabled="{{act1Dis}}">{{act1Label}}</button></sc-if>
-                <sc-if value="{{isEdit}}" hint-placeholder-val="{{ false }}"><button class="btn2" style="min-height: 44px" onClick="{{saveDraft}}">{{saveLabel}}</button><button class="btn" onClick="{{review}}">{{reviewLabel}}</button></sc-if>
+              <div class="headActs oneRow">
+                <sc-if value="{{isView}}" hint-placeholder-val="{{ true }}"><button class="ibtn" aria-label="Details for this document" onClick="{{openDocInfo}}" data-tour="info"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 16v-4M12 8h.01"></path></svg></button><button class="btn2" style="min-height: 44px" onClick="{{act2}}"><span class="lblL">{{act2Label}}</span><span class="lblS">{{act2Short}}</span></button><button class="btn" onClick="{{act1}}" disabled="{{act1Dis}}"><span class="lblL">{{act1Label}}</span><span class="lblS">{{act1Short}}</span></button></sc-if>
+                <sc-if value="{{isEdit}}" hint-placeholder-val="{{ false }}"><button class="btn2" style="min-height: 44px" onClick="{{saveDraft}}"><span class="lblL">{{saveLabel}}</span><span class="lblS">{{saveShort}}</span></button><button class="btn" onClick="{{review}}"><span class="lblL">{{reviewLabel}}</span><span class="lblS">{{reviewShort}}</span></button></sc-if>
                 <button class="ibtn" data-menu="chores" aria-label="More for this document" aria-haspopup="menu" aria-expanded="{{choresX}}" onClick="{{openChores}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg></button>
               </div>
             </div>

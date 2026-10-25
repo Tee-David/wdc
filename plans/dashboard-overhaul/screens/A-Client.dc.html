@@ -1610,6 +1610,36 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .svcBar.on .svcBarTrack span { background: #fff; }
 @keyframes barGrow { from { transform: scaleX(0); } }
 @media (prefers-reduced-motion: reduce) { .svcBarTrack span { animation: none; } }
+.avStack button.av{position:relative}.avStack button.av::after{content:"";position:absolute;inset:-5px;border-radius:50%}
+
+/* A record's head stays uncluttered (owner, 2026-10-25): actions on one row down to 320px, long labels get a short one below 420px */
+.pageHead .headActs.oneRow{flex-wrap:nowrap;flex:none}
+.lblS{display:none}
+@container app (max-width:420px){.lblL{display:none}.lblS{display:inline}}
+.pageHead.recHead .recId{min-width:0}
+@container app (max-width:640px){.pageHead.recHead{flex-direction:column;align-items:stretch;gap:12px}.pageHead.recHead>div{flex:none !important;min-height:0}.pageHead.recHead .recId{width:100%}.pageHead.recHead .recId .av0{width:44px !important;height:44px !important;border-radius:12px !important;font-size:14px !important}.pageHead.recHead .headActs{justify-content:flex-start}}
+.pageHead.recHead .headActs{margin-left:0}
+
+/* List rows of the shape checkbox, tile, text, tag, labelled button, ⋮ (Trash, audit log and every Settings list): on a phone the text keeps the width, the tag and button move to a second line under it (2026-10-25) */
+.lrActs{display:contents}
+@container app (max-width:640px){
+  .listRow{display:grid;grid-template-columns:auto 40px minmax(0,1fr) auto;grid-template-areas:"ck tile text text" ". . acts menu";align-items:center;column-gap:10px;row-gap:4px;padding:10px 4px}
+  .listRow > .lrMenu{justify-self:end}
+  .listRow:has(.lrMenu) .lrBtn{display:none}
+  .listRow:not(:has(.lrMenu)) > .lrActs{grid-column:3 / 5}
+  .listRow > .ckb{grid-area:ck}
+  .listRow > .lrTile{grid-area:tile;width:40px;height:40px}
+  .listRow > .lrText{grid-area:text}
+  .listRow > .lrMenu{grid-area:menu}
+  .listRow > .lrActs{grid-area:acts;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+  .listRow > .lrActs:empty{display:none}
+  .listRow .lrText strong{white-space:normal;overflow-wrap:break-word}
+  .saveBar{flex-wrap:wrap;padding:10px 10px 10px 14px;gap:8px}
+  .saveBar .sbText{flex:1 1 140px;font-size:14px}
+  .saveBar .sbBtns{display:flex;gap:8px;flex:none;margin-left:auto}
+}
+.saveBar .sbBtns{display:flex;gap:8px;flex:none}
+.saveBar .sbBtns span{flex:none;font-weight:inherit}
 
 </style>
 </helmet>
@@ -1701,16 +1731,17 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
           <sc-if value="{{svOn}}" hint-placeholder-val="{{ false }}"><div class="svBar" role="status"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path></svg><span style="flex: 1; min-width: 0"><strong>Support view: {{svName}}.</strong> Read-only. Changes, payments and downloads are off. Your owner account stays signed in. Ends at {{svEnds}}.</span><a class="btn2 svExit" href="A-Users.dc.html">Exit support view</a></div></sc-if>
           <main id="main" class="mainPad">
             <nav class="crumbs rise" aria-label="Breadcrumb"><a href="A-Clients.dc.html">Clients</a><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg><span aria-current="page">Mira Skincare</span></nav>
-            <div class="pageHead rise" style="align-items: center">
-              <div style="flex-direction: row; align-items: center; gap: 14px">
+            <div class="pageHead recHead rise" style="align-items: center">
+              <div class="recId" style="flex-direction: row; align-items: center; gap: 14px">
                 <span class="av0" style="width: 56px; height: 56px; border-radius: 16px; font-size: 17px; background: #1f4d3a; flex: none">MS</span>
                 <span style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
                   <h1 class="h1">Mira Skincare</h1>
-                  <span class="lede" style="font-size: 14px">{{headLine}}<strong>{{headStress}}</strong></span>
+                  <span class="lede" style="font-size: 14px">Adaeze O.<sc-if value="{{hasOverdue}}" hint-placeholder-val="{{ false }}"> <span class="tag" style="background: var(--ad-tone-bad); color: #fff; vertical-align: middle">Overdue</span></sc-if></span>
                 </span>
               </div>
-              <div class="headActs">
-                <button class="btn" onClick="{{messageMain}}" data-tour="msg"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></svg>Message Adaeze</button>
+              <div class="headActs oneRow">
+                <button class="ibtn" aria-label="Details for Mira Skincare" onClick="{{openInfo}}" data-tour="info"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 16v-4M12 8h.01"></path></svg></button>
+                <button class="btn" onClick="{{messageMain}}" data-tour="msg"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></svg><span class="lblL">Message Adaeze</span><span class="lblS">Message</span></button>
                 <button class="ibtn" data-menu="chores" aria-label="More for Mira Skincare" aria-haspopup="menu" onClick="{{openChores}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg></button>
               </div>
             </div>
@@ -3533,6 +3564,39 @@ class Component extends DCLogic {
   }
 
   helpCatsDefault() { return [{ id: 'c1', name: 'Getting started', desc: 'First steps for someone new to the portal.', visible: true }, { id: 'c2', name: 'Billing and payments', desc: 'Invoices, receipts, Paystack and Flutterwave.', visible: true }, { id: 'c3', name: 'Approvals and files', desc: 'Reviewing work, comments and the file library.', visible: true }, { id: 'c4', name: 'Your account', desc: 'People, notifications and settings.', visible: true }]; }
+  /* Change password without the old one, as the live app does (components/account/password-change.tsx): new password twice with a strength meter, then a 6-digit code sent by email. Same for admin, staff and client. */
+  pwStrength(v) {
+    v = v || ''; var has = [/[A-Z]/.test(v), /[a-z]/.test(v), /\d/.test(v), /[^A-Za-z0-9]/.test(v)], n = has.filter(Boolean).length;
+    var miss = ['a capital', 'a small letter', 'a number', 'a symbol'].filter(function (x, i) { return !has[i]; });
+    if (!v) return { bars: 0, word: '', next: '', ok: false };
+    if (v.length < 8) return { bars: 1, word: 'Too short', next: 'Use 8 or more characters', ok: false };
+    var bars = Math.min(4, n + (v.length >= 12 ? 1 : 0) - 1), breached = /^(password|123456|qwerty|letmein)/i.test(v);
+    if (breached) return { bars: 1, word: 'Found in a breach', next: 'Choose one nobody else has used', ok: false };
+    return { bars: Math.max(1, bars), word: ['Weak', 'Weak', 'Fair', 'Good', 'Strong'][Math.max(1, bars)], next: miss.length ? 'Add ' + miss.join(', ').replace(/, ([^,]*)$/, ' and $1') : '', ok: !miss.length };
+  }
+  pwChange(email, push) {
+    var self = this, I = this.icons(), key = I.key || 'M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.78 7.78 5.5 5.5 0 0 1 7.78-7.78zM15.5 7.5l3 3L22 7l-3-3';
+    var suggest = function () { var W = ['Linen', 'Harbour', 'Copper', 'Meadow', 'Signal', 'Orbit', 'Velvet', 'Cinder'], a = W[Math.floor(Math.random() * W.length)], b = W[Math.floor(Math.random() * W.length)]; return a + '-' + b.toLowerCase() + '-' + (10 + Math.floor(Math.random() * 89)) + '!'; };
+    var step1 = function (keep) {
+      self.open(self.sh({ eyebrow: 'Account', title: 'Change your password', icon: key, focus: 'f-next', form: keep || {}, body: 'You do not need the old one. We email you a code to confirm it is you.',
+        fields: function (st) { var f = st.form || {}, t = f['~show'] ? 'text' : 'password'; return [{ key: 'next', label: 'New password', type: t, wide: true }, { key: 'again', label: 'Confirm it', type: t, wide: true, check: function (v, ff) { return v && (ff || f).next && v !== (ff || f).next ? 'The two do not match.' : ''; } }]; },
+        notice: function (ctx) { var f = ctx.form, P = self.pwStrength(f.next); if (!f.next) return { tone: 'var(--ad-tone-neutral)', icon: key, title: 'What makes it strong', body: '8+ characters with a capital, a small letter, a number and a symbol.' }; return { tone: P.ok ? 'var(--ad-tone-good)' : (P.bars <= 1 ? 'var(--ad-tone-bad)' : 'var(--ad-tone-warn)'), icon: key, title: P.word + ' · ' + ['', '1 of 4', '2 of 4', '3 of 4', '4 of 4'][P.bars], body: P.next || 'Good to go.' }; },
+        quick: [{ t: 'Show or hide', fn: function () { var f = Object.assign({}, self.state.form); f['~show'] = !f['~show']; self.setState({ form: f }); } }, { t: 'Suggest one', fn: function () { var p = suggest(), f = Object.assign({}, self.state.form, { next: p, again: p, '~show': true }); self.setState({ form: f }); self.say('Suggested and shown. Save it in your password manager.'); } }],
+        primary: 'Send me a code', secondary: 'Cancel',
+        primaryDis: function (ctx) { var f = ctx.form, P = self.pwStrength(f.next); if (!f.next) return 'Type a new password.'; if (!P.ok) return P.word === 'Found in a breach' ? 'That password has appeared in a breach.' : 'Make it stronger first.'; if (f.next !== f.again) return 'The two passwords must match.'; return ''; },
+        onPrimary: function (ctx) { var f = Object.assign({}, ctx.form); setTimeout(function () { step2(f); }, 40); } }), push);
+    };
+    var step2 = function (f1) {
+      self.open(self.sh({ eyebrow: 'Account · step 2 of 2', title: 'Enter the code', icon: I.mail, focus: 'f-code', body: 'We sent a 6-digit code to ' + email + '. It works for 10 minutes.', form: { code: '' },
+        fields: [{ key: 'code', label: 'Code', mode: 'numeric', ph: '6 digits', check: function (v) { return v && !/^\d{0,6}$/.test(v) ? 'Numbers only.' : ''; } }],
+        quick: [{ t: 'Resend the code', fn: function () { self.say('A new code is on its way to ' + email + '. The old one stops working.'); } }],
+        primary: 'Change password', secondary: 'Back',
+        primaryDis: function (ctx) { return /^\d{6}$/.test(ctx.form.code || '') ? '' : 'Enter the 6 digits from the email.'; },
+        onSecondary: function () { setTimeout(function () { step1(f1); }, 40); },
+        onPrimary: function () { self.say('Updated. Your password is changed and every other session is signed out.'); } }));
+    };
+    step1();
+  }
 
   /* ======================= tools: real CSV and Excel files, import with a sample, bulk select, filters ======================= */
 
@@ -3982,6 +4046,7 @@ class Component extends DCLogic {
       { target: 'tabs', title: 'Everything about Mira in one place', icon: I.layers, body: 'Overview, money, files, people and the full history. Each tab keeps its own search and pages.' },
       { target: 'projects', title: 'Their projects', icon: I.folder, body: 'Each project shows its stage and the next step. Tap one to open it.' },
       { target: 'rail', title: 'Money, meetings, people', icon: I.wallet, body: 'What they have paid, what is due, the next meeting and who to talk to.' },
+      { target: 'info', title: 'Contact details live here', icon: I.users, body: 'Email, phone, client since, portal access, services and tags, one tap away so the head stays calm.' },
       { target: 'msg', title: 'Talk to Adaeze', icon: I.msg, body: 'Messages go to her portal and her email. Mark a note Team only to keep it inside the studio.' }
     ];
   }
@@ -4184,7 +4249,8 @@ class Component extends DCLogic {
     var BILL = [['Two parts', '₦450,000 before the start, ₦450,000 on 1 Dec'], ['Monthly', '₦300,000 on the 1st of each month'], ['Whole term up front', '₦900,000 once, before the start']], bill = BILL.filter(function (b) { return b[0] === s.billing; })[0];
     var invoiced = 1050000, paid = 600000 + (s.paidDep ? 450000 : 0), pct = Math.round(paid / invoiced * 100);
     return Object.assign(this.kit(), this.extraVals(), dv, {
-      headLine: 'Adaeze O. · client since Sep 2026 · ', headStress: queue.length ? queue.length + (queue.length === 1 ? ' thing needs you' : ' things need you') : 'nothing needs you today',
+      hasOverdue: false,
+      openInfo: function () { var P2 = self.peopleNow(); self.open(S({ eyebrow: 'Client details', title: 'Mira Skincare', icon: I.users, iconTone: '#1f4d3a', attrs: [{ ic: I.users, k: 'Main contact', v: 'Adaeze O., founder' }, { ic: I.mail, k: 'Email', v: 'adaeze@miraskincare.ng' }, { ic: I.phone, k: 'Phone', v: '+234 802 114 3390' }, { ic: I.clock, k: 'Client since', v: 'Sep 2026, from the contact form' }, { ic: I.key, k: 'Portal', v: P2.filter(function (x) { return x.short === 'Active'; }).length + ' signed in, ' + P2.filter(function (x) { return x.short === 'Invited'; }).length + ' invited · Adaeze last signed in Tuesday' }, { ic: I.layers, k: 'Services', chips: [{ t: 'Branding & Design', tone: 'var(--ad-tone-flat)', ink: 'var(--ad-on-flat)' }, { t: 'Social & Ads', tone: 'var(--ad-tone-flat)', ink: 'var(--ad-on-flat)' }] }, { ic: I.star, k: 'Tags', chips: [{ t: 'Skincare', tone: 'var(--ad-tone-flat)', ink: 'var(--ad-on-flat)' }, { t: 'Retainer', tone: 'var(--ad-tone-flat)', ink: 'var(--ad-on-flat)' }] }, { ic: I.file, k: 'Registered', v: 'Business name number (BN) 3418820' }], primary: 'Edit details', secondary: 'Close', onPrimary: function () { setTimeout(function () { self.editDetails(); }, 30); } })); },
       deckTitle: 'Mira needs', deckKeys: 'Focus the card: D done, S snooze', snoozeLabel: 'Snooze', snoozeShort: 'Snooze', canPass: true,
       emptyTitle: 'Nothing for Mira needs you.', emptyBody: 'Every reply, payment and login is in hand. Next:', emptyNext: 'logo review, ' + sl[1] + '.', emptyPrimaryLabel: 'Message Adaeze', emptySecondaryLabel: 'Bring the cards back', emptyPrimary: function () { self.messageAdaeze(); },
       planTerm: '1 Nov 2026 to 31 Jan 2027', planBill: bill[0], planBillSub: bill[1], planNext: s.billing === 'Monthly' ? 'Draft on Today, 1 Dec · ₦300,000' : (s.billing === 'Two parts' ? 'Draft on Today, 1 Dec · ₦450,000' : 'Nothing more after the first invoice'),

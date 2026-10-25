@@ -1610,6 +1610,36 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .svcBar.on .svcBarTrack span { background: #fff; }
 @keyframes barGrow { from { transform: scaleX(0); } }
 @media (prefers-reduced-motion: reduce) { .svcBarTrack span { animation: none; } }
+.avStack button.av{position:relative}.avStack button.av::after{content:"";position:absolute;inset:-5px;border-radius:50%}
+
+/* A record's head stays uncluttered (owner, 2026-10-25): actions on one row down to 320px, long labels get a short one below 420px */
+.pageHead .headActs.oneRow{flex-wrap:nowrap;flex:none}
+.lblS{display:none}
+@container app (max-width:420px){.lblL{display:none}.lblS{display:inline}}
+.pageHead.recHead .recId{min-width:0}
+@container app (max-width:640px){.pageHead.recHead{flex-direction:column;align-items:stretch;gap:12px}.pageHead.recHead>div{flex:none !important;min-height:0}.pageHead.recHead .recId{width:100%}.pageHead.recHead .recId .av0{width:44px !important;height:44px !important;border-radius:12px !important;font-size:14px !important}.pageHead.recHead .headActs{justify-content:flex-start}}
+.pageHead.recHead .headActs{margin-left:0}
+
+/* List rows of the shape checkbox, tile, text, tag, labelled button, ⋮ (Trash, audit log and every Settings list): on a phone the text keeps the width, the tag and button move to a second line under it (2026-10-25) */
+.lrActs{display:contents}
+@container app (max-width:640px){
+  .listRow{display:grid;grid-template-columns:auto 40px minmax(0,1fr) auto;grid-template-areas:"ck tile text text" ". . acts menu";align-items:center;column-gap:10px;row-gap:4px;padding:10px 4px}
+  .listRow > .lrMenu{justify-self:end}
+  .listRow:has(.lrMenu) .lrBtn{display:none}
+  .listRow:not(:has(.lrMenu)) > .lrActs{grid-column:3 / 5}
+  .listRow > .ckb{grid-area:ck}
+  .listRow > .lrTile{grid-area:tile;width:40px;height:40px}
+  .listRow > .lrText{grid-area:text}
+  .listRow > .lrMenu{grid-area:menu}
+  .listRow > .lrActs{grid-area:acts;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+  .listRow > .lrActs:empty{display:none}
+  .listRow .lrText strong{white-space:normal;overflow-wrap:break-word}
+  .saveBar{flex-wrap:wrap;padding:10px 10px 10px 14px;gap:8px}
+  .saveBar .sbText{flex:1 1 140px;font-size:14px}
+  .saveBar .sbBtns{display:flex;gap:8px;flex:none;margin-left:auto}
+}
+.saveBar .sbBtns{display:flex;gap:8px;flex:none}
+.saveBar .sbBtns span{flex:none;font-weight:inherit}
 
 </style>
 </helmet>
@@ -3256,6 +3286,39 @@ class Component extends DCLogic {
   }
 
   helpCatsDefault() { return [{ id: 'c1', name: 'Getting started', desc: 'First steps for someone new to the portal.', visible: true }, { id: 'c2', name: 'Billing and payments', desc: 'Invoices, receipts, Paystack and Flutterwave.', visible: true }, { id: 'c3', name: 'Approvals and files', desc: 'Reviewing work, comments and the file library.', visible: true }, { id: 'c4', name: 'Your account', desc: 'People, notifications and settings.', visible: true }]; }
+  /* Change password without the old one, as the live app does (components/account/password-change.tsx): new password twice with a strength meter, then a 6-digit code sent by email. Same for admin, staff and client. */
+  pwStrength(v) {
+    v = v || ''; var has = [/[A-Z]/.test(v), /[a-z]/.test(v), /\d/.test(v), /[^A-Za-z0-9]/.test(v)], n = has.filter(Boolean).length;
+    var miss = ['a capital', 'a small letter', 'a number', 'a symbol'].filter(function (x, i) { return !has[i]; });
+    if (!v) return { bars: 0, word: '', next: '', ok: false };
+    if (v.length < 8) return { bars: 1, word: 'Too short', next: 'Use 8 or more characters', ok: false };
+    var bars = Math.min(4, n + (v.length >= 12 ? 1 : 0) - 1), breached = /^(password|123456|qwerty|letmein)/i.test(v);
+    if (breached) return { bars: 1, word: 'Found in a breach', next: 'Choose one nobody else has used', ok: false };
+    return { bars: Math.max(1, bars), word: ['Weak', 'Weak', 'Fair', 'Good', 'Strong'][Math.max(1, bars)], next: miss.length ? 'Add ' + miss.join(', ').replace(/, ([^,]*)$/, ' and $1') : '', ok: !miss.length };
+  }
+  pwChange(email, push) {
+    var self = this, I = this.icons(), key = I.key || 'M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.78 7.78 5.5 5.5 0 0 1 7.78-7.78zM15.5 7.5l3 3L22 7l-3-3';
+    var suggest = function () { var W = ['Linen', 'Harbour', 'Copper', 'Meadow', 'Signal', 'Orbit', 'Velvet', 'Cinder'], a = W[Math.floor(Math.random() * W.length)], b = W[Math.floor(Math.random() * W.length)]; return a + '-' + b.toLowerCase() + '-' + (10 + Math.floor(Math.random() * 89)) + '!'; };
+    var step1 = function (keep) {
+      self.open(self.sh({ eyebrow: 'Account', title: 'Change your password', icon: key, focus: 'f-next', form: keep || {}, body: 'You do not need the old one. We email you a code to confirm it is you.',
+        fields: function (st) { var f = st.form || {}, t = f['~show'] ? 'text' : 'password'; return [{ key: 'next', label: 'New password', type: t, wide: true }, { key: 'again', label: 'Confirm it', type: t, wide: true, check: function (v, ff) { return v && (ff || f).next && v !== (ff || f).next ? 'The two do not match.' : ''; } }]; },
+        notice: function (ctx) { var f = ctx.form, P = self.pwStrength(f.next); if (!f.next) return { tone: 'var(--ad-tone-neutral)', icon: key, title: 'What makes it strong', body: '8+ characters with a capital, a small letter, a number and a symbol.' }; return { tone: P.ok ? 'var(--ad-tone-good)' : (P.bars <= 1 ? 'var(--ad-tone-bad)' : 'var(--ad-tone-warn)'), icon: key, title: P.word + ' · ' + ['', '1 of 4', '2 of 4', '3 of 4', '4 of 4'][P.bars], body: P.next || 'Good to go.' }; },
+        quick: [{ t: 'Show or hide', fn: function () { var f = Object.assign({}, self.state.form); f['~show'] = !f['~show']; self.setState({ form: f }); } }, { t: 'Suggest one', fn: function () { var p = suggest(), f = Object.assign({}, self.state.form, { next: p, again: p, '~show': true }); self.setState({ form: f }); self.say('Suggested and shown. Save it in your password manager.'); } }],
+        primary: 'Send me a code', secondary: 'Cancel',
+        primaryDis: function (ctx) { var f = ctx.form, P = self.pwStrength(f.next); if (!f.next) return 'Type a new password.'; if (!P.ok) return P.word === 'Found in a breach' ? 'That password has appeared in a breach.' : 'Make it stronger first.'; if (f.next !== f.again) return 'The two passwords must match.'; return ''; },
+        onPrimary: function (ctx) { var f = Object.assign({}, ctx.form); setTimeout(function () { step2(f); }, 40); } }), push);
+    };
+    var step2 = function (f1) {
+      self.open(self.sh({ eyebrow: 'Account · step 2 of 2', title: 'Enter the code', icon: I.mail, focus: 'f-code', body: 'We sent a 6-digit code to ' + email + '. It works for 10 minutes.', form: { code: '' },
+        fields: [{ key: 'code', label: 'Code', mode: 'numeric', ph: '6 digits', check: function (v) { return v && !/^\d{0,6}$/.test(v) ? 'Numbers only.' : ''; } }],
+        quick: [{ t: 'Resend the code', fn: function () { self.say('A new code is on its way to ' + email + '. The old one stops working.'); } }],
+        primary: 'Change password', secondary: 'Back',
+        primaryDis: function (ctx) { return /^\d{6}$/.test(ctx.form.code || '') ? '' : 'Enter the 6 digits from the email.'; },
+        onSecondary: function () { setTimeout(function () { step1(f1); }, 40); },
+        onPrimary: function () { self.say('Updated. Your password is changed and every other session is signed out.'); } }));
+    };
+    step1();
+  }
 
   /* ======================= tools: real CSV and Excel files, import with a sample, bulk select, filters ======================= */
 

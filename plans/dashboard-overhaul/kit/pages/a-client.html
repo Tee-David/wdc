@@ -1,14 +1,15 @@
 <nav class="crumbs rise" aria-label="Breadcrumb"><a href="A-Clients.dc.html">Clients</a><svg class="ic" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg><span aria-current="page">Mira Skincare</span></nav>
-            <div class="pageHead rise" style="align-items: center">
-              <div style="flex-direction: row; align-items: center; gap: 14px">
+            <div class="pageHead recHead rise" style="align-items: center">
+              <div class="recId" style="flex-direction: row; align-items: center; gap: 14px">
                 <span class="av0" style="width: 56px; height: 56px; border-radius: 16px; font-size: 17px; background: #1f4d3a; flex: none">MS</span>
                 <span style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
                   <h1 class="h1">Mira Skincare</h1>
-                  <span class="lede" style="font-size: 14px">{{headLine}}<strong>{{headStress}}</strong></span>
+                  <span class="lede" style="font-size: 14px">Adaeze O.<sc-if value="{{hasOverdue}}" hint-placeholder-val="{{ false }}"> <span class="tag" style="background: var(--ad-tone-bad); color: #fff; vertical-align: middle">Overdue</span></sc-if></span>
                 </span>
               </div>
-              <div class="headActs">
-                <button class="btn" onClick="{{messageMain}}" data-tour="msg"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></svg>Message Adaeze</button>
+              <div class="headActs oneRow">
+                <button class="ibtn" aria-label="Details for Mira Skincare" onClick="{{openInfo}}" data-tour="info"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 16v-4M12 8h.01"></path></svg></button>
+                <button class="btn" onClick="{{messageMain}}" data-tour="msg"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></svg><span class="lblL">Message Adaeze</span><span class="lblS">Message</span></button>
                 <button class="ibtn" data-menu="chores" aria-label="More for Mira Skincare" aria-haspopup="menu" onClick="{{openChores}}"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg></button>
               </div>
             </div>

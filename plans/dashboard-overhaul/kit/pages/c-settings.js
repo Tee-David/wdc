@@ -17,7 +17,8 @@
           { key: 'p.biz', type: 'static', label: 'Business', hint: 'Shown on every invoice and receipt.', value: 'Mira Skincare', tag: ['Set by WDC', F], lock: { why: 'Only the studio can change the business name on documents.', fix: 'Ask us if it needs changing.' }, action: { label: 'Ask us', fn: function () { window.location.href = 'C-Support.dc.html'; } } },
           { key: 'p.name', type: 'text', label: 'Your name', hint: 'How the team addresses you.', def: 'Adaeze O.', check: function (v) { return v.trim() ? '' : 'Add your name.'; } },
           { key: 'p.email', type: 'text', label: 'Email', hint: 'Invoices, receipts and approvals go here.', def: 'adaeze@miraskincare.ng', check: function (v) { var t = v.trim(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(t)) return 'Check the email address.'; if (/@(mailinator|tempmail|yopmail|guerrillamail|10minutemail)\./i.test(t)) return 'Temporary inboxes cannot receive invoices. Use a business or personal email.'; return ''; } },
-          { key: 'p.phone', type: 'text', label: 'Phone', hint: 'Only used if we need to reach you fast.', def: '+234 802 114 3390' }] }
+          { key: 'p.phone', type: 'text', label: 'Phone', hint: 'Only used if we need to reach you fast.', def: '+234 802 114 3390' }] },
+        { title: 'Password', sub: 'No old password needed: we email you a code. A password found in a breach is refused.', rows: [{ key: 'ac.pw', type: 'static', label: 'Password', hint: 'Every other session is signed out when you change it.', value: '••••••••••', action: { label: 'Change password', fn: function () { self.pwChange('adaeze@miraskincare.ng'); } } }] }
       ] },
       { label: 'People at your business', icon: 'users', cards: [
         { title: 'Who has access', sub: 'Everyone here has their own sign in.', act: { label: 'Add a person', fn: addPerson }, list: function () {

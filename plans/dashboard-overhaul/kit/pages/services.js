@@ -11,8 +11,8 @@
     if (!ps) { if (pj.flag === 'Paused') { o.pj.flag = ''; o.pj.flagTone = ''; } return o; }
     o.pj.flag = 'Paused'; o.pj.flagTone = 'var(--ad-tone-bad)';
     var ban = { title: 'Paused since ' + ps.since, why: ps.reason };
-    if (role === 'admin') { ban.body = 'Tasks are off My Day and deadlines have stopped counting down. ' + pj.client + ' sees this banner with your reason.'; ban.act = 'Resume project'; ban.fn = function () { self.resumeProject(key, pj.name, pj.client); }; o.headAct = { label: 'Resume project', icon: I.play, fn: ban.fn }; }
-    else if (role === 'staff') { ban.body = 'Admin paused this. Its tasks are off your My Day and deadlines have stopped. Nothing is lost.'; ban.act = 'Ask Admin about it'; ban.fn = function () { window.location.href = 'S-Messages.dc.html'; }; o.headAct = { label: 'Ask Admin about it', icon: I.msg, fn: ban.fn }; }
+    if (role === 'admin') { ban.body = 'Tasks are off My Day and deadlines have stopped counting down. ' + pj.client + ' sees this banner with your reason.'; ban.act = 'Resume project'; ban.fn = function () { self.resumeProject(key, pj.name, pj.client); }; o.headAct = { short: 'Resume', label: 'Resume project', icon: I.play, fn: ban.fn }; }
+    else if (role === 'staff') { ban.body = 'Admin paused this. Its tasks are off your My Day and deadlines have stopped. Nothing is lost.'; ban.act = 'Ask Admin about it'; ban.fn = function () { window.location.href = 'S-Messages.dc.html'; }; o.headAct = { short: 'Ask Admin', label: 'Ask Admin about it', icon: I.msg, fn: ban.fn }; }
     else { ban.body = 'Work is on hold, and nothing is lost. We tell you by email the moment it restarts.'; ban.act = 'Message the team'; ban.fn = function () { window.location.href = 'C-Messages.dc.html'; }; }
     o.pauseBanner = ban; return o;
   }
@@ -144,7 +144,7 @@
       o.team = m.team.map(function (t) { return Object.assign({}, t); });
       o.activity = (m.activity || []).filter(function (a) { return !/internal/i.test(a.where); });
       o.moneyHref = 'C-Billing.dc.html'; o.moneyHrefLabel = 'Open Billing';
-      o.headAct = { label: 'Message the team', icon: I.msg, fn: function () { window.location.href = 'C-Messages.dc.html'; } };
+      o.headAct = { short: 'Message', label: 'Message the team', icon: I.msg, fn: function () { window.location.href = 'C-Messages.dc.html'; } };
       o.apSub = 'Everything here also reaches you by email, so you never have to check the portal.';
       o.apEmptyBody = 'New items that need your yes appear here, on your Home page and in your email.';
     }
