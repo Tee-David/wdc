@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, Building2, FolderKanban, LifeBuoy, MessagesSquare } from "lucide-react";
+import { Archive, ArrowLeft, Pin, Building2, FolderKanban, LifeBuoy, MessagesSquare } from "lucide-react";
 import { getClient, getProject, getProjects, getTicket, getTicketMessages, getTickets } from "@/lib/admin/store";
 import { adminRole } from "@/lib/admin/guard";
 import { can } from "@/lib/admin/permissions";
@@ -20,7 +20,6 @@ import { AdminState } from "@/components/admin/admin-state";
 import { StudioReply, TicketStatusButtons } from "@/components/admin/ticket-controls";
 import { ProjectReply } from "@/components/admin/project-reply";
 import { MarkRead, NewTeamThread, TeamReply, ThreadFlags } from "@/components/admin/messages-ui";
-import { Tabs } from "@/components/admin/tabs";
 import { messagesReady, readStates, teamMessages, teamThreadsFor, type TeamThread } from "@/lib/messages/store";
 import type { Project, Ticket } from "@/lib/admin/types";
 import "@/components/admin/conversation.css";
@@ -31,6 +30,8 @@ export const metadata = { title: "Messages" };
 type Query = { q?: string; kind?: string; box?: string; c?: string; page?: string; per?: string };
 type Conv = {
   key: string; kind: "client" | "project" | "team"; name: string; sub: string; mark: string;
+  /** The short context on the row's second line: the question, the client, or Team. */
+  ctx: string;
   last: string | null; lastAt: string | null; waiting: boolean; count: number;
   /** Who wrote the last message: "me" or someone else, for unread. */
   lastMine: boolean;
@@ -41,6 +42,8 @@ type Line = { id: string; who: string; mine: boolean; at: string; body: string; 
 type NoteRow = { id: string; project_id: string; author_id: string; author_name: string; visibility: "client" | "internal"; body: string; created_at: string | Date };
 
 const KINDS = [["", "All"], ["waiting", "Waiting on us"], ["client", "Clients"], ["project", "Projects"], ["team", "Team"]] as const;
+/* One row of filters, the way a phone's chat app has one: the inbox views and the kinds together. Archived is a row at the top of the list. */
+const FILTERS = [["all", "All"], ["unread", "Unread"], ["waiting", "Waiting on us"], ["client", "Clients"], ["project", "Projects"], ["team", "Team"], ["pinned", "Pinned"]] as const;
 const BOXES = [["", "Inbox"], ["unread", "Unread"], ["pinned", "Pinned"], ["archived", "Archived"]] as const;
 const LABEL: Record<string, string> = { Open: "Waiting on us", Answered: "Answered", Closed: "Closed" };
 const PILL: Record<string, string> = { Open: "ad__pill--warn", Answered: "ad__pill--good", Closed: "ad__pill--flat" };
@@ -75,7 +78,8 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
   const search = query.q?.trim().toLocaleLowerCase() ?? "";
   const kind = KINDS.some(([k]) => k === query.kind) ? query.kind ?? "" : "";
   const box = BOXES.some(([k]) => k === query.box) ? query.box ?? "" : "";
-  const per = readPer(query.per);
+  /* A chat list is read as one column, so it shows 20 before it pages (owner, 2026-10-25). */
+  const per = readPer(query.per, 20);
 
   /* The owner reads every live project; staff read the projects in their scope (lib/admin/staff-scope.ts). */
   const scope = await staffScope(role);
@@ -109,7 +113,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
       const msgs = getTicketMessages(t.id), last = msgs.at(-1), client = getClient(t.clientId);
       const name = client?.name ?? "Unknown client";
       return {
-        key: `t-${t.id}`, kind: "client", name, sub: `${client?.company ?? "Client"} · ${t.subject}`, mark: initialsOf({ name }, "client"),
+        key: `t-${t.id}`, kind: "client", name, sub: `${client?.company ?? "Client"} · ${t.subject}`, ctx: t.subject, mark: initialsOf({ name }, "client"),
         last: last ? `${last.from === "studio" ? "You: " : ""}${last.body}` : null, lastAt: last?.at ?? t.updatedAt, waiting: t.status === "Open", count: msgs.length, lastMine: !last || last.from === "studio",
         ticket: t, project: t.projectId ? getProject(t.projectId) : null,
       };
@@ -117,7 +121,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
     ...projects.map((p): Conv => {
       const n = latest.get(p.id), client = getClient(p.clientId);
       return {
-        key: `p-${p.id}`, kind: "project", name: p.title, sub: `${client?.company ?? "Client"} · Project channel`, mark: initialsOf({ name: p.title }, "studio"),
+        key: `p-${p.id}`, kind: "project", name: p.title, sub: `${client?.company ?? "Client"} · Project channel`, ctx: client?.company ?? "Project channel", mark: initialsOf({ name: p.title }, "studio"),
         last: n ? `${n.author_id === me ? "You" : n.author_name.split(" ")[0]}: ${n.body}` : null, lastAt: n ? iso(n.created_at) : null, waiting: false, count: counts.get(p.id) ?? 0, lastMine: !n || n.author_id === me,
         project: p,
       };
@@ -126,7 +130,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
       const others = t.members.filter((m) => m.id !== me);
       const name = t.kind === "group" ? t.title || others.map((m) => m.name.split(" ")[0]).join(", ") : others[0]?.name ?? "Just you";
       return {
-        key: `d-${t.id}`, kind: "team", name, sub: t.kind === "group" ? `Team · ${others.map((m) => m.name.split(" ")[0]).join(", ")} and you` : "Team · direct", mark: initialsOf({ name }, "studio"),
+        key: `d-${t.id}`, kind: "team", name, sub: t.kind === "group" ? `Team · ${others.map((m) => m.name.split(" ")[0]).join(", ")} and you` : "Team · direct", ctx: "Team", mark: initialsOf({ name }, "studio"),
         last: t.last ? `${t.last.authorId === me ? "You" : t.last.author.split(" ")[0]}: ${t.last.body}` : null, lastAt: t.lastAt, waiting: false, count: 0, lastMine: !t.last || t.last.authorId === me,
         team: t,
       };
@@ -147,6 +151,14 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
 
   const tally = { "": convs.length, waiting: convs.filter((c) => c.waiting).length, client: convs.filter((c) => c.kind === "client").length, project: convs.filter((c) => c.kind === "project").length, team: convs.filter((c) => c.kind === "team").length };
   const boxN = Object.fromEntries(BOXES.map(([b]) => [b, convs.filter((c) => inBox(c, b)).length])) as Record<string, number>;
+  const filter = box === "unread" || box === "pinned" ? box : box === "archived" ? "" : kind || "all";
+  const filters = FILTERS
+    .filter(([k]) => (k === "unread" || k === "pinned" ? ready : k === "all" || k === "waiting" || tally[k] > 0))
+    .map(([k, label]) => ({
+      key: k, label,
+      count: k === "unread" ? boxN.unread || undefined : k === "waiting" ? tally.waiting || undefined : undefined,
+      href: hrefFor(query, k === "unread" || k === "pinned" ? { box: k, kind: undefined, page: undefined, c: undefined } : { box: undefined, kind: k === "all" ? undefined : k, page: undefined, c: undefined }),
+    }));
   const rows = convs
     .filter((c) => inBox(c, box))
     .filter((c) => !kind || (kind === "waiting" ? c.waiting : c.kind === kind))
@@ -196,44 +208,59 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
 
   return (
     <>
+      <div className="adMxHead">
       <PageHead title="Messages"
-        lede={<>{boxN.unread ? `${boxN.unread} unread. ` : ""}{tally.waiting ? `${tally.waiting} ${tally.waiting === 1 ? "client is" : "clients are"} waiting on us.` : "Nobody is waiting on us."}{oldest?.lastAt ? <> <strong>Longest wait {whenWords(oldest.lastAt, now)}.</strong></> : null}</>}
+        /* Only a line worth reading: who is waiting and for how long. Unread is on its chip; a quiet inbox needs no sentence. */
+        lede={tally.waiting ? <>{`${tally.waiting} ${tally.waiting === 1 ? "client is" : "clients are"} waiting on us.`}{oldest?.lastAt ? <> <strong>Longest wait {whenWords(oldest.lastAt, now)}.</strong></> : null}</> : undefined}
         action={ready ? <NewTeamThread /> : undefined}
         chores={<ChoresMenu label="messages, more" items={[
           ...(can(role, "clients") ? [{ label: "Support questions table", href: "/admin/clients/support", icon: "file" as const }] : []),
           ...(role === "owner" ? [{ label: "Email marketing", href: "/admin/email", icon: "file" as const }, { label: "Help centre articles", href: "/admin/settings/faq", icon: "file" as const }] : []),
         ]} />} />
+      </div>
       {!ready && role === "owner" ? <p className="adMx__note" role="status">Unread, pinning, archiving and team chats arrive once migration 0054 is applied in Settings, System.</p> : null}
       {notesFailed ? <p className="adMx__warn" role="status">Project channels could not be loaded just now. Client questions are complete; reload to try the channels again.</p> : null}
       <div className="adMxBox">
         <div className={`adMx ${picked ? "is-thread" : "is-list"}`}>
           <section className="adMx__list" aria-label="Conversations" data-tour="messages-list">
-            <div className="adList__hd"><h2>Conversations</h2><span className="adList__n">{convs.length}</span></div>
-            {ready ? <div className="adMx__boxes"><Tabs label="Inbox" current={box} items={BOXES.map(([b, label]) => ({ key: b, label, count: b === "" || boxN[b] ? boxN[b] : undefined, tone: b === "unread" && boxN.unread ? "warn" as const : undefined, href: hrefFor(query, { box: b || undefined, page: undefined, c: undefined }) }))} /></div> : null}
-            <div className="adMx__tools"><UrlSearch label="Search messages" placeholder="Name, company or words" /></div>
-            <div className="adMx__kinds"><Chips label="Show" current={kind} items={KINDS.map(([k, label]) => ({ key: k, label, count: tally[k], href: hrefFor(query, { kind: k || undefined, page: undefined, c: undefined }) }))} /></div>
+            <div className="adMx__tools"><UrlSearch label="Search messages" placeholder="Search conversations" /></div>
+            <div className="adMx__kinds"><Chips label="Show" current={filter} items={filters} /></div>
+            {ready && box !== "archived" && boxN.archived ? (
+              <Link className="adMx__arch" href={hrefFor(query, { box: "archived", kind: undefined, page: undefined, c: undefined })}>
+                <Archive aria-hidden="true" /><span>Archived</span><b>{boxN.archived}</b>
+              </Link>
+            ) : box === "archived" ? (
+              <Link className="adMx__arch" href={hrefFor(query, { box: undefined, page: undefined, c: undefined })}>
+                <ArrowLeft aria-hidden="true" /><span>Archived conversations</span><b>Back to the inbox</b>
+              </Link>
+            ) : null}
             {rows.length ? (
               <>
                 <ul className="adMx__rows" data-lenis-prevent>
                   {shown.map((c) => {
+                    /* Lit only when it is the one being read: picked, or the default
+                       beside the thread on a wide screen. A phone's list lights nothing. */
                     const on = open?.key === c.key;
                     return (
                       <li key={c.key}>
-                        <Link className={`adMx__row${on ? " is-on" : ""}`} href={hrefFor(query, { c: c.key })} aria-current={on ? "true" : undefined}>
-                          <span className={`adMk ${c.kind === "client" ? "adMk--round adMk--live" : c.kind === "team" ? "adMk--round adMk--brand" : "adMk--brand"}`} aria-hidden="true">{c.mark}</span>
+                        <Link className={`adMx__row${on ? (picked ? " is-on" : " is-default") : ""}${c.unread ? " is-unread" : ""}`} href={hrefFor(query, { c: c.key })} aria-current={on && picked ? "true" : undefined} title={c.sub}>
+                          <span className={`adMk adMx__av ${c.kind === "client" ? "adMk--live" : "adMk--brand"}`} aria-hidden="true">{c.mark}</span>
                           <span className="adMx__rowText">
-                            <span className="adMx__rowTop"><b>{c.unread ? <span className="adMx__dot" aria-label="Unread" /> : null}{c.pinned ? <span className="ad__sr">Pinned. </span> : null}{c.name}</b>{c.lastAt ? <time dateTime={c.lastAt}>{whenWords(c.lastAt, now)}</time> : null}</span>
-                            <span className="adMx__rowSub">{c.sub}</span>
-                            <span className="adMx__rowLast">{c.last ? clip(c.last) : "No messages yet"}</span>
+                            <span className="adMx__rowTop"><b>{c.pinned ? <span className="ad__sr">Pinned. </span> : null}{c.name}</b>{c.lastAt ? <time dateTime={c.lastAt}>{whenWords(c.lastAt, now)}</time> : null}</span>
+                            <span className="adMx__rowBottom">
+                              <span className="adMx__rowLast">{c.last && c.last.replace(/^You: /, "").toLocaleLowerCase().startsWith(c.ctx.toLocaleLowerCase()) ? clip(c.last) : <><span className="adMx__ctxWord">{c.ctx}</span>{c.last ? <> · {clip(c.last)}</> : null}</>}</span>
+                              {c.waiting ? <span className="ad__pill ad__pill--warn adMx__tag">Waiting</span> : null}
+                              {c.unread ? <span className="adMx__dot" role="img" aria-label="Unread" /> : null}
+                              {c.pinned ? <Pin className="adMx__pin" aria-hidden="true" /> : null}
+                            </span>
                           </span>
-                          {c.waiting ? <span className="ad__pill ad__pill--warn adMx__tag">Waiting</span> : null}
                         </Link>
                       </li>
                     );
                   })}
                 </ul>
-                <Pager label="Conversation pages" total={rows.length} page={page} per={per} noun={rows.length === 1 ? "conversation" : "conversations"}
-                  href={(patch) => hrefFor(query, { page: patch.page && patch.page > 1 ? String(patch.page) : undefined, per: patch.per ? String(patch.per) : query.per, c: undefined })} />
+                {rows.length > 5 ? <Pager label="Conversation pages" total={rows.length} page={page} per={per} noun={rows.length === 1 ? "conversation" : "conversations"}
+                  href={(patch) => hrefFor(query, { page: patch.page && patch.page > 1 ? String(patch.page) : undefined, per: patch.per ? String(patch.per) : query.per, c: undefined })} /> : null}
               </>
             ) : (
               <Empty title="No conversations match" icon={MessagesSquare} action={<Link className="ad__btn" href="/admin/messages">Clear filters</Link>}>Try a broader search, or show every conversation.</Empty>

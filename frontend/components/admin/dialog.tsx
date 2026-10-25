@@ -150,7 +150,7 @@ export function DialogButton({
         title={iconOnly && Icon ? label : undefined}
       >
         {Icon ? <Icon aria-hidden={true} /> : null}
-        {iconOnly && Icon ? null : label}
+        {iconOnly && Icon ? null : <span className="ad__btnTxt">{label}</span>}
       </button>
       <Dialog open={open} onClose={() => setOpen(false)} title={title} wide={wide}>
         {open ? children(() => setOpen(false)) : null}
