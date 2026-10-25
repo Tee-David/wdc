@@ -78,7 +78,30 @@ export type CaseStudy = {
   galleryAlt?: string[];
   /** Only when the client has published them. */
   metrics?: WorkMetric[];
+  /** A product we built: its screens in the frames of the devices they were
+      captured on, the live public site, and how the system fits together. */
+  app?: AppCase;
 };
+
+/** One screen of a build. Captured by the scripts in plans/case-study, with
+    sample data, so no client record appears. */
+export type AppShot = {
+  src: string; w: number; h: number;
+  device: "laptop" | "window" | "panel" | "tablet" | "phone";
+  title: string; caption: string;
+};
+export type AppCase = {
+  shots: AppShot[];
+  /** Which shots stand in the opening stage: laptop, tablet, phone. */
+  stage: [number, number, number];
+  /** The public site captured top to bottom (plans/case-study/scripts/fullcap.js). */
+  site?: { src: string; w: number; h: number };
+  tiers: { label: string; boxes: { name: string; detail: string }[] }[];
+};
+
+const A = "/work/app-case/";
+const shot = (file: string, w: number, h: number, device: AppShot["device"], title: string, caption: string): AppShot =>
+  ({ src: A + file, w, h, device, title, caption });
 
 /** A single piece of artwork. No case study — a flyer has no narrative, and
     writing one for each of a hundred would be a hundred inventions. */
@@ -139,6 +162,25 @@ export const CASE_STUDIES: CaseStudy[] = [
       "/work/app/trax-app-tablet.jpg",
       "/work/app/trax-app-phone.jpg",
     ],
+    app: {
+      shots: [
+        shot("trax-dash.webp", 1600, 1028, "laptop", "Dashboard", "The running timer beside the week: hours worked, activity, active projects and work by hour."),
+        shot("trax-tracker.webp", 700, 1190, "window", "Desktop tracker", "The native tracker: one tap to start, today and this week at a glance, and every project a click away."),
+        shot("trax-timesheets.webp", 760, 1497, "panel", "Timesheets", "Each day as a timeline and a table of entries, with tracked and manual time kept apart for approval."),
+        shot("trax-activity.webp", 760, 960, "panel", "Activity", "Screenshots, apps and sites by the hour, for teams that turn monitoring on."),
+        shot("trax-reports.webp", 760, 668, "panel", "Reports", "Tracked against manual time by day, then grouped by project, person or category."),
+        shot("trax-projects.webp", 760, 768, "panel", "Projects and tasks", "Every project as a small board of tasks: to do, in progress and done."),
+        shot("trax-tablet.webp", 900, 629, "tablet", "Dashboard on a tablet", "The same dashboard with the sidebar, projects and the day timeline side by side."),
+        shot("trax-phone.webp", 780, 1688, "phone", "Mobile timer", "Pick a project and a task, start the timer, and see today and this week at a glance."),
+      ],
+      stage: [0, 6, 7],
+      site: { src: A + "trax-web-full.webp", w: 1200, h: 6598 },
+      tiers: [
+        { label: "Where people use it", boxes: [{ name: "Dashboard", detail: "Next.js, in the browser" }, { name: "Desktop tracker", detail: "Tauri, a native app" }, { name: "Mobile app", detail: "Expo, iOS and Android" }] },
+        { label: "What runs it", boxes: [{ name: "One API", detail: "Fastify and Prisma. Roles are enforced here, once, for all three clients." }] },
+        { label: "Where the data lives", boxes: [{ name: "PostgreSQL", detail: "Every entry, project and role" }] },
+      ],
+    },
   },
   {
     slug: "realtors-practice",
@@ -167,6 +209,25 @@ export const CASE_STUDIES: CaseStudy[] = [
     stack: ["Next.js", "TypeScript", "PostgreSQL", "Tailwind CSS"],
     gallery: ["/work/app/realtors-dashboard.jpg", "/work/app/realtors-mobile.jpg"],
     motion: ["realtors-story", "realtors-post"],
+    app: {
+      shots: [
+        shot("rp-listings.webp", 1440, 836, "laptop", "Listings", "Every collected listing in one table: source, type, price, area, quality and review status, with grid, map and board views."),
+        shot("rp-browse.webp", 1440, 836, "laptop", "Browse with the map", "Listings as cards beside a live map, with filters and a saved search."),
+        shot("rp-assistant.webp", 1440, 836, "laptop", "Ask about the market", "Questions in plain words, answered as tables drawn from the listings."),
+        shot("rp-team.webp", 1440, 836, "laptop", "Team and roles", "Who can sign in, their role, and when they were last active."),
+        shot("rp-system.webp", 1440, 836, "laptop", "Scraper settings", "When the scraper runs and how it learns each site before collecting from it."),
+        shot("rp-home-p.webp", 390, 844, "phone", "Home on a phone", "Search by area, price and size, or explore on the map, from a phone."),
+        shot("rp-sources-p.webp", 390, 844, "phone", "Sources on a phone", "Every property site the scraper reads: enabled, learned, and the ones that need attention."),
+        shot("rp-web-t.webp", 1600, 2134, "tablet", "Public site on a tablet", "The public site: search across the listings or book a consultation."),
+      ],
+      stage: [0, 7, 5],
+      site: { src: A + "rp-web-full.webp", w: 1200, h: 5513 },
+      tiers: [
+        { label: "Where people use it", boxes: [{ name: "Workspace", detail: "Listings, agents and the CRM, phone to desktop" }, { name: "Public site", detail: "Search, listings and consultations" }] },
+        { label: "What runs it", boxes: [{ name: "Next.js platform", detail: "Accounts, roles and the agent dashboard" }, { name: "Scraper app", detail: "Collects listings from property sites on a schedule" }] },
+        { label: "Where the data lives", boxes: [{ name: "PostgreSQL", detail: "Listings, agents and the pipeline" }] },
+      ],
+    },
   },
   {
     slug: "litch-consulting",
@@ -198,6 +259,24 @@ export const CASE_STUDIES: CaseStudy[] = [
       "/work/app/litch-mobile.jpg",
     ],
     motion: ["litch-film", "litch-reel"],
+    app: {
+      shots: [
+        shot("li-dash-d.webp", 1600, 1000, "laptop", "Dashboard", "Open requests, invoiced, paid and outstanding, what needs action, the request pipeline, and billed against collected."),
+        shot("li-req-d.webp", 1600, 1000, "laptop", "Requests", "Every service request with its client, service, amount and status, searchable and sortable."),
+        shot("li-fin-d.webp", 1600, 1000, "laptop", "Invoices", "Invoices with totals, paid and outstanding, filtered by time and status, and exported."),
+        shot("li-dash-t.webp", 1600, 2134, "tablet", "Dashboard on a tablet", "The same dashboard with the sidebar kept beside it."),
+        shot("li-fin-t.webp", 1600, 2134, "tablet", "Invoices on a tablet", "The invoice list at tablet width, still a table."),
+        shot("li-dash-p.webp", 780, 1688, "phone", "Dashboard on a phone", "One figure per row, with New invoice at the top."),
+        shot("li-req-p.webp", 780, 1688, "phone", "Requests on a phone", "Request figures first, then the list."),
+      ],
+      stage: [0, 4, 5],
+      site: { src: A + "li-web-full.webp", w: 1200, h: 10880 },
+      tiers: [
+        { label: "Where people use it", boxes: [{ name: "Public site", detail: "For prospective clients" }, { name: "Internal console", detail: "Requests, invoices and reports" }] },
+        { label: "What runs it", boxes: [{ name: "Next.js app", detail: "One data model: a request, its invoice and its report figure are one record" }] },
+        { label: "Where the data lives", boxes: [{ name: "PostgreSQL", detail: "Requests, invoices and clients" }] },
+      ],
+    },
   },
   {
     slug: "nomarc-projects",
@@ -229,6 +308,23 @@ export const CASE_STUDIES: CaseStudy[] = [
       "/work/app/nomarc-tablet.jpg",
       "/work/app/nomarc-mobile.jpg",
     ],
+    app: {
+      shots: [
+        shot("no-dash-d.webp", 1600, 1000, "laptop", "Operator console", "Sign-ups, pending verifications, disputes and the network at a glance."),
+        shot("no-pm-d.webp", 1600, 1000, "laptop", "Project management", "Every project with its owner, progress, due date and status, plus tasks by discipline."),
+        shot("no-pm-t.webp", 1600, 2134, "tablet", "Projects on a tablet", "The same overview at tablet width."),
+        shot("no-dash-t.webp", 1600, 2134, "tablet", "Console on a tablet", "The operator console with the sidebar kept in view."),
+        shot("no-dash-p.webp", 780, 1688, "phone", "Console on a phone", "The operator console, stacked for a phone."),
+        shot("no-pm-p.webp", 780, 1688, "phone", "Projects on a phone", "Project figures first, then each project."),
+      ],
+      stage: [1, 2, 4],
+      site: { src: A + "no-web-full.webp", w: 1200, h: 5841 },
+      tiers: [
+        { label: "Where people use it", boxes: [{ name: "Professionals", detail: "Profiles, jobs and projects" }, { name: "Exhibitors", detail: "Accounts and listings" }, { name: "Operator console", detail: "Verification, users and campaigns" }] },
+        { label: "What runs it", boxes: [{ name: "Next.js app", detail: "A separate flow for each side, verification as an operator step" }] },
+        { label: "Where the data lives", boxes: [{ name: "PostgreSQL", detail: "Both sides, listings and checks" }] },
+      ],
+    },
   },
   {
     slug: "jomo-resource-center",
