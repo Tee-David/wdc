@@ -3711,7 +3711,7 @@ class Component extends DCLogic {
   pageState() { return { step: 'identify', email: '', pwd: '', showP: false, tab: 'magic', code: '', err: '', tries: 0, sent: 0, ra: 0 }; }
   renderVals() {
     var s = this.state, self = this, st = s.step, I = this.icons();
-    var dest = /@wendiloveee\.com$/i.test(s.email) ? 'Today' : (/@wdcstudio\.ng$/i.test(s.email) ? 'My Day' : 'your Home page');
+    var dest = /^babatope@wdc\.ng$/i.test(s.email) ? 'Today' : (/@wdcstudio\.ng$/i.test(s.email) ? 'My Day' : 'your Home page');
     var tabs = [['magic', 'Email link'], ['password', 'Password'], ['key', 'Passkey']].map(function (t) { var on = s.tab === t[0]; return { label: t[1], cls: on ? 'on' : '', sel: on ? 'true' : 'false', pick: function () { self.set({ tab: t[0], err: '' }); } }; });
     var boxes = [0, 1, 2, 3, 4, 5].map(function (i) { return { t: s.code.charAt(i) || '', cls: i === Math.min(s.code.length, 5) ? 'on' : '' }; });
     var locked = s.tries >= 5;
