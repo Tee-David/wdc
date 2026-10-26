@@ -4,6 +4,14 @@
 - Measured at 1440, 834 (dark) and 390: active page lit, collapse to 78px with labels hidden and tooltips, expand back to 244px, sign out asks, drawer counts at the row's end, drawer closes after its slide out; no page overflow; no console errors. 64 dead sidebar rules removed from admin.css (checked with lightningcss).
 - Not built yet, by the kit: a Messages count (needs the Messages page's per-person unread in the layout), the portal's search box, and the portal's separate Support page (help articles and a quick call; live keeps Messages at /portal/support).
 
+## Motion Pilot skill rebuilt, 26 October 2026
+
+- `.claude/skills/motion-pilot` and `.agents/skills/motion-pilot` (identical) rebuilt as one steering document plus references in `process/`, `craft/`, `genres/`, `taste/`, `brands/` and `tech/`, with Film, Web motion and Review modes. Renamed Motion Pilot and published as an open-source repository at github.com/Tee-David/Motion-Pilot.
+- New: storylines, SPEC and storyboard gates; a lessons ledger from approved work; R26 to R33 in the style library (the Vale launch film, three logo reveals, the Ink and Blueprint preloaders and curtains); the shipped preloaders as a worked example; `scripts/review.py` and `scripts/motionlib.py`; change events and holds in `analyze_reference.py`; shared curves, a damping spring and perceptual scale in the engine.
+- Fixed: Chromium detection for current Playwright builds, the Google Fonts download URL, an invented stat in the keynote template, and a black opening in the kinetic template.
+- Verified here: every script compiles; a project was scaffolded, rendered to MP4 with sound, and passed `qc.py` and `review.py`. Not verified: voice alignment and the ElevenLabs and local voice tools (no models or keys in this environment).
+- Before publishing as open source: remove client brand profiles, third-party reference sheets and production code you do not want public, and add a licence (see the skill's README).
+
 ## Phone top bar and the last board gaps, 26 October 2026
 
 - On phones the page's ⋮ moves into the top bar after the bell (kit and live); the phone bar drops the mark, help and avatar, which are in the drawer. Measured at 390 and 320 on Money, Clients, the message log and the portal home: the ⋮ is 44px (40 at 320), the menu opens, no top bar overflow, the section name is no longer clipped. Canvas Version 58.

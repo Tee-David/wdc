@@ -16,11 +16,11 @@ Before finishing meaningful work, re-read section versions and update only relev
 
 ## Motion design skill
 
-- For brand films, motion graphics, promos, social ads/reels, kinetic typography, logo reveals, explainers and website hero videos, read and use `.claude/skills/motion-studio/SKILL.md` before beginning. Its scripts, engine, templates and reference library are installed alongside it.
+- For brand films, motion graphics, promos, social ads/reels, kinetic typography, logo reveals, explainers and website hero videos, read and use `.claude/skills/motion-pilot/SKILL.md` before beginning. Its scripts, engine, templates and reference library are installed alongside it.
 - Research the brand and use real assets, then follow the skill's concept, script/voice, storyboard preview, sound, deterministic rendering and quality-check workflow. Respect the owner's existing choices and authorization; do not repeat answered intake questions.
 - WDC's current design system and the user's instructions remain authoritative. Keep ordinary dashboard transitions under this repository's accessibility/performance rules; a small UI transition does not require a film production workflow.
 - Adapt the skill's Linux/claude.ai environment examples to the actual Windows/Codex/Claude environment. Do not install render dependencies or run reference scripts just because the skill is installed. Report measured checks separately from visual/audio review.
-- The matching Codex/project installation is `.agents/skills/motion-studio/SKILL.md`. The owner's supplied archive and standalone entry point were one skill. The installed directories are now the maintained copies.
+- The matching Codex/project installation is `.agents/skills/motion-pilot/SKILL.md`. The owner's supplied archive and standalone entry point were one skill. The installed directories are now the maintained copies.
 
 ## Product language
 

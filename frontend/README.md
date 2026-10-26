@@ -44,7 +44,7 @@ The documented typography direction is Space Grotesk headings and Outfit body. C
 
 Mobile uses native scrolling and the existing sidebar drawer. Tables stay tables and scroll inside their container. Check at 320px and desktop, both themes, long content, keyboard focus, touch targets and reduced motion. Check spacing and control grouping as well as overflow. Route scroll changes through `components/ui/scroll-reset.tsx`.
 
-For authored motion designs, read the installed [Motion Studio skill](../.agents/skills/motion-studio/SKILL.md). Its film workflow does not replace ordinary UI accessibility and performance rules.
+For authored motion designs, read the installed [Motion Pilot skill](../.agents/skills/motion-pilot/SKILL.md). Its film workflow does not replace ordinary UI accessibility and performance rules.
 
 ## Configuration and secrets
 
