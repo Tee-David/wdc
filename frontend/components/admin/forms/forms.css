@@ -189,3 +189,18 @@
 .adEntryRing__fill { stroke: var(--ad-series-1); stroke-linecap: round; }
 .adEntryRing__pct { display: block; font: 700 1.6rem/1.1 var(--font-space-grotesk), system-ui, sans-serif; font-variant-numeric: tabular-nums; }
 .adEntryRing p { margin: .2rem 0 0; font-size: .85rem; }
+
+/* The entry's state buttons under the lede (Star, Mark unread, Spam, Move to Trash, Print): a clear gap from the
+   line above, an even gap between, and on a phone two to a row with an odd last one across. */
+.adEntry__state { margin-top: 1rem; }
+.adEntryActs { display: flex; flex-wrap: wrap; gap: .5rem; }
+@media (max-width: 640px) {
+  .adEntryActs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .adEntryActs > .ad__btn { justify-content: center; min-width: 0; }
+  .adEntryActs > .ad__btn:nth-child(odd of .ad__btn):nth-last-child(1 of .ad__btn) { grid-column: 1 / -1; }
+}
+@media (max-width: 640px) {
+  /* The mark sits beside the name, not halfway down the block, and the buttons take the full width under both. */
+  .adPh__lead:has(.adEntry__state) { align-items: flex-start; }
+  .adPh__lead .adEntry__state { margin-left: -4rem; }
+}

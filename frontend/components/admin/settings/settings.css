@@ -314,8 +314,11 @@ label.adChip input:focus-visible + span { outline: 2px solid var(--ad-focus); ou
 /* On a phone a settings row is two lines: icon and text across the width, then what sits at its end
    (pills, a button) under the text, so the text never becomes a tower. */
 @media (max-width: 640px) {
-  .adSet__row { grid-template-columns: auto minmax(0, 1fr); row-gap: .5rem; }
+  .adSet__row { grid-template-columns: auto minmax(0, 1fr); row-gap: .5rem; padding-inline: 1rem; }
   .adSet__row > .adSet__end { grid-column: 2; justify-self: start; flex-wrap: wrap; }
+  /* A row whose end is only the chevron (or a value and the chevron) keeps it on the right, centred. */
+  .adSet__row:has(> .adSet__end > .adSet__chev:only-child), .adSet__row:has(> .adSet__end > .adSet__val + .adSet__chev:last-child) { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .adSet__row:has(> .adSet__end > .adSet__chev:only-child) > .adSet__end, .adSet__row:has(> .adSet__end > .adSet__val + .adSet__chev:last-child) > .adSet__end { grid-column: 3; justify-self: end; flex-wrap: nowrap; }
 }
 /* Policies: Edit, View and PDF as 44px targets. */
 .adSet__links { display: flex; flex-wrap: wrap; gap: .25rem; }
