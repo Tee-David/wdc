@@ -21,7 +21,7 @@ Two read-only audits compared every canvas board's controls with the live code, 
 - [x] Messages: mark all read, search inside messages, conversation details with media, files and links, start a Google Meet, make a message a task, saved replies, reactions, team-only tags, schedule send (Admin; client questions and team chats; migration 0062)
 - [x] Support: Help articles on the Support page (search, paged, New and Edit go to the help-centre editor whose history restores a removed one), Export questions (CSV, Admin)
 - [ ] Reports and Money: save a view, email a report on a schedule
-- [ ] Invoice builder: duplicate line, move up and down, add from the price list
+- [x] Invoice builder: a menu on each line (Duplicate, Move up, Move down, Remove) and "Add from earlier work", the price list read from lines already billed (latest price per line, searchable)
 - [ ] Payouts: preview payment advice, open payout
 - [ ] Reconciliation: write off
 - [ ] Meetings: attach the recording, remind about an unconfirmed handover

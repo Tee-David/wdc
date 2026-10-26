@@ -208,3 +208,23 @@ async function tags(q: string, ids: string[]): Promise<SearchResult> {
   const selected = ids.map((t) => t.slice(0, QUERY_MAX)).map((t) => ({ value: t, label: t }));
   return { rows: rows.map((r) => ({ value: r.tag, label: r.tag, hint: count(r.n) })), selected, more: total > SEARCH_LIMIT || found.rows.length >= POOL };
 }
+
+/**
+ * THE STUDIO'S OWN PRICE LIST, read from what it has actually charged: the
+ * latest price for each distinct line on invoices and quotes, most recent first.
+ * Money only (Admin). Nothing is invented: a line never billed is not offered.
+ */
+export async function pastLines(currency: string): Promise<{ description: string; unit: number; at: string }[]> {
+  if (!can(await adminRole(), "money")) return [];
+  await syncStore();
+  const seen = new Map<string, { description: string; unit: number; at: string }>();
+  const docs = [...store.getInvoices().filter((i) => !i.voided).map((i) => ({ at: i.issued, cur: i.currency ?? "NGN", lines: i.lines })),
+    ...store.getEstimates().map((e) => ({ at: e.issued, cur: e.currency ?? "NGN", lines: e.lines }))]
+    .filter((d) => d.cur === (currency || "NGN")).sort((a, b) => b.at.localeCompare(a.at));
+  for (const d of docs) for (const l of d.lines) {
+    const k = l.description.trim().toLowerCase();
+    if (!k || l.unit <= 0 || /^(deposit|less the deposit|agreed discount|passed on)/.test(k) || seen.has(k)) continue;
+    seen.set(k, { description: l.description.trim(), unit: l.unit, at: d.at });
+  }
+  return [...seen.values()].slice(0, 60);
+}

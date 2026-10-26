@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Banknote, FileSignature, FileText, Plus, Save, Send, Trash2,
+  ArrowDown, ArrowUp, Banknote, Copy, FileSignature, FileText, History, MoreVertical, Plus, Save, Send, Trash2,
 } from "lucide-react";
 import {currencyOf,money,type PaymentAccountSnapshot} from "@/lib/money/currency";
 import type { Invoice } from "@/lib/admin/types";
@@ -14,7 +14,7 @@ import {
 } from "@/lib/admin/actions";
 import { Actions, Area, Checks, Field, Fields, Form, Hidden, Select, Submit, Wrap } from "./form";
 import { RemotePick, RemoteSelect } from "./remote-pick";
-import { invoiceReceiptReason } from "@/lib/admin/search-actions";
+import { invoiceReceiptReason, pastLines } from "@/lib/admin/search-actions";
 import { SERVICES } from "@/lib/services";
 import { DialogButton } from "./dialog";
 import { NoticeTick, ReceiptTick } from "./reconcile-forms";
@@ -312,7 +312,7 @@ function Builder({
         <div className="ad__lineH" aria-hidden="true">
           <span>Description</span><span>Qty</span><span>Unit ({currency})</span><span>Line</span><span />
         </div>
-        {rows.map((r) => {
+        {rows.map((r, i) => {
           const q = Number(r.qty) || 0;
           const u = Math.round((Number(r.unit.replace(/[₦,\s]/g, "")) || 0) * 100);
           return (
@@ -343,18 +343,21 @@ function Builder({
                 <span>Line</span>
                 <b>{format(Math.round(q * u))}</b>
               </p>
-              <button
-                type="button" className="ad__lineX" aria-label="Remove this line"
-                onClick={() => setRows((rs) => (rs.length > 1 ? rs.filter((x) => x.key !== r.key) : rs))}
-              >
-                <Trash2 aria-hidden="true" />
-              </button>
+              <LineMenu
+                label={r.description || "this line"} first={i === 0} last={i === rows.length - 1} only={rows.length === 1}
+                onCopy={() => setRows((rs) => { const at = rs.findIndex((x) => x.key === r.key); return [...rs.slice(0, at + 1), { ...r, key: ++rowKey }, ...rs.slice(at + 1)]; })}
+                onMove={(d) => setRows((rs) => { const at = rs.findIndex((x) => x.key === r.key), to = at + d; if (to < 0 || to >= rs.length) return rs; const n = [...rs]; [n[at], n[to]] = [n[to], n[at]]; return n; })}
+                onRemove={() => setRows((rs) => (rs.length > 1 ? rs.filter((x) => x.key !== r.key) : rs))}
+              />
             </div>
           );
         })}
-        <button type="button" className="ad__btn ad__lineAdd" onClick={() => setRows((rs) => [...rs, emptyRow()])}>
-          <Plus aria-hidden="true" /> Add a line
-        </button>
+        <div className="ad__row">
+          <button type="button" className="ad__btn ad__lineAdd" onClick={() => setRows((rs) => [...rs, emptyRow()])}>
+            <Plus aria-hidden="true" /> Add a line
+          </button>
+          <PastLines currency={currency} onPick={(l) => setRows((rs) => [...rs.filter((x) => x.description || x.unit), { key: ++rowKey, description: l.description, qty: "1", unit: String(l.unit / 100) }])} />
+        </div>
       </div>
 
       <div className="ad__totals">
@@ -751,6 +754,61 @@ export function RecordAnyPayment({ clientId }: {
           </Actions>
         </Form>
       )}
+    </DialogButton>
+  );
+}
+
+/** A line's own menu: duplicate it, move it, or remove it (the last line stays, emptied by hand). */
+function LineMenu({ label, first, last, only, onCopy, onMove, onRemove }: { label: string; first: boolean; last: boolean; only: boolean; onCopy: () => void; onMove: (d: -1 | 1) => void; onRemove: () => void }) {
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const out = (e: PointerEvent) => { if (!box.current?.contains(e.target as Node)) setOpen(false); };
+    const esc = (e: globalThis.KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("pointerdown", out); document.addEventListener("keydown", esc);
+    return () => { document.removeEventListener("pointerdown", out); document.removeEventListener("keydown", esc); };
+  }, [open]);
+  const go = (f: () => void) => () => { f(); setOpen(false); };
+  return (
+    <div className="ad__lineM" ref={box}>
+      <button type="button" className="ad__lineX ad__lineX--menu" aria-haspopup="menu" aria-expanded={open} aria-label={`Options for ${label}`} onClick={() => setOpen((x) => !x)}><MoreVertical aria-hidden="true" /></button>
+      {open ? (
+        <div className="ad__lineMenu" role="menu" aria-label={`Options for ${label}`}>
+          <button type="button" role="menuitem" onClick={go(onCopy)}><Copy aria-hidden="true" />Duplicate</button>
+          <button type="button" role="menuitem" disabled={first} onClick={go(() => onMove(-1))}><ArrowUp aria-hidden="true" />Move up</button>
+          <button type="button" role="menuitem" disabled={last} onClick={go(() => onMove(1))}><ArrowDown aria-hidden="true" />Move down</button>
+          <button type="button" role="menuitem" className="is-danger" disabled={only} onClick={go(onRemove)}><Trash2 aria-hidden="true" />Remove</button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/** "Add from earlier work": the lines this studio has billed before, at the last price, searchable. */
+function PastLines({ currency, onPick }: { currency: string; onPick: (l: { description: string; unit: number }) => void }) {
+  const [list, setList] = useState<{ description: string; unit: number; at: string }[] | null>(null);
+  const [q, setQ] = useState("");
+  const asked = useRef(false);
+  return (
+    <DialogButton label="Add from earlier work" title="Lines you have billed before" icon={History} tone="plain">
+      {(close) => {
+        /* Read once, when the sheet first draws (the content renders only while it is open). */
+        if (!asked.current) { asked.current = true; void pastLines(currency).then(setList, () => setList([])); }
+        const shown = (list ?? []).filter((l) => !q.trim() || l.description.toLowerCase().includes(q.trim().toLowerCase()));
+        return (
+          <div className="ad__pastLines">
+            <input className="ad__pastFind" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search lines" aria-label="Search lines you have billed" />
+            {list === null ? <p className="ad__dim">Reading your invoices and quotes...</p> : shown.length ? (
+              <ul>{shown.map((l) => (
+                <li key={l.description}><button type="button" onClick={() => { onPick(l); close(); }}>
+                  <b>{l.description}</b><span>{money(l.unit, currency)} · last on {new Date(l.at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
+                </button></li>
+              ))}</ul>
+            ) : <p className="ad__dim">{q ? "No line matches." : `Nothing billed in ${currency} yet. Lines appear here once they are on an invoice or quote.`}</p>}
+          </div>
+        );
+      }}
     </DialogButton>
   );
 }

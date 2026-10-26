@@ -2204,3 +2204,22 @@ td:has(.adRowPick) , .ad__pickCell { white-space: nowrap; }
 }
 @keyframes ad-toast-out { to { opacity: 0; transform: translateY(14px) scale(.98); } }
 @media (prefers-reduced-motion: no-preference) { .adToast.is-out { animation: ad-toast-out .2s var(--ad-ease-out) forwards; pointer-events: none; } }
+
+/* A line's menu in the invoice builder, and the earlier-work picker. */
+.ad__lineM { position: relative; }
+.ad__lineX--menu:hover { background: var(--ad-hover); color: var(--ad-ink); }
+.ad__lineMenu { position: absolute; right: 0; top: calc(100% + .3rem); z-index: 20; min-width: 11rem; display: grid; padding: .35rem; border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel); box-shadow: var(--ad-sh-2); }
+.ad__lineMenu button { display: flex; align-items: center; gap: .55rem; min-height: 44px; padding: 0 .75rem; border: 0; border-radius: 8px; background: none; color: var(--ad-ink); font: inherit; text-align: left; cursor: pointer; }
+.ad__lineMenu button svg { width: 1rem; height: 1rem; }
+.ad__lineMenu button:disabled { color: var(--ad-dim); cursor: not-allowed; }
+.ad__lineMenu button.is-danger:not(:disabled):hover { background: var(--ad-tone-bad); color: #fff; }
+@media (hover: hover) { .ad__lineMenu button:not(:disabled):not(.is-danger):hover { background: var(--ad-hover); } }
+.ad__lineMenu button:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: -2px; }
+.ad__pastLines { display: grid; gap: .75rem; }
+.ad__pastFind { min-height: 44px; padding: 0 .9rem; border: 1px solid var(--ad-line-2); border-radius: 12px; background: var(--ad-panel); color: var(--ad-ink); font: inherit; }
+.ad__pastFind:focus { outline: none; border-color: var(--ad-ink); box-shadow: 0 0 0 4px var(--ad-ring); }
+.ad__pastLines ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; }
+.ad__pastLines li button { display: grid; gap: .15rem; width: 100%; min-height: 44px; padding: .6rem .8rem; text-align: left; border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel); color: var(--ad-ink); font: inherit; cursor: pointer; }
+.ad__pastLines li button span { color: var(--ad-dim); font-size: .85rem; }
+@media (hover: hover) { .ad__pastLines li button:hover { background: var(--ad-hover); } }
+.ad__pastLines li button:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
