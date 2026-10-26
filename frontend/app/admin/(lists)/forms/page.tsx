@@ -8,9 +8,11 @@ import { FORMS, type FormDef } from "@/lib/forms/registry";
 import { formSummaries, summaryOf, type FormSummary } from "@/lib/forms/entries";
 import { availability, type Availability } from "@/lib/forms/settings-db";
 import { AdminState } from "@/components/admin/admin-state";
-import { Empty, Panel, Tile, when } from "@/components/admin/bits";
-import PageTourButton from "@/components/admin/tour/page-tour-button";
+import { Empty, Panel, when } from "@/components/admin/bits";
 import { Deck, type DeckItem } from "@/components/admin/deck";
+import { PageHead } from "@/components/admin/page-head";
+import { ChoresMenu } from "@/components/admin/chores-menu";
+import { StatTiles, Workbench } from "@/components/admin/workbench";
 import { listAll } from "@/lib/forms/all-entries";
 import "@/components/admin/forms/forms.css";
 import "@/components/admin/dashboard.css";
@@ -159,17 +161,14 @@ export default async function FormsPage() {
 
   return (
     <>
-      <div className="ad__head">
-        <div>
-          <h1>Forms</h1>
-          <p>Every form on the site, its entries, and who hears about them.</p>
-        </div>
-        <div className="ad__row">
-          <PageTourButton />
-          <Link className="ad__btn" href="/onboarding" target="_blank">Open onboarding</Link>
-          {owner ? <Link className="ad__btn ad__btn--primary" href="/admin/forms/new"><Plus aria-hidden="true" /> New form</Link> : null}
-        </div>
-      </div>
+      <PageHead title="Forms"
+        lede={unread ? <><strong>{unread} unread {unread === 1 ? "entry" : "entries"}.</strong> Every form on the site, its entries and who hears about them.</> : "Every form on the site, its entries and who hears about them."}
+        action={owner ? <Link className="ad__btn ad__btn--primary" href="/admin/forms/new"><Plus aria-hidden="true" /> New form</Link> : undefined}
+        chores={<ChoresMenu label="forms, more" items={[
+          { label: "All entries", href: "/admin/forms/all", icon: "file" },
+          { label: "Open onboarding", href: "/onboarding", icon: "file", external: true },
+          { label: "Newsletter subscribers", href: "/admin/forms/newsletter", icon: "file" },
+        ]} />} />
 
       {state === "off" ? (
         <AdminState kind="error" title="The form database is not connected"
@@ -181,8 +180,13 @@ export default async function FormsPage() {
           action={<Link className="ad__btn ad__btn--primary" href="/admin/forms">Try again</Link>}
           secondaryAction={<Link className="ad__btn" href="/admin/settings/system">Check system health</Link>} />
       ) : (
-        <div className="adFlow__grid">
-        <div className="adFlow__main">
+        <Workbench railLabel="Form pulse" rail={
+          <StatTiles items={[
+            { label: "Unread entries", value: String(unread), icon: Inbox, tone: "live", note: withUnread ? `Across ${withUnread} form${withUnread === 1 ? "" : "s"}` : "Nothing waiting" },
+            { label: "Entries", value: String(entries), icon: ClipboardList, tone: "brand", href: "/admin/forms/all", note: drafts ? `${drafts} onboarding draft${drafts === 1 ? "" : "s"} in progress` : "No drafts in progress" },
+            { label: "Newsletter", value: String(subs?.total ?? 0), icon: Newspaper, tone: "good", href: "/admin/forms/newsletter", note: subs?.recent ? `+${subs.recent} in the last 30 days` : "Subscribed" },
+            { label: "Notices that failed", value: String(failed), icon: MailWarning, tone: failed ? "bad" : "good", note: failed ? "Retry them from the email log" : "Every studio notice went", noteTone: failed ? "bad" : undefined },
+          ]} />}>
           <Deck id="forms" title="Entries waiting" items={deckItems}
             emptyTitle="Every entry has been read."
             emptyBody="New entries land here the moment someone sends a form."
@@ -195,7 +199,7 @@ export default async function FormsPage() {
           <Panel title="Website">
             <FormTable forms={FORMS.filter((f) => f.group === "website")} all={all} open={open} />
           </Panel>
-          <Panel title="Built here" action={owner ? <Link href="/admin/forms/new">New form</Link> : null}>
+          <Panel title="Built here">
             {built.length
               ? <FormTable forms={built} all={all} open={open} />
               : <Empty title="No forms built yet" icon={ClipboardList}
@@ -209,21 +213,7 @@ export default async function FormsPage() {
           <p className="ad__dim" style={{ margin: 0, fontSize: ".85rem" }}>
             These forms are defined in the site&apos;s code. This is where their entries, and the emails they send, are looked after.
           </p>
-        </div>
-        <aside className="adFlow__rail" aria-label="Form pulse">
-          <div className="adFlow__railHead"><h2>Form pulse</h2></div>
-          <dl className="adFlow__tiles">
-            <Tile label="Unread entries" value={String(unread)} icon={Inbox} iconTone="live"
-              note={withUnread ? `Across ${withUnread} form${withUnread === 1 ? "" : "s"}` : "Nothing waiting"} />
-            <Tile label="Entries" value={String(entries)} icon={ClipboardList} href="/admin/forms/all" tour="forms-all-link"
-              note={drafts ? `${drafts} onboarding draft${drafts === 1 ? "" : "s"} in progress` : "No drafts in progress"} />
-            <Tile label="Newsletter" href="/admin/forms/newsletter" value={String(subs?.total ?? 0)} icon={Newspaper} iconTone="good"
-              note={subs?.recent ? `+${subs.recent} in the last 30 days` : "Subscribed"} />
-            <Tile label="Notices that failed" value={String(failed)} icon={MailWarning} iconTone={failed ? "bad" : "good"}
-              note={failed ? "Retry them from the email log" : "Every studio notice went"} />
-          </dl>
-        </aside>
-        </div>
+        </Workbench>
       )}
     </>
   );

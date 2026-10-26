@@ -177,3 +177,6 @@
 .adAtt__gone { display: flex; gap: .4rem; padding: 0 .7rem .7rem; color: var(--ad-dim); font-size: .78rem; line-height: 1.4; }
 .adAtt__gone svg { width: .9rem; height: .9rem; flex: none; margin-top: .1rem; }
 @media (prefers-reduced-motion: no-preference) { .adAtt__file { transition: transform .15s ease, box-shadow .15s ease; } .adAtt__file:hover { transform: translateY(-2px); box-shadow: var(--ad-sh-1); } }
+/* 44px targets in the forms table: the open-the-form icon and the form's name. */
+.adForms__list .ad__rm { min-width: 2.75rem; min-height: 2.75rem; display: inline-grid; place-items: center; }
+.adForms__list td:first-child a { display: inline-flex; align-items: center; min-height: 2.75rem; }
