@@ -5,7 +5,7 @@ import type { KitIconName } from "@/components/admin/side-kit";
  * truth `components/admin/shell.tsx` already uses for `NAV`, sized to
  * AGENTS.md's "no more than six primary pages" rule with one to spare.
  */
-export type ClientNavItem = { href: string; label: string; icon: KitIconName; tour: string };
+export type ClientNavItem = { href: string; label: string; icon: KitIconName; tour: string; group?: "general" };
 
 export const CLIENT_NAV: ClientNavItem[] = [
   { href: "/portal", label: "Home", icon: "home", tour: "portal-nav-overview" },
@@ -13,6 +13,7 @@ export const CLIENT_NAV: ClientNavItem[] = [
   { href: "/portal/billing", label: "Billing", icon: "card", tour: "portal-nav-billing" },
   { href: "/portal/support", label: "Messages", icon: "msg", tour: "portal-nav-support" },
   { href: "/portal/settings", label: "Settings", icon: "gear", tour: "portal-nav-settings" },
+  { href: "/portal/help", label: "Support", icon: "life", tour: "portal-nav-help", group: "general" },
 ];
 
 export function isClientNavActive(href: string, path: string) {

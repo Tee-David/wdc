@@ -14,7 +14,10 @@ import SupportBar from "@/components/admin/support-bar";
 import "@/components/admin/admin.css";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 import { db } from "@/lib/db/pool";
-import { getInvoices } from "@/lib/admin/store";
+import { getInvoices, getProjects, getTickets } from "@/lib/admin/store";
+import { messagesWaiting } from "@/lib/messages/store";
+import { can } from "@/lib/admin/permissions";
+import { inScope, staffScope } from "@/lib/admin/staff-scope";
 import { invoiceStatus } from "@/lib/admin/types";
 
 /**
@@ -96,12 +99,16 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const notices = await adminNotices(role).catch(() => []);
   /* Money's count is the invoices past due, red, for the owner only: staff never see money. */
   const overdue = role === "owner" ? getInvoices().filter((i) => invoiceStatus(i) === "Overdue").length : 0;
+  /* Messages: client questions waiting on the studio, plus what this person has not read in their channels and team chats. */
+  const scope = await staffScope(role).catch(() => null);
+  const waitingQ = can(role, "clients") ? getTickets().filter((t) => t.status === "Open" && inScope(scope, "clients", t.clientId)).length : 0;
+  const unreadMsgs = await messagesWaiting(session.user.id, getProjects().filter((p) => !p.archived && inScope(scope, "projects", p.id)).map((p) => p.id), waitingQ).catch(() => waitingQ);
 
   return (
     <div className="ad">
       <AdminTourProvider role={role}>
         <AdminShell
-          counts={{ Forms: open, FailedMail: failedMail, Blog: inReview, Unchecked: unchecked, Money: overdue }}
+          counts={{ Forms: open, FailedMail: failedMail, Blog: inReview, Unchecked: unchecked, Money: overdue, Messages: unreadMsgs }}
           user={{ name: session.user.name, email: session.user.email, image: session.user.image }}
           role={role}
           support={support ? { name: session.user.name, actorName: support.actorName } : null}

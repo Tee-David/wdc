@@ -113,3 +113,16 @@ export async function othersRead(userId: string, keys: string[]): Promise<Map<st
   } catch { /* before 0054 nothing is known */ }
   return out;
 }
+
+/**
+ * THE SIDEBAR'S MESSAGES COUNT: client questions waiting on the studio plus
+ * messages this person has not read in their project channels and team
+ * chats. Bounded queries only; anything that fails counts as nothing rather
+ * than a wrong figure.
+ */
+export async function messagesWaiting(userId: string, projectIds: string[], waitingQuestions: number): Promise<number> {
+  if (!userId || !(await messagesReady())) return waitingQuestions;
+  const team = await db.query<{ id: string }>("SELECT thread_id AS id FROM team_thread_members WHERE user_id=$1 LIMIT 100", [userId]).then((r) => r.rows.map((x) => x.id), () => [] as string[]);
+  const unread = await unreadCounts(userId, projectIds, team);
+  return waitingQuestions + [...unread.values()].reduce((n, x) => n + x, 0);
+}
