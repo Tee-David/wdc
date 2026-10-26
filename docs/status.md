@@ -1,3 +1,10 @@
+## Phone top bar and the last board gaps, 26 October 2026
+
+- On phones the page's ⋮ moves into the top bar after the bell (kit and live); the phone bar drops the mark, help and avatar, which are in the drawer. Measured at 390 and 320 on Money, Clients, the message log and the portal home: the ⋮ is 44px (40 at 320), the menu opens, no top bar overflow, the section name is no longer clipped. Canvas Version 58.
+- Settings opens with Needs you (waiting migrations, mail not set up or failing, a service that did not answer, maintenance, hidden from search), from stored state.
+- Projects gains By service bars in the rail that filter the table. The onboarding brief page gains the This brief needs deck and the How complete ring; checked at 1440, 390 and 320 with a submitted brief that asked for advice.
+- Still open: the client page's retainer card has no data model (needs an owner decision and a migration).
+
 ## Mail retries and System tools, 26 October 2026
 
 - The "550 message discarded as high-probability spam" refusals come from the SMTP host's own outgoing filter, not from WDC. Scored the invoice, meeting, invitation, code and enquiry templates with SpamAssassin locally: all under 1 point (5 is spam), so the words are not what it objects to.
