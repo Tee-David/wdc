@@ -15,10 +15,15 @@ def probe(f):
     return int(v['width']), int(v['height']), float(j['format']['duration']), any(s.get('codec_type') == 'audio' for s in j['streams'])
 
 def energy(f, fps=15, w=160, end=None):
-    h = 90
-    cmd = ['ffmpeg', '-v', 'error', '-i', f] + (['-t', str(end)] if end else []) + ['-vf', f'fps={fps},scale={w}:{h},format=gray', '-f', 'rawvideo', '-']
+    """Motion energy at a low resolution that keeps the video's aspect ratio (a tall frame squeezed into
+    a wide thumbnail hides thin moving lines). About 14,400 pixels whatever the shape."""
+    vw, vh, _, _ = probe(f)
+    if vh > vw: h_, w_ = w, max(2, int(round(w * vw / vh / 2)) * 2)
+    else: w_, h_ = w, max(2, int(round(w * vh / vw / 2)) * 2)
+    k = (14400 / (w_ * h_)) ** .5; w_, h_ = int(w_ * k) // 2 * 2, int(h_ * k) // 2 * 2
+    cmd = ['ffmpeg', '-v', 'error', '-i', f] + (['-t', str(end)] if end else []) + ['-vf', f'fps={fps},scale={w_}:{h_},format=gray', '-f', 'rawvideo', '-']
     raw = subprocess.run(cmd, capture_output=True).stdout
-    fr = np.frombuffer(raw, np.uint8).reshape(-1, h, w).astype(np.float32)
+    fr = np.frombuffer(raw, np.uint8).reshape(-1, h_, w_).astype(np.float32)
     e = np.abs(np.diff(fr, axis=0)).mean(axis=(1, 2)) if len(fr) > 1 else np.zeros(0)
     t = (np.arange(len(e)) + 1) / fps
     return t, e
@@ -39,8 +44,8 @@ def events(t, e, min_gap=0.25, window=0.4):
         out.append((float(t[i]), float(e[i])))
     return out
 
-def holds(t, e, still=0.25, min_len=0.4):
-    """Spans where nothing visibly moves (energy under `still`), at least `min_len` seconds long."""
+def holds(t, e, still=0.03, min_len=0.4):
+    """Spans where nothing moves (energy under `still`; a few typed characters at 1080p measure about 0.03), at least `min_len` seconds long."""
     out, s = [], None
     dt = t[1] - t[0] if len(t) > 1 else 1 / 15
     for i, v in enumerate(e):

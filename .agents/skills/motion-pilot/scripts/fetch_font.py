@@ -7,7 +7,8 @@ REG = {  # family -> repo path under google/fonts/ofl   ('[wght]' files are vari
  'DM Sans':'dmsans/DMSans[opsz,wght].ttf','Manrope':'manrope/Manrope[wght].ttf','Plus Jakarta Sans':'plusjakartasans/PlusJakartaSans[wght].ttf',
  'Sora':'sora/Sora[wght].ttf','Syne':'syne/Syne[wght].ttf','Bricolage Grotesque':'bricolagegrotesque/BricolageGrotesque[opsz,wdth,wght].ttf',
  'Instrument Serif':'instrumentserif/InstrumentSerif-Regular.ttf','Bebas Neue':'bebasneue/BebasNeue-Regular.ttf','Anton':'anton/Anton-Regular.ttf',
- 'Unbounded':'unbounded/Unbounded[wght].ttf','Figtree':'figtree/Figtree[wght].ttf'}
+ 'Unbounded':'unbounded/Unbounded[wght].ttf','Figtree':'figtree/Figtree[wght].ttf',
+ 'JetBrains Mono':'jetbrainsmono/JetBrainsMono[wght].ttf','DM Mono':'dmmono/DMMono-Medium.ttf'}
 BUNDLED = os.path.join(os.path.dirname(__file__),'..','fonts')
 def fetch(family, d):
     path = REG.get(family)
