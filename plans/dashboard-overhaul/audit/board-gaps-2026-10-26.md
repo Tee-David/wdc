@@ -22,8 +22,8 @@ Two read-only audits compared every canvas board's controls with the live code, 
 - [x] Support: Help articles on the Support page (search, paged, New and Edit go to the help-centre editor whose history restores a removed one), Export questions (CSV, Admin)
 - [ ] Reports and Money: save a view, email a report on a schedule
 - [x] Invoice builder: a menu on each line (Duplicate, Move up, Move down, Remove) and "Add from earlier work", the price list read from lines already billed (latest price per line, searchable)
-- [ ] Payouts: preview payment advice, open payout
-- [ ] Reconciliation: write off
+- [x] Payouts: "Open the payout" (details sheet) and "Preview payment advice" (a printable page, saved as PDF from the print dialog) on every payout row
+- [x] Reconciliation: write off (already live as "Write it off" on every event that needs a person; checked 26 Oct)
 - [ ] Meetings: attach the recording, remind about an unconfirmed handover
 - [ ] Onboarding entry: forward to the team, ask for larger files, fresh invite to the approver, add to calendar
 - [ ] Forms: duplicate form, Move to Trash and back, forward an entry; builder version publishing and reset to defaults

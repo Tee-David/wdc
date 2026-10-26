@@ -264,7 +264,7 @@ a.adRc__row:hover, button.adRc__row:hover, a.adRc__row.on, button.adRc__row.on {
 
 /* My Day's content card: week arrows either side of the count, and a platform mark on its own solid tile. */
 .adCw__nav { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .5rem; font-size: .82rem; }
-.adCw__mark { display: inline-grid; place-items: center; flex: none; width: 1.5rem; height: 1.5rem; border-radius: 6px; color: #fff; font: 700 .62rem/1 var(--font-display, "Space Grotesk"), sans-serif; }
+.adCw__mark { display: inline-grid; place-items: center; flex: none; width: 1.5rem; height: 1.5rem; border-radius: 6px; color: #fff; font: 700 .62rem/1 var(--font-space-grotesk), system-ui, sans-serif; }
 .adRc__row .adSt { margin-top: .4rem; }
 .adCw__wk { display: grid; text-align: center; gap: .1rem; min-width: 0; }
 .adPpl__end { display: flex; align-items: center; gap: .25rem; flex: none; }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Ban, Check, Plus, Send } from "lucide-react";
+import { Ban, Check, Eye, FileText, Plus, Send } from "lucide-react";
 import type { Payout } from "@/lib/admin/types";
 import { naira } from "@/lib/admin/types";
 import { changePayout, createPayout } from "@/lib/money/payout-actions";
@@ -85,8 +85,19 @@ export function ApprovePayouts({ ready }: { ready: { id: string; who: string; am
 }
 
 export function PayoutMenu({ payout }: { payout: Payout }) {
-  const items: RowMenuItem[] = [];
   const what = `${payout.who}, ${naira(payout.amount)}`;
+  const day = (iso?: string) => (iso ? new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "Not yet");
+  const items: RowMenuItem[] = [
+    { kind: "dialog", label: "Open the payout", icon: Eye, title: `${payout.who}, ${naira(payout.amount)}`, render: (close) => (
+      <div className="adMxD">
+        <dl className="adPay__dl">
+          {[["For", payout.work], ["Status", payout.state], ["Due", day(payout.due)], ["Approved", payout.approvedBy ? `${payout.approvedBy}, ${day(payout.approvedAt)}` : "Not yet"], ["Paid", day(payout.paidAt)], ["Reference", payout.reference || "None"], ["Email", payout.email || "None"], ...(payout.note ? [["Note", payout.note]] : [])].map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
+        </dl>
+        <Actions><a className="ad__btn" href={`/admin/money/payouts/${payout.id}/advice`} target="_blank" rel="noopener noreferrer"><FileText aria-hidden="true" />Preview the payment advice</a><button type="button" className="ad__btn" onClick={close}>Close</button></Actions>
+      </div>
+    ) },
+    { kind: "link", label: "Preview payment advice", href: `/admin/money/payouts/${payout.id}/advice`, icon: FileText, external: true },
+  ];
   if (payout.state === "Ready") {
     items.push({ kind: "dialog", label: "Approve", icon: Check, title: `Approve ${naira(payout.amount)} to ${payout.who}?`,
       render: (close) => <Confirm ids={[payout.id]} to="Approved" close={close} verb="Approve the payout">{payout.work}. Approving agrees the amount and the day. Nothing leaves the account until you mark it paid.</Confirm> });
@@ -104,6 +115,5 @@ export function PayoutMenu({ payout }: { payout: Payout }) {
         </Form>
       ) });
   }
-  if (!items.length) return null;
   return <RowMenu items={items} label={what} />;
 }

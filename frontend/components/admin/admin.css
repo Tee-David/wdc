@@ -2223,3 +2223,9 @@ td:has(.adRowPick) , .ad__pickCell { white-space: nowrap; }
 .ad__pastLines li button span { color: var(--ad-dim); font-size: .85rem; }
 @media (hover: hover) { .ad__pastLines li button:hover { background: var(--ad-hover); } }
 .ad__pastLines li button:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
+
+/* A payout's details sheet. */
+.adPay__dl { margin: 0; display: grid; }
+.adPay__dl > div { display: grid; grid-template-columns: minmax(6rem, 1fr) 2fr; gap: 1rem; padding: .6rem 0; border-bottom: 1px solid var(--ad-line); }
+.adPay__dl dt { color: var(--ad-dim); }
+.adPay__dl dd { margin: 0; font-weight: 600; min-width: 0; overflow-wrap: anywhere; }

@@ -294,7 +294,7 @@
 
 /* The conversation's Details sheet. */
 .adMxD { display: grid; gap: 1.25rem; }
-.adMxD h3 { margin: 0 0 .5rem; font: 600 1rem/1.3 var(--font-display, "Space Grotesk"), sans-serif; }
+.adMxD h3 { margin: 0 0 .5rem; font: 600 1rem/1.3 var(--font-space-grotesk), system-ui, sans-serif; }
 .adMxD__hint { margin: .5rem 0 0; font-size: .85rem; }
 .adMxD__list { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
 .adMxD__list li { display: flex; align-items: center; gap: .6rem; min-width: 0; }
@@ -316,7 +316,7 @@
 .adTh__tags { display: flex; flex-wrap: wrap; gap: .3rem; margin: .4rem 0 0; }
 .adTh__reacts, .adTh__reactPick { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .3rem; }
 .adTh__msg.is-mine .adTh__reacts, .adTh__msg.is-mine .adTh__reactPick { justify-content: flex-end; }
-.adTh__reacts button, .adTh__reactPick button { display: inline-flex; align-items: center; gap: .3rem; min-height: 32px; padding: 0 .6rem; border-radius: 999px; border: 1px solid var(--ad-line-2); background: var(--ad-panel); color: var(--ad-ink); font: 600 .8rem/1 var(--font-body, "Outfit"), sans-serif; cursor: pointer; position: relative; }
+.adTh__reacts button, .adTh__reactPick button { display: inline-flex; align-items: center; gap: .3rem; min-height: 32px; padding: 0 .6rem; border-radius: 999px; border: 1px solid var(--ad-line-2); background: var(--ad-panel); color: var(--ad-ink); font: 600 .8rem/1 var(--font-outfit), system-ui, sans-serif; cursor: pointer; position: relative; }
 .adTh__reacts button::after, .adTh__reactPick button::after { content: ""; position: absolute; inset: -6px; }
 .adTh__reacts button svg, .adTh__reactPick button svg { width: 16px; height: 16px; }
 .adTh__reacts button.is-on { background: var(--ad-fill); border-color: var(--ad-fill); color: #fff; }
