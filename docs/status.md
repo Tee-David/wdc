@@ -1,6 +1,6 @@
 ## Motion Pilot skill rebuilt, 26 October 2026
 
-- `.claude/skills/motion-pilot` and `.agents/skills/motion-pilot` (identical) rebuilt as one steering document plus references in `process/`, `craft/`, `genres/`, `taste/`, `brands/` and `tech/`, with Film, Web motion and Review modes. Renamed Motion Pilot and published as an open-source repository at github.com/Tee-David/motionpilot.
+- `.claude/skills/motion-pilot` and `.agents/skills/motion-pilot` (identical) rebuilt as one steering document plus references in `process/`, `craft/`, `genres/`, `taste/`, `brands/` and `tech/`, with Film, Web motion and Review modes. Renamed Motion Pilot and published as an open-source repository at github.com/Tee-David/Motion-Pilot.
 - New: storylines, SPEC and storyboard gates; a lessons ledger from approved work; R26 to R33 in the style library (the Vale launch film, three logo reveals, the Ink and Blueprint preloaders and curtains); the shipped preloaders as a worked example; `scripts/review.py` and `scripts/motionlib.py`; change events and holds in `analyze_reference.py`; shared curves, a damping spring and perceptual scale in the engine.
 - Fixed: Chromium detection for current Playwright builds, the Google Fonts download URL, an invented stat in the keynote template, and a black opening in the kinetic template.
 - Verified here: every script compiles; a project was scaffolded, rendered to MP4 with sound, and passed `qc.py` and `review.py`. Not verified: voice alignment and the ElevenLabs and local voice tools (no models or keys in this environment).
