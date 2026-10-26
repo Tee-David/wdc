@@ -459,6 +459,15 @@
    "title": "Client \u00b7 Welcome",
    "expand": "fill",
    "is_interactive": true
+  },
+  "A-Plan.dc.html": {
+   "x": 6080,
+   "y": 7500,
+   "w": 1440,
+   "h": 1900,
+   "title": "Admin \u00b7 Monthly plan",
+   "expand": "fill",
+   "is_interactive": true
   }
  },
  "order": [
@@ -467,6 +476,7 @@
   "D-Client.dc.html",
   "A-Clients.dc.html",
   "A-Client.dc.html",
+  "A-Plan.dc.html",
   "A-Projects.dc.html",
   "A-Project.dc.html",
   "A-Money.dc.html",
