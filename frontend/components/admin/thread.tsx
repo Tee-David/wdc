@@ -1,9 +1,12 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
-import { ArrowDown, Camera, ChevronLeft, ChevronRight, Copy, CornerUpLeft, Download, FileText, Image as ImageIcon, ListPlus, Loader2, Paperclip, X } from "lucide-react";
+import { ArrowDown, Camera, Check, ChevronLeft, ChevronRight, Copy, CornerUpLeft, Download, Eye, FileText, Heart, Image as ImageIcon, ListPlus, Loader2, Paperclip, PartyPopper, SmilePlus, Tag, ThumbsUp, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Dialog } from "./dialog";
+import { Actions, Checks, Field, Fields, Form, Hidden, Submit } from "./form";
 import { toast } from "./toast";
-import { signChatUpload, taskFromMessage } from "@/lib/messages/actions";
+import { setMessageTags, signChatUpload, taskFromMessage, toggleReaction } from "@/lib/messages/actions";
 
 /**
  * A CONVERSATION THAT BEHAVES LIKE A CHAT APP. Swipe a message to the right
@@ -24,7 +27,16 @@ export type ThreadLine = {
   /** Only on a project note: a reply must keep the original's visibility. */
   visibility?: "client" | "internal";
   replyTo?: string | null;
+  /** Reactions and team-only tags (studio side, migration 0062). */
+  marks?: { reacts: { k: string; n: number; mine: boolean; names: string[] }[]; tags: string[] };
 };
+
+/* The quick reactions: drawn icons, so the interface never relies on emoji glyphs. */
+const REACT_ICONS: { k: string; label: string; Icon: typeof ThumbsUp }[] = [
+  { k: "like", label: "Thumbs up", Icon: ThumbsUp }, { k: "done", label: "Done", Icon: Check }, { k: "love", label: "Love", Icon: Heart },
+  { k: "eyes", label: "Looking at it", Icon: Eye }, { k: "party", label: "Celebrate", Icon: PartyPopper },
+];
+const TAG_CHOICES = ["Decision", "Action needed", "Approved", "Question", "Money", "Feedback"];
 type Picked = { id: string; who: string; body: string; visibility?: "client" | "internal" };
 
 /** A file picked in the composer: uploading, ready (in the bucket), or refused. */
@@ -50,7 +62,11 @@ export function useSent() {
 const clip = (s: string, n = 140) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
 const SWIPE = 56;
 
-function Bubble({ m, quoted, onReply, onJump, onTask }: { m: ThreadLine; quoted: ThreadLine | null | undefined; onReply: () => void; onJump: (id: string) => void; onTask?: () => void }) {
+function Bubble({ m, quoted, onReply, onJump, onTask, markKey }: { m: ThreadLine; quoted: ThreadLine | null | undefined; onReply: () => void; onJump: (id: string) => void; onTask?: () => void; markKey?: string }) {
+  const router = useRouter();
+  const [picking, setPicking] = useState(false);
+  const [tagging, setTagging] = useState(false);
+  const react = (k: string) => { setPicking(false); if (!markKey) return; void toggleReaction(markKey, m.id, k).then((r) => { if (!r.ok) toast(r.message ?? "That did not go through.", "bad"); router.refresh(); }); };
   const row = useRef<HTMLDivElement>(null);
   const drag = useRef<{ x: number; y: number; on: boolean; id: number } | null>(null);
   const hold = useRef<number>(0);
@@ -105,15 +121,46 @@ function Bubble({ m, quoted, onReply, onJump, onTask }: { m: ThreadLine; quoted:
           <p className="adConv__who"><b>{m.mine ? "You" : m.who}</b> <time dateTime={m.at}>{m.time}</time>{m.tag ? <span className={`ad__pill ad__pill--${m.tag.tone} adMx__vis`}>{m.tag.text}</span> : null}</p>
           {m.files?.length ? <MessageFiles files={m.files} /> : null}
           {m.body ? <p className="adConv__body">{m.body}</p> : null}
+          {m.marks?.tags.length ? <p className="adTh__tags">{m.marks.tags.map((t) => <span key={t} className="ad__pill ad__pill--brand">{t}</span>)}</p> : null}
         </div>
         <button type="button" className="adTh__replyBtn" onClick={onReply} aria-label={`Reply to ${m.mine ? "your message" : m.who}`} title="Reply"><CornerUpLeft aria-hidden="true" /></button>
         {onTask && m.body ? <button type="button" className="adTh__replyBtn" onClick={onTask} aria-label="Make this message a task" title="Make it a task"><ListPlus aria-hidden="true" /></button> : null}
+        {markKey ? <button type="button" className="adTh__replyBtn" onClick={() => setPicking((x) => !x)} aria-expanded={picking} aria-label="React to this message" title="React"><SmilePlus aria-hidden="true" /></button> : null}
+        {markKey ? <button type="button" className="adTh__replyBtn" onClick={() => setTagging(true)} aria-label="Tag this message" title="Tag"><Tag aria-hidden="true" /></button> : null}
       </div>
+      {picking ? (
+        <div className="adTh__reactPick" role="group" aria-label="Pick a reaction">
+          {REACT_ICONS.map(({ k, label, Icon }) => <button key={k} type="button" onClick={() => react(k)} aria-label={label} title={label}><Icon aria-hidden="true" /></button>)}
+        </div>
+      ) : null}
+      {m.marks?.reacts.length ? (
+        <div className="adTh__reacts">
+          {m.marks.reacts.map((r) => { const R = REACT_ICONS.find((x) => x.k === r.k); if (!R) return null; return (
+            <button key={r.k} type="button" className={r.mine ? "is-on" : undefined} aria-pressed={r.mine} onClick={() => react(r.k)}
+              aria-label={`${R.label}: ${r.names.join(", ")}`} title={r.names.join(", ")}><R.Icon aria-hidden="true" />{r.n}</button>
+          ); })}
+        </div>
+      ) : null}
+      {markKey ? (
+        <Dialog open={tagging} onClose={() => setTagging(false)} title="Tag this message">
+          <Form action={setMessageTags} onDone={() => { setTagging(false); router.refresh(); }}>
+            <p className="ad__dim" style={{ margin: "0 0 1rem" }}>Tags are for the team. The client never sees them.</p>
+            <Hidden name="key" value={markKey} /><Hidden name="messageId" value={m.id} />
+            <Fields>
+              <Checks name="tags" label="Tags" options={[...new Set([...TAG_CHOICES, ...(m.marks?.tags ?? [])])].map((t) => ({ value: t, label: t }))} defaultValue={m.marks?.tags ?? []} />
+              <Field name="custom" label="Your own tag" placeholder="Launch" />
+            </Fields>
+            <Actions><Submit icon={Tag}>Save tags</Submit></Actions>
+          </Form>
+        </Dialog>
+      ) : null}
       {menu ? (
         <div className="adTh__menu" role="menu" aria-label="Message actions">
           <button type="button" role="menuitem" onClick={() => { setMenu(false); onReply(); }}><CornerUpLeft aria-hidden="true" />Reply</button>
           <button type="button" role="menuitem" onClick={copy}><Copy aria-hidden="true" />Copy text</button>
           {onTask && m.body ? <button type="button" role="menuitem" onClick={() => { setMenu(false); onTask(); }}><ListPlus aria-hidden="true" />Make it a task</button> : null}
+          {markKey ? <button type="button" role="menuitem" onClick={() => { setMenu(false); setPicking(true); }}><SmilePlus aria-hidden="true" />React</button> : null}
+          {markKey ? <button type="button" role="menuitem" onClick={() => { setMenu(false); setTagging(true); }}><Tag aria-hidden="true" />Tag</button> : null}
           <button type="button" role="menuitem" className="adTh__menuX" onClick={() => setMenu(false)} aria-label="Close the actions"><X aria-hidden="true" /></button>
         </div>
       ) : null}
@@ -122,7 +169,7 @@ function Bubble({ m, quoted, onReply, onJump, onTask }: { m: ThreadLine; quoted:
 }
 
 /** The message list, with day separators, quotes, and the jump to the newest message. */
-export function ThreadLines({ lines, label, taskProject }: { lines: ThreadLine[]; label: string; /** Set on a conversation tied to a project: a message can become a task on it. */ taskProject?: string }) {
+export function ThreadLines({ lines, label, taskProject, markKey }: { lines: ThreadLine[]; label: string; /** Set on a conversation tied to a project: a message can become a task on it. */ taskProject?: string; /** The conversation's key: reactions and tags are on (studio side). */ markKey?: string }) {
   const { setReply } = useReply();
   const end = useRef<HTMLDivElement>(null);
   const [away, setAway] = useState(false);
@@ -160,7 +207,7 @@ export function ThreadLines({ lines, label, taskProject }: { lines: ThreadLine[]
         {lines.map((m) => (
           <li key={m.id} className="adMx__item">
             {m.day ? <p className="adMx__day"><span>{m.day}</span></p> : null}
-            <Bubble m={m} quoted={m.replyTo ? byId.get(m.replyTo) ?? null : undefined} onReply={() => pick(m)} onJump={jump}
+            <Bubble m={m} markKey={markKey} quoted={m.replyTo ? byId.get(m.replyTo) ?? null : undefined} onReply={() => pick(m)} onJump={jump}
               onTask={taskProject ? () => { void taskFromMessage(taskProject, m.body).then((r) => toast(r.message, r.ok ? "good" : "bad"), () => toast("The task could not be added.", "bad")); } : undefined} />
           </li>
         ))}

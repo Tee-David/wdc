@@ -214,3 +214,60 @@ export async function saveSavedReplies(_prev: ActionState, fd: FormData): Promis
   revalidatePath("/admin/messages");
   return OK(`Updated. ${list.length} saved ${list.length === 1 ? "reply" : "replies"}.`);
 }
+
+/** A reaction on one message, on or off for the signed-in studio person. */
+export async function toggleReaction(key: string, messageId: string, react: string): Promise<{ ok: boolean; message?: string }> {
+  const { REACTS, studioFor } = await import("./marks");
+  if (!(REACTS as readonly string[]).includes(react) || !/^[A-Za-z0-9_-]{1,80}$/.test(String(messageId))) return { ok: false, message: "That reaction is not one of ours." };
+  try {
+    const me = await studioFor(String(key));
+    const gone = await db.query("DELETE FROM message_marks WHERE thread_key=$1 AND message_id=$2 AND user_id=$3 AND kind='react' AND value=$4", [key, messageId, me.userId, react]);
+    if (!gone.rowCount) await db.query("INSERT INTO message_marks (thread_key,message_id,user_id,kind,value) VALUES ($1,$2,$3,'react',$4) ON CONFLICT DO NOTHING", [key, messageId, me.userId, react]);
+  } catch (e) { return { ok: false, message: e instanceof Error && !/relation|does not exist/.test(e.message) ? e.message : "Reactions need migration 0062. Admin applies it in Settings, System." }; }
+  revalidatePath("/admin/messages");
+  return { ok: true };
+}
+
+/** The tags on one message (studio only; a tag is for the team, never the client). Replaces the set. */
+export async function setMessageTags(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const key = value(fd, "key"), messageId = value(fd, "messageId");
+  const tags = [...new Set([...fd.getAll("tags").map(String), value(fd, "custom")].map((t) => t.trim().slice(0, 30)).filter(Boolean))].slice(0, 8);
+  try {
+    const { studioFor } = await import("./marks");
+    await studioFor(key);
+    await transaction(async (tx) => {
+      await tx.query("DELETE FROM message_marks WHERE thread_key=$1 AND message_id=$2 AND kind='tag'", [key, messageId]);
+      for (const t of tags) await tx.query("INSERT INTO message_marks (thread_key,message_id,user_id,kind,value) VALUES ($1,$2,'studio','tag',$3) ON CONFLICT DO NOTHING", [key, messageId, t]);
+    });
+  } catch (e) { return FAIL({}, e instanceof Error && !/relation|does not exist/.test(e.message) ? e.message : "Tags need migration 0062. Admin applies it in Settings, System."); }
+  revalidatePath("/admin/messages");
+  return OK(tags.length ? `Updated. Tagged ${tags.join(", ")}.` : "Updated. The tags are off.");
+}
+
+/** Schedule a message (Admin): a client question's reply or a team chat message, sent by the heartbeat at that time. */
+export async function scheduleMessage(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const { owner } = await import("@/lib/admin/guard");
+  const refused = await owner(); if (refused) return refused;
+  const key = value(fd, "key"), body = value(fd, "body"), at = Date.parse(value(fd, "sendAt").length === 16 ? `${value(fd, "sendAt")}:00+01:00` : value(fd, "sendAt"));
+  if (!/^[td]-/.test(key)) return FAIL({}, "Client questions and team chats can be scheduled; a project channel sends straight away.");
+  if (body.length < 2 || body.length > 5000) return FAIL({ body: "Write the message." });
+  if (!Number.isFinite(at) || at < Date.now() + 4 * 60_000) return FAIL({ sendAt: "Pick a time at least five minutes from now." });
+  if (at > Date.now() + 60 * 86_400_000) return FAIL({ sendAt: "Within the next 60 days." });
+  try {
+    const { studioFor } = await import("./marks");
+    const me = await studioFor(key);
+    await db.query("INSERT INTO message_schedules (id,thread_key,author_id,author_name,body,send_at) VALUES ($1,$2,$3,$4,$5,$6)", [randomUUID(), key, me.userId, me.name, body, new Date(at).toISOString()]);
+  } catch (e) { return FAIL({}, e instanceof Error && !/relation|does not exist/.test(e.message) ? e.message : "Scheduling needs migration 0062. Admin applies it in Settings, System."); }
+  revalidatePath("/admin/messages");
+  const when = new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" }).format(new Date(at));
+  return OK(`Saved. It sends ${when}, within five minutes of the time.`);
+}
+
+export async function cancelScheduled(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const { owner } = await import("@/lib/admin/guard");
+  const refused = await owner(); if (refused) return refused;
+  const r = await db.query("UPDATE message_schedules SET cancelled_at=now() WHERE id=$1 AND sent_at IS NULL AND cancelled_at IS NULL", [value(fd, "id")]).catch(() => ({ rowCount: 0 }));
+  if (!r.rowCount) return FAIL({}, "It has already gone, or was cancelled.");
+  revalidatePath("/admin/messages");
+  return OK("Updated. It will not be sent.");
+}

@@ -26,6 +26,9 @@ async function handle(request: NextRequest) {
     try { const {dispatchFlutterwaveReceipts,reconcileFlutterwaveCheckout}=await import('@/lib/flutterwave');await reconcileFlutterwaveCheckout();await dispatchFlutterwaveReceipts(); } catch { console.error('[flutterwave] Pending receipt delivery will retry.'); }
     try { const {dispatchWorkspaceEvents}=await import('@/lib/workspace/events');await dispatchWorkspaceEvents({limit:1}); }
     catch { console.error('[workspace-mail] Dispatch interrupted. Pending or unconfirmed attempts remain in the durable notification log.'); }
+    /* Messages Admin scheduled for now or earlier (migration 0062). */
+    try { const {sendDueMessages}=await import('@/lib/messages/marks');await sendDueMessages(); }
+    catch { console.error('[messages] Scheduled sends interrupted. Unsent rows stay for the next tick.'); }
     /* Mail the host refused for now (a spam verdict, a timeout), tried again on a spaced schedule. */
     try { const {retryFailedMail}=await import('@/lib/mail-retry');await retryFailedMail(); }
     catch { console.error('[mail-retry] Interrupted. Failed messages stay in the log for the next tick.'); }

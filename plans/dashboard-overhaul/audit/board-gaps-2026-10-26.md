@@ -18,7 +18,7 @@ Two read-only audits compared every canvas board's controls with the live code, 
 - [x] Quotes: on acceptance invoice the whole amount or a deposit first (a percentage); "Invoice the balance" drafts the rest less the deposit; "Withdraw the quote" ends a sent quote (its page reads as no longer standing; the public page itself is untouched)
 - [x] Today deck: Hand over on project and approval cards; act in place: overdue invoices send the reminder from the card (Record a payment beside it), ready payouts approved in one press; renewal card for plan systems renewing within 14 days. Snooze on short cards opens inside the card. Not built: match, book handover, draft quote and set follow up have no Today card kind yet (they live on Reconciliation, Meetings, Clients)
 - [x] Clients list: row Message (a studio-opened conversation, emailed by their setting), Convert lead (open their first project), New invoice (Admin), Log a call or message; bulk Message (one conversation per ticked client)
-- [ ] Messages: done: mark all read, search inside messages, conversation details with media, files and links, start a Google Meet, create a task from a message. Still to build: saved replies, reactions, tags, schedule send
+- [x] Messages: mark all read, search inside messages, conversation details with media, files and links, start a Google Meet, make a message a task, saved replies, reactions, team-only tags, schedule send (Admin; client questions and team chats; migration 0062)
 - [ ] Support: articles on the Support page (new, edit, Trash), export tickets
 - [ ] Reports and Money: save a view, email a report on a schedule
 - [ ] Invoice builder: duplicate line, move up and down, add from the price list

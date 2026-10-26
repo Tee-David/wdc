@@ -3,8 +3,8 @@
 import { useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "./toast";
-import { Archive, ArchiveRestore, CheckCheck, Download, FileText, Info, Link2, Pencil, Pin, PinOff, Plus, Send, Video, Zap } from "lucide-react";
-import { markAllRead, markThreadRead, postTeamMessage, saveSavedReplies, setThreadFlag, startTeamThread } from "@/lib/messages/actions";
+import { Archive, ArchiveRestore, CalendarClock, CheckCheck, Download, FileText, Info, Link2, Pencil, Pin, PinOff, Plus, Send, Video, Zap } from "lucide-react";
+import { cancelScheduled, markAllRead, markThreadRead, postTeamMessage, saveSavedReplies, scheduleMessage, setThreadFlag, startTeamThread } from "@/lib/messages/actions";
 import { DialogButton } from "./dialog";
 import { Area, Field, Form, Hidden, Submit } from "./form";
 import { RemoteChecks } from "./remote-pick";
@@ -156,5 +156,29 @@ function SavedRepliesEditor({ replies }: { replies: Saved[] }) {
         <Submit>Save the replies</Submit>
       </Form>
     </details>
+  );
+}
+
+/** "Schedule send" (Admin, client questions and team chats): write it now, the heartbeat sends it at that time. */
+export function ScheduleSend({ threadKey, waiting }: { threadKey: string; waiting: { id: string; body: string; sendAt: string }[] }) {
+  const when = (iso: string) => new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" }).format(new Date(iso));
+  return (
+    <DialogButton label={waiting.length ? `Scheduled (${waiting.length})` : "Schedule send"} title="Schedule a message" icon={CalendarClock} tone="plain" iconOnly={!waiting.length}>
+      {(close) => (
+        <div className="adMxD">
+          <Form action={scheduleMessage} onDone={close}>
+            <Hidden name="key" value={threadKey} />
+            <Area name="body" label="Message" rows={4} required placeholder="Good morning, a reminder that..." />
+            <Field name="sendAt" label="Send at" type="datetime-local" required hint="Studio time. It goes out within five minutes of it." />
+            <Submit icon={CalendarClock}>Schedule it</Submit>
+          </Form>
+          {waiting.length ? <section><h3>Waiting to send</h3><ul className="adMxD__list">{waiting.map((w) => (
+            <li key={w.id}><span className="adMxD__ic"><CalendarClock aria-hidden="true" /></span>
+              <span style={{ flex: 1, minWidth: 0 }}><b>{when(w.sendAt)}</b><br /><span className="ad__dim">{w.body.slice(0, 120)}</span></span>
+              <Form action={cancelScheduled}><Hidden name="id" value={w.id} /><Submit tone="plain">Cancel</Submit></Form></li>
+          ))}</ul></section> : null}
+        </div>
+      )}
+    </DialogButton>
   );
 }

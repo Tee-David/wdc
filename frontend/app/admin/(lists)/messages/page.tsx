@@ -19,7 +19,8 @@ import { Empty } from "@/components/admin/bits";
 import { AdminState } from "@/components/admin/admin-state";
 import { StudioReply, TicketStatusButtons } from "@/components/admin/ticket-controls";
 import { ProjectReply } from "@/components/admin/project-reply";
-import { ConvDetails, MarkAllRead, MarkRead, NewTeamThread, SavedReplies, TeamReply, ThreadFlags } from "@/components/admin/messages-ui";
+import { ConvDetails, MarkAllRead, MarkRead, NewTeamThread, SavedReplies, ScheduleSend, TeamReply, ThreadFlags } from "@/components/admin/messages-ui";
+import { marksFor, scheduledFor } from "@/lib/messages/marks";
 import { hydrateSettings } from "@/lib/settings/store";
 import { getSetting } from "@/lib/admin/store";
 import { messagesReady, othersRead, readStates, unreadCounts, teamMessages, teamThreadsFor, type TeamThread } from "@/lib/messages/store";
@@ -224,6 +225,9 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
   /* Pictures and files on the open conversation's messages, with signed links. */
   const files = open ? await attachmentsFor(open.key, lines.map((l) => l.id)) : new Map();
   const openClient = open?.ticket ? getClient(open.ticket.clientId) : open?.project ? getClient(open.project.clientId) : null;
+  /* Reactions, tags and scheduled sends for the open conversation (migration 0062; empty before it). */
+  const marks = open ? await marksFor(open.key, lines.map((l) => l.id), me) : new Map();
+  const scheduled = open && role === "owner" && /^[td]-/.test(open.key) ? await scheduledFor(open.key) : [];
   /* Saved replies (Settings key "messages.saved"), written into the reply box with {name} filled in. */
   await hydrateSettings();
   const saved = (() => { try { return JSON.parse(getSetting("messages.saved") ?? "[]") as { t: string; s: string }[]; } catch { return []; } })();
@@ -329,10 +333,10 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
                 </nav>
                 <div className="adMx__body" data-lenis-prevent tabIndex={0} aria-label="Messages, newest at the bottom">
                   {threadError ? <AdminState kind="error" title="This channel did not load" description={threadError} /> : lines.length ? (
-                    <ThreadLines label="Messages" taskProject={can(role, "projects") ? open.project?.id ?? undefined : undefined} lines={lines.map((m, i): ThreadLine => {
+                    <ThreadLines label="Messages" markKey={ready ? open.key : undefined} taskProject={can(role, "projects") ? open.project?.id ?? undefined : undefined} lines={lines.map((m, i): ThreadLine => {
                       const day = dateWords(m.at, now, true), prev = lines[i - 1];
                       return {
-                        ...m, files: files.get(m.id), day: !prev || dateWords(prev.at, now, true) !== day ? day : undefined,
+                        ...m, files: files.get(m.id), marks: marks.get(m.id), day: !prev || dateWords(prev.at, now, true) !== day ? day : undefined,
                         time: new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" }).format(new Date(m.at)),
                         initials: initialsOf({ name: m.who }, m.mine ? "studio" : "client"),
                       };
@@ -342,7 +346,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
                   )}
                 </div>
                 <div className="adMx__reply">
-                  {!threadError && !(ticket?.status === "Closed") ? <div className="adMx__replyTools"><SavedReplies replies={saved} firstName={replyName} canEdit={role === "owner"} /></div> : null}
+                  {!threadError && !(ticket?.status === "Closed") ? <div className="adMx__replyTools"><SavedReplies replies={saved} firstName={replyName} canEdit={role === "owner"} />{role === "owner" && ready && /^[td]-/.test(open.key) ? <ScheduleSend threadKey={open.key} waiting={scheduled} /> : null}</div> : null}
                   {ticket ? (ticket.status === "Closed"
                     ? <p className="ad__dim">Closed. Reopen it to reply, or it reopens by itself if the client writes again.</p>
                     : <StudioReply ticketId={ticket.id} />)
