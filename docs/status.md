@@ -1,3 +1,12 @@
+## Motion matched to the kit, 26 October 2026
+
+- Measured the kit's motion rules and the live ones side by side, then closed the gaps: pages built on the shared head and workbench now arrive like the boards (head rises 10px in .5s, blocks a beat apart at .04s, .1s, .16s..., the rail a beat behind the work); table rows rise 6px in .36s; a tab's content rises as it switches (.35s); a sheet's contents rise in .42s after it lands; row and chores menus pop on the spring in .26s; the bell's popover in .22s; the search palette drops in .26s over a .2s fade; toasts rise on the spring in .3s and now leave in .2s instead of vanishing. All measured from computed styles on a live page; with reduced motion on, every one is none.
+- Already matched and left alone: the sheet (460ms spring, 200ms out, phone 420ms), the drawer, the deck's stamp, done and snooze, the nav icon draw and the bars.
+
+## Monthly plan board on the canvas, 26 October 2026
+
+- The kit gains A-Plan (the plan page), next to the client page on the canvas (Version 60); the client card's Open plan goes there, and billing offers Quarterly. Checked with the board harness at 1400, phone and dark tablet (no overflow, no small targets) and a click-through: a cost added and billed, the report written and shared, billing changed with Undo.
+
 ## Client approvals: batches, reminders, silent clients and published links, 26 October 2026
 
 - A social project's content calendar has Send N posts for approval: every post still with the team becomes a shared version waiting on the client, and the client gets one notice listing them, not one per post (owner, 2026-10-25). Checked: two posts sent, both with the client, one event.

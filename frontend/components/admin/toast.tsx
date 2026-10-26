@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { CheckCircle2, CircleAlert, X } from "lucide-react";
 
 type ToastAction = { label: string; run: () => void };
-type Toast = { id: number; text: string; tone: "good" | "bad"; action?: ToastAction };
+type Toast = { id: number; text: string; tone: "good" | "bad"; action?: ToastAction; out?: boolean };
 const EVENT = "wdc:toast";
 
 /** Show a toast from anywhere in the admin or the portal. */
@@ -39,10 +39,12 @@ export function ToastHost() {
     return () => { window.removeEventListener(EVENT, on); all.forEach((t) => window.clearTimeout(t)); };
   }, []);
 
+  /* It leaves the way the kit's does: down and out in 200ms, then is removed. */
   function dismiss(id: number) {
     window.clearTimeout(timers.current.get(id));
     timers.current.delete(id);
-    setItems((list) => list.filter((t) => t.id !== id));
+    setItems((list) => list.map((t) => (t.id === id ? { ...t, out: true } : t)));
+    window.setTimeout(() => setItems((list) => list.filter((t) => t.id !== id)), 200);
   }
   const hold = (id: number) => window.clearTimeout(timers.current.get(id));
   const release = (id: number) => timers.current.set(id, window.setTimeout(() => dismiss(id), 2500));
@@ -57,7 +59,7 @@ export function ToastHost() {
     {acting.length ? (
       <div className="adToasts adToasts--acting" role="status">
         {acting.map((t) => (
-          <div key={t.id} className={`adToast adToast--${t.tone}`}
+          <div key={t.id} className={`adToast adToast--${t.tone}${t.out ? " is-out" : ""}`}
                onPointerEnter={() => hold(t.id)} onPointerLeave={() => release(t.id)}
                onFocus={() => hold(t.id)} onBlur={() => release(t.id)}>
             <CheckCircle2 aria-hidden="true" />
@@ -73,7 +75,7 @@ export function ToastHost() {
     ) : null}
     <div className="adToasts" aria-hidden="true">
       {plain.map((t) => (
-        <div key={t.id} className={`adToast adToast--${t.tone}`}
+        <div key={t.id} className={`adToast adToast--${t.tone}${t.out ? " is-out" : ""}`}
              onPointerEnter={() => hold(t.id)} onPointerLeave={() => release(t.id)}>
           {t.tone === "good" ? <CheckCircle2 /> : <CircleAlert />}
           <span>{t.text}</span>
