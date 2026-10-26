@@ -11,7 +11,7 @@ import { alertFailures } from "@/lib/mail-alert";
 import { runRetention, type RetentionCounts } from "@/lib/privacy/retention";
 import { sendScheduledReminders, type ReminderCounts } from "./reminders";
 
-export type DailyResult = { waitlist?: { sent: number; failed: number; purged: number }; workspaceReminders?: {checked:number}; invitationReminders?: {checked:number;queued:number}; logRows: number; trashed: Record<string, number>; posts: number; retention: RetentionCounts | null; reminders: ReminderCounts | null; errors: string[] };
+export type DailyResult = { retainerDrafts?: number; waitlist?: { sent: number; failed: number; purged: number }; workspaceReminders?: {checked:number}; invitationReminders?: {checked:number;queued:number}; logRows: number; trashed: Record<string, number>; posts: number; retention: RetentionCounts | null; reminders: ReminderCounts | null; errors: string[] };
 
 /**
  * The once-a-day tidy: the message log past its retention, each form's
@@ -101,6 +101,17 @@ export async function runDaily(by: string): Promise<DailyResult> {
     result.reminders = await sendScheduledReminders();
   } catch (error) {
     result.errors.push(`reminders: ${error instanceof Error ? error.message : "failed"}`);
+  }
+  /* Each monthly plan's part that has fallen due, drafted for Admin to send from Today. Never sent here. */
+  try {
+    const { syncStore, saveStore } = await import("@/lib/admin/persist");
+    await syncStore();
+    const { draftDueRetainers } = await import("@/lib/admin/store");
+    const made = draftDueRetainers(new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Lagos" }).format(new Date()));
+    if (made.length) await saveStore();
+    result.retainerDrafts = made.length;
+  } catch (error) {
+    result.errors.push(`retainers: ${error instanceof Error ? error.message : "failed"}`);
   }
   /* A gentle nudge for a brief left half done: at most two per draft, each
      switchable off. Needs migration 0039; does nothing until it is applied. */

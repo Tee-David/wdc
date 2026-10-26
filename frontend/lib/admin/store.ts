@@ -3,13 +3,14 @@ import type {
   Approval, AuditEntry, AuditKind, Channel, Client, Deliverable, Expense, Payout, PayoutState,
   Credit, Estimate, Health, Id, Invoice, InvoiceLine, Message, MessageChannel,
   MessageState, Payment, Priority, Project, ProviderEvent, ProviderOutcome,
-  Refund, Stage, Submission, Task, Ticket, TicketMessage, TicketStatus, Update,
+  Refund, Retainer, Stage, Submission, Task, Ticket, TicketMessage, TicketStatus, Update,
 } from "./types";
 import {
   estimateState, estimateTotals, invoiceStatus, invoiceTotals, naira, paidFrom, paymentNet,
   providerNeedsAttention, refundedTotal,
 } from "./types";
 import { checkInvoiceEdit } from "./money-rules";
+import { dueParts, termEnd, type RetainerBilling } from "./retainer-rules";
 
 /** Shared per-process cache of persisted admin records, populated by syncStore.
  * Collections start empty. Demonstration fixtures never seed a production database.
@@ -2063,6 +2064,62 @@ export function getEstimatesFor(clientId: Id) {
   return getEstimates().filter((e) => e.clientId === clientId);
 }
 
+/* ------------------------------------------------------------ retainers */
+
+const RETAINERS: Retainer[] = shared("RETAINERS", (): Retainer[] => []);
+
+/** The client's current monthly plan: one at a time, the latest that has not ended. */
+export function getRetainerFor(clientId: Id): Retainer | undefined {
+  return RETAINERS.filter((r) => r.clientId === clientId && !r.endedAt).at(-1);
+}
+export const getRetainer = (id: Id) => RETAINERS.find((r) => r.id === id);
+
+const dayWords = (day: string) => new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${day}T12:00:00Z`));
+
+/** Set up or change a client's plan. A change keeps every part already drafted (lib/admin/retainer-rules.ts). */
+export function saveRetainer(d: { clientId: Id; projectId: Id | null; title: string; start: string; months: number; monthly: number; includes: Retainer["includes"]; billing: RetainerBilling }, actor = "Studio"): Retainer {
+  const live = getRetainerFor(d.clientId);
+  const r: Retainer = live ? Object.assign(live, d.start !== live.start && live.drafted.length ? { ...d, start: live.start } : d) : { ...d, id: mint("r"), drafted: [], endedAt: null, createdAt: now() };
+  if (!live) RETAINERS.push(r);
+  audit({ actor, kind: "client", subjectId: d.clientId, subject: getClient(d.clientId)?.company ?? d.clientId,
+          action: live ? `changed the ${r.title.toLowerCase()} to ${r.billing.toLowerCase()} billing` : `set up the ${r.title.toLowerCase()}`,
+          note: `${naira(r.monthly)} a month for ${r.months} month${r.months === 1 ? "" : "s"} from ${dayWords(r.start)}` });
+  return r;
+}
+
+export function endRetainer(id: Id, actor = "Studio"): Retainer | null {
+  const r = getRetainer(id);
+  if (!r || r.endedAt) return null;
+  r.endedAt = now();
+  audit({ actor, kind: "client", subjectId: r.clientId, subject: getClient(r.clientId)?.company ?? r.clientId, action: `ended the ${r.title.toLowerCase()}`, note: "Parts not yet drafted will not be." });
+  return r;
+}
+
+/**
+ * DRAFT EVERY PART THAT HAS FALLEN DUE, as an invoice Admin sends from Today.
+ * Never sent from here. SAFE TO RUN TWICE: a part is recorded on the plan the
+ * moment its draft exists, and the schedule only offers parts not recorded.
+ */
+export function draftDueRetainers(today: string, actor = "Daily schedule"): Invoice[] {
+  const made: Invoice[] = [];
+  const { vatRate, dueInDays } = financeDefaults();
+  for (const r of RETAINERS.filter((x) => !x.endedAt && getClient(x.clientId) && !getClient(x.clientId)?.archived)) {
+    for (const part of dueParts(r, today)) {
+      const label = r.billing === "Monthly"
+        ? `${r.title}, ${new Intl.DateTimeFormat("en-GB", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${part.date}T12:00:00Z`))}`
+        : `${r.title}, ${part.of > 1 ? `part ${part.n} of ${part.of}, ` : ""}${dayWords(r.start)} to ${dayWords(termEnd(r.start, r.months))}`;
+      const issued = new Date(`${today}T12:00:00Z`);
+      const inv = addInvoice({ clientId: r.clientId, projectId: r.projectId, issued: issued.toISOString(), due: new Date(issued.getTime() + dueInDays * 86_400_000).toISOString(),
+        vatRate, lines: [{ description: label, qty: 1, unit: part.amount }], status: "Draft" });
+      inv.retainerId = r.id;
+      r.drafted.push({ date: part.date, amount: part.amount, invoiceId: inv.id });
+      audit({ actor, kind: "invoice", subjectId: inv.id, subject: inv.number, action: `drafted from the ${r.title.toLowerCase()}`, note: "Waiting on Today for Admin to send." });
+      made.push(inv);
+    }
+  }
+  return made;
+}
+
 /** Full-token compare, like the invoice and receipt readers. */
 export function getEstimateByToken(t: string) {
   const want = t.trim();
@@ -2243,6 +2300,6 @@ export function getPipeline(today = new Date()) {
 export function persistedCollections(): Record<string, { id: string }[]> {
   return {
     CLIENTS, PROJECTS, INVOICES, PAYMENTS, EXPENSES, PAYOUTS, SUBMISSIONS, TICKETS, TICKET_MESSAGES,
-    CREDITS, TASKS, UPDATES, DELIVERABLES, PROVIDER_EVENTS, MESSAGES, ESTIMATES,
+    CREDITS, TASKS, UPDATES, DELIVERABLES, PROVIDER_EVENTS, MESSAGES, ESTIMATES, RETAINERS,
   } as unknown as Record<string, { id: string }[]>;
 }

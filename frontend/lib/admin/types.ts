@@ -245,6 +245,32 @@ export type Deliverable = {
    that nothing is owed. */
 export type InvoiceStatus = "Draft" | "Sent" | "Part paid" | "Paid" | "Overdue" | "Void";
 
+/**
+ * A CLIENT'S MONTHLY PLAN (a retainer): a monthly figure over a term, and how
+ * this client pays for it. Each part is drafted as an invoice on the day it
+ * falls due and waits on Today for Admin to send; nothing is sent by itself.
+ * Kept in admin_records like every other admin record, so no migration.
+ */
+export type Retainer = {
+  id: Id;
+  clientId: Id;
+  projectId: Id | null;
+  /** "Social media plan". Printed on each invoice line. */
+  title: string;
+  /** YYYY-MM-DD, the first day the plan covers. */
+  start: string;
+  months: number;
+  /** Kobo a month, before VAT. */
+  monthly: number;
+  /** What a month buys, as the card shows it: "12 posts" / "a month". */
+  includes: { t: string; s: string }[];
+  billing: import("./retainer-rules").RetainerBilling;
+  /** Parts already drafted. A billing change never touches these. */
+  drafted: { date: string; amount: number; invoiceId: Id }[];
+  endedAt?: string | null;
+  createdAt: string;
+};
+
 export type InvoiceLine = {
   description: string;
   qty: number;
@@ -253,6 +279,8 @@ export type InvoiceLine = {
 };
 
 export type Invoice = {
+  /** The monthly plan this was drafted from (lib/admin/store.ts `draftDueRetainers`). */
+  retainerId?: Id;
   /** A date the client promised to pay by. Automatic reminders pause until it passes (lib/jobs/reminders.ts). */
   promise?: { until: string; note?: string; by: string; at: string } | null;
   /** When the final notice went. One per invoice. */

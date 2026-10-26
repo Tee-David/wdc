@@ -14,6 +14,8 @@ import SupportBar from "@/components/admin/support-bar";
 import "@/components/admin/admin.css";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 import { db } from "@/lib/db/pool";
+import { getInvoices } from "@/lib/admin/store";
+import { invoiceStatus } from "@/lib/admin/types";
 
 /**
  * The admin's own shell.
@@ -92,12 +94,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   /* Standing conditions: the site hidden from search, test payments on the
      live site, mail that did not go today. */
   const notices = await adminNotices(role).catch(() => []);
+  /* Money's count is the invoices past due, red, for the owner only: staff never see money. */
+  const overdue = role === "owner" ? getInvoices().filter((i) => invoiceStatus(i) === "Overdue").length : 0;
 
   return (
     <div className="ad">
       <AdminTourProvider role={role}>
         <AdminShell
-          counts={{ Forms: open, FailedMail: failedMail, Blog: inReview, Unchecked: unchecked }}
+          counts={{ Forms: open, FailedMail: failedMail, Blog: inReview, Unchecked: unchecked, Money: overdue }}
           user={{ name: session.user.name, email: session.user.email, image: session.user.image }}
           role={role}
           support={support ? { name: session.user.name, actorName: support.actorName } : null}

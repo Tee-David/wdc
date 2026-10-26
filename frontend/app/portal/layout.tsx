@@ -27,6 +27,9 @@ import { ProfileTheme } from "@/components/client/profile-setup";
  * established Litch-style shell" for BOTH admin and client navigation, not
  * two shells that happen to look similar.
  */
+import { getInvoices } from "@/lib/admin/store";
+import { invoiceStatus } from "@/lib/admin/types";
+
 export const metadata: Metadata = {
   title: { default: "Portal", template: "%s · WDC Portal" },
   robots: { index: false, follow: false, nocache: true },
@@ -71,7 +74,9 @@ export default async function PortalLayout({ children }: { children: React.React
   if(profile?.display_name)user.name=profile.display_name;
   if(profile?.avatar_key)user.image='/api/client-profile/photo';
 
-  const shell = <ClientShell user={user} clientCompany={isPrimaryContact?client.company:"Your assigned projects"} canSupport={isPrimaryContact} canBilling={isPrimaryContact||billingProjectIds.length>0}>
+  /* Billing's count is what this client still has to pay: sent, part paid or past due. */
+  const owed = isPrimaryContact ? getInvoices().filter((i) => i.clientId === client.id && ["Sent", "Part paid", "Overdue"].includes(invoiceStatus(i))).length : 0;
+  const shell = <ClientShell user={user} clientCompany={isPrimaryContact?client.company:"Your assigned projects"} canSupport={isPrimaryContact} canBilling={isPrimaryContact||billingProjectIds.length>0} counts={{ Billing: owed }}>
     {support ? <SupportBanner name={support.name} expiresAt={support.expiresAt} /> : null}
     {children}
   </ClientShell>;

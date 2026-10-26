@@ -4,40 +4,22 @@ import { TopChoresSlot } from "./top-chores";
 import { SheetDrag } from "@/components/admin/sheet-drag";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useTheme } from "next-themes";
 import {
   ArrowLeft,
-  Banknote,
   Bell,
-  ChartColumn,
-  ChevronDown,
   ClipboardList,
-  FolderKanban,
-  Globe,
-  LayoutDashboard,
-  LifeBuoy,
-  LogOut,
-  Mail,
-  MessagesSquare,
-  Moon,
   Newspaper,
-  PanelLeft,
   Search,
-  Settings,
-  Sun,
-  UserRound,
-  Users,
   X,
 } from "lucide-react";
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { authClient } from "@/lib/auth-client";
 import { can, NAV_AREA, type AdminRole } from "@/lib/admin/permissions";
 import { WdcMark } from "@/components/brand/logo";
-import TourLauncher from "./tour/tour-launcher";
 import TableScroll from "./table-scroll";
 import { MenuButton, NavDrawer, useNavDrawer } from "./nav-drawer";
-import { SideProfile, SideTourCard } from "./side-foot";
-import { initialsOf, keepFocusInside } from "./focus";
+import { FootRow, InstallCard, KitBrand, KitIcon, KitNav, ProfileCard, type KitIconName, type KitNavLink } from "./side-kit";
+import { keepFocusInside } from "./focus";
 import { ToastHost } from "./toast";
 import { ConfirmHost } from "./confirm";
 import SupportBar, { exitSupportView } from "./support-bar";
@@ -53,7 +35,7 @@ type NavSub = { href: string; label: string };
 type NavItem = {
   href: string;
   label: string;
-  Icon: typeof Users;
+  icon: KitIconName;
   group: "main" | "general";
   tour: string;
   sub?: NavSub[];
@@ -66,11 +48,11 @@ type NavItem = {
    pages that exist: a link to a screen that has not been built is a lie
    with a hover state. */
 const NAV: NavItem[] = [
-  { href: "/admin", label: "Today", Icon: LayoutDashboard, group: "main", tour: "nav-dashboard" },
+  { href: "/admin", label: "Today", icon: "home", group: "main", tour: "nav-dashboard" },
   /* Support sits in its own group below, so Clients must not light up on its pages. */
-  { href: "/admin/clients", label: "Clients", Icon: Users, group: "main", tour: "nav-clients", exclude: ["/admin/clients/support"] },
+  { href: "/admin/clients", label: "Clients", icon: "users", group: "main", tour: "nav-clients", exclude: ["/admin/clients/support"] },
   {
-    href: "/admin/projects", label: "Projects", Icon: FolderKanban, group: "main", tour: "nav-projects",
+    href: "/admin/projects", label: "Projects", icon: "folder", group: "main", tour: "nav-projects",
     sub: [
       { href: "/admin/projects", label: "All projects" },
       /* Reviews and handovers are meetings about a project. */
@@ -79,23 +61,23 @@ const NAV: NavItem[] = [
     also: ["/admin/meetings"],
   },
   {
-    href: "/admin/money", label: "Money", Icon: Banknote, group: "main", tour: "nav-money",
+    href: "/admin/money", label: "Money", icon: "wallet", group: "main", tour: "nav-money",
     sub: [
       { href: "/admin/money", label: "Invoices and spend" },
       { href: "/admin/money/reconciliation", label: "Reconciliation" },
     ],
   },
-  /* Client questions and project channels in one list, for the owner and staff alike; each thread is scoped on the server. */
-  { href: "/admin/messages", label: "Messages", Icon: MessagesSquare, group: "main", tour: "nav-messages" },
   /* The books and the work, filtered and exportable. Owner only, like Money. */
-  { href: "/admin/reports", label: "Reports", Icon: ChartColumn, group: "main", tour: "nav-reports" },
+  { href: "/admin/reports", label: "Reports", icon: "chart", group: "main", tour: "nav-reports" },
+  /* Client questions and project channels in one list, for the owner and staff alike; each thread is scoped on the server. */
+  { href: "/admin/messages", label: "Messages", icon: "msg", group: "main", tour: "nav-messages" },
   /* Campaigns, the calendar of sends, automations, templates and contacts. */
-  { href: "/admin/email", label: "Marketing", Icon: Mail, group: "main", tour: "nav-email" },
+  { href: "/admin/email", label: "Marketing", icon: "mail", group: "main", tour: "nav-email" },
   /* Enquiries, the forms that collect them, subscribers and pre-filled links. */
-  { href: "/admin/forms", label: "Forms", Icon: ClipboardList, group: "main", tour: "nav-forms" },
+  { href: "/admin/forms", label: "Forms", icon: "inbox", group: "main", tour: "nav-forms" },
   /* Posts are written weekly, which is not an "infrequent control" to bury under Settings. */
   {
-    href: "/admin/blog", label: "Blog", Icon: Newspaper, group: "main", tour: "nav-blog",
+    href: "/admin/blog", label: "Blog", icon: "pen", group: "main", tour: "nav-blog",
     sub: [
       { href: "/admin/blog", label: "Posts" },
       { href: "/admin/blog/work", label: "Case studies" },
@@ -104,8 +86,8 @@ const NAV: NavItem[] = [
   /* No sub-links here: Settings carries its own section menu on the page
      (lib/settings/sections.ts). The team and its permissions are a section of
      it, so the Users pages belong to Settings and keep it lit. */
-  { href: "/admin/settings", label: "Settings", Icon: Settings, group: "main", tour: "nav-settings", also: ["/admin/users"] },
-  { href: "/admin/clients/support", label: "Support", Icon: LifeBuoy, group: "general", tour: "nav-support" },
+  { href: "/admin/settings", label: "Settings", icon: "gear", group: "main", tour: "nav-settings", also: ["/admin/users"] },
+  { href: "/admin/clients/support", label: "Support", icon: "life", group: "general", tour: "nav-support" },
 ];
 
 /* The pages this role may open. A courtesy, not the permission: every write
@@ -129,16 +111,6 @@ function useNav() {
 const ROLE_LABEL: Record<string, string> = { owner: "Owner", staff: "Staff" };
 
 const SIDEBAR_KEY = "wdc:admin-sidebar-collapsed";
-let clientMounted = false;
-
-function subscribeToClientMount(onChange: () => void) {
-  if (!clientMounted) {
-    clientMounted = true;
-    queueMicrotask(onChange);
-  }
-  return () => undefined;
-}
-
 function isActive(href: string, path: string, also: string[] = [], exclude: string[] = []) {
   if (exclude.some((h) => path === h || path.startsWith(h + "/"))) return false;
   return href === "/admin" ? path === href : [href, ...also].some((h) => path === h || path.startsWith(h + "/"));
@@ -173,195 +145,69 @@ function Sidebar({
   collapsed = false,
   counts,
   onTogglePin,
-  pinnedCollapsed = false,
   user,
+  drawer = false,
+  onClose,
+  onExpand,
 }: {
   collapsed?: boolean;
   counts?: Record<string, number>;
   onTogglePin?: () => void;
-  pinnedCollapsed?: boolean;
   user: AdminUser;
+  /** The phone drawer: a head with the close cross, counts at the row's end, Tour this page and the theme by name. */
+  drawer?: boolean;
+  onClose?: () => void;
+  /** The rail's expand button: widen a collapsed sidebar, or open the menu as a drawer on a tablet. */
+  onExpand?: () => void;
 }) {
   const path = usePathname();
   const router = useRouter();
   const support = useContext(SupportContext);
   const nav = useNav();
   const role = useAdminRole();
-  const main = nav.filter((item) => item.group === "main");
-  const general = nav.filter((item) => item.group === "general");
-
-  const renderItem = (item: NavItem) => {
-    const { href, label, Icon, tour, sub } = item;
-    const active = isActive(href, path, item.also, item.exclude);
-    const count = counts?.[label] ?? 0;
+  const link = (item: NavItem): KitNavLink => {
+    const on = isActive(item.href, path, item.also, item.exclude);
     const current = activeSub(item, path);
-    return (
-      <div key={href} className="ad__navItem">
-        <Link
-          href={href}
-          className={`ad__link${active ? " is-on" : ""}`}
-          aria-current={path === href ? "page" : undefined}
-          title={collapsed ? label : undefined}
-          data-tour={tour}
-        >
-          <Icon aria-hidden="true" />
-          <span className={collapsed ? "ad__srOnly" : undefined}>{label}</span>
-          {count > 0 ? <span className="ad__count">{count > 99 ? "99+" : count}</span> : null}
-        </Link>
-        {sub && active && !collapsed ? (
-          <div className="ad__sub">
-            {sub.filter((s) => allowed(role, s.href)).map((s) => (
-              <Link
-                key={s.href}
-                href={s.href}
-                className={`ad__subLink${current === s.href ? " is-on" : ""}`}
-                aria-current={path === s.href ? "page" : undefined}
-              >
-                {s.label}
-              </Link>
-            ))}
-          </div>
-        ) : null}
-      </div>
-    );
+    return {
+      href: item.href, label: item.label, icon: item.icon, on, current: path === item.href, tour: item.tour,
+      count: counts?.[item.label] ?? 0, tone: item.label === "Money" ? "bad" : "brand",
+      sub: item.sub?.filter((s) => allowed(role, s.href)).map((s) => ({ href: s.href, label: s.label, on: current === s.href, current: path === s.href })),
+    };
   };
-
-  return (
-    <div className="ad__sideInner">
-      <div className="ad__brand">
-        <Link href="/admin" aria-label="WDC admin dashboard">
-          <WdcMark className="ad__brandMark" />
-          {!collapsed ? (
-            <span><b>We Dig Creativity</b><small>Studio admin</small></span>
-          ) : null}
-        </Link>
-        {onTogglePin && !collapsed ? (
-          <button
-            type="button"
-            className="ad__iconButton"
-            data-tour="sidebar-pin"
-            onClick={onTogglePin}
-            aria-label={pinnedCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-            title={pinnedCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
-            <PanelLeft aria-hidden="true" />
-          </button>
-        ) : null}
-      </div>
-
-      {/* The menu scrolls; the foot below it never moves. */}
-      <div className="ad__sideScroll" data-lenis-prevent>
-        <nav className="ad__nav" aria-label="Admin sections">
-          <div className="ad__navGroup">{main.map(renderItem)}</div>
-          <span className="ad__navRule" />
-          <div className="ad__navGroup">{general.map(renderItem)}</div>
-        </nav>
-      </div>
-
-      <div className="ad__sideFoot">
-        <SideTourCard collapsed={collapsed} />
-        <SideProfile user={user} role={ROLE_LABEL[role] ?? "Admin"} collapsed={collapsed} signOutLabel={support ? "Exit support view" : "Sign out"} onSignOut={() => signOut(router, support)} />
-      </div>
+  const main = nav.filter((item) => item.group === "main").map(link);
+  const general = nav.filter((item) => item.group === "general").map(link);
+  const brand = <KitBrand href="/admin" name="WDC Studio" sub={ROLE_LABEL[role] ?? "Admin"} label="WDC admin dashboard" />;
+  const foot = (
+    <div className="adK__foot" data-tour="sidebar-foot">
+      <InstallCard drawer={drawer} body="Open WDC from your home screen, like an app." />
+      <FootRow drawer={drawer} onCollapse={drawer ? undefined : onTogglePin} onExpand={drawer ? undefined : onExpand} />
+      <ProfileCard user={user} role={ROLE_LABEL[role] ?? "Admin"} href="/admin/settings/account" signOutLabel={support ? "Exit support view" : "Sign out"} onSignOut={() => signOut(router, support)} />
     </div>
   );
-}
-
-function useThemeSwitch() {
-  const { resolvedTheme, setTheme } = useTheme();
-  const mounted = useSyncExternalStore(
-    subscribeToClientMount,
-    () => clientMounted,
-    () => false,
-  );
-  const dark = mounted && resolvedTheme === "dark";
-  return { mounted, dark, toggle: () => setTheme(dark ? "light" : "dark") };
-}
-
-/** The theme switch as a row of the account menu, for staff and owner. */
-function MenuTheme() {
-  const { mounted, dark, toggle } = useThemeSwitch();
-  return (
-    <button type="button" role="menuitem" onClick={toggle}>
-      {dark ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />} {mounted ? (dark ? "Light theme" : "Dark theme") : "Switch theme"}
-    </button>
-  );
-}
-
-function ThemeButton() {
-  const { mounted, dark, toggle } = useThemeSwitch();
-  if (!mounted) {
+  if (drawer) {
     return (
-      <button type="button" className="ad__topIcon ad__themeBtn" aria-label="Switch theme" title="Switch theme">
-        <Moon aria-hidden="true" />
-      </button>
+      <div className="adK adK--drawer">
+        <div className="adK__drawHead">
+          {brand}
+          <button type="button" className="adK__ibtn adK__xBtn" aria-label="Close the menu" onClick={onClose}><KitIcon name="x" size={18} /></button>
+        </div>
+        <div className="adK__scroll" data-lenis-prevent>
+          <KitNav items={main} label="Admin sections" drawer />
+          {general.length ? <KitNav items={general} label="Help" drawer /> : null}
+        </div>
+        {foot}
+      </div>
     );
   }
   return (
-    <button
-      type="button"
-      className="ad__topIcon ad__themeBtn"
-      onClick={toggle}
-      aria-label={`Switch to ${dark ? "light" : "dark"} theme`}
-      title={`Switch to ${dark ? "light" : "dark"} theme`}
-    >
-      {dark ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
-    </button>
-  );
-}
-
-function AccountMenu({ user }: { user: AdminUser }) {
-  const role = useAdminRole();
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const trigger = useRef<HTMLButtonElement>(null);
-  const router = useRouter();
-  const support = useContext(SupportContext);
-
-  useEffect(() => {
-    function close(event: PointerEvent) {
-      if (ref.current && !ref.current.contains(event.target as Node)) setOpen(false);
-    }
-    function keydown(event: KeyboardEvent) {
-      if (event.key === "Escape" && open) {
-        setOpen(false);
-        trigger.current?.focus();
-      }
-    }
-    document.addEventListener("pointerdown", close);
-    document.addEventListener("keydown", keydown);
-    return () => {
-      document.removeEventListener("pointerdown", close);
-      document.removeEventListener("keydown", keydown);
-    };
-  }, [open]);
-
-  return (
-    <div className="ad__menuWrap" ref={ref}>
-      <button ref={trigger} type="button" className="ad__account" aria-label="Account menu" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
-        <span className="ad__avatar" aria-hidden="true">
-          {user.image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={user.image} alt="" />
-          ) : initialsOf(user, "Admin")}
-        </span>
-        <span className="ad__accountText">
-          <b>{user.name || "Admin"}</b>
-          <small>{ROLE_LABEL[role] ?? "Admin"}</small>
-        </span>
-        <ChevronDown className="ad__accountChev" aria-hidden="true" />
-      </button>
-      {open ? (
-        <div className="ad__popover ad__accountMenu" role="menu">
-          <div className="ad__accountMeta">
-            <b>{user.name || "Admin"}</b>
-            {user.email ? <span>{user.email}</span> : null}
-          </div>
-          <Link href="/admin/settings/account" role="menuitem" onClick={() => setOpen(false)}><UserRound aria-hidden="true" /> Your name and password</Link>
-          <MenuTheme />
-          <Link href="/" role="menuitem" onClick={() => setOpen(false)}><Globe aria-hidden="true" /> Back to website</Link>
-          <button type="button" role="menuitem" onClick={() => signOut(router, support)}><LogOut aria-hidden="true" /> {support ? "Exit support view" : "Sign out"}</button>
-        </div>
-      ) : null}
+    <div className={`adK${collapsed ? " is-mini" : ""}`}>
+      {brand}
+      {/* The menu scrolls; the foot below it never moves. */}
+      <div className="adK__scroll" data-lenis-prevent>
+        <KitNav items={main} label="Admin sections" mini={collapsed} />
+        {general.length ? <KitNav items={general} label="Help" mini={collapsed} /> : null}
+      </div>
+      {foot}
     </div>
   );
 }
@@ -469,8 +315,8 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
   const results = useMemo(() => {
     const needle = query.trim().toLowerCase();
     const pages = nav.flatMap((item) => [
-      { href: item.href, label: item.label, Icon: item.Icon },
-      ...(item.sub ?? []).filter((s) => s.href !== item.href).map((s) => ({ href: s.href, label: s.label, Icon: item.Icon })),
+      { href: item.href, label: item.label, icon: item.icon },
+      ...(item.sub ?? []).filter((s) => s.href !== item.href).map((s) => ({ href: s.href, label: s.label, icon: item.icon })),
     ]);
     return pages.filter((item) => !needle || item.label.toLowerCase().includes(needle));
   }, [query, nav]);
@@ -478,9 +324,9 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
   const recent = useMemo(() => (query.trim() ? [] : readRecent()), [query]);
   const q = encodeURIComponent(query.trim());
   const finds = [
-    { href: `/admin/clients?q=${q}#client-list`, label: "Clients", Icon: Users, area: "clients" as const },
-    { href: `/admin/projects?q=${q}#projects-table`, label: "Projects", Icon: FolderKanban, area: "projects" as const },
-    { href: `/admin/money?q=${q}#invoice-list`, label: "Invoices", Icon: Banknote, area: "money" as const },
+    { href: `/admin/clients?q=${q}#client-list`, label: "Clients", icon: "users" as KitIconName, area: "clients" as const },
+    { href: `/admin/projects?q=${q}#projects-table`, label: "Projects", icon: "folder" as KitIconName, area: "projects" as const },
+    { href: `/admin/money?q=${q}#invoice-list`, label: "Invoices", icon: "wallet" as KitIconName, area: "money" as const },
   ].filter((f) => can(role, f.area));
 
   useEffect(() => {
@@ -510,9 +356,9 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
           {recent.map((r) => (
             <Link key={r.href} href={r.href} onClick={onClose}><Search aria-hidden="true" /><span>{r.title}</span></Link>
           ))}
-          {results.length ? results.map(({ href, label, Icon }) => (
+          {results.length ? results.map(({ href, label, icon }) => (
             <Link key={href + label} href={href} onClick={onClose}>
-              <Icon aria-hidden="true" /><span>{label}</span>
+              <KitIcon name={icon} size={16} /><span>{label}</span>
             </Link>
           )) : null}
           {/* NOTHING IN THE MENU MATCHES: the words are probably a name or a
@@ -521,9 +367,9 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
           {!results.length && query.trim() ? (
             <>
               <p>No page is called that. Look for it in:</p>
-              {finds.map(({ href, label, Icon }) => (
+              {finds.map(({ href, label, icon }) => (
                 <Link key={href} href={href} onClick={onClose}>
-                  <Icon aria-hidden="true" /><span>{label} for “{query.trim()}”</span>
+                  <KitIcon name={icon} size={16} /><span>{label} for “{query.trim()}”</span>
                 </Link>
               ))}
             </>
@@ -550,12 +396,10 @@ function ShellFrame({ children, counts, user, support }: { children: ReactNode; 
   const path = usePathname();
   useRecordRecent(path);
   const [pinnedCollapsed, setPinnedCollapsed] = useState(false);
-  const [hoverExpanded, setHoverExpanded] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const drawer = useNavDrawer();
   const active = NAV.find((item) => isActive(item.href, path, item.also, item.exclude));
   const parent = parentOf(path);
-  const visuallyCollapsed = pinnedCollapsed && !hoverExpanded;
   const closeCommand = useCallback(() => setCommandOpen(false), []);
 
   useEffect(() => {
@@ -601,12 +445,8 @@ function ShellFrame({ children, counts, user, support }: { children: ReactNode; 
         <Search aria-hidden="true" /><span>Search clients, projects, invoices</span><kbd>Ctrl K</kbd>
       </button>
       <div className="ad__topActions">
-        <TourLauncher />
-        <ThemeButton />
         <Notifications openForms={counts.Forms ?? 0} failedMail={counts.FailedMail ?? 0} inReview={counts.Blog ?? 0} unchecked={Boolean(counts.Unchecked)} />
         <TopChoresSlot />
-        <span className="ad__topRule" aria-hidden="true" />
-        <AccountMenu user={user} />
       </div>
     </header>
   );
@@ -614,12 +454,8 @@ function ShellFrame({ children, counts, user, support }: { children: ReactNode; 
   return (
     <div className={`ad__wrap${pinnedCollapsed ? " is-collapsed" : ""}`}>
       <SheetDrag />
-      <aside
-        className={`ad__side${pinnedCollapsed && hoverExpanded ? " is-hoverExpanded" : ""}`}
-        onMouseEnter={() => pinnedCollapsed && setHoverExpanded(true)}
-        onMouseLeave={() => setHoverExpanded(false)}
-      >
-        <Sidebar collapsed={visuallyCollapsed} counts={counts} onTogglePin={togglePin} pinnedCollapsed={pinnedCollapsed} user={user} />
+      <aside className="ad__side" aria-label="Main">
+        <Sidebar collapsed={pinnedCollapsed} counts={counts} onTogglePin={togglePin} onExpand={() => (pinnedCollapsed ? togglePin() : drawer.show())} user={user} />
       </aside>
 
       <div className="ad__column">
@@ -630,8 +466,8 @@ function ShellFrame({ children, counts, user, support }: { children: ReactNode; 
         <ConfirmHost />
       </div>
 
-      <NavDrawer open={drawer.open} onClose={drawer.hide} label="Admin menu" tools={<ThemeButton />}>
-        <Sidebar counts={counts} user={user} />
+      <NavDrawer open={drawer.open} onClose={drawer.hide} label="Admin menu">
+        <Sidebar drawer counts={counts} user={user} onClose={drawer.hide} />
       </NavDrawer>
       {commandOpen ? <CommandPalette onClose={closeCommand} /> : null}
     </div>
