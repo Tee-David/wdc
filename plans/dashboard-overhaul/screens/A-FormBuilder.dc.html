@@ -1640,6 +1640,11 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 }
 .saveBar .sbBtns{display:flex;gap:8px;flex:none}
 .saveBar .sbBtns span{flex:none;font-weight:inherit}
+.attnCard { padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.attnRows { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 6px 12px; }
+.attnRow { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 12px; min-height: 56px; width: 100%; }
+.attnSec { font-size: 12px; font-weight: 600; color: var(--ad-dim); white-space: nowrap; }
+@container app (max-width: 420px) { .attnSec { display: none; } }
 
 </style>
 </helmet>
@@ -1760,6 +1765,12 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
             </sc-if>
 
             <sc-if value="{{ready}}" hint-placeholder-val="{{ true }}">
+            <sc-if value="{{hasAttn}}" hint-placeholder-val="{{ false }}">
+            <section class="card attnCard rise d1" aria-label="Settings that need you" data-tour="attn">
+              <div style="display: flex; align-items: center; gap: 8px"><h2 style="font-size: 16px; font-weight: 700; flex: 1">Needs you</h2><span class="tag num" style="background: var(--ad-tone-live); color: #fff">{{attnN}}</span></div>
+              <div class="attnRows"><sc-for list="{{attn}}" as="a" hint-placeholder-count="3"><button class="rowh attnRow" aria-label="{{a.aria}}" onClick="{{a.go}}"><span class="statIc" style="background: {{a.tone}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="{{a.d}}"></path></svg></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; text-align: left"><strong style="font-size: 14px">{{a.t}}</strong><span style="font-size: 13px; color: var(--ad-dim)">{{a.s}}</span></span><span class="attnSec">{{a.secLabel}}</span><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="color: var(--ad-dim); flex: none"><path d="m9 18 6-6-6-6"></path></svg></button></sc-for></div>
+            </section>
+            </sc-if>
             <div class="setGrid rise d2">
               <nav class="setNav" aria-label="Settings sections" data-tour="nav">
                 <sc-for list="{{sections}}" as="sc" hint-placeholder-count="6">
@@ -4310,7 +4321,9 @@ class Component extends DCLogic {
       return out;
     });
     var keysS = this.secKeys(sec), n = Object.keys(s.sv).filter(function (k) { return keysS.indexOf(k) >= 0; }).length, others = Object.keys(s.sv).length - n;
+    var attn = (M.attention ? M.attention(self) : []).map(function (a) { var si2 = M.sections.map(function (x) { return x.label; }).indexOf(a.sec); return { t: a.t, s: a.s, tone: a.tone || 'var(--ad-tone-live)', d: I[a.icon] || I.alert, secLabel: a.sec, aria: a.t + '. Opens ' + a.sec + '.', go: function () { if (si2 >= 0) self.setState({ sec: si2, ra: self.state.ra + 1 }); if (a.fn) setTimeout(function () { a.fn(self); }, 60); } }; });
     return Object.assign(this.kit(), this.extraVals(), {
+      hasAttn: attn.length > 0, attn: attn, attnN: attn.length,
       pageTitle: M.title || 'Settings', hasHeadAct: !!M.headAct, headActLabel: M.headAct ? M.headAct.label : '', headAct: M.headAct ? function () { M.headAct.fn(self); } : null, lede: M.lede, sections: sections, cards: cards, dirty: n > 0, secName: sec.label, dirtyText: n ? n + (n === 1 ? ' change not saved' : ' changes not saved') : 'Nothing to save here', otherNote: others ? others + ' on other tabs' : '', hasOther: others > 0, saveDis: n === 0 || errs > 0, discardDis: n === 0, saveWhy: n === 0 ? 'Change a setting on this tab and Save lights up.' : 'Fix the highlighted fields to save.', showWhy: n === 0 || errs > 0,
       discard: function () { self.discardSection(si); },
       save: function () { self.saveSection(si); },

@@ -10,6 +10,12 @@
             </div>
             %%SKEL%%
             <sc-if value="{{ready}}" hint-placeholder-val="{{ true }}">
+            <sc-if value="{{hasAttn}}" hint-placeholder-val="{{ false }}">
+            <section class="card attnCard rise d1" aria-label="Settings that need you" data-tour="attn">
+              <div style="display: flex; align-items: center; gap: 8px"><h2 style="font-size: 16px; font-weight: 700; flex: 1">Needs you</h2><span class="tag num" style="background: var(--ad-tone-live); color: #fff">{{attnN}}</span></div>
+              <div class="attnRows"><sc-for list="{{attn}}" as="a" hint-placeholder-count="3"><button class="rowh attnRow" aria-label="{{a.aria}}" onClick="{{a.go}}"><span class="statIc" style="background: {{a.tone}}"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="{{a.d}}"></path></svg></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; text-align: left"><strong style="font-size: 14px">{{a.t}}</strong><span style="font-size: 13px; color: var(--ad-dim)">{{a.s}}</span></span><span class="attnSec">{{a.secLabel}}</span><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="color: var(--ad-dim); flex: none"><path d="m9 18 6-6-6-6"></path></svg></button></sc-for></div>
+            </section>
+            </sc-if>
             <div class="setGrid rise d2">
               <nav class="setNav" aria-label="Settings sections" data-tour="nav">
                 <sc-for list="{{sections}}" as="sc" hint-placeholder-count="6">
