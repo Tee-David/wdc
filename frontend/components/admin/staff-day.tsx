@@ -3,7 +3,9 @@ import { Check, CheckCircle2, Clock, FolderKanban, Hourglass, Inbox, MessageSqua
 import { getClient, getDeliverablesFor, getProjects, getTasks, getTickets } from "@/lib/admin/store";
 import { taskIsWaiting, type Task } from "@/lib/admin/types";
 import { buildProjectRows } from "@/lib/admin/project-signals";
-import { markTaskDone } from "@/lib/admin/staff-day-actions";
+import { acceptHandoverNow, completeTeamTaskNow, markTaskDone, nudgeClientNow } from "@/lib/admin/staff-day-actions";
+import { db } from "@/lib/db/pool";
+import { waitingOnClients } from "@/lib/jobs/approval-reminders";
 import { toggleTask } from "@/lib/admin/actions";
 import { dateWords, nowMs } from "@/lib/admin/when";
 import { studioStamp } from "@/components/admin/calendar/studio-time";
@@ -54,7 +56,70 @@ export async function StaffDay({ me, params, firstName }: { me: { id: string; na
   const clientIds = new Set(mineRows.map((r) => r.project.clientId));
   const replies = getTickets().filter((t) => t.status === "Open" && clientIds.has(t.clientId));
 
-  const deck: DeckItem[] = open.slice(0, 8).map((t) => {
+  /* What other people are waiting on: persisted rows only, each card one press from done. */
+  const [handovers, teamTasks, waitingOn, nudged] = await Promise.all([
+    db.query<{ id: string; project_id: string; title: string; next_action: string; from_name: string; due_at: Date | null; created_at: Date }>(
+      `SELECT h.id,h.project_id,h.title,h.next_action,u.name AS from_name,h.due_at,h.created_at FROM workspace_handovers h JOIN "user" u ON u.id=h.from_user_id
+        WHERE h.to_user_id=$1 AND h.accepted_at IS NULL ORDER BY h.created_at LIMIT 5`, [me.id]).then((r) => r.rows, () => []),
+    db.query<{ id: string; project_id: string; title: string; due_at: Date | null; priority: string; blocked: boolean }>(
+      `SELECT t.id,t.project_id,t.title,t.due_at,t.priority,((t.handover_id IS NOT NULL AND h.accepted_at IS NULL) OR (t.blocked_by IS NOT NULL AND d.completed_at IS NULL)) AS blocked
+         FROM workspace_team_tasks t LEFT JOIN workspace_handovers h ON h.id=t.handover_id LEFT JOIN workspace_team_tasks d ON d.id=t.blocked_by
+        WHERE t.assignee_id=$1 AND t.completed_at IS NULL ORDER BY t.due_at NULLS LAST LIMIT 8`, [me.id]).then((r) => r.rows, () => []),
+    waitingOnClients(),
+    /* Reminded today (by the daily run or a nudge): the card rests until tomorrow. */
+    db.query<{ project_id: string }>(`SELECT DISTINCT project_id FROM workspace_events WHERE kind='review.reminder' AND created_at > now() - interval '20 hours'`).then((r) => new Set(r.rows.map((x) => x.project_id)), () => new Set<string>()),
+  ]);
+  const placeOf = (projectId: string) => { const p = projectOf.get(projectId), c = p ? getClient(p.clientId) : undefined; return { p, c, label: p ? `${c?.company ?? "Client"} · ${p.title}` : undefined }; };
+  const ago = (at: string) => { const h = Math.max(0, Math.round((now - Date.parse(at)) / 3_600_000)); return h < 24 ? `${h} ${h === 1 ? "hour" : "hours"}` : `${Math.round(h / 24)} ${Math.round(h / 24) === 1 ? "day" : "days"}`; };
+  const askFirst = { label: "Ask Admin first", href: "/admin/help?ask=1" };
+  const others: DeckItem[] = [
+    ...replies.slice(0, 3).map((t): DeckItem => {
+      const c = getClient(t.clientId), at = placeOf(t.projectId ?? "");
+      return {
+        id: `ticket-${t.id}`, kind: "Client waiting", urgency: ago(t.updatedAt), tone: now - Date.parse(t.updatedAt) > DAY ? "bad" : "warn",
+        label: at.label ?? c?.company, title: `Reply to ${c?.company ?? "the client"}: ${t.subject}`,
+        body: "Their question is open and nobody from the studio has answered since.",
+        facts: [{ k: "Client", v: c?.company ?? "Unknown" }, { k: "Asked", v: dateWords(t.createdAt, now, false) }],
+        why: "Anything about money or scope is Admin's call, so ask first if it touches either.",
+        primary: { label: "Reply", href: `/admin/messages?c=t-${t.id}` }, secondary: askFirst, open: `/admin/messages?c=t-${t.id}`,
+      };
+    }),
+    ...handovers.map((h): DeckItem => {
+      const at = placeOf(h.project_id), href = `/admin/projects/${h.project_id}?tab=activity#handover-${h.id}`;
+      return {
+        id: `handover-${h.id}`, kind: "Handover", urgency: h.due_at ? `Accept by ${dateWords(h.due_at.toISOString(), now, false)}` : "New", tone: "brand",
+        label: `From ${h.from_name}`, title: `Accept: ${h.title}`, body: `Next action: ${h.next_action}`,
+        facts: [{ k: "Project", v: at.p?.title ?? "Unknown" }, { k: "Handed over", v: dateWords(h.created_at.toISOString(), now, false) }],
+        why: "Tasks that hang on this handover cannot start until you accept it.",
+        primary: { label: "Accept handover", run: acceptHandoverNow.bind(null, h.project_id, h.id) }, secondary: { label: "See what is inside", href }, open: href,
+      };
+    }),
+    ...waitingOn.filter((w) => mineIds.has(w.projectId) && w.days >= 2 && !nudged.has(w.projectId)).map((w): DeckItem => {
+      const at = placeOf(w.projectId);
+      return {
+        id: `waiting-${w.projectId}`, kind: "Blocked", urgency: "Waiting on client", tone: w.days >= 5 ? "bad" : "warn", label: at.label,
+        title: `${at.c?.company ?? "The client"} has not decided on ${w.items.length === 1 ? w.items[0].title : `${w.items.length} items`}`,
+        body: `Shared ${w.days} days ago and still waiting for approval or changes.`,
+        facts: [{ k: "Waiting", v: `${w.days} days` }, { k: "Items", v: String(w.items.length) }],
+        why: w.days >= 5 ? "Admin sees this on Today from the fifth day." : "The work cannot move on until they answer.",
+        primary: { label: `Nudge ${at.c?.company ?? "the client"}`, run: nudgeClientNow.bind(null, w.projectId) },
+        secondary: { label: "Tell Admin", href: "/admin/help?ask=1" }, open: `/admin/projects/${w.projectId}?tab=approvals`,
+      };
+    }),
+    ...teamTasks.map((t): DeckItem => {
+      const at = placeOf(t.project_id), href = `/admin/projects/${t.project_id}?tab=activity#task-${t.id}`;
+      return {
+        id: `team-${t.id}`, kind: t.blocked ? "Blocked" : "Task", urgency: t.blocked ? "Waiting on a step" : t.due_at ? `Due ${dateWords(t.due_at.toISOString(), now, false)}` : "No date", tone: t.blocked ? "warn" : "brand",
+        label: at.label, title: t.title, body: t.blocked ? "A handover or an earlier task has to finish first." : `${t.priority} priority, assigned to you on ${at.p?.title ?? "a project"}.`,
+        facts: [{ k: "Project", v: at.p?.title ?? "Unknown" }, { k: "Priority", v: t.priority }],
+        why: t.blocked ? "Open it to see what it waits on." : "It is assigned to you by name.",
+        primary: t.blocked ? { label: "See what it waits on", href } : { label: "Complete task", run: completeTeamTaskNow.bind(null, t.project_id, t.id) },
+        secondary: { label: "Open project", href: `/admin/projects/${t.project_id}` }, handOver: { href }, open: href,
+      };
+    }),
+  ];
+
+  const deck: DeckItem[] = [...others, ...open.slice(0, 8).map((t): DeckItem => {
     const p = projectOf.get(t.projectId);
     const client = p ? getClient(p.clientId) : undefined;
     const days = day(t) ? Math.round((Date.parse(stamp.date) - Date.parse(day(t))) / DAY) : 0;
@@ -70,9 +135,10 @@ export async function StaffDay({ me, params, firstName }: { me: { id: string; na
       why: blocks.length ? "Finishing it unblocks the next task." : t.priority === "High" ? "It is marked high priority." : "It is the next thing on your list.",
       primary: { label: "Mark done", run: markTaskDone.bind(null, t.id) },
       secondary: p ? { label: "Open project", href: `/admin/projects/${p.id}` } : undefined,
+      handOver: p ? { href: `/admin/projects/${p.id}?tab=activity` } : undefined,
       open: p ? `/admin/projects/${p.id}?tab=tasks` : undefined,
     };
-  });
+  })];
 
   const tab: Tab = TABS.find(([k]) => k === one(params.t))?.[0] ?? "open";
   const lists: Record<Tab, Task[]> = { open, late, waiting, done: mine.filter((t) => t.done).sort((a, b) => (b.doneAt ?? "").localeCompare(a.doneAt ?? "")) };
@@ -111,7 +177,7 @@ export async function StaffDay({ me, params, firstName }: { me: { id: string; na
           <StatTiles items={[
             { label: "Due today", value: String(today.length), note: tomorrow.length ? `${tomorrow.length} more tomorrow` : late.length ? `${late.length} overdue` : "Nothing tomorrow", noteTone: late.length ? "bad" : tomorrow.length ? "accent" : undefined, icon: Clock, tone: "live", href: href({ t: "open", page: undefined }) },
             { label: "With clients", value: String(withClients.length), note: withClients.length ? `${withClients[0].d.name} and more waiting` : "Nothing waiting on a client", icon: Hourglass, tone: "brand" },
-            { label: "Replies waiting", value: String(replies.length), note: replies.length ? "Questions from your clients" : "No question is open", noteTone: replies.length ? "accent" : undefined, icon: MessageSquare, tone: "warn", href: "/admin/clients/support" },
+            { label: "Replies waiting", value: String(replies.length), note: replies.length ? "Questions from your clients" : "No question is open", noteTone: replies.length ? "accent" : undefined, icon: MessageSquare, tone: "warn", href: "/admin/messages?kind=client" },
             { label: "Done this week", value: String(doneWeek.length), note: doneWeek.length > doneBefore ? `${doneWeek.length - doneBefore} more than last week` : doneBefore ? `${doneBefore} last week` : "Starts counting as you finish", icon: CheckCircle2, tone: "good", href: href({ t: "done", page: undefined }) },
           ]} />
           <RailCard title="My projects" aside={mineRows.length ? `${mineRows.length} live` : undefined} link={{ href: "/admin/projects", label: "View all" }}>

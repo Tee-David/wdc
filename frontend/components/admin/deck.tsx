@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { ArrowRight, Check, Clock, Users } from "lucide-react";
 import Confetti from "@/components/onboarding/confetti";
 import "./deck.css";
+import { toast } from "./toast";
 
 /**
  * THE FOCUS DECK: what needs you, one card at a time.
@@ -161,6 +162,7 @@ export function Deck({
     try {
       const r = await item.primary.run();
       if (r && r.ok === false) { setNote(r.message ?? "That did not go through. Nothing was changed."); return; }
+      if (r?.message) toast(r.message, "good");
       stamp(e, item.id, "done");
       later(() => { finish(item.id); router.refresh(); }, 780);
     } catch {

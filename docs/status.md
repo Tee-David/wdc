@@ -421,3 +421,9 @@ Known ceiling: access covers the projects live when it is given; a project that 
 **Needs the owner:** apply migration `0056_colleague_invitations.sql` in Settings, System. Until then the section says it is not switched on yet.
 
 Production build (`next build`) at ae19839 passes: compiled, type checked, 136 pages generated (run without a database URL, so page-data collection logs "COCKROACHDB_URL is not configured" and carries on). Not run: the full Playwright suite; the deployed site was not checked.
+
+## 2026-10-26: My Day deck from real work
+
+- Staff My Day deck now carries, from persisted rows only: open client questions (Reply, Ask Admin first), handovers waiting for this person (Accept handover runs the project page's own action), work a client has not decided on for 2+ days (Nudge sends today's approval reminder; it shares the daily run's id so a client is never reminded twice in a day, and the card rests until tomorrow), and named team tasks (Complete task, or "See what it waits on" when blocked). Task cards gain Hand over.
+- The deck toasts a successful card action. "Replies waiting" goes to client Messages. The phone top bar reads My Day for staff. Three deck tools wrap to two rows on cards narrower than 360px.
+- Verified as the test staff account: accept a handover (row accepted), nudge (review.reminder recorded, toast, card gone on reload), no overflow at 320, 390, 834 dark and 1440.

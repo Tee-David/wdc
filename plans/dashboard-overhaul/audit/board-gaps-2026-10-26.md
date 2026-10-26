@@ -3,9 +3,9 @@
 Two read-only audits compared every canvas board's controls with the live code, plus a crawl of every live page (owner 400 pages, staff 200, client portal). No dead controls (toast-only or "#") were found and every page loads with a heading (two fixed: the error log, the Blog calendar link for staff). What remains is features the boards show that live does not have yet. Work through these in order; tick each when it ships.
 
 ## Staff
-- [ ] Staff Support: help articles for staff and "Ask Admin" (a direct chat with Admin), not the client-questions table
-- [ ] Staff Settings: notifications (what reaches you, quiet hours), working week, appearance
-- [ ] My Day deck: client waiting (reply), handover to accept, review asked, weekly update, blocked on client, Ask Admin first, Hand over on cards
+- [x] Staff Support: help articles for staff and "Ask Admin" (a direct chat with Admin), not the client-questions table
+- [x] Staff Settings: (appearance is the theme switch in the sidebar; quiet hours skipped, the morning email follows working days) notifications (what reaches you, quiet hours), working week, appearance
+- [x] My Day deck: client waiting (reply, Ask Admin first), handover to accept, blocked on client (Nudge), named team tasks, Hand over on cards. Not built: "review asked" and "weekly update" have no data model yet (no peer review requests or weekly updates exist in the app)
 - [ ] My Day tasks: In progress, In review, Blocked states, row menu, bulk start / send for review / hand over
 - [ ] My Day rail: content calendar card, sheets behind the week tiles, project steppers
 - [ ] Staff Projects and Clients: no New client or Start a project for staff, Your move and Waiting on client tabs, Message a client, calendar meetings for staff

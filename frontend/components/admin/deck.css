@@ -123,3 +123,9 @@
   .adDeck__stampIn, .adDeck__stampIn svg path, .adDeck__ring { animation: none; }
   .adDeck__stampIn svg path { stroke-dashoffset: 0; }
 }
+
+/* Three tools do not fit one row on the narrowest cards: two share a row and Open details takes the next. */
+@container adDeck (max-width: 360px) {
+  .adDeck__tools > *, .adDeck__tools .adDeck__snooze { flex: 1 1 calc(50% - .25rem); }
+  .adDeck__tools > :last-child:nth-child(odd) { flex-basis: 100%; }
+}

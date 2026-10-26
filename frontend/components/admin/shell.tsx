@@ -105,7 +105,6 @@ function allowed(role: AdminRole, href: string) {
 }
 function useNav() {
   const role = useContext(RoleContext);
-  /* Staff open to their own day, not the studio's Today. */
   /* Staff open to their own day, and their Support is the team's help centre (Ask Admin), not the client questions. */
   return useMemo(() => NAV.filter((item) => allowed(role, item.href)).map((item) => (role === "staff" && item.href === "/admin" ? { ...item, label: "My Day" } : role === "staff" && item.href === "/admin/clients/support" ? { ...item, href: "/admin/help" } : item)), [role]);
 }
@@ -399,7 +398,8 @@ function ShellFrame({ children, counts, user, support }: { children: ReactNode; 
   const [pinnedCollapsed, setPinnedCollapsed] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const drawer = useNavDrawer();
-  const active = NAV.find((item) => isActive(item.href, path, item.also, item.exclude));
+  const nav = useNav();
+  const active = nav.find((item) => isActive(item.href, path, item.also, item.exclude));
   const parent = parentOf(path);
   const closeCommand = useCallback(() => setCommandOpen(false), []);
 
