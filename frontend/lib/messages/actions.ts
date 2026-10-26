@@ -147,3 +147,21 @@ export async function signChatUpload(input: { threadKey: string; filename: strin
   if (!KEY.test(String(input?.threadKey ?? ""))) return { ok: false as const, error: "That conversation could not be found." };
   return signChatFile(input.threadKey, String(input.filename ?? "").slice(0, 200), Number(input.size));
 }
+
+/**
+ * ASK ADMIN (staff Support): the question goes into the person's direct chat
+ * with Admin, so the answer lands in Messages and nothing needs a second inbox.
+ * Uses the same path as starting a chat, which reuses the direct chat if there
+ * is one.
+ */
+export async function askAdmin(prev: ActionState, fd: FormData): Promise<ActionState> {
+  const kind = ["Question", "Problem", "Request"].find((k) => k === value(fd, "kind")) ?? "Question";
+  const about = value(fd, "about").slice(0, 80), body = value(fd, "body");
+  if (body.length < 5) return FAIL({ body: "Say what you need from Admin." });
+  const owner = await db.query<{ id: string }>(`SELECT "id" FROM "user" WHERE "role"='owner' AND "deactivatedAt" IS NULL ORDER BY "createdAt" LIMIT 1`).then((r) => r.rows[0]?.id, () => undefined);
+  if (!owner) return FAIL({}, NOT_READY);
+  const next = new FormData();
+  next.set("people", owner);
+  next.set("body", `${kind}${about ? `, about ${about}` : ""}:\n${body}`);
+  return startTeamThread(prev, next);
+}

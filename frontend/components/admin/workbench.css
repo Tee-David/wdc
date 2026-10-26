@@ -257,3 +257,7 @@ a.adRc__row:hover, button.adRc__row:hover, a.adRc__row.on, button.adRc__row.on {
 .adPlan__shared details { border-top: 1px solid var(--ad-line); padding-top: .35rem; }
 .adPlan__shared summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }
 .adPlan__shared p { margin: 0 0 .5rem; white-space: pre-line; overflow-wrap: anywhere; font-size: .875rem; }
+/* Steps inside a help article (staff Support). */
+.adHelp__steps { margin: 0 0 .75rem; padding-left: 1.25rem; display: grid; gap: .5rem; }
+.adHelp__steps li { display: grid; gap: 2px; }
+.adHelp__steps li span { color: var(--ad-dim); font-size: .875rem; }
