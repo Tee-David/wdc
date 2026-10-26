@@ -1,0 +1,140 @@
+/* THE SIDEBAR AND THE PHONE DRAWER (side-kit.tsx), ported from the kit
+   (design/dashboards/kit/kit.css: .side, .nav, .sideFoot, .footRow, .profile,
+   .installC, .drawerP). Values are the kit's; colours are the --ad-* tokens. */
+
+.adK__ic { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; transition: transform .22s var(--ad-ease); }
+
+/* ------------------------------------------------------------ the sidebar */
+.adK { position: sticky; top: 0; display: flex; flex-direction: column; gap: 14px; padding: 18px 14px; height: 100dvh; min-width: 0; }
+.adK__brand { display: flex; align-items: center; gap: 10px; padding: 2px 4px; min-width: 0; color: var(--ad-ink); text-decoration: none; }
+.adK__mark { width: 40px; height: 40px; flex: none; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--ad-line); background: var(--ad-panel); overflow: hidden; }
+.adK__mark svg { width: 30px; height: 30px; }
+.adK__brandText { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.adK__brandText b { font: 700 16px/1.2 var(--font-space-grotesk), system-ui, sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.adK__brandText small { font-size: 12px; color: var(--ad-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.adK__scroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: 18px; margin: 0 -6px; padding: 2px 6px; overscroll-behavior: contain; scrollbar-width: thin; }
+
+.adK__nav { display: flex; flex-direction: column; gap: 2px; }
+.adK__nav + .adK__nav { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--ad-line); }
+.adK__link { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 12px; color: var(--ad-dim); font: 500 .9375rem/1 var(--font-body); width: 100%; white-space: nowrap; text-decoration: none; transition: background .15s, color .15s; }
+.adK__link:hover { background: var(--ad-hover); color: var(--ad-ink); }
+.adK__link:hover .adK__ic { transform: translateX(2px); }
+.adK__link.on, .adK__link.on:hover { background: var(--ad-nav-on); color: var(--ad-nav-on-ink); font-weight: 600; }
+.adK__link:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
+.adK__icWrap { position: relative; display: inline-flex; }
+/* The icons draw on as the menu arrives, one after the other. */
+.adK__nav .adK__ic path { stroke-dasharray: 1; animation: adK-draw 1.1s var(--ad-ease) backwards; }
+.adK__navItem:nth-child(2) .adK__ic path { animation-delay: .06s; }
+.adK__navItem:nth-child(3) .adK__ic path { animation-delay: .12s; }
+.adK__navItem:nth-child(4) .adK__ic path { animation-delay: .18s; }
+.adK__navItem:nth-child(5) .adK__ic path { animation-delay: .24s; }
+.adK__navItem:nth-child(6) .adK__ic path { animation-delay: .3s; }
+.adK__navItem:nth-child(7) .adK__ic path { animation-delay: .36s; }
+.adK__navItem:nth-child(n+8) .adK__ic path { animation-delay: .42s; }
+@keyframes adK-draw { from { stroke-dashoffset: 1; } }
+
+.adK__count, .adK__tag { display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; color: #fff; font: 600 11px/1 var(--font-space-grotesk), system-ui, sans-serif; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.adK__count { position: absolute; top: -9px; right: -12px; height: 18px; min-width: 18px; padding: 0 5px; border: 2px solid var(--ad-panel); }
+.adK__tag { height: 24px; min-width: 24px; padding: 0 9px; font-size: 12px; }
+.adK__count--brand { background: var(--ad-tone-brand); }
+.adK__count--bad { background: var(--ad-tone-bad); }
+.adK__count--warn { background: var(--ad-tone-warn); }
+.adK__count--live { background: var(--ad-tone-live); }
+
+.adK__sub { display: grid; gap: 2px; margin: 4px 0 6px 22px; padding-left: 12px; border-left: 1px solid var(--ad-line); }
+.adK__subLink { min-height: 40px; padding: 0 12px; display: flex; align-items: center; border-radius: 10px; color: var(--ad-dim); font-size: .85rem; font-weight: 500; white-space: nowrap; text-decoration: none; transition: background .15s, color .15s; }
+.adK__subLink:hover { background: var(--ad-hover); color: var(--ad-ink); }
+.adK__subLink.on { color: var(--ad-ink); font-weight: 700; background: var(--ad-hover); }
+
+/* Tooltips, shown only when the sidebar is a rail. */
+.adK__tip { position: relative; }
+.adK__tip::after { content: attr(data-tip); position: absolute; left: calc(100% + 12px); top: 50%; transform: translate(-4px, -50%); opacity: 0; pointer-events: none; background: var(--ad-ink); color: var(--ad-bg); font: 600 12px var(--font-body); padding: 6px 10px; border-radius: 8px; white-space: nowrap; transition: opacity .15s, transform .15s var(--ad-ease); z-index: 60; }
+.adK.is-mini .adK__tip:hover::after, .adK.is-mini .adK__tip:focus-visible::after, .adK .adK__collapse:hover::after { opacity: 1; transform: translate(0, -50%); }
+
+/* ------------------------------------------------------------------- foot */
+.adK__foot { display: flex; flex-direction: column; gap: 10px; padding-top: 12px; border-top: 1px solid var(--ad-line); }
+.adK__footRow { display: flex; gap: 6px; }
+.adK__footBtn { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 10px; border-radius: 12px; border: 1px solid var(--ad-line); background: var(--ad-panel); color: var(--ad-dim); font: 600 13px var(--font-body); white-space: nowrap; cursor: pointer; transition: background .18s, color .18s, border-color .18s, transform .2s var(--ad-spring); }
+.adK__footBtn:hover { border-color: var(--ad-ink); color: var(--ad-ink); background: var(--ad-hover); }
+.adK__footBtn:hover .adK__ic { transform: rotate(-12deg); }
+.adK__footBtn:active { transform: scale(.95); }
+.adK__footBtn:focus-visible, .adK__ibtn:focus-visible, .adK__btn2:focus-visible, .adK__xmini:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
+.adK__collapse { flex: none; width: 44px; padding: 0; }
+.adK__railOnly { display: none !important; }
+
+.adK__ibtn { width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; flex: none; border-radius: 12px; border: 1px solid var(--ad-line); background: var(--ad-panel); color: var(--ad-ink); cursor: pointer; transition: border-color .18s, background .18s, color .18s, transform .22s var(--ad-spring); }
+.adK__ibtn:hover { border-color: var(--ad-ink); background: var(--ad-hover); }
+.adK__ibtn:active { transform: scale(.96); }
+.adK__signOut { width: 40px; height: 40px; color: var(--ad-bad-ink); }
+.adK__signOut:hover, .adK__xBtn:hover { background: var(--ad-tone-bad); border-color: var(--ad-tone-bad); color: #fff; }
+.adK__xBtn:hover .adK__ic { transform: rotate(90deg); }
+.adK__signOut::before { content: ""; position: absolute; inset: -2px; }
+
+.adK__profile { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 16px; border: 1px solid var(--ad-line); background: var(--ad-panel-2); }
+.adK__me { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; min-height: 44px; border-radius: 12px; color: inherit; text-decoration: none; }
+.adK__me:hover .adK__who strong { text-decoration: underline; text-underline-offset: 2px; }
+.adK__me:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
+.adK.is-mini .adK__me { flex: none; justify-content: center; }
+.adK__av { width: 38px; height: 38px; flex: none; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 50%; background: var(--ad-tone-brand); color: #fff; font: 700 13px var(--font-space-grotesk), system-ui, sans-serif; }
+.adK__av img { width: 100%; height: 100%; object-fit: cover; }
+.adK__who { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.adK__who strong { font-size: .9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ad-ink); }
+.adK__who span { font-size: 12px; color: var(--ad-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.adK__install { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 16px; border: 1px solid var(--ad-line); background: var(--ad-panel); }
+.adK__installHead { display: flex; gap: 10px; align-items: center; padding-right: 26px; }
+.adK__installHead strong { font-size: 13px; line-height: 1.3; color: var(--ad-ink); }
+.adK__installTile { width: 34px; height: 34px; flex: none; display: flex; align-items: center; justify-content: center; border-radius: 10px; background: var(--ad-tone-brand); color: #fff; }
+.adK__dim, .adK__installNote { font-size: 12px; color: var(--ad-dim); line-height: 1.4; }
+.adK__installNote { flex-basis: 100%; margin: 0; }
+.adK__xmini { position: absolute; top: 6px; right: 6px; width: 32px; height: 32px; border: 0; border-radius: 9px; display: flex; align-items: center; justify-content: center; background: transparent; color: var(--ad-dim); cursor: pointer; transition: background .15s, color .15s; }
+.adK__xmini::before { content: ""; position: absolute; inset: -6px; }
+.adK__xmini:hover { background: var(--ad-tone-bad); color: #fff; }
+.adK__instBar { height: 6px; border-radius: 99px; background: var(--ad-line); overflow: hidden; }
+.adK__instBar span { display: block; height: 100%; background: var(--ad-series-1); border-radius: 99px; transform-origin: left; animation: adK-grow 1.6s var(--ad-ease) forwards; }
+@keyframes adK-grow { from { transform: scaleX(.04); } to { transform: scaleX(1); } }
+.adK__btn2 { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 8px 16px; border-radius: 12px; border: 1px solid var(--ad-line); background: var(--ad-panel); color: var(--ad-ink); font: 600 .875rem/1.25 var(--font-body); cursor: pointer; transition: background .18s, color .18s, border-color .18s, transform .22s var(--ad-spring); }
+.adK__btn2:hover { border-color: var(--ad-ink); background: var(--ad-hover); transform: translateY(-1px); }
+.adK__installRow { display: flex; flex-wrap: wrap; gap: 6px; }
+.adK__installRow .adK__btn2 { flex: 1; justify-content: flex-start; min-height: 44px; }
+
+/* ------------------------------------------------------- the rail (mini) */
+.adK.is-mini .adK__lbl { display: none !important; }
+.adK.is-mini .adK__railOnly { display: inline-flex !important; align-self: center; }
+.adK.is-mini .adK__brand { justify-content: center; }
+.adK.is-mini .adK__scroll { overflow: visible; }
+.adK.is-mini .adK__link { justify-content: center; padding: 0; }
+.adK.is-mini .adK__footRow { flex-direction: column; align-items: center; }
+.adK.is-mini .adK__footBtn { flex: none; width: 44px; padding: 0; }
+.adK.is-mini .adK__profile { flex-direction: column; padding: 8px 4px; gap: 6px; }
+
+/* Rail mode on a tablet (641 to 900px): the same as collapsed, whatever the saved choice. */
+@media (min-width: 641px) and (max-width: 900px) {
+  .ad__side .adK .adK__lbl { display: none !important; }
+  .ad__side .adK .adK__railOnly { display: inline-flex !important; align-self: center; }
+  .ad__side .adK .adK__collapse { display: none !important; }
+  .ad__side .adK .adK__brand { justify-content: center; }
+  .ad__side .adK .adK__scroll { overflow: visible; }
+  .ad__side .adK .adK__link { justify-content: center; padding: 0; }
+  .ad__side .adK .adK__footRow { flex-direction: column; align-items: center; }
+  .ad__side .adK .adK__footBtn, .ad__side .adK .tourLauncher__btn--foot.adK__footBtn { flex: none; width: 44px; padding: 0; }
+  .ad__side .adK .adK__profile { flex-direction: column; padding: 8px 4px; gap: 6px; }
+  .ad__side .adK .adK__tip:hover::after, .ad__side .adK .adK__tip:focus-visible::after { opacity: 1; transform: translate(0, -50%); }
+}
+
+/* ---------------------------------------------------------- the drawer */
+.adK--drawer { position: static; height: 100%; padding: 0; gap: 0; }
+.adK__drawHead { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--ad-line); }
+.adK__drawHead .adK__brand { flex: 1; padding: 0; }
+.adK__drawHead .adK__mark { width: 38px; height: 38px; }
+.adK--drawer .adK__scroll { margin: 0; padding: 12px 16px; gap: 12px; }
+.adK--drawer .adK__foot { padding: 12px 16px calc(14px + env(safe-area-inset-bottom)); background: var(--ad-panel); }
+
+@media (prefers-reduced-motion: reduce) {
+  .adK__nav .adK__ic path, .adK__instBar span { animation: none; }
+  .adK__ic, .adK__link, .adK__footBtn, .adK__ibtn, .adK__btn2, .adK__tip::after { transition: none; }
+}
+
+/* The label takes the row, so a count in the drawer sits at its end (the kit's flex: 1 span). */
+.adK__link > .adK__lbl { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.adK__brand { min-height: 44px; }

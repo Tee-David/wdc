@@ -66,7 +66,7 @@
   position: absolute; right: 0; bottom: calc(100% + .4rem); z-index: 10; min-width: 13rem; padding: .35rem; display: grid;
   background: var(--ad-panel); color: var(--ad-ink); border: 1px solid var(--ad-line); border-radius: 16px; box-shadow: var(--ad-sh-3);
 }
-.adDeck__menu button { display: flex; justify-content: space-between; align-items: center; gap: 1rem; min-height: 2.75rem; padding: 0 .75rem; border: 0; border-radius: 12px; background: transparent; color: inherit; font: 600 .88rem/1 var(--font-outfit), system-ui, sans-serif; cursor: pointer; }
+.adDeck__menu button { display: flex; justify-content: space-between; align-items: center; gap: 1rem; text-align: left; white-space: nowrap; min-height: 2.75rem; padding: 0 .75rem; border: 0; border-radius: 12px; background: transparent; color: inherit; font: 600 .88rem/1 var(--font-outfit), system-ui, sans-serif; cursor: pointer; }
 .adDeck__menu button small { color: var(--ad-dim); font-weight: 400; font-size: .75rem; }
 .adDeck__menu button:hover { background: var(--ad-hover); }
 .adDeck__menu button:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: -2px; }
@@ -78,6 +78,11 @@
   .adDeck__tools { flex: 1 1 100%; }
   .adDeck__tools > *, .adDeck__tools .adDeck__snooze { flex: 1 1 0; min-width: 0; }
   .adDeck__tools .adDeck__btn { width: 100%; padding: 0 .6rem; }
+  /* On a phone Snooze is the first tool, so a menu pinned to its right edge ran
+     off the card's left side and was clipped. It spans the tools row instead. */
+  .adDeck__tools { position: relative; }
+  .adDeck__tools .adDeck__snooze { position: static; }
+  .adDeck__menu { left: 0; right: 0; min-width: 0; }
   .adDeck__label { margin-left: 0; flex-basis: 100%; }
 }
 

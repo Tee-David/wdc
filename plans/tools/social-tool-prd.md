@@ -4,6 +4,8 @@ Product requirements document. Draft for the owner (Tee-David). Written 26 Oct 2
 
 Status: proposal. Nothing in this document is built. No code was changed in any repository to write it.
 
+Owner's decision (26 Oct 2026): run Postiz unmodified behind WDC. Everything a client or a staff member sees is WDC: WDC's name, logo, screens and emails. The name "Postiz" appears only in the licence notices the AGPL requires. The owner does not mind the licence saying so; clients must not see it as the product.
+
 Writing standard: this document follows ASD-STE100 Simplified Technical English rules where practical. It is not a certified STE document.
 
 ---

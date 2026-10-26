@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { X } from "lucide-react";
 
 /**
  * THE SIDEBAR ON A PHONE (the owner's ask: the same sidebar on mobile
@@ -47,20 +46,30 @@ export function MenuButton({ onClick, expanded, tour }: { onClick: () => void; e
   );
 }
 
-export function NavDrawer({ open, onClose, label, children, tools }: {
+export function NavDrawer({ open, onClose, label, children }: {
   open: boolean;
   onClose: () => void;
   label: string;
+  /** The drawer's whole content: the sidebar in its drawer form, with its own close cross. */
   children: React.ReactNode;
-  /** Beside the close button: the theme switch, which the phone's top bar has no room for. */
-  tools?: React.ReactNode;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  /* Kept on screen for the slide out (the kit's drawerOut, 220ms), then closed. */
+  const [shown, setShown] = useState(open);
   useEffect(() => {
     const d = ref.current;
     if (!d) return;
-    if (open && !d.open) d.showModal();
-    if (!open && d.open) d.close();
+    if (open) {
+      const id = window.setTimeout(() => setShown(true), 0);
+      if (!d.open) d.showModal();
+      d.classList.remove("is-out");
+      return () => window.clearTimeout(id);
+    }
+    if (!d.open) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    d.classList.add("is-out");
+    const id = window.setTimeout(() => { d.classList.remove("is-out"); d.close(); setShown(false); }, reduce ? 0 : 220);
+    return () => window.clearTimeout(id);
   }, [open]);
 
   return (
@@ -68,7 +77,7 @@ export function NavDrawer({ open, onClose, label, children, tools }: {
       ref={ref}
       className="adDrawer"
       aria-label={label}
-      onClose={onClose}
+      onCancel={(e) => { e.preventDefault(); onClose(); }}
       onClick={(e) => {
         /* The backdrop is the dialog's own pseudo-element, so its clicks land
            on the dialog itself; a click on a link inside closes it too. */
@@ -76,17 +85,10 @@ export function NavDrawer({ open, onClose, label, children, tools }: {
         else if ((e.target as HTMLElement).closest("a[href]")) onClose();
       }}
     >
-      {open ? (
+      {open || shown ? (
         /* Opening a dialog focuses its first control, and a phone draws the
-           ring for that: the theme switch lit up on every tap of the menu.
-           The panel takes that first focus instead; Tab goes on from it. */
-        <div className="adDrawer__in" tabIndex={-1} autoFocus>
-          <div className="adDrawer__bar">
-            {tools}
-            <button type="button" className="ad__topIcon adDrawer__x" onClick={onClose} aria-label="Close the menu"><X aria-hidden="true" /></button>
-          </div>
-          {children}
-        </div>
+           ring for that. The panel takes that first focus instead. */
+        <div className="adDrawer__in" tabIndex={-1} autoFocus>{children}</div>
       ) : null}
     </dialog>
   );

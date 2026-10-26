@@ -232,7 +232,15 @@ export async function AdminDashboardView({ firstName, money = true, me, params }
   /* THE DECK: the worst thing first. Built from the same queue the panel used
      to list, so nothing that needed attention stops being shown; a card says
      what kind of thing it is, how urgent, and where it is dealt with. */
-  const deckItems: DeckItem[] = attention.slice(0, 12).map((item, i) => ({
+  /* A monthly plan's part, drafted on the day it fell due, waits here for Admin to send. Never sent by itself. */
+  const retainerDrafts: DeckItem[] = money ? invoices.filter((i) => i.retainerId && i.status === "Draft" && !i.voided).map((i) => ({
+    id: `ret-${i.id}`, kind: "Money", urgency: "Draft ready", tone: "live" as const, label: i.number,
+    title: `Send ${getClient(i.clientId)?.company ?? "the client"}'s retainer invoice`,
+    body: `${i.lines[0]?.description ?? "This month's plan"}. Drafted from their monthly plan; check it, then send it with the pay link.`,
+    facts: [{ k: "Amount", v: naira(invoiceTotals(i).total) }, { k: "Invoice", v: i.number }],
+    primary: { label: "Open and send", href: `/admin/money/${i.id}` }, secondary: { label: "Open the client", href: `/admin/clients/${i.clientId}` }, open: `/admin/money/${i.id}`,
+  })) : [];
+  const deckItems: DeckItem[] = [...retainerDrafts, ...attention.slice(0, 12).map((item, i): DeckItem => ({
     id: `${item.href}#${i}`,
     kind: kindFor(item.icon),
     urgency: item.tone === "bad" ? "Needs you now" : item.tone === "warn" ? "Waiting" : "Open",
@@ -242,7 +250,7 @@ export async function AdminDashboardView({ firstName, money = true, me, params }
     body: item.detail,
     primary: { label: ctaFor(item.icon), href: item.href },
     open: item.href,
-  }));
+  }))];
 
   /* LATER TODAY: the day's meetings, what falls due and what is due, in time order. */
   const todayIso = lagosDay(0);
