@@ -5,6 +5,7 @@ import { ensureCustomForms } from "./custom";
 import { db } from "@/lib/db/pool";
 import { isQuestion, stepsFor } from "@/lib/onboarding";
 import { displayAnswers, shownInBrief } from "@/lib/onboarding-aliases";
+import { isUnsure } from "@/lib/onboarding-shared";
 import { findDuplicateClient, getClient } from "@/lib/admin/store";
 import { linksFor } from "./links";
 import type { ServiceSlug } from "@/lib/services";
@@ -319,6 +320,12 @@ const has = (v: unknown) => (Array.isArray(v) ? v.length > 0 : Boolean(v && Stri
 export function answeredCount(service: ServiceSlug, answers: Entry["answers"]) {
   const fields = stepsFor(service).flatMap((s) => s.fields).filter((f) => isQuestion(f) && shownInBrief(service, f, answers));
   return { answered: fields.filter((f) => has(answers[f.key])).length, total: fields.length };
+}
+
+/** The questions the client answered "I'm not sure, please advise me": what the studio owes them an answer on. */
+export function adviceAsked(service: ServiceSlug, answers: Entry["answers"]) {
+  return stepsFor(service).flatMap((s) => s.fields.filter((f) => isQuestion(f) && shownInBrief(service, f, answers)).map((f) => ({ key: f.key, label: f.label, step: s.title })))
+    .filter((f) => { const v = answers[f.key]; return Array.isArray(v) ? v.some(isUnsure) : isUnsure(v); });
 }
 
 /** The client a brief or enquiry belongs to, by its email or phone. */
