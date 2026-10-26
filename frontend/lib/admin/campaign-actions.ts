@@ -104,7 +104,8 @@ export async function duplicateCampaignAction(_p: ActionState, fd: FormData): Pr
   const { getCampaign } = await import("@/lib/campaigns");
   const c = await getCampaign(text(fd, "id"));
   if (!c) return FAIL({}, "That campaign is no longer there.");
-  const n = await createCampaign(`${c.title} (copy)`, c.design, await actorName());
+  /* Older campaigns predate the preheader and heading fields: an empty one is what they always showed. */
+  const n = await createCampaign(`${c.title} (copy)`, { ...c.design, preheader: c.design.preheader ?? "", heading: c.design.heading ?? "" }, await actorName());
   if (!n) return FAIL({}, "The copy could not be made just now.");
   await updateCampaign(n, { audience: c.audience, track: c.track });
   redirect(`/admin/email/campaigns/${n}`);
