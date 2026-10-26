@@ -86,6 +86,16 @@ export function Deck({
   const [cleared, setCleared] = useState<Record<string, true>>({});
   const [leaving, setLeaving] = useState<Leaving | null>(null);
   const [menu, setMenu] = useState(false);
+  const snoozeRef = useRef<HTMLDivElement>(null);
+  /* The menu closes on a press outside it and on Esc, like every other menu. */
+  useEffect(() => {
+    if (!menu) return;
+    const out = (e: PointerEvent) => { if (!snoozeRef.current?.contains(e.target as Node)) setMenu(false); };
+    const esc = (e: globalThis.KeyboardEvent) => { if (e.key === "Escape") { setMenu(false); snoozeRef.current?.querySelector("button")?.focus(); } };
+    document.addEventListener("pointerdown", out);
+    document.addEventListener("keydown", esc);
+    return () => { document.removeEventListener("pointerdown", out); document.removeEventListener("keydown", esc); };
+  }, [menu]);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
   const [celebrate, setCelebrate] = useState(false);
@@ -235,7 +245,7 @@ export function Deck({
               {top.secondary ? <Link className="adDeck__btn" href={top.secondary.href}>{top.secondary.label}</Link> : null}
               <span className="adDeck__sp" />
               <div className="adDeck__tools">
-                <div className="adDeck__snooze">
+                <div className="adDeck__snooze" ref={snoozeRef}>
                   <button type="button" className="adDeck__btn" aria-haspopup="menu" aria-expanded={menu} onClick={() => setMenu((m) => !m)}><Clock aria-hidden="true" />Snooze</button>
                   {menu ? (
                     <div className="adDeck__menu" role="menu" aria-label="Bring it back">
