@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { BulkBar, PickAll, RowPick } from "@/components/admin/bulk";
-import { CheckCircle2, Clock, Inbox, LifeBuoy, MessageSquare } from "lucide-react";
+import { BookOpen, CheckCircle2, Clock, Inbox, LifeBuoy, MessageSquare, Pencil, Plus } from "lucide-react";
 import { getClient, getProject, getTicketMessages, getTickets } from "@/lib/admin/store";
+import { siteFaqs } from "@/lib/site-content";
+import { SERVICES } from "@/lib/services";
 import { adminRole } from "@/lib/admin/guard";
 import { can } from "@/lib/admin/permissions";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
@@ -20,7 +22,7 @@ import { ChoresMenu } from "@/components/admin/chores-menu";
 
 export const metadata = { title: "Support" };
 
-type Query = { q?: string; status?: string; page?: string; per?: string };
+type Query = { q?: string; status?: string; page?: string; per?: string; aq?: string; ap?: string };
 const STATUS = ["Open", "Answered", "Closed"] as const;
 const PILL: Record<string, string> = { Open: "ad__pill--warn", Answered: "ad__pill--good", Closed: "ad__pill--flat" };
 /* "Open" is how the table stores it; to the studio it means the next move is theirs. */
@@ -82,6 +84,11 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
   const closedWeek = all.filter((r) => r.t.status === "Closed" && Date.parse(r.t.updatedAt) >= now - 7 * 86_400_000).length;
   const href = (patch: Partial<Query>) => queryHref({ ...query, ...patch, page: undefined }, {}).replace("#tickets", "");
 
+  /* THE ARTICLES CLIENTS READ in their Support page: the help centre's questions, edited in one place with history. */
+  const { faqs } = await siteFaqs();
+  const aq = query.aq?.trim().toLocaleLowerCase() ?? "";
+  const articles = faqs.map((f, i) => ({ f, i })).filter(({ f }) => !aq || `${f.q} ${f.a}`.toLocaleLowerCase().includes(aq));
+  const aper = 5, apage = Math.min(Math.max(1, Number(query.ap) || 1), Math.max(1, Math.ceil(articles.length / aper)));
   const deck: DeckItem[] = waiting.slice(0, 8).map(({ t, client, last, project }) => ({
     id: `t-${t.id}`, kind: "Question", urgency: `Opened ${dateWords(t.createdAt, now, false)}`, tone: "warn", label: project?.title ?? client?.company,
     title: t.subject,
@@ -102,7 +109,11 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
     <>
       <PageHead title="Support"
         lede={<>{counts.Open + counts.Answered} open {counts.Open + counts.Answered === 1 ? "question" : "questions"}. <strong>{median === null ? "No reply has been sent yet." : `Median first reply is ${words(median)}.`}</strong></>}
-        chores={<ChoresMenu label="support, more" items={[{ label: "Help centre articles", href: "/admin/settings/faq", icon: "file" }, { label: "Clients", href: "/admin/clients", icon: "users" }]} />} />
+        chores={<ChoresMenu label="support, more" items={[
+          { label: "Help centre articles", href: "/admin/settings/faq", icon: "file" },
+          ...(role === "owner" ? [{ label: "Export questions (CSV)", href: `/admin/clients/support/export?${new URLSearchParams({ ...(status ? { status } : {}), ...(query.q ? { q: query.q } : {}) })}`, icon: "file" as const }] : []),
+          { label: "Clients", href: "/admin/clients", icon: "users" },
+        ]} />} />
       <Workbench
         railLabel="Support pulse"
         rail={<>
@@ -159,6 +170,28 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
           ) : (
             <Empty title="No questions yet" icon={LifeBuoy}>When a client asks something from their portal it lands here, and you are emailed.</Empty>
           )}
+        </section>
+        <section className="adList" aria-label="Help articles" id="articles">
+          <div className="adList__hd"><h2>Help articles</h2><span className="adList__n">{faqs.length}</span><span className="adList__sp" />
+            <UrlSearch label="Search articles" placeholder="Search articles" param="aq" />
+            {role === "owner" ? <Link className="ad__btn" href="/admin/settings/faq"><Plus aria-hidden="true" />New article</Link> : null}
+          </div>
+          {articles.length ? (
+            <>
+              <ul className="adRc__list adList__pad" style={{ listStyle: "none", margin: 0, display: "grid", gap: ".25rem" }}>
+                {articles.slice((apage - 1) * aper, apage * aper).map(({ f, i }) => (
+                  <li key={i} className="adPpl">
+                    <span className="adMk adMk--brand" aria-hidden="true"><BookOpen /></span>
+                    <div><b>{f.q}</b><small>{f.services?.length ? f.services.map((x) => SERVICES.find((v) => v.slug === x)?.short ?? x).join(", ") : "Every service"} · {f.a.length > 90 ? `${f.a.slice(0, 89)}…` : f.a}</small></div>
+                    {role === "owner" ? <Link className="ad__btn" href="/admin/settings/faq" aria-label={`Edit ${f.q}`}><Pencil aria-hidden="true" />Edit</Link> : null}
+                  </li>
+                ))}
+              </ul>
+              {articles.length > aper ? <Pager label="Article pages" total={articles.length} page={apage} per={aper} noun="articles"
+                href={(patch) => `/admin/clients/support?${new URLSearchParams({ ...(query.status ? { status: query.status } : {}), ...(query.aq ? { aq: query.aq } : {}), ...(patch.page && patch.page > 1 ? { ap: String(patch.page) } : {}) })}#articles`} /> : null}
+            </>
+          ) : <Empty title={aq ? "No article matches" : "No articles yet"} icon={BookOpen} action={aq ? <Link className="ad__btn" href="/admin/clients/support#articles">Clear search</Link> : undefined}>{aq ? "Try another word." : "Articles answer the questions clients ask most, on their Support page."}</Empty>}
+          <p className="ad__dim adList__pad" style={{ margin: 0, fontSize: ".85rem" }}>Clients read these on their Support page. Editing keeps every earlier version, so a removed article can be restored from its history.</p>
         </section>
       </Workbench>
     </>
