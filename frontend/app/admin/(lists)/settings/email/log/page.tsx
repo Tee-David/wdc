@@ -65,12 +65,11 @@ export default async function MessageLogPage({ searchParams }: Props) {
 
   return (
     <>
-      <Head title="Message log" line={`Every email the site sent, kept ${days} days.`}>
+      <Head title="Message log" line={`Every email the site sent, kept ${days} days.`} chores={<LogMore />}>
         {/* Retrying can only fail again with no mail server, so it is only
             offered once there is one; the reasons line says what to do
             otherwise. */}
         {failed && mail ? <RetryFailed count={failed} /> : null}
-        <LogMore />
       </Head>
 
       <div className="ad__stack">

@@ -1,5 +1,6 @@
 "use client";
 
+import { TopChoresSlot } from "@/components/admin/top-chores";
 import { SheetDrag } from "@/components/admin/sheet-drag";
 import { useSupportReadOnly } from "./support-context";
 import { SUPPORT_EXIT } from "@/lib/users/support-policy";
@@ -254,6 +255,7 @@ export default function ClientShell({
           <p className="ad__topTitle">{active?.label ?? "Portal"}</p>
           <div className="ad__topActions">
             <Link href="/portal/notifications" className="ad__topIcon" aria-label="Your project inbox" title="Your project inbox" data-tour="workspace-inbox-link"><Bell aria-hidden="true" /></Link>
+            <TopChoresSlot />
             {!supportReadOnly ? <TourLauncher /> : null}
             <ThemeButton />
             <span className="ad__topRule" aria-hidden="true" />

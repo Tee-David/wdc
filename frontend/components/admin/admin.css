@@ -299,6 +299,10 @@
 .ad__topActions { margin-left: auto; display: flex; align-items: center; gap: .5rem; }
 .ad__topIcon { position: relative; width: 2.75rem; height: 2.75rem; flex: none; display: grid; place-items: center; border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel); color: var(--ad-ink); }
 .ad__topIcon svg { width: 1.1rem; height: 1.1rem; }
+/* The page's ⋮ on a phone (components/admin/top-chores.tsx): the same tile as the bell beside it. */
+.ad__topChores { display: contents; }
+.ad__topChores .ad__rm { width: 2.75rem; height: 2.75rem; flex: none; border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel); color: var(--ad-ink); }
+.ad__topChores .ad__rm svg { width: 1.1rem; height: 1.1rem; }
 /* The hot dog is wider than it is tall (49:36), so it sets its own width. */
 .ad__topMenu svg { width: 1.35rem; height: auto; }
 .ad__topbar .tourLauncher__btn { width: 2.75rem; height: 2.75rem; border-radius: 12px; color: var(--ad-ink); }
@@ -398,10 +402,15 @@ body:has(.adDrawer[open]) .st { display: none; }
   .ad__main { padding-bottom: calc(5.5rem + env(safe-area-inset-bottom)); }
   .ad__topMenu { display: grid; place-items: center; flex: none; }
 }
+/* PHONE TOP BAR: menu, back or the section name, search, bell and the page's ⋮. Tour, the theme switch and the
+   account (with Sign out) are in the drawer's footer, so the bar keeps room for the section name. */
+@media (max-width: 640px) {
+  .ad__topbar > .ad__topMark, .ad__topbar .tourLauncher, .ad__topbar .ad__account { display: none; }
+}
 @media (max-width: 380px) {
   .ad__topbar { gap: .25rem; padding-inline: .5rem; }
   .ad__topActions { gap: .2rem; }
-  .ad__topIcon, .ad__search, .ad__topbar .tourLauncher__btn, .ad__topMark { width: 2.5rem; height: 2.5rem; }
+  .ad__topIcon, .ad__search, .ad__topbar .tourLauncher__btn, .ad__topMark, .ad__topChores .ad__rm { width: 2.5rem; height: 2.5rem; }
 }
 @keyframes ad-sheet-in { from { transform: translateY(100%); } to { transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) {
