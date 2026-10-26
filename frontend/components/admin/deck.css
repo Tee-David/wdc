@@ -129,3 +129,8 @@
   .adDeck__tools > *, .adDeck__tools .adDeck__snooze { flex: 1 1 calc(50% - .25rem); }
   .adDeck__tools > :last-child:nth-child(odd) { flex-basis: 100%; }
 }
+
+/* No room above on a short card: the menu takes its place in the card's flow under the tools, so every option stays inside the card. */
+.adDeck__snooze:has(.adDeck__menu.is-below) { display: contents; }
+.adDeck__tools:has(.adDeck__menu.is-below) { flex-wrap: wrap; }
+.adDeck__menu.is-below { position: static; order: 99; flex: 1 1 100%; width: 100%; margin-top: .25rem; box-shadow: none; }

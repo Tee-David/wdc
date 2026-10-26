@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { AlertTriangle, ArrowRight, FileClock, CalendarClock, CircleDollarSign, ClipboardList, Clock, FolderClock, FolderKanban, LifeBuoy, MailWarning, MessageSquareWarning, Send, TrendingUp, Users, Wallet } from "lucide-react";
 import { SERVICES } from "@/lib/services";
-import { creditBalances, getBoard, getClient, getClients, getDeliverablesFor, getInvoices, getMonthly, getPayments, getProjects, getSubmissions, getSummary, getTasks, getTickets, providerAttentionCount } from "@/lib/admin/store";
+import { creditBalances, getLiveRetainers, getPayouts, getBoard, getClient, getClients, getDeliverablesFor, getInvoices, getMonthly, getPayments, getProjects, getSubmissions, getSummary, getTasks, getTickets, providerAttentionCount } from "@/lib/admin/store";
 import { failedLoggedCount } from "@/lib/message-log";
 import { noticeBlock, noticeBlocks } from "@/lib/admin/money-rules";
 import { reviewCount } from "@/lib/blog-db";
@@ -36,6 +36,8 @@ import PageTourButton from "./tour/page-tour-button";
 import { CashflowChart } from "./cashflow-chart";
 import { CountUp } from "./count-up";
 import "./dashboard.css";
+import { remindInvoice } from "@/lib/admin/client-deck-actions";
+import { approveReadyPayouts } from "@/lib/money/payout-actions";
 import { ExampleNote } from "@/components/admin/example-note";
 
 function greeting() {
@@ -73,6 +75,7 @@ export async function AdminDashboardView({ firstName, money = true, me, params }
         meta: `Due ${when(invoice.due)}`,
         icon: AlertTriangle,
         tone: "bad",
+        deck: { primary: { label: "Send a reminder", run: remindInvoice.bind(null, invoice.id) }, secondary: { label: "Record a payment", href: `/admin/money/${invoice.id}` } } as Partial<DeckItem>,
         menu: <InvoiceMenu invoice={invoice} noReceipt={noticeBlock(getClient(invoice.clientId))}
           edit={{ clientName: getClient(invoice.clientId)?.company ?? "Client", projectTitle: projects.find((p) => p.id === invoice.projectId)?.title }} />,
       })),
@@ -101,6 +104,7 @@ export async function AdminDashboardView({ firstName, money = true, me, params }
         meta: project.due ? `Due ${when(project.due)}` : "Date not set",
         icon: FolderClock,
         tone: why[0].tone === "bad" ? "bad" : why[0].tone === "warn" ? "warn" : "neutral",
+        deck: { secondary: { label: "Message the client", href: `/admin/messages?c=p-${project.id}` }, handOver: { href: `/admin/projects/${project.id}?tab=activity` } } as Partial<DeckItem>,
         menu: <ProjectMenu project={project} clientName={getClient(project.clientId)?.company} />,
       })),
     /* WHAT THE BANK AND THE MAIL SERVER DID NOT DO CLEANLY. Money that
@@ -253,9 +257,32 @@ export async function AdminDashboardView({ firstName, money = true, me, params }
       body: `${w.items.slice(0, 3).map((x) => x.title).join(", ")}${n > 3 ? ` and ${n - 3} more` : ""}. Two reminders went by email. Nothing moves until they approve or ask for changes.`,
       facts: [{ k: "Contact", v: cl.name }, ...(cl.phone ? [{ k: "Phone", v: cl.phone }] : [])], why: "A call usually settles it faster than a third email.",
       primary: { label: "Message them", href: `/admin/messages?c=p-${proj.id}` }, secondary: { label: "Open the approvals", href: `/admin/projects/${proj.id}?tab=approvals` }, open: `/admin/projects/${proj.id}`,
+      handOver: { href: `/admin/projects/${proj.id}?tab=activity` },
     }];
   });
-  const deckItems: DeckItem[] = [...silent, ...retainerDrafts, ...attention.slice(0, 12).map((item, i): DeckItem => ({
+  /* RENEWALS: a domain, hosting or licence on a monthly plan that renews within two weeks. */
+  const renewals: DeckItem[] = money ? getLiveRetainers().flatMap((r) => (r.systems ?? []).filter((x) => x.renews && x.renews >= lagosDay(0) && x.renews <= lagosDay(14)).map((x): DeckItem => {
+    const cl = getClient(r.clientId), days = Math.round((Date.parse(x.renews!) - Date.parse(lagosDay(0))) / 86_400_000);
+    return {
+      id: `renew-${r.id}-${x.id}-${x.renews}`, kind: "Renewal", urgency: days === 0 ? "Renews today" : `In ${days} ${days === 1 ? "day" : "days"}`, tone: days <= 3 ? "warn" : "brand", label: r.title,
+      title: `${x.name} for ${cl?.company ?? "a client"} renews ${days === 0 ? "today" : `on ${when(x.renews!)}`}`,
+      body: `${x.access ? `Access held by ${x.access}. ` : ""}Renew it, then add what it cost to the plan so it goes on their next invoice.`,
+      facts: [{ k: "Plan", v: r.title }, { k: "Renews", v: when(x.renews!) }], why: "A lapsed domain or server is the one thing a client notices first.",
+      primary: { label: "Add the cost", href: `/admin/clients/${r.clientId}/plan?tab=costs` }, secondary: { label: "Open the plan", href: `/admin/clients/${r.clientId}/plan?tab=systems` }, open: `/admin/clients/${r.clientId}/plan`,
+    };
+  })) : [];
+  /* PAYOUTS READY FOR APPROVAL: one press approves them all; paying stays on the payouts page, with the reference. */
+  const ready = money ? getPayouts().filter((x) => x.state === "Ready") : [];
+  const payoutCard: DeckItem[] = ready.length ? [{
+    id: `payouts-${ready.map((x) => x.id).join(".")}`, kind: "Money", urgency: `${ready.length} ready`, tone: "live", label: "Payouts",
+    title: `Approve ${ready.length === 1 ? `${ready[0].who}'s payout` : `${ready.length} payouts`}`,
+    body: `${ready.slice(0, 3).map((x) => `${x.who}, ${x.work}`).join("; ")}${ready.length > 3 ? ` and ${ready.length - 3} more` : ""}.`,
+    facts: [{ k: "Total", v: naira(ready.reduce((n, x) => n + x.amount, 0)) }, { k: "First due", v: when(ready.map((x) => x.due).sort()[0]) }],
+    why: "Approved payouts move to Paid when the transfer goes, with its reference.",
+    primary: { label: ready.length === 1 ? "Approve it" : "Approve them", run: approveReadyPayouts.bind(null, ready.map((x) => x.id)) },
+    secondary: { label: "Open payouts", href: "/admin/money?tab=payouts#invoice-list" }, open: "/admin/money?tab=payouts#invoice-list",
+  }] : [];
+  const deckItems: DeckItem[] = [...silent, ...retainerDrafts, ...payoutCard, ...renewals, ...attention.slice(0, 12).map((item, i): DeckItem => ({
     id: `${item.href}#${i}`,
     kind: kindFor(item.icon),
     urgency: item.tone === "bad" ? "Needs you now" : item.tone === "warn" ? "Waiting" : "Open",
@@ -265,6 +292,7 @@ export async function AdminDashboardView({ firstName, money = true, me, params }
     body: item.detail,
     primary: { label: ctaFor(item.icon), href: item.href },
     open: item.href,
+    ...("deck" in item ? (item.deck as Partial<DeckItem>) : {}),
   }))];
 
   /* LATER TODAY: the day's meetings, what falls due and what is due, in time order. */

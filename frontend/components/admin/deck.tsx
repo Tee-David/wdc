@@ -87,6 +87,10 @@ export function Deck({
   const [cleared, setCleared] = useState<Record<string, true>>({});
   const [leaving, setLeaving] = useState<Leaving | null>(null);
   const [menu, setMenu] = useState(false);
+  /* A card too short to hold the menu above its button: the deck's clip and perspective stop clicks at the
+     card's edge (the menu paints over the header but cannot be pressed there), so the options open below the
+     tools, inside the card, instead. */
+  const [menuBelow, setMenuBelow] = useState(false);
   const snoozeRef = useRef<HTMLDivElement>(null);
   /* The menu closes on a press outside it and on Esc, like every other menu. */
   useEffect(() => {
@@ -248,9 +252,13 @@ export function Deck({
               <span className="adDeck__sp" />
               <div className="adDeck__tools">
                 <div className="adDeck__snooze" ref={snoozeRef}>
-                  <button type="button" className="adDeck__btn" aria-haspopup="menu" aria-expanded={menu} onClick={() => setMenu((m) => !m)}><Clock aria-hidden="true" />Snooze</button>
+                  <button type="button" className="adDeck__btn" aria-haspopup="menu" aria-expanded={menu} onClick={() => {
+                    const b = snoozeRef.current?.getBoundingClientRect(), c = cardRef.current?.getBoundingClientRect();
+                    setMenuBelow(Boolean(b && c && b.top - c.top < SNOOZE.length * 46 + 24));
+                    setMenu((m) => !m);
+                  }}><Clock aria-hidden="true" />Snooze</button>
                   {menu ? (
-                    <div className="adDeck__menu" role="menu" aria-label="Bring it back">
+                    <div className={`adDeck__menu${menuBelow ? " is-below" : ""}`} role="menu" aria-label="Bring it back">
                       {SNOOZE.map((s) => (
                         <button key={s.label} type="button" role="menuitem" onClick={(e) => snooze(e, top, s.hours, s.label)}>
                           <span>{s.label}</span><small>{s.hint}</small>

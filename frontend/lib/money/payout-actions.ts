@@ -60,3 +60,12 @@ export async function changePayout(_prev: ActionState, fd: FormData): Promise<Ac
     : to === "Paid" ? `Updated. The ${n} ${moved === 1 ? "is" : "are"} marked paid and the expense is recorded.`
     : `Updated. The ${n} ${moved === 1 ? "is" : "are"} cancelled.`);
 }
+
+/** "Approve them" from Today's deck: the same change as the payouts page, for every payout still Ready. */
+export async function approveReadyPayouts(ids: string[]): Promise<{ ok: boolean; message?: string }> {
+  const fd = new FormData();
+  fd.set("ids", (Array.isArray(ids) ? ids : []).map(String).join(","));
+  fd.set("to", "Approved");
+  const r = await changePayout({ ok: false }, fd);
+  return { ok: r.ok, message: r.message };
+}

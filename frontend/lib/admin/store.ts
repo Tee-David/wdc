@@ -2073,6 +2073,8 @@ export function getRetainerFor(clientId: Id): Retainer | undefined {
   return RETAINERS.filter((r) => r.clientId === clientId && !r.endedAt).at(-1);
 }
 export const getRetainer = (id: Id) => RETAINERS.find((r) => r.id === id);
+/** Every plan still running, for the renewals on Today. */
+export const getLiveRetainers = () => RETAINERS.filter((r) => !r.endedAt);
 
 const dayWords = (day: string) => new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${day}T12:00:00Z`));
 
