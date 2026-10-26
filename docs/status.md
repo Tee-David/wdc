@@ -1,6 +1,13 @@
 ## Studio preloaders on the Motion design wall, 26 October 2026
 
 The two shipped preloaders (ink on paper, blueprint on navy) now play on `/work/branding` beside the studio film, Litch and Realtors' Practice pieces, as "Logo reveal" loops: whole, cropped to the logo's centre square, 640px, 21 KB and 39 KB. `scripts/make-motion-loops.sh` rebuilds them from the owner's square renders (`wdc-preloader-ink.mp4`, `wdc-preloader-blueprint.mp4`, not in git). Measured at 320, 390, 834 and 1440 in both themes: no horizontal overflow, both loops play, 44px buttons. Rank Indeed has no motion files in the repo or the uploads yet; it joins when the owner supplies them.
+## Shell gaps closed, 26 October 2026
+
+- Messages carries a count on the sidebar. Admin and staff: client questions waiting on the studio plus messages from others they have not read in their project channels and team chats (their own scope). Client: conversations the studio has answered. Proven with a test note from another author (badge 1, then removed).
+- The client portal has its own Support page (`/portal/help`, in its own group under the nav as on the admin): help articles with search and paging, Talk to us (message your team, a 15 minute call, ask a question) and Good to know. Messages keeps the conversations; the old articles tab sends people to Support.
+- The portal top bar has search (Ctrl K): the client's own projects, invoices (when billing is theirs), conversations and help articles, scoped on the server; nothing found offers the articles and "Ask us about ...".
+- Checked at 1440, 390 (dark) and 320: no overflow, no page errors.
+
 ## Monthly retainers per client, 26 October 2026
 
 - Owner's call: a retainer is a monthly plan per client. The client page rail carries the kit's plan card (money only): name, Retainer tag, term and monthly figure, what a month includes, how they pay and the next draft, with Change billing and End the plan. The sheet sets the plan up or changes it; billing is Monthly, Two parts or Whole term up front.
