@@ -1,9 +1,14 @@
 "use client";
 
-import { CalendarRange, Wallet } from "lucide-react";
+import { CalendarRange, FileText, Pencil, Plus, Receipt, Send, Server, Wallet } from "lucide-react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { ask } from "./confirm";
+import { toast } from "./toast";
 import { DialogButton } from "./dialog";
 import { Actions, Field, Fields, Form, Hidden, Radios, Select, Submit } from "./form";
-import { endRetainerAction, saveRetainerAction } from "@/lib/admin/retainer-actions";
+import { addCostAction, billCostsNow, endRetainerAction, removeCostAction, removeSystemAction, saveReportAction, saveRetainerAction, saveSystemAction, shareReport } from "@/lib/admin/retainer-actions";
+import { Area } from "./form";
 import { RETAINER_BILLING, type RetainerBilling } from "@/lib/admin/retainer-rules";
 import type { Retainer } from "@/lib/admin/types";
 
@@ -59,6 +64,103 @@ export function EndRetainer({ id, title }: { id: string; title: string }) {
     <Form action={endRetainerAction} confirm={`End the ${title.toLowerCase()}? Parts not yet drafted will not be. Drafts already made stay for you to send or void.`}>
       <Hidden name="id" value={id} />
       <Submit tone="plain">End the plan</Submit>
+    </Form>
+  );
+}
+
+/* ---------------------------------------------------------------- the plan page */
+
+type Sys = NonNullable<Retainer["systems"]>[number];
+
+/** Add something the plan looks after, or edit one already on it. */
+export function SystemSheet({ planId, sys }: { planId: string; sys?: Sys }) {
+  return (
+    <DialogButton label={sys ? `Edit ${sys.name}` : "Add a system"} title={sys ? `Edit ${sys.name}` : "Add a system the plan looks after"} icon={sys ? Pencil : Server} tone="plain" iconOnly={Boolean(sys)}>
+      {(close) => (
+        <Form action={saveSystemAction} onDone={close}>
+          <Fields>
+            <Hidden name="id" value={planId} />
+            {sys ? <Hidden name="sysId" value={sys.id} /> : null}
+            <Field name="name" label="What it is" required half defaultValue={sys?.name ?? ""} placeholder="VPS, website, scraper app" />
+            <Field name="access" label="Access held by" half defaultValue={sys?.access ?? ""} placeholder="The studio, or the client" />
+            <Field name="renews" label="Renews" type="date" half defaultValue={sys?.renews ?? ""} hint="A domain, hosting or licence date. Leave empty if it does not renew." />
+            <Area name="notes" label="Notes" defaultValue={sys?.notes ?? ""} rows={3} placeholder="Where it lives and anything the next person should know. Never a password." />
+          </Fields>
+          <Actions><Submit>{sys ? "Update the system" : "Add the system"}</Submit></Actions>
+        </Form>
+      )}
+    </DialogButton>
+  );
+}
+
+/** A cost paid on the client's behalf, added to the next draft. */
+export function CostSheet({ planId, today }: { planId: string; today: string }) {
+  return (
+    <DialogButton label="Add a cost" title="Add a cost to pass on" icon={Receipt} tone="plain">
+      {(close) => (
+        <Form action={addCostAction} onDone={close}>
+          <p className="ad__dim" style={{ margin: "0 0 1rem" }}>It goes on the next invoice the plan drafts, or bill it on its own from this page.</p>
+          <Fields>
+            <Hidden name="id" value={planId} />
+            <Field name="what" label="What it was" required placeholder="VPS for October" />
+            <Field name="amount" label="Amount (₦)" required half inputMode="decimal" placeholder="25,000" />
+            <Field name="date" label="Paid on" type="date" required half defaultValue={today} />
+          </Fields>
+          <Actions><Submit>Add the cost</Submit></Actions>
+        </Form>
+      )}
+    </DialogButton>
+  );
+}
+
+/** Write or correct one month's report. */
+export function ReportSheet({ planId, month, label, body, startOpen = false, primary = false }: { planId: string; month: string; label: string; body?: string; startOpen?: boolean; primary?: boolean }) {
+  return (
+    <DialogButton label={label} title={`Report for ${label.replace(/^(Write|Edit) the /, "").replace(/ report$/, "")}`} icon={body ? Pencil : FileText} tone={primary ? "primary" : "plain"} startOpen={startOpen}>
+      {(close) => (
+        <Form action={saveReportAction} onDone={close}>
+          <p className="ad__dim" style={{ margin: "0 0 1rem" }}>What was done, what it achieved and what comes next. It stays a draft until you press Share.</p>
+          <Fields>
+            <Hidden name="id" value={planId} />
+            <Hidden name="month" value={month} />
+            <Area name="body" label="The report" rows={8} defaultValue={body ?? ""} placeholder={"Posted 12 of 12 planned posts and 4 reels.\nReach rose to 18,400.\nNext month: the body oil launch."} />
+          </Fields>
+          <Actions><Submit>Save the report</Submit></Actions>
+        </Form>
+      )}
+    </DialogButton>
+  );
+}
+
+/** A one-press action that asks first, then refreshes the page with the answer as a toast. */
+export function PlanRun({ label, question, run, tone = "plain", icon: Icon = Send }: { label: string; question: string; run: () => Promise<{ ok: boolean; message?: string }>; tone?: "plain" | "primary"; icon?: typeof Send }) {
+  const [pending, start] = useTransition();
+  const router = useRouter();
+  const [, setDone] = useState(0);
+  return (
+    <button type="button" className={`ad__btn${tone === "primary" ? " ad__btn--primary" : ""}`} disabled={pending}
+      onClick={async () => {
+        if (!(await ask(question))) return;
+        start(async () => { const r = await run(); if (r.message) toast(r.message, r.ok ? "good" : "bad"); setDone((n) => n + 1); router.refresh(); });
+      }}>
+      <Icon aria-hidden="true" />{label}
+    </button>
+  );
+}
+
+export function SharePlanReport({ planId, reportId, month, company }: { planId: string; reportId: string; month: string; company: string }) {
+  return <PlanRun label="Share" question={`Share the ${month} report with ${company}? It appears on their Billing page and they get a notice.`} run={() => shareReport(planId, reportId)} />;
+}
+export function BillPlanCosts({ planId, total }: { planId: string; total: string }) {
+  return <PlanRun label="Bill them now" icon={Plus} question={`Draft an invoice for the costs not yet billed (${total})? It waits on Today for you to send.`} run={() => billCostsNow(planId)} />;
+}
+
+export function RemovePlanRow({ planId, rowId, kind, name }: { planId: string; rowId: string; kind: "system" | "cost"; name: string }) {
+  return (
+    <Form action={kind === "system" ? removeSystemAction : removeCostAction} confirm={`Take ${name} off the plan?`}>
+      <Hidden name="id" value={planId} />
+      <Hidden name={kind === "system" ? "sysId" : "costId"} value={rowId} />
+      <Submit tone="plain">Remove</Submit>
     </Form>
   );
 }

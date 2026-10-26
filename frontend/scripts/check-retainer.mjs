@@ -26,4 +26,7 @@ assert.deepEqual(remainingParts(plan({ billing: "Whole term up front", drafted: 
 assert.equal(remainingParts(plan({ drafted: [{ date: "2026-11-01", amount: 900_000_00 }] })).length, 0, "nothing after the total is drafted");
 assert.deepEqual(dueParts(plan(), "2026-12-01").map((x) => x.date), ["2026-11-01", "2026-12-01"]);
 assert.equal(dueParts(plan(), "2026-10-31").length, 0);
+/* Quarterly over six months: two parts, three months apart; over four months the last quarter is short. */
+assert.deepEqual(remainingParts(plan({ months: 6, billing: "Quarterly" })).map((x) => [x.date, x.amount]), [["2026-11-01", 900_000_00], ["2027-02-01", 900_000_00]]);
+assert.deepEqual(remainingParts(plan({ months: 4, billing: "Quarterly" })).map((x) => x.amount), [900_000_00, 300_000_00], "a short last quarter asks for one month");
 console.log("retainer schedule: ok");

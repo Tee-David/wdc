@@ -7,7 +7,8 @@ import Link from "next/link";
 import { ListSearch } from "@/components/admin/list-search";
 import { Banknote, CreditCard, Download, FileText, Lock, Receipt } from "lucide-react";
 import { getPortalRequest } from "@/lib/portal/session";
-import { getCreditsFor, getEstimatesFor, getInvoices, getPaymentsFor, getProject } from "@/lib/admin/store";
+import { getCreditsFor, getEstimatesFor, getInvoices, getPaymentsFor, getProject, getRetainerFor } from "@/lib/admin/store";
+import { remainingParts, termEnd } from "@/lib/admin/retainer-rules";
 import { estimateState, estimateTotals, invoiceStatus, invoiceTotals, refundedTotal } from "@/lib/admin/types";
 import { Empty, InvoicePill, when } from "@/components/admin/bits";
 import { Pager, readPer } from "@/components/admin/pager";
@@ -108,6 +109,13 @@ export default async function PortalBilling({ searchParams }: { searchParams: Pr
     };
   });
 
+  /* THEIR MONTHLY PLAN, when they have one: what it covers, when the next invoice comes, and the reports the studio shared. */
+  const plan = isPrimaryContact ? getRetainerFor(client.id) : undefined;
+  const planNext = plan ? remainingParts(plan)[0] : undefined;
+  const planReports = (plan?.reports ?? []).filter((x) => x.sharedAt).sort((a, b) => b.month.localeCompare(a.month)).slice(0, 6);
+  const dayW = (d: string) => new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${d}T12:00:00Z`));
+  const monthW = (m: string) => new Intl.DateTimeFormat("en-GB", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${m}-15T12:00:00Z`));
+
   const rail = (
     <>
       <RailCard title="Paid so far">
@@ -120,6 +128,23 @@ export default async function PortalBilling({ searchParams }: { searchParams: Pr
           </span>
         </div>
       </RailCard>
+      {plan ? (
+        <section className="adRc adPlan" id="plan" aria-label={`Your ${plan.title.toLowerCase()}`}>
+          <div className="adRc__hd"><h2>{plan.title}</h2><span className="ad__pill ad__pill--brand">Your plan</span></div>
+          <span className="ad__dim adPlan__term">{dayW(plan.start)} to {dayW(termEnd(plan.start, plan.months))} · {money(plan.monthly, "NGN")} a month</span>
+          {plan.includes.length ? <div className="adPlan__incl">{plan.includes.map((x, i) => <span key={i}><strong>{x.t}</strong><span>{x.s}</span></span>)}</div> : null}
+          <div className="adPlan__next">
+            <strong>Billed {plan.billing.toLowerCase()}</strong>
+            <span>{planNext ? `Next invoice ${dayW(planNext.date)}, ${money(planNext.amount, "NGN")} before VAT. It reaches you by email; nothing is taken automatically.` : "Every invoice for this term has gone out."}</span>
+          </div>
+          {planReports.length ? (
+            <div className="adPlan__shared">
+              <b>Monthly reports</b>
+              {planReports.map((x) => <details key={x.id}><summary>{monthW(x.month)}</summary><p>{x.body}</p></details>)}
+            </div>
+          ) : null}
+        </section>
+      ) : null}
       <RailCard title="How you can pay">
         <ul className="pBill__ways">
           <li><span className="pBill__logo">{/* eslint-disable-next-line @next/next/no-img-element -- a 20px vector mark; the optimiser does not serve SVG. */}

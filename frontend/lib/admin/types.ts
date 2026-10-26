@@ -267,6 +267,12 @@ export type Retainer = {
   billing: import("./retainer-rules").RetainerBilling;
   /** Parts already drafted. A billing change never touches these. */
   drafted: { date: string; amount: number; invoiceId: Id }[];
+  /** What the plan looks after (a VPS, a database, a site), who holds the access, when it renews. */
+  systems?: { id: Id; name: string; notes: string; access: string; renews: string | null }[];
+  /** Costs paid on the client's behalf (hosting, API credits). Added to the next draft, or billed on their own. */
+  costs?: { id: Id; date: string; what: string; amount: number; invoiceId: Id | null }[];
+  /** One report a month, shared to the client's portal when Admin presses Share. */
+  reports?: { id: Id; month: string; body: string; at: string; by: string; sharedAt: string | null }[];
   endedAt?: string | null;
   createdAt: string;
 };
