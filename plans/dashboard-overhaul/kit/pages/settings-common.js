@@ -116,7 +116,9 @@
       return out;
     });
     var keysS = this.secKeys(sec), n = Object.keys(s.sv).filter(function (k) { return keysS.indexOf(k) >= 0; }).length, others = Object.keys(s.sv).length - n;
+    var attn = (M.attention ? M.attention(self) : []).map(function (a) { var si2 = M.sections.map(function (x) { return x.label; }).indexOf(a.sec); return { t: a.t, s: a.s, tone: a.tone || 'var(--ad-tone-live)', d: I[a.icon] || I.alert, secLabel: a.sec, aria: a.t + '. Opens ' + a.sec + '.', go: function () { if (si2 >= 0) self.setState({ sec: si2, ra: self.state.ra + 1 }); if (a.fn) setTimeout(function () { a.fn(self); }, 60); } }; });
     return Object.assign(this.kit(), this.extraVals(), {
+      hasAttn: attn.length > 0, attn: attn, attnN: attn.length,
       pageTitle: M.title || 'Settings', hasHeadAct: !!M.headAct, headActLabel: M.headAct ? M.headAct.label : '', headAct: M.headAct ? function () { M.headAct.fn(self); } : null, lede: M.lede, sections: sections, cards: cards, dirty: n > 0, secName: sec.label, dirtyText: n ? n + (n === 1 ? ' change not saved' : ' changes not saved') : 'Nothing to save here', otherNote: others ? others + ' on other tabs' : '', hasOther: others > 0, saveDis: n === 0 || errs > 0, discardDis: n === 0, saveWhy: n === 0 ? 'Change a setting on this tab and Save lights up.' : 'Fix the highlighted fields to save.', showWhy: n === 0 || errs > 0,
       discard: function () { self.discardSection(si); },
       save: function () { self.saveSection(si); },

@@ -1627,3 +1627,8 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 }
 .saveBar .sbBtns{display:flex;gap:8px;flex:none}
 .saveBar .sbBtns span{flex:none;font-weight:inherit}
+.attnCard { padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.attnRows { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 6px 12px; }
+.attnRow { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 12px; min-height: 56px; width: 100%; }
+.attnSec { font-size: 12px; font-weight: 600; color: var(--ad-dim); white-space: nowrap; }
+@container app (max-width: 420px) { .attnSec { display: none; } }
