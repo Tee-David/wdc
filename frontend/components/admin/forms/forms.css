@@ -180,3 +180,12 @@
 /* 44px targets in the forms table: the open-the-form icon and the form's name. */
 .adForms__list .ad__rm { min-width: 2.75rem; min-height: 2.75rem; display: inline-grid; place-items: center; }
 .adForms__list td:first-child a { display: inline-flex; align-items: center; min-height: 2.75rem; }
+
+/* How complete a brief is (entry page rail): a ring that fills to answered of asked. */
+.adEntryRing { display: flex; align-items: center; gap: 1rem; }
+.adEntryRing svg { flex: none; transform: rotate(-90deg); }
+.adEntryRing circle { fill: none; stroke-width: 5; }
+.adEntryRing__track { stroke: var(--ad-line); }
+.adEntryRing__fill { stroke: var(--ad-series-1); stroke-linecap: round; }
+.adEntryRing__pct { display: block; font: 700 1.6rem/1.1 var(--font-space-grotesk), system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+.adEntryRing p { margin: .2rem 0 0; font-size: .85rem; }

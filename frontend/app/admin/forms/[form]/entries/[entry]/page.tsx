@@ -13,7 +13,8 @@ import { displayAnswers, earlierAnswers, shownInBrief } from "@/lib/onboarding-a
 import { scopeNote } from "@/lib/onboarding-scope";
 import type { FormDef } from "@/lib/forms/registry";
 import ColourRolesNote from "@/components/onboarding/colour-roles-note";
-import { answeredCount, clientFor, entryIds, getEntry, markRead, readFilters, type Entry } from "@/lib/forms/entries";
+import { adviceAsked, answeredCount, clientFor, entryIds, getEntry, markRead, readFilters, type Entry } from "@/lib/forms/entries";
+import { Deck, type DeckItem } from "@/components/admin/deck";
 import { eventsFor, type EntryEvent } from "@/lib/forms/events";
 import { listForRecord } from "@/lib/message-log";
 import { Empty, when } from "@/components/admin/bits";
@@ -22,9 +23,9 @@ import { RailCard, Workbench } from "@/components/admin/workbench";
 import { initialsOf } from "@/components/admin/focus";
 
 /** A card in this page's work column, in the Flow list-card look: a heading row and what it holds. */
-function Panel({ title, action, children, dataTour }: { title: string; action?: React.ReactNode; children: React.ReactNode; dataTour?: string }) {
+function Panel({ title, action, children, dataTour, id }: { title: string; action?: React.ReactNode; children: React.ReactNode; dataTour?: string; id?: string }) {
   return (
-    <section className="adList adEntry__card" aria-label={title} data-tour={dataTour}>
+    <section className="adList adEntry__card" aria-label={title} data-tour={dataTour} id={id}>
       <div className="adList__hd"><h2>{title}</h2><span className="adList__sp" />{action}</div>
       {children}
     </section>
@@ -114,7 +115,7 @@ function StudioNote({ form, entry }: { form: FormDef; entry: Entry }) {
   const note = scopeNote(form.service, displayAnswers(form.service, entry.answers));
   if (!note.size.said && !note.signals.length && !note.watch.length) return null;
   return (
-    <Panel title="Studio note">
+    <Panel title="Studio note" id="studio-note">
       <div style={{ padding: "0 1rem 1rem" }}>
         {note.size.said ? <p><strong>Size, in the client&rsquo;s words:</strong> {note.size.said}</p> : null}
         {note.watch.length ? (
@@ -202,6 +203,23 @@ function Answers({ form, entry, hideEmpty }: { form: FormDef; entry: Entry; hide
   );
 }
 
+/** How complete a brief is: answered of asked, as a ring that draws to its share. */
+function CompleteRing({ answered, total, advice }: { answered: number; total: number; advice: number }) {
+  const share = total ? answered / total : 0;
+  return (
+    <div className="adEntryRing">
+      <svg viewBox="0 0 44 44" width="76" height="76" aria-hidden="true">
+        <circle cx="22" cy="22" r="18" pathLength="1" className="adEntryRing__track" />
+        <circle cx="22" cy="22" r="18" pathLength="1" className="adEntryRing__fill" style={{ strokeDasharray: `${share} 1` }} />
+      </svg>
+      <div>
+        <b className="adEntryRing__pct">{Math.round(share * 100)}%</b>
+        <p className="ad__dim">{answered} of {total} questions answered{advice ? `, ${advice} waiting on our advice` : ""}.</p>
+      </div>
+    </div>
+  );
+}
+
 const KIND: Record<EntryEvent["kind"], string> = { note: "Note", state: "Changed", email: "Email", client: "Client" };
 
 export default async function EntryPage({ params, searchParams }: Props) {
@@ -238,6 +256,43 @@ export default async function EntryPage({ params, searchParams }: Props) {
   const project = assigned?.projectId ? getProject(assigned.projectId) : null;
   const mayResend = can(await adminRole(), "settings");
   const files = await entryFiles(form, entry).catch(() => [] as EntryFile[]);
+
+  /* WHAT THIS BRIEF NEEDS, from the answers and the record: advice the client
+     asked for, a brief not yet tied to a client, the studio note's warnings,
+     emails that did not go, and the gaps to ask about on the call. */
+  const brief = form.source === "onboarding" && form.service ? form.service : null;
+  const count = brief ? answeredCount(brief, entry.answers) : null;
+  const advice = brief ? adviceAsked(brief, entry.answers) : [];
+  /* The note's "not sure" line says what the advice cards already say. */
+  const watch = (brief ? scopeNote(brief, displayAnswers(brief, entry.answers)).watch : []).filter((w) => !(advice.length && /not sure/i.test(w)));
+  const deck: DeckItem[] = [];
+  if (brief && !entry.draft) {
+    for (const a of advice.slice(0, 3)) deck.push({
+      id: `advice-${a.key}`, kind: "Advice asked", tone: "live", label: a.step, title: a.label,
+      body: "The client asked us to advise. Settle it with them, then note what was agreed so the brief holds the answer.",
+      why: "An open question here changes the scope or the price.", primary: { label: "Note the answer", href: "#history" }, open: "#answers",
+    });
+    if (!assigned) deck.push({
+      id: "client", kind: "Client", tone: "warn", title: matched ? `Link this brief to ${matched.company}` : "Link this brief to a client",
+      body: matched ? "The email or phone matches an existing client, so the same record and portal carry on." : "Until it is linked, the work and the portal have nowhere to start.",
+      primary: { label: matched ? `Open ${matched.company}` : "Assign it", href: matched ? `/admin/clients/${matched.id}` : "#entry-details" }, secondary: { label: "Assign here", href: "#entry-details" },
+    });
+    if (watch.length) deck.push({
+      id: "watch", kind: "Worth a look", tone: "neutral", title: watch[0],
+      body: watch.length > 1 ? `And ${watch.length - 1} more in the studio note.` : "From the studio note, read off the answers.",
+      primary: { label: "Read the studio note", href: "#studio-note" },
+    });
+    const failedMail = messages.filter((m) => m.state === "Failed" && !m.resends.some((r) => r.sent));
+    if (failedMail.length) deck.push({
+      id: "mail", kind: "Email", tone: "bad", title: `${failedMail[0].subject} did not go`,
+      body: `To ${failedMail[0].to}. It is tried again on its own; the log has the server's reason.`,
+      primary: { label: "Open the message log", href: "/admin/settings/email/log?state=Failed" },
+    });
+    if (count && count.total - count.answered > 0) deck.push({
+      id: "gaps", kind: "Gaps", tone: "neutral", title: `${count.total - count.answered} ${count.total - count.answered === 1 ? "question was" : "questions were"} left blank`,
+      body: "Ask them on the discovery call rather than sending the form back.", primary: { label: "Read the brief", href: "#answers" },
+    });
+  }
 
   return (
     <>
@@ -281,7 +336,8 @@ export default async function EntryPage({ params, searchParams }: Props) {
       </PageHead>
 
       <Workbench railLabel="About this entry" rail={<>
-          <RailCard title="Details">
+          {count ? <RailCard title="How complete"><CompleteRing answered={count.answered} total={count.total} advice={advice.length} /></RailCard> : null}
+          <div id="entry-details" style={{ display: "contents" }}><RailCard title="Details">
             <dl className="adForms__dl">
               {entry.serial ? <div><dt>Number</dt><dd>{form.noun} #{entry.serial}</dd></div> : null}
               <div><dt>{form.source === "newsletter" ? "Subscribed" : "Received"}</dt><dd>{time(entry.at)}</dd></div>
@@ -310,7 +366,7 @@ export default async function EntryPage({ params, searchParams }: Props) {
               {project ? <div><dt>Project</dt><dd><Link href={`/admin/projects/${project.id}`}>{project.title}</Link></dd></div> : null}
               <div><dt>Entry id</dt><dd className="ad__dim" style={{ fontSize: ".78rem" }}>{entry.id}</dd></div>
             </dl>
-          </RailCard>
+          </RailCard></div>
 
           {form.source !== "newsletter" ? (
             <RailCard title="Emails about this entry"><div data-tour="entry-emails">
@@ -334,14 +390,19 @@ export default async function EntryPage({ params, searchParams }: Props) {
             </div></RailCard>
           ) : null}
       </>}>
+          {brief && !entry.draft ? (
+            <Deck id={`entry-${entry.id}`} title="This brief needs" items={deck}
+              emptyTitle="This brief is settled." emptyBody="Every answer is in, nothing is waiting on our advice, and it belongs to a client."
+              emptyNext={project ? { label: `Open ${project.title}`, href: `/admin/projects/${project.id}` } : client ? { label: `Open ${client.company}`, href: `/admin/clients/${client.id}` } : { label: "Back to the entries", href: `/admin/forms/${form.key}` }} />
+          ) : null}
           <StudioNote form={form} entry={entry} />
-          <div data-tour="entry-answers"><Answers form={form} entry={entry} hideEmpty={sp.hide === "1"} /></div>
+          <div data-tour="entry-answers" id="answers"><Answers form={form} entry={entry} hideEmpty={sp.hide === "1"} /></div>
           {/* After the answers, not before: the brief is the thing to read,
               and the files are what it refers to. */}
           <EntryAttachments files={files} />
 
           {form.inbox ? (
-            <Panel title="History" dataTour="entry-history">
+            <Panel title="History" dataTour="entry-history" id="history">
               <AddNote formKey={form.key} id={entry.id} />
               {events.length ? (
                 <ol className="adForms__timeline">
