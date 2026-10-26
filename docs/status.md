@@ -1,3 +1,11 @@
+## Monthly retainers per client, 26 October 2026
+
+- Owner's call: a retainer is a monthly plan per client. The client page rail carries the kit's plan card (money only): name, Retainer tag, term and monthly figure, what a month includes, how they pay and the next draft, with Change billing and End the plan. The sheet sets the plan up or changes it; billing is Monthly, Two parts or Whole term up front.
+- Each part is drafted as an invoice on the day it falls due (the daily run, or at once when a plan starts today or earlier) and waits at the front of the Today deck as "Send ... retainer invoice". Nothing is sent by itself. A billing change keeps every part already drafted and spreads what is left of the term over the new billing's remaining dates (`lib/admin/retainer-rules.ts`, checked by `npm run check:retainer`).
+- No migration: plans are kept in `admin_records` with the other admin records.
+- Measured: set up Two parts from 1 Oct, the Nov part shown as next, ₦483,750 draft (₦450,000 plus VAT) on Today; switched to Monthly, next shows ₦225,000; card has no overflow at 320, 390 and 1440, buttons 44px. Chosen options in every form now take the kit's series colour (navy, periwinkle in the dark) instead of the primary fill, which was orange in the dark theme.
+- Known ceiling: a draft deleted or voided by hand still counts as billed, so the plan does not redraft it. Set the plan up again if a part must be asked for twice.
+
 ## Live shell rebuilt to the kit, 26 October 2026
 
 - Owner's call: the live dashboards copy the artifact. The sidebar and drawer of the admin and the client portal are now the kit's (`components/admin/side-kit.*`): the round mark and name, the kit's icons drawn on in sequence, counts on the icon (Money overdue in red for the owner, Billing still to pay in amber for clients, Forms and Blog as before), Support in its own group, a foot with the install card (only when the browser can install, or the steps on an iPhone), the tours menu, the theme, collapse, and the profile card linking to the account with Sign out asked first. Rail mode at 641 to 900px; the drawer below 640px slides in on the spring and out in 220ms. The top bar loses the help, theme and account buttons (now in the foot).

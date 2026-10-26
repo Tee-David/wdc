@@ -731,7 +731,7 @@ body:has(.adDrawer[open]) .st { display: none; }
      touch target. */
   width: auto; height: auto; min-height: 0; flex: none;
   padding: 0; border: 0; border-radius: 0; background: none;
-  accent-color: var(--ad-accent);
+  accent-color: var(--ad-series-1);
 }
 /* Big enough to hit and to see. The browser draws the tick itself, in
    `accent-color`, which is both the least code and the most familiar mark. */
@@ -763,14 +763,16 @@ body:has(.adDrawer[open]) .st { display: none; }
   border: 1px solid var(--ad-line); background: var(--ad-bg);
   font-size: .8rem; font-weight: 500; cursor: pointer;
 }
-.ad__check:hover { border-color: var(--ad-accent); }
-.ad__check input { accent-color: var(--ad-accent); margin: 0; }
+.ad__check:hover { border-color: var(--ad-line-2); }
+.ad__check input { accent-color: var(--ad-series-1); margin: 0; }
 /* CHOSEN IS SOLID, never a wash (AGENTS.md): the card lifts to the panel's
    own second ground and takes a two-pixel edge in the primary fill. It was a
    12% orange tint, which read as peach on a phone. */
 .ad__check:has(input:checked) {
-  border-color: var(--ad-fill);
-  box-shadow: inset 0 0 0 1px var(--ad-fill);
+  /* The kit's chosen item: the first series colour (navy, periwinkle in the
+     dark), never the primary fill, which turns orange in the dark theme. */
+  border-color: var(--ad-series-1);
+  box-shadow: inset 0 0 0 1px var(--ad-series-1);
   background: var(--ad-panel-2);
   color: var(--ad-ink); font-weight: 600;
 }

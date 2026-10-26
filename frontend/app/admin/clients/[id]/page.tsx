@@ -8,7 +8,7 @@ import { CalendarDays, FileText, FolderKanban, Mail, MessageSquareWarning, Phone
 import { SERVICES } from "@/lib/services";
 import { hydrateSettings } from "@/lib/settings/store";
 import {
-  creditBalance, financeDefaults, findDuplicateClient, getClient, getClients, getCreditsFor, getDeliverablesFor, getEstimatesFor, getInvoicesFor, getPaymentsFor, getProjectsFor, getSubmissions, getTasks, getTicketsFor,
+  creditBalance, financeDefaults, findDuplicateClient, getClient, getRetainerFor, getClients, getCreditsFor, getDeliverablesFor, getEstimatesFor, getInvoicesFor, getPaymentsFor, getProjectsFor, getSubmissions, getTasks, getTicketsFor,
 } from "@/lib/admin/store";
 import { noticeBlock, reconcileClient } from "@/lib/admin/money-rules";
 import ClientReconciliation from "@/components/admin/reconciliation";
@@ -52,6 +52,8 @@ import { projectGlyph, projectTileStyle } from "@/components/client/service-glyp
 import { Deck, type DeckItem } from "@/components/admin/deck";
 import { remindInvoice, reinviteClient } from "@/lib/admin/client-deck-actions";
 import { db } from "@/lib/db/pool";
+import { EndRetainer, RetainerSheet } from "@/components/admin/retainer-card";
+import { RETAINER_BILLING, remainingParts, termEnd, type RetainerBilling } from "@/lib/admin/retainer-rules";
 
 /* NO generateStaticParams. The client list is written to now, and a route
    prerendered from the list as it stood at build time would 404 on the client
@@ -226,6 +228,20 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
     }
   }
 
+  /* THE MONTHLY PLAN (a retainer), money only: what a month buys, how this client pays, and the next draft. */
+  const plan = money ? getRetainerFor(c.id) : undefined;
+  const dayW = (d: string) => new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${d}T12:00:00Z`));
+  const planParts = plan ? remainingParts(plan) : [];
+  /* Each billing, described from the parts it would really ask for, so a change midway reads true. */
+  const describe = (parts: ReturnType<typeof remainingParts>) => !plan || !parts.length ? "Nothing left to bill this term"
+    : parts.length <= 2 ? parts.map((x) => `${naira(x.amount)} ${x.date === plan.start ? "before the start" : `on ${dayW(x.date)}`}`).join(", ")
+    : `${naira(parts[parts.length - 1].amount)} on the same day each month, ${parts.length} parts from ${dayW(parts[0].date)}`;
+  const planNotes = plan ? Object.fromEntries(RETAINER_BILLING.map((bl) => [bl, describe(remainingParts({ ...plan, billing: bl }))])) as Record<RetainerBilling, string> : null;
+  const planBillSub = plan ? describe(planParts) : "";
+  const planNext = planParts[0] ? `Draft on Today, ${dateWords(`${planParts[0].date}T12:00:00.000Z`, now)} · ${naira(planParts[0].amount)}` : "Nothing more to draft this term";
+  const planProps = plan ? { id: plan.id, title: plan.title, start: plan.start, months: plan.months, monthly: plan.monthly, includes: plan.includes, billing: plan.billing, projectId: plan.projectId, draftedCount: plan.drafted.length } : null;
+  const planProjects = projects.map((p) => ({ value: p.id, label: p.title }));
+
   const feed = tab === "overview" ? await activityFeed({ money, subjectIds: [...workIds, ...(money ? moneyIds : [])], limit: 4 }) : [];
 
   return (
@@ -290,6 +306,23 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
                 ) : null}
               </RailCard>
             ) : null}
+            {money && !c.archived ? (plan ? (
+              <section className="adRc adPlan" aria-label={plan.title} data-tour="plan">
+                <div className="adRc__hd"><h2>{plan.title}</h2><span className="ad__pill ad__pill--brand">Retainer</span></div>
+                <span className="ad__dim adPlan__term">{dayW(plan.start)} to {dayW(termEnd(plan.start, plan.months))} · {naira(plan.monthly)} a month</span>
+                {plan.includes.length ? <div className="adPlan__incl">{plan.includes.map((x, i) => <span key={i}><strong>{x.t}</strong><span>{x.s}</span></span>)}</div> : null}
+                <div className="adPlan__next"><strong>{plan.billing}</strong><span>{planBillSub}</span><span>{planNext}</span></div>
+                <span className="adPlan__acts">
+                  <RetainerSheet clientId={c.id} company={c.company} plan={planProps} projects={planProjects} notes={planNotes} label="Change billing" />
+                  <EndRetainer id={plan.id} title={plan.title} />
+                </span>
+              </section>
+            ) : (
+              <RailCard title="Monthly plan">
+                <p className="ad__dim" style={{ margin: 0 }}>No retainer with {c.company}. Set one up and each month&apos;s invoice is drafted on Today for you to send.</p>
+                <RetainerSheet clientId={c.id} company={c.company} plan={null} projects={planProjects} notes={null} label="Set up a monthly plan" />
+              </RailCard>
+            )) : null}
             <RailCard title="Next meeting" aside={meeting ? (daysFrom(meeting.start, now) <= 0 ? "Today" : `In ${daysFrom(meeting.start, now)} days`) : undefined}>
               {meeting ? (
                 <div className="adRc__split">
