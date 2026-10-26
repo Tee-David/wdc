@@ -73,7 +73,7 @@
   border: 0; border-radius: 13px; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer;
 }
 .adWf__node--stop .adWf__main { grid-template-columns: 2.25rem minmax(0, 1fr); }
-.ad .adWf .adWf__main:focus-visible, .ad .adWf .adWf__dots:focus-visible { outline: 3px solid var(--ad-accent); outline-offset: 3px; border-radius: 14px; }
+.ad .adWf .adWf__main:focus-visible, .ad .adWf .adWf__dots:focus-visible { outline: 3px solid var(--ad-focus); outline-offset: 3px; border-radius: 14px; }
 .ad .adWf .adWf__dots:focus-visible { border-radius: 10px; outline-offset: 0; }
 .adWf__tile {
   width: 2.5rem; height: 2.5rem; display: grid; place-items: center; border-radius: 11px; color: #fff; background: var(--wf-t-wait);
@@ -113,7 +113,7 @@
 }
 .adWf__plus i svg { width: 14px; height: 14px; }
 .adWf__plus:hover i, .adWf__plus[aria-expanded="true"] i { transform: scale(1.15); background: var(--ad-fill); color: var(--ad-on-fill); border-color: var(--ad-fill); }
-.ad .adWf .adWf__plus:focus-visible { outline: 3px solid var(--ad-accent); outline-offset: -4px; border-radius: 50%; }
+.ad .adWf .adWf__plus:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: -4px; border-radius: 50%; }
 .adWf__tag { position: absolute; transform: translate(-50%, -50%); height: 24px; display: inline-flex; align-items: center; padding: 0 .75rem; border-radius: 999px; color: #fff; font-size: .75rem; font-weight: 700; z-index: 2; }
 .adWf__tag--yes { background: var(--ad-tone-good); }
 .adWf__tag--no { background: var(--ad-tone-bad); }
@@ -132,7 +132,7 @@
 .adWf__seg button { min-height: 2.75rem; padding: 0 .85rem; border: 0; border-radius: 9px; background: transparent; color: var(--ad-ink); font: inherit; font-size: .88rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
 .adWf__seg button:hover { background: var(--ad-line); }
 .adWf__seg button[aria-pressed="true"] { background: var(--ad-fill); color: var(--ad-on-fill); }
-.ad .adWf .adWf__seg button:focus-visible, .ad .adWf .adWf__ctl > button:focus-visible { outline: 3px solid var(--ad-accent); outline-offset: -3px; border-radius: 10px; }
+.ad .adWf .adWf__seg button:focus-visible, .ad .adWf .adWf__ctl > button:focus-visible { outline: 3px solid var(--ad-focus); outline-offset: -3px; border-radius: 10px; }
 .adWf__ctl .adWf__seg { border: 0; background: transparent; padding: 0; }
 
 .adWf__menu {
@@ -141,7 +141,7 @@
 }
 .adWf__menu button { display: flex; align-items: center; gap: .75rem; width: 100%; min-height: 2.75rem; padding: 0 .65rem; border: 0; border-radius: 9px; background: transparent; color: var(--ad-ink); font: inherit; font-size: .9rem; font-weight: 500; text-align: left; cursor: pointer; }
 .adWf__menu button:hover, .adWf__menu button:focus-visible { background: var(--ad-panel-2); }
-.ad .adWf .adWf__menu button:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: -2px; border-radius: 9px; }
+.ad .adWf .adWf__menu button:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: -2px; border-radius: 9px; }
 .adWf__menu button:disabled { color: var(--ad-dim); cursor: not-allowed; background: transparent; }
 .adWf__menu .adWf__tile { width: 1.75rem; height: 1.75rem; border-radius: 8px; flex: none; }
 .adWf__menu .adWf__tile svg { width: 1rem; height: 1rem; }
@@ -184,7 +184,7 @@
 .adWf__kpi b { font: 600 1.6rem var(--font-space-grotesk), system-ui, sans-serif; font-variant-numeric: tabular-nums; }
 .adWf__pf { display: flex; justify-content: space-between; gap: .5rem; padding: .75rem 1rem calc(.75rem + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--ad-line); }
 .adWf__tagrow { display: grid; gap: .5rem; }
-.ad .adWf input:focus-visible, .ad .adWf textarea:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.ad .adWf input:focus-visible, .ad .adWf textarea:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
 .adWf__scrim { display: none; }
 
 /* ------------------------------------------------------------ test log */

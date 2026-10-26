@@ -212,7 +212,7 @@
    both figures and the difference. Values lead, labels follow; line keys. */
 .adDash__chart { position: relative; }
 button.adDash__chartMonth { padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
-button.adDash__chartMonth:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+button.adDash__chartMonth:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
 .adDash__chartMonth.is-on { background: linear-gradient(to bottom, var(--ad-hover), var(--ad-hover)) top / 100% calc(100% - 1.6rem) no-repeat; }
 .adDash__chartMonth.is-on .adDash__chartBar { filter: brightness(1.08); }
 .adDash__tip {
@@ -236,7 +236,7 @@ button.adDash__chartMonth:focus-visible { outline: 2px solid var(--ad-accent); o
 .adDash__table { flex-basis: 100%; min-width: 0; }
 .adDash__table .ad__scroll { margin-top: .4rem; border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel); }
 .adDash__table summary { display: inline-flex; align-items: center; min-height: 2.75rem; cursor: pointer; color: var(--ad-ink); font-weight: 500; font-size: .86rem; }
-.adDash__table summary:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; border-radius: 6px; }
+.adDash__table summary:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; border-radius: 6px; }
 
 /* Arrival (see "arrival" in admin.css): the cashflow and pipeline bars grow
    from their baseline month by month, and the gauge sweeps tick by tick up

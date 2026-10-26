@@ -14,3 +14,4 @@
 .adFileDrop small { color: var(--ad-dim); font-size: .8rem; line-height: 1.45; }
 @media (max-width: 560px) { .adFileDrop { min-height: 8rem; padding: 1rem; } }
 
+.ad .adFileDrop:is(.is-over, :focus-within) { border-color: var(--ad-ink); outline-color: var(--ad-focus); }

@@ -21,7 +21,7 @@
 .adSet__nav a:hover { background: var(--ad-bg); color: var(--ad-ink); }
 .adSet__nav a[aria-current="page"] { background: var(--ad-nav-on); color: var(--ad-nav-on-ink); font-weight: 600; }
 .dark .adSet__nav a[aria-current="page"] { color: #fff; }
-.adSet__nav a:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.adSet__nav a:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
 .adSet__glyph { width: 1.1rem; height: 1.1rem; flex: none; }
 .adSet__nav .adSet__text b { font-weight: inherit; font-size: .92rem; }
 
@@ -36,7 +36,7 @@
   color: var(--ad-ink); text-decoration: none;
 }
 .adSet__row:hover { background: var(--ad-panel-2); }
-.adSet__row:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: -2px; }
+.adSet__row:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: -2px; }
 .adSet__icon { display: grid; place-items: center; width: 2.4rem; height: 2.4rem; flex: none; border-radius: 12px; background: var(--ad-tone-brand); color: var(--ad-on-brand); }
 .adSet__icon svg { width: 1.1rem; height: 1.1rem; }
 .adSet__text { min-width: 0; display: grid; gap: .1rem; }
@@ -89,7 +89,7 @@
 .adSw.is-on .adSw__t { background: var(--ad-fill); }
 .adSw.is-on .adSw__k { transform: translateX(1.125rem); }
 .dark .adSw.is-on .adSw__k { background: #000; }
-.adSw:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.adSw:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
 .adSw:disabled { opacity: .45; cursor: not-allowed; }
 
 /* Chips: checkboxes drawn as pills. */
@@ -102,7 +102,7 @@ label.adChip span {
   border: 1px solid var(--ad-line); background: var(--ad-panel); font-size: .88rem; font-weight: 500;
 }
 label.adChip input:checked + span { background: var(--ad-fill); border-color: var(--ad-fill); color: var(--ad-on-fill); }
-label.adChip input:focus-visible + span { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+label.adChip input:focus-visible + span { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
 
 /* A counted field, and a field with a unit either side. */
 .ad__f { position: relative; }
@@ -204,7 +204,7 @@ label.adChip input:focus-visible + span { outline: 2px solid var(--ad-accent); o
 @media (max-width: 560px) { .adSet__aside { display: none; } }
 .adSet__foot { margin: 1rem 0 0; font-size: .88rem; }
 .adSet__more summary { display: inline-flex; align-items: center; min-height: 2.75rem; cursor: pointer; font-weight: 500; color: var(--ad-ink); }
-.adSet__more summary:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; border-radius: 8px; }
+.adSet__more summary:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; border-radius: 8px; }
 .adSet__more .adForms__dl { margin: .25rem 0 .5rem; }
 .adSet__link { display: flex; align-items: center; gap: .6rem; min-width: 0; padding: .35rem .35rem .35rem .9rem; border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel-2); }
 .adSet__link code { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .84rem; }
@@ -243,7 +243,7 @@ label.adChip input:focus-visible + span { outline: 2px solid var(--ad-accent); o
 .adMt__pick { position: relative; display: grid; gap: .55rem; padding: .45rem .45rem .7rem; border: 1.5px solid var(--ad-line); border-radius: 14px; background: var(--ad-panel); cursor: pointer; transition: border-color .15s, box-shadow .15s; }
 .adMt__pick:hover { border-color: var(--ad-dim); }
 .adMt__card.is-on .adMt__pick { border-color: var(--ad-accent); box-shadow: 0 0 0 2px var(--ad-accent); }
-.adMt__pick:has(input:focus-visible) { outline: 2px solid var(--ad-accent); outline-offset: 3px; }
+.adMt__pick:has(input:focus-visible) { outline: 2px solid var(--ad-focus); outline-offset: 3px; }
 .adMt__pick input { position: absolute; opacity: 0; width: 1px; height: 1px; }
 .adMt__pick img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 9px; background: #000065; }
 .adMt__meta { display: grid; gap: .2rem; padding: 0 .35rem; min-width: 0; }
