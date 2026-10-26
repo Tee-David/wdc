@@ -42,5 +42,9 @@ Publishing is done by the main session (owner's call, 2026-10-25). Design runs r
   - S-Projects was done in the projects pass (own cards only, no amounts). S-Project, S-Support, S-Notifications and S-Settings were already at the standard; S-Settings gained the Password card earlier.
   - S-Clients: the three figure tiles had the same chart icon; now people, target and clock. Mira's next step names Bola, who holds the Instagram account.
 
+- 2026-10-26 320 scan of every board, light and dark. READY TO PUBLISH: all of `canvas/project/` (kit.css: the automation "Add a step" buttons get a 44px hit area).
+  - No board overflows sideways at 320 in either theme.
+  - Small boxes left, by design: avatar stacks on Today and Home (34px circles that overlap, with a larger invisible hit area), the revenue bars on Today (36px wide bars, 169px tall), the 7 column date grid on Book a meeting (31px wide at 320, 68px tall; seven columns cannot be 44px wide in 288px), and the Terms and Help links in the public footer (the public face is hands off).
+
 ## Next
-1. A full 320 scan of every board in both themes (running). Hybrid lists are done: Clients was already at the standard (deck, pipeline, by service, activity); checked at 1440 and 320.
+Everything in the build order is designed. Open for the owner: see the report. Hybrid lists are done: Clients was already at the standard (deck, pipeline, by service, activity); checked at 1440 and 320.
