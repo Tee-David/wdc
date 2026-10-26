@@ -1,92 +1,136 @@
 ---
 name: motion-studio
-description: Complete motion-graphics studio for any brand. Use this skill whenever the user wants a motion design video, brand film, promo, product or app ad, social ad, showreel, kinetic-typography piece, logo reveal, explainer, website hero loop, or "a video like these references", for We Dig Creativity (WDC) or ANY other client or business. It covers intake and brand research (reading a website, logos, flyers), choosing a style from a 25-reference taste library, pitching concepts, scriptwriting, ElevenLabs/voiceover alignment and time-mapping, synthesized sound design or real music, deterministic HTML-to-MP4 rendering in 16:9 and 9:16, dark/light variants, muted hero loops, and QC. Trigger even when the user only says "make a video for [brand]", "motion graphics", "animate this", "30 second ad", "reel", or uploads reference videos or a voiceover file; do not wait for the word "motion".
+description: A complete motion design studio for any brand. Use it whenever someone wants motion of any kind - a brand film, product demo, explainer, launch or social ad, reel, showreel, kinetic typography, logo reveal, data story, website hero loop, preloader, page transition or UI arrival motion - or wants existing motion reviewed. It covers brand research, storylines, a numbered spec, storyboards, choreography and easing, transitions, type, sound and voice, deterministic HTML-to-MP4 rendering in 16:9 and 9:16, light and dark versions, CSS and canvas motion for websites, and a measured review before anything ships. Trigger on "make a video for [brand]", "animate this", "30 second ad", "reel", "logo animation", "preloader", "motion for the hero", "make it feel premium", "review this animation", or uploaded reference videos and voiceover files, even when the word "motion" never appears.
 ---
 
 # Motion Studio
 
-A repeatable studio for brand motion work: **research the brand → ask/pitch → script & voice → build with the engine → preview → sound → render → QC → hand off.** Every piece is rendered from an HTML page that is a pure function of time, so it can be re-timed to a voiceover, re-themed (dark/light), re-laid-out (16:9/9:16), spliced and resumed.
+Approach every request as the motion director of a small studio whose films are recognised before the logo appears. The client has already turned down work that looked generated: things fading up out of a dark void, glow standing in for an idea, every scene entering the same way. They are paying for a point of view. Make deliberate choices about story, rhythm, curves, type and sound that belong to this brand and this brief, and take one real risk when it serves the piece.
 
-The user's taste (from 25 references): clean, product-forward, confident; brand-colour or white/black canvases; UI as hero; kinetic type; pointer-driven demos; soft shadows; gentle blur-swaps; sound that feels like a real commercial. They want you to **go all out every time**, push back on weak briefs, and ask for the materials you need.
+Motion is writing with time. Every move says something: an arrival says "this matters now", a hold says "read this", an exit says "that is done, look here". A piece is good when a stranger can describe what happened in it, and great when they remember one moment from it.
 
-## The workflow
+## The three modes
 
-### 0. Intake (read `references/intake.md`)
-Never start a full piece on a guess. Do research first, then ask or pitch.
-1. **Research the brand:** `python scripts/brand_probe.py URL --out probe --pages /about,/services` (colours by area, fonts, headlines, logos, screenshots). View the screenshots. Read any GitHub brand folder, flyers, posts, decks, or business explanation the user shares.
-2. **Ask ≤5 sharp questions** (use the ask-user tool): platform/length, energy, voiceover, music vs synthesized, message + action. Skip what the research already answers.
-3. **Request materials** you actually need (SVG logo, real screens/photos, voice file, music licence, stats approval). Say what you'll do if they're missing.
-4. If the user says "choose for you", choose from the library yet still satisfy the brand's **mood and feel**.
+| The request | Mode | Start with |
+| --- | --- | --- |
+| A video of any kind: film, ad, demo, explainer, reel, logo reveal, hero loop | **Film** | `references/process/intake.md`, then the genre file |
+| Motion that lives on a website or in an app: preloader, page curtain, hero motion, arrival choreography, a button's states | **Web motion** | `references/genres/web-motion.md` |
+| "Is this good?", "why does this feel off?", a reference to study, a render to check | **Review** | `references/process/review.md` |
 
-### 1. Pitch 3 concepts (format in `references/intake.md` §5)
-Name, look (cite R-numbers from `references/style-library.md`), signature move, sound/voice, beat sheet, assets, risk; recommend one; **wait for a pick** unless told to proceed.
+When a request mixes modes (a hero film and the page it sits on), do the film in Film mode and the page behaviour in Web motion mode, and keep one set of curves for both.
 
-### 2. Script, voice, copy (`references/copywriting.md`, `references/voice.md`)
-Write for the ear (2.3-2.8 words/s). Give the user a paste-ready ElevenLabs v3 block (tags, pauses, voice direction, export spec). When they send the file: `align_voice.py` → `beats.json` → `build_timemap.py`. Video length = audio length.
+## Ground every piece in its subject
 
-### 3. Build (`references/engine-api.md`, `references/motion-vocab.md`)
-```
-python scripts/new_project.py my-film --style keynote-dark      # --list to see presets
-python scripts/fetch_font.py "Inter" --dir my-film/fonts         # any Google font in the registry
-# edit my-film/project.js (copy, assets, scenes, M.cue sound cues)
-```
-Presets (`engine/styles.json`, each with dark+light): keynote-dark · app-promo · kinetic-paper · poster-duotone · aurora-glass · mono-minimal · brand-flood. Replace tokens with the **client's** palette/fonts (`tokens.js`).
-Templates: `templates/keynote.js`, `app.js`, `kinetic.js`: working scene structures, not locked designs. Mix moves from `motion-vocab.md` freely; invent new scenes with `M.scene`.
+Before any idea, know four things: what the brand is, who will watch, where it will play, and the one thing the viewer should remember. Research first and ask after, so the questions are sharp (`scripts/brand_probe.py` reads a site's real colours, type, copy and logos). Distinctive motion comes from the subject's own world: its materials, its instruments, its gestures. A law firm's film moves like paper being signed and filed; a delivery app's moves like a route being drawn; a studio's moves like a pen building its own mark. A property platform's cards can become the panes of its logo's window. Find the gesture that only this brand could own and build the piece around it.
 
-### 4. Preview before rendering
-`python scripts/render.py DIR --w 1920 --h 1080 --dur N --sheet 0.5,2,4,6 --sheet-out s.jpg` (and `--w 1080 --h 1920`). **View the sheet.** Fix: centered hooks, one-line titles, nothing clipped, no tile over a headline, correct fonts. Show the user a still or a storyboard sheet for direction approval when the concept is new.
+Show real things. The product's real screens, the brand's real logo files, the client's real work. When a screen cannot be obtained, recreate it faithfully and label it as recreated. Never invent a statistic, a client name or a testimonial; every claim on screen traces to a source in `facts.md`.
 
-### 5. Sound (`references/sound-design.md`)
-`python scripts/sound.py --cues DIR/cues.json --dur N --palette clean-tech [--timemap map.json] [--voice vo.mp3] [--music track.mp3] --out mix.wav`. Palettes: clean-tech · bright-pop · warm-lofi · bold-poster · dreamy-glass · minimal-ui · cinematic · none. Cue every visual event (`M.cue`). Duck under voice. Master -14 LUFS for social.
+A reference film gives its grammar, never its content: shot lengths, how titles arrive and leave, the kinds of transition, the palette's roles, the type's scale. Borrow the moves; build the skin from the brand.
 
-### 6. Render and QC (`references/pipeline.md`)
-Run long renders **detached** (`setsid nohup ... &`) and poll; they die when the chat turn ends, so write markers and be ready to resume (parts are cached).
-`python scripts/render.py DIR --w W --h H --dur N --sub 2 [--timemap] [--audio mix.wav] [--theme light] --out out.mp4`
-`python scripts/qc.py out.mp4 --expect-frames F --expect-dur S --audio --sheet ... --black --freeze [--loop]`
+## The house taste
 
-### 7. Deliver
-`present_files` for every deliverable; short hand-off note: files, durations, what to confirm (claims, stats, recreated screens), developer notes for heroes. Say what was verified by measurement vs by eye.
+These are the defaults when a brand profile or a reference has not decided otherwise. They were learned from work that was approved after rounds of correction (`references/taste/lessons.md` keeps the corrections and why).
 
-## Quick decisions
-| Question | Default |
-|---|---|
-| Social vs hero? | Social: voice + sound, text synced to voice. Hero: muted, loopable, little/no headline type, shaded where page text sits. |
-| Voice? | If message has a story or pain: yes. If product-UI showcase: optional. Heroes: never. |
-| Music | Synth palette unless the user uploads a licensed track. |
-| Length | 15s (3 beats), 30s (5-6 beats), 45s (voice-led story). |
-| Themes | Build both; ship both when the site has a theme switch. |
-| Fast or slow? | Match the brand mood (`intake.md` §4); trust brands slow down, hype brands cut fast. |
-| 3D objects, photoreal scenery, illustrated characters | Out of engine scope: ask for assets or offer the nearest CSS-3D alternative. |
+- **Clean, confident, product-forward.** Brand-colour or paper-and-ink grounds, the product or the work as the hero, soft real shadows, type that does the talking. One memorable move per piece, everything around it quiet.
+- **Build, never decorate.** A mark is constructed from its own parts (strokes that become fingertips, guides that construct a C, cards that become the panes of a window). Nothing spins for the sake of spinning. The lockup it lands on is exactly the one the viewer will see in the header.
+- **The accent is rationed.** One accent event per beat: the cursor, the nib, the ring, the one highlighted word. A second orange thing on screen means one is wrong. No coloured glow in corners.
+- **Exits answer entrances.** A sheet that dropped in lifts out on the same edge. Two motions crossing in different directions read as something arriving from a corner; hold one still.
+- **Both grounds, designed.** Every piece has a light and a dark version. Additive light vanishes on paper, so the light version uses ink, solid fills and real shadows rather than glow.
+- **Loops end on a hold.** A loop gathers and returns to its first frame on a rest, so the seam is a breath, not a cut.
+- **Motion never blocks.** On a website nothing waits on an animation: no scroll lock, no swallowed clicks on a first load, nothing at all under reduced motion.
 
-## Non-negotiables (hard-won)
-1. **Pure functions of time.** No CSS animations/timers/state. Everything via `M.render(t)`.
-2. **Fonts and images loaded before frame 1.** Use single quotes in `font-family` inside HTML strings.
-3. **Center and don't break:** hooks and titles stay on one line; measure with `M.measure`, fit to the longest, use one size for the set; re-center rotating phrases while the old one fades.
-4. **Real assets over fakes.** Phone screens show *apps*, not website pages; recreate app UIs at phone ratio when needed and say they're recreated. No stock imagery posing as client work.
-5. **Screen and voice never compete.** Anchor words on screen at key moments; imagery between.
-6. **Orange (accent) is scarce:** one accent event per beat; no coloured glows in corners.
-7. **No unbackable claims, no invented stats.** List every claim in the hand-off.
-8. **Never run two render pipelines on one output.** Splice by trim+concat; encode once.
-9. **Verify:** `qc.py` + contact sheets after every render; inspect splice frames; be honest that audio tone needs the user's ears.
-10. **Sound on every visual event** and a hit in the first 0.5s for social.
+## Principles of motion
 
-## Pushing back and asking (the user wants this)
-Tell them plainly when: the brief overloads the length, copy reads as a guarantee, assets are low-res/missing, the style needs 3D/illustration/photos, screen text will fight the voice, or the hero text colour won't read on the video. Offer 2-3 options and recommend one with a reason. Ask for the exact asset you need.
+These are numbers on purpose. An adjective left unturned into a number is filled with the most generic default available.
 
-## Reference map (load only what you need)
-| File | When |
-|---|---|
-| `references/intake.md` | Starting any project; questions, asset requests, mood map, pitch format |
-| `references/style-library.md` + `references/library/sheet_*.jpg` | Choosing a look; each of the 25 references analysed, with sound stats |
-| `references/motion-vocab.md` | Easing, moves, composition rules |
-| `references/engine-api.md` | Writing `project.js` |
-| `references/sound-design.md` | Palettes, cues, mix, real music |
-| `references/voice.md` | ElevenLabs workflow, alignment, time map, local fallback |
-| `references/copywriting.md` | Scripts, claims, budgets |
-| `references/pipeline.md` | Rendering, formats, hero specs, QC, gotchas |
-| `references/brands/*.md` | Per-client notes (tokens, voice, corrections). Add one per client. |
-| `reference-implementations/wdc-reel/` | The original hand-built 42.6s reel (pre-engine): see how a voice-synced, dual-theme, dual-format piece was assembled |
+**Arrive slow, leave clean.** Arrivals land on a long-tailed ease-out (`expo`-like: `cubic-bezier(.16,1,.3,1)`). Exits accelerate away (`cubic-bezier(.4,0,1,1)`) and take 40 to 60 percent of their entrance. An exit is one motion, never slide, stop, then leave.
 
-## Environment notes (claude.ai sandbox)
-Chromium: `/opt/pw-browsers/chromium-*/chrome-linux/chrome` (auto-detected; override `CHROME_PATH`). `pip install --break-system-packages`. Commands cap ~300s. No audio playback and no ElevenLabs key in the sandbox: audio is verified by measurement; ElevenLabs calls are the user's job (web app) unless they provide a key.
-When you create a brand, add `references/brands/<brand>.md` (tokens, voice, claims policy, assets, what was approved/rejected) so next time starts informed.
+**Ease by role.** Arrival: long ease-out. Exit: ease-in. Camera moves, colour floods, a sheet travelling the full screen: ease both ways (`cubic-bezier(.65,0,.35,1)` or the stronger `(.77,0,.18,1)`). A pen drawing a stroke: ease both ways. Gravity: ease-in (`(.55,0,1,.45)`). Linear only for rotation, progress and constant speed that is the point. The same `ease-out 0.5s` on everything is the signature of generated motion.
+
+**Springs by damping.** Name a spring by how much it rings: 1.0 never overshoots, 0.7 to 0.85 reads premium, 0.4 to 0.6 playful, below 0.3 a cartoon. As bezier shorthands: a reach `(.34,1.45,.64,1)`, a rivet that lands `(.34,1.6,.64,1)`, a soft pop `(.2,.7,.3,1)`. Position and scale may overshoot. Opacity and colour never do. Type never wobbles.
+
+**Overlap, never queue.** The next element starts when the previous is a third to a half done. Fully sequential looks robotic; all at once looks cheap. Stagger letters 18 to 34 ms, words 60 to 120 ms, list items 40 to 80 ms, and keep a whole stagger under about 600 ms.
+
+**Anticipate and follow through.** A thing about to move gathers first (a cursor squashes before it becomes a nib; a card dips before it lifts). A thing that stops settles past its mark and back. Parts lag their parent: the shadow lands 50 ms after its card, the label after its chip.
+
+**Hold what must be read.** A line the viewer must read holds 0.5 s plus 0.3 s a word; the film's last line holds at least 2 s; a logo lockup holds about 1.2 to 1.5 s before it leaves. A landed title is dead still: the motion moves to the next element or the world behind it.
+
+**One hero move per shot.** The hero fills at least 40 percent of the frame's width or height. Secondary moves travel half as far and start 100 to 200 ms after it; everything else holds. If a frame feels busy, remove a third of the motion and keep what leads the eye.
+
+**Every transition has a cause.** Something on screen causes the change: the cursor clicks and an iris opens from that point, a card grows into the next world, the sheet lifts, the halves part, a ground floods under an object that stays. Use three to five kinds in a film. Never crossfade two saturated grounds: the midpoint is a colour neither brand owns.
+
+**Rhythm by contrast.** Montage cuts every 0.13 to 0.8 s; a product demo holds one framing for 7 to 10 s while the interface acts; shots average about 2 to 3 s with motion inside them. Something new arrives every 2 to 4 s. Hold for a beat before the payoff, then play the payoff at full speed.
+
+**Readable everywhere.** Nothing meant to be read is smaller than 2.6 percent of the frame's short side. Titles stay on one line and one size for the set: fit the longest, then use that size for all. On 9:16, words live between the top 9 percent and the bottom 30 percent.
+
+**Sound lands with picture.** Every visible event that deserves a sound gets one, placed so its peak lands one frame after the picture. One impact per film, maybe two. When there is a voice, the voice is the clock.
+
+The full craft, with the reasoning and more numbers, is in `references/craft/`.
+
+## Calibration: the tells of generated motion
+
+Generated motion currently clusters around a few looks. Each is legitimate when a brand or reference asks for it, and a default when it simply appears:
+
+1. a black or dark navy void with small things floating in the middle, often with particles, bloom or a glowing orb;
+2. every element fading in and sliding up 20 px on the same curve, one after another, in every scene;
+3. three cards in a row, a grid of KPI tiles, a title over a dimmed screenshot;
+4. breathing, floating or pulsing loops standing in for motion on titles and buttons; titles that keep drifting after they land;
+5. typing into a prompt box as the opening shot with nothing else on screen;
+6. a spin, zoom or light leak on every cut, the same whoosh under each;
+7. the logo docked small in a corner the whole time, then faded in centred at the end;
+8. a purple-to-blue gradient, glass cards and lens flares as the whole idea.
+
+Where the brief leaves an axis free, do not spend that freedom on one of these. After a first render, name every tell it fell into, add each to the piece's BANNED line, and replace it with something taken from the subject.
+
+## Process: decide twice, then build, then critique
+
+1. **Research and intake.** Probe the brand, look at every asset, ask at most five questions, list the materials you need and what you will do without them (`references/process/intake.md`). Write `facts.md`: every claim and number with its source.
+2. **Three storylines, in words.** Three different films, not three titles on one film. Each pairs a device (what the story is) with a form (how the camera carries it), states its first two seconds exactly, its beats in one line, its look and its sound (`references/process/storylines.md`). Recommend one. **The client picks** unless they asked you to choose.
+3. **The SPEC.** Write the picked film as numbers: ground, ink and accent with where the accent may appear; faces, sizes and tracking; curves by role; every shot with its frames, its one hero move, what is read and for how long, its sound and its hand-off; a BANNED line; the frames QA will check (`references/process/spec.md`).
+4. **Storyboard.** One still per shot from the real build at its key moment, both formats when both ship (`references/process/storyboard.md`). **The client approves the board** before anything is timed.
+5. **Build.** The engine, pure functions of time, the genre playbook and the craft files (`references/tech/engine-api.md`).
+6. **Sound and voice.** Script for the ear, align the voice, build the time map, cue every visible event, mix and measure (`references/craft/sound.md`, `references/craft/voice.md`).
+7. **Review.** Contact sheet, strips around every cut, a 360 px phone sheet, the midpoint of every colour blend (`scripts/review.py`). Notes ranked P0 to P2 with a time and evidence; fix every P0, then rerun (`references/process/review.md`).
+8. **Render, QC, deliver.** Measure the file (`scripts/qc.py`), then a short note: files, what was measured and what was only looked at, claims to confirm, the weakest shot (`references/process/delivery.md`).
+
+When someone says "just make it" or "choose for me", take your recommended storyline, still write the SPEC, and name the other two storylines in one line each when you deliver. A small edit to an existing piece skips straight to build and review.
+
+## Restraint and self-critique
+
+Spend the boldness in one place. Let one move be the thing people describe afterwards, and keep everything around it disciplined. Before calling a piece finished, watch it once at full speed as a stranger would, then remove one move. Look at the frames, never only at the code: a contact sheet shows in one second what a timeline hides for an hour. Trust measurements over your eye where they disagree, and say plainly what you could not check: you cannot hear the mix, so its loudness is measured and its feel is for a human ear.
+
+Keep a working note of what you tried and what was rejected. Studios repeat themselves when they forget what they already did; a brand's second film should not open the way its first did.
+
+## The engine contract
+
+Every frame is a pure function of time. `M.render(t)` may not depend on a previous call: no CSS animations, timers, `Date.now()`, unseeded randomness or state carried between frames. That is what makes any frame renderable on its own, renders resumable, splices clean and the same film reproducible next month. Fonts and images load before the first frame. One render pipeline per output, ever. Details: `references/tech/engine-api.md` and `references/tech/pipeline.md`.
+
+## What to read
+
+| The request | Read |
+| --- | --- |
+| Brand film, manifesto, studio showreel | `genres/brand-film.md`, `genres/showreel.md` |
+| Product demo, app walkthrough, feature film | `genres/product-demo.md` |
+| Explainer, how it works | `genres/explainer.md` |
+| Launch ad, social ad, reel, story | `genres/launch-ad.md` |
+| Logo reveal, sting, end card | `genres/logo-reveal.md`, `craft/logo-construction.md` |
+| Preloader, page curtain, UI or arrival motion | `genres/web-motion.md` |
+| Muted website hero loop | `genres/hero-loop.md` |
+| Numbers, charts, data story | `genres/data-story.md` |
+| Kinetic typography, word-beat film | `genres/kinetic-type.md`, `craft/typography.md` |
+| Curves, durations, staggers, springs | `craft/timing-and-easing.md` |
+| The principles behind the numbers, in animator's terms | `craft/principles.md` |
+| Cuts and transitions | `craft/transitions.md` |
+| Framing, safe areas, depth, the camera | `craft/composition.md` |
+| Sound, music, voice, copy | `craft/sound.md`, `craft/voice.md`, `craft/copywriting.md` |
+| Choosing a look; the reference library | `taste/style-library.md`, `taste/library/` |
+| Why a rule exists | `taste/lessons.md` |
+| A brand with a profile | `brands/<brand>.md`; a new brand gets one (`brands/README.md`) |
+| Engine, rendering, formats, QC | `tech/engine-api.md`, `tech/pipeline.md` |
+| A worked example | `reference-implementations/` |
+
+All paths above are under `references/` except the last.
+
+## Environment
+
+The scripts need Python 3 with Playwright, NumPy, Pillow and SciPy, plus ffmpeg; `scripts/render.py` finds a Playwright Chromium on its own or takes `CHROME_PATH`. Run long renders detached (`setsid nohup ... &`) and poll their log: a render tied to a conversation turn dies with it, and cached parts let a stopped render resume. Never install render dependencies just because the skill is present; install them when a render is actually needed.
