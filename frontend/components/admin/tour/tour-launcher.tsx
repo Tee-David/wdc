@@ -37,7 +37,10 @@ function subscribeEverOpened(onChange: () => void) {
  * opens the menu once -- the hint has done its job -- and never runs at
  * all under `prefers-reduced-motion` or while a tour is already active.
  */
-export default function TourLauncher() {
+export default function TourLauncher({ foot }: {
+  /** In the sidebar's foot (side-kit.tsx): a labelled button like its neighbours, and the menu opens upwards. */
+  foot?: { label: string; labelClass?: string; icon: React.ReactNode };
+} = {}) {
   const [open, setOpen] = useState(false);
   const everOpened = useSyncExternalStore(subscribeEverOpened, readEverOpened, () => false);
   const ref = useRef<HTMLDivElement>(null);
@@ -81,21 +84,28 @@ export default function TourLauncher() {
 
   return (
     <div className="tourLauncher" ref={ref}>
-      <motion.button
-        ref={trigger}
-        type="button"
-        className="tourLauncher__btn"
-        aria-label="Tours and help"
-        aria-expanded={open}
-        onClick={toggle}
-        animate={!reduced && !everOpened ? { rotate: [0, -12, 10, -6, 0] } : undefined}
-        transition={{ duration: 1.4, repeat: Infinity, repeatDelay: 2.2, ease: "easeInOut" }}
-        whileHover={{ rotate: 0 }}
-      >
-        <HelpCircle aria-hidden="true" />
-      </motion.button>
+      {foot ? (
+        <button ref={trigger} type="button" className="tourLauncher__btn tourLauncher__btn--foot adK__footBtn adK__tip" data-tip="Tour this page"
+          aria-label="Tours and help" aria-expanded={open} onClick={toggle}>
+          {foot.icon}<span className={foot.labelClass}>{foot.label}</span>
+        </button>
+      ) : (
+        <motion.button
+          ref={trigger}
+          type="button"
+          className="tourLauncher__btn"
+          aria-label="Tours and help"
+          aria-expanded={open}
+          onClick={toggle}
+          animate={!reduced && !everOpened ? { rotate: [0, -12, 10, -6, 0] } : undefined}
+          transition={{ duration: 1.4, repeat: Infinity, repeatDelay: 2.2, ease: "easeInOut" }}
+          whileHover={{ rotate: 0 }}
+        >
+          <HelpCircle aria-hidden="true" />
+        </motion.button>
+      )}
       {open ? (
-        <div className="tourLauncher__menu" role="menu">
+        <div className={`tourLauncher__menu${foot ? " tourLauncher__menu--up" : ""}`} role="menu">
           <div className="tourLauncher__label">
             <b>Tours</b>
             <span>Pick a depth. All of them skip any time.</span>

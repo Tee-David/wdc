@@ -1,3 +1,9 @@
+## Live shell rebuilt to the kit, 26 October 2026
+
+- Owner's call: the live dashboards copy the artifact. The sidebar and drawer of the admin and the client portal are now the kit's (`components/admin/side-kit.*`): the round mark and name, the kit's icons drawn on in sequence, counts on the icon (Money overdue in red for the owner, Billing still to pay in amber for clients, Forms and Blog as before), Support in its own group, a foot with the install card (only when the browser can install, or the steps on an iPhone), the tours menu, the theme, collapse, and the profile card linking to the account with Sign out asked first. Rail mode at 641 to 900px; the drawer below 640px slides in on the spring and out in 220ms. The top bar loses the help, theme and account buttons (now in the foot).
+- Measured at 1440, 834 (dark) and 390: active page lit, collapse to 78px with labels hidden and tooltips, expand back to 244px, sign out asks, drawer counts at the row's end, drawer closes after its slide out; no page overflow; no console errors. 64 dead sidebar rules removed from admin.css (checked with lightningcss).
+- Not built yet, by the kit: a Messages count (needs the Messages page's per-person unread in the layout), the portal's search box, and the portal's separate Support page (help articles and a quick call; live keeps Messages at /portal/support).
+
 ## Phone top bar and the last board gaps, 26 October 2026
 
 - On phones the page's ⋮ moves into the top bar after the bell (kit and live); the phone bar drops the mark, help and avatar, which are in the drawer. Measured at 390 and 320 on Money, Clients, the message log and the portal home: the ⋮ is 44px (40 at 320), the menu opens, no top bar overflow, the section name is no longer clipped. Canvas Version 58.
