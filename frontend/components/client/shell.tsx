@@ -6,18 +6,15 @@ import { useSupportReadOnly } from "./support-context";
 import { SUPPORT_EXIT } from "@/lib/users/support-policy";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useTheme } from "next-themes";
-import { ArrowLeft, Bell, ChevronDown, Globe, LogOut, Moon, PanelLeft, Sun } from "lucide-react";
-import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { ArrowLeft, Bell } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
 import { authClient } from "@/lib/auth-client";
 import { saveAppearance } from "@/lib/client-profile-actions";
 import { WdcMark } from "@/components/brand/logo";
 import { CLIENT_NAV, isClientNavActive } from "./client-nav";
-import TourLauncher from "@/components/admin/tour/tour-launcher";
 import TableScroll from "@/components/admin/table-scroll";
 import { MenuButton, NavDrawer, useNavDrawer } from "@/components/admin/nav-drawer";
-import { SideProfile, SideTourCard } from "@/components/admin/side-foot";
-import { initialsOf } from "@/components/admin/focus";
+import { FootRow, InstallCard, KitBrand, KitIcon, KitNav, ProfileCard, type KitNavLink } from "@/components/admin/side-kit";
 import { ToastHost } from "@/components/admin/toast";
 import { ConfirmHost } from "@/components/admin/confirm";
 
@@ -33,15 +30,6 @@ import { ConfirmHost } from "@/components/admin/confirm";
 export type PortalUser = { name?: string | null; email?: string | null; image?: string | null };
 
 const SIDEBAR_KEY = "wdc:portal-sidebar-collapsed";
-let clientMounted = false;
-function subscribeToClientMount(onChange: () => void) {
-  if (!clientMounted) {
-    clientMounted = true;
-    queueMicrotask(onChange);
-  }
-  return () => undefined;
-}
-
 async function signOut(router: ReturnType<typeof useRouter>) {
   await authClient.signOut();
   router.replace("/login");
@@ -49,168 +37,58 @@ async function signOut(router: ReturnType<typeof useRouter>) {
 }
 
 function Sidebar({
-  collapsed = false, onTogglePin, pinnedCollapsed = false, clientCompany, user, canSupport=true, canBilling=true,
+  collapsed = false, onTogglePin, onExpand, clientCompany, user, canSupport = true, canBilling = true, counts, drawer = false, onClose,
 }: {
-  collapsed?: boolean; onTogglePin?: () => void; pinnedCollapsed?: boolean;
+  collapsed?: boolean; onTogglePin?: () => void; onExpand?: () => void;
   clientCompany: string | null; user: PortalUser;
-  canSupport?:boolean;canBilling?:boolean;
+  canSupport?: boolean; canBilling?: boolean;
+  counts?: Record<string, number>;
+  /** The phone drawer: a head with the close cross, counts at the row's end. */
+  drawer?: boolean; onClose?: () => void;
 }) {
   const supportReadOnly = useSupportReadOnly();
   const path = usePathname();
   const router = useRouter();
-
-  return (
-    <div className="ad__sideInner">
-      <div className="ad__brand">
-        <Link href="/portal" aria-label="WDC client portal">
-          <WdcMark className="ad__brandMark" />
-          {!collapsed ? (
-            <span><b>We Dig Creativity</b><small>{clientCompany ?? "Client portal"}</small></span>
-          ) : null}
-        </Link>
-        {onTogglePin && !collapsed ? (
-          <button
-            type="button"
-            className="ad__iconButton"
-            onClick={onTogglePin}
-            aria-label={pinnedCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-            title={pinnedCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
-            <PanelLeft aria-hidden="true" />
-          </button>
-        ) : null}
-      </div>
-
-      <div className="ad__sideScroll" data-lenis-prevent>
-        <nav className="ad__nav" aria-label="Portal sections">
-          {!collapsed ? <p className="ad__navLabel">Your work</p> : null}
-          <div className="ad__navGroup">
-            {CLIENT_NAV.filter(item=>(item.href!=="/portal/support"||canSupport)&&(item.href!=="/portal/billing"||canBilling)).map(({ href, label, Icon, tour }) => {
-              const active = isClientNavActive(href, path);
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  data-tour={tour}
-                  className={`ad__link${active ? " is-on" : ""}`}
-                  aria-current={path === href ? "page" : undefined}
-                  title={collapsed ? label : undefined}
-                >
-                  <Icon aria-hidden="true" />
-                  <span className={collapsed ? "ad__srOnly" : undefined}>{label}</span>
-                </Link>
-              );
-            })}
-          </div>
-        </nav>
-      </div>
-
-      <div className="ad__sideFoot">
-        {!supportReadOnly ? <SideTourCard collapsed={collapsed} /> : null}
-        <SideProfile user={user} role={clientCompany ?? "Client"} collapsed={collapsed} signOutLabel={supportReadOnly ? "Exit support view" : "Sign out"} onSignOut={() => { if (supportReadOnly) { const form = document.createElement("form"); form.method = "post"; form.action = SUPPORT_EXIT; document.body.append(form); form.submit(); } else void signOut(router); }} />
-      </div>
+  const items: KitNavLink[] = CLIENT_NAV
+    .filter((item) => (item.href !== "/portal/support" || canSupport) && (item.href !== "/portal/billing" || canBilling))
+    .map((item) => ({ href: item.href, label: item.label, icon: item.icon, tour: item.tour, on: isClientNavActive(item.href, path), current: path === item.href,
+      count: counts?.[item.label] ?? 0, tone: item.label === "Billing" ? "warn" : "brand" }));
+  const brand = <KitBrand href="/portal" name={clientCompany ?? "Client portal"} sub={clientCompany ? "Client portal" : undefined} label="WDC client portal" />;
+  const exit = () => { const form = document.createElement("form"); form.method = "post"; form.action = SUPPORT_EXIT; document.body.append(form); form.submit(); };
+  const foot = (
+    <div className="adK__foot">
+      {!supportReadOnly ? <InstallCard drawer={drawer} body="Open your projects and invoices from your home screen, like an app." /> : null}
+      <FootRow drawer={drawer} onCollapse={drawer ? undefined : onTogglePin} onExpand={drawer ? undefined : onExpand} onTheme={(next) => { void saveAppearance(next); }} />
+      <ProfileCard user={user} role={clientCompany ?? "Client"} href="/portal/settings" signOutLabel={supportReadOnly ? "Exit support view" : "Sign out"} onSignOut={() => { if (supportReadOnly) exit(); else void signOut(router); }} />
     </div>
   );
-}
-
-/** The theme switch as a row of the account menu; the choice is saved to the account straight away. */
-function MenuTheme() {
-  const { resolvedTheme, setTheme } = useTheme();
-  const mounted = useSyncExternalStore(subscribeToClientMount, () => clientMounted, () => false);
-  const dark = mounted && resolvedTheme === "dark";
-  return (
-    <button type="button" role="menuitem" onClick={() => { const next = dark ? "light" : "dark"; setTheme(next); void saveAppearance(next); }}>
-      {dark ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />} {mounted ? (dark ? "Light theme" : "Dark theme") : "Switch theme"}
-    </button>
-  );
-}
-
-function ThemeButton() {
-  const { resolvedTheme, setTheme } = useTheme();
-  const mounted = useSyncExternalStore(subscribeToClientMount, () => clientMounted, () => false);
-  if (!mounted) {
+  if (drawer) {
     return (
-      <button type="button" className="ad__topIcon" aria-label="Switch theme" title="Switch theme">
-        <Moon aria-hidden="true" />
-      </button>
+      <div className="adK adK--drawer">
+        <div className="adK__drawHead">
+          {brand}
+          <button type="button" className="adK__ibtn adK__xBtn" aria-label="Close the menu" onClick={onClose}><KitIcon name="x" size={18} /></button>
+        </div>
+        <div className="adK__scroll" data-lenis-prevent><KitNav items={items} label="Portal sections" drawer /></div>
+        {foot}
+      </div>
     );
   }
-  const dark = resolvedTheme === "dark";
   return (
-    <button
-      type="button"
-      className="ad__topIcon"
-      onClick={() => setTheme(dark ? "light" : "dark")}
-      aria-label={`Switch to ${dark ? "light" : "dark"} theme`}
-      title={`Switch to ${dark ? "light" : "dark"} theme`}
-    >
-      {dark ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
-    </button>
-  );
-}
-
-function AccountMenu({ user, clientCompany }: { user: PortalUser; clientCompany: string | null }) {
-  const supportReadOnly = useSupportReadOnly();
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const trigger = useRef<HTMLButtonElement>(null);
-  const router = useRouter();
-
-  useEffect(() => {
-    function close(event: PointerEvent) {
-      if (ref.current && !ref.current.contains(event.target as Node)) setOpen(false);
-    }
-    function keydown(event: KeyboardEvent) {
-      if (event.key === "Escape" && open) {
-        setOpen(false);
-        trigger.current?.focus();
-      }
-    }
-    document.addEventListener("pointerdown", close);
-    document.addEventListener("keydown", keydown);
-    return () => {
-      document.removeEventListener("pointerdown", close);
-      document.removeEventListener("keydown", keydown);
-    };
-  }, [open]);
-
-  return (
-    <div className="ad__menuWrap" ref={ref}>
-      <button ref={trigger} type="button" className="ad__account" aria-label="Account menu" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
-        <span className="ad__avatar" aria-hidden="true">
-          {user.image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={user.image} alt="" />
-          ) : initialsOf(user, "Client")}
-        </span>
-        <span className="ad__accountText">
-          <b>{user.name || "Client"}</b>
-          <small>{clientCompany ?? "Client"}</small>
-        </span>
-        <ChevronDown className="ad__accountChev" aria-hidden="true" />
-      </button>
-      {open ? (
-        <div className="ad__popover ad__accountMenu" role="menu">
-          <div className="ad__accountMeta">
-            <b>{user.name || "Client"}</b>
-            {user.email ? <span>{user.email}</span> : null}
-          </div>
-          {supportReadOnly ? <form action={SUPPORT_EXIT} method="post"><button type="submit" role="menuitem"><LogOut aria-hidden="true" /> Exit support view</button></form> : <><MenuTheme /><Link href="/" role="menuitem" onClick={() => setOpen(false)}><Globe aria-hidden="true" /> Back to website</Link><button type="button" role="menuitem" onClick={() => signOut(router)}><LogOut aria-hidden="true" /> Sign out</button></>}
-        </div>
-      ) : null}
+    <div className={`adK${collapsed ? " is-mini" : ""}`}>
+      {brand}
+      <div className="adK__scroll" data-lenis-prevent><KitNav items={items} label="Portal sections" mini={collapsed} /></div>
+      {foot}
     </div>
   );
 }
 
 export default function ClientShell({
-  children, user, clientCompany,canSupport=true,canBilling=true,
-}: { children: ReactNode; user: PortalUser; clientCompany: string | null;canSupport?:boolean;canBilling?:boolean }) {
-  const supportReadOnly = useSupportReadOnly();
+  children, user, clientCompany, canSupport = true, canBilling = true, counts,
+}: { children: ReactNode; user: PortalUser; clientCompany: string | null; canSupport?: boolean; canBilling?: boolean; counts?: Record<string, number> }) {
   const path = usePathname();
   const [pinnedCollapsed, setPinnedCollapsed] = useState(false);
-  const [hoverExpanded, setHoverExpanded] = useState(false);
   const active = CLIENT_NAV.find((item) => isClientNavActive(item.href, path));
-  const visuallyCollapsed = pinnedCollapsed && !hoverExpanded;
   const drawer = useNavDrawer();
   /* Inside a section (a project, a conversation) the phone's arrow goes back
      to the section's list; on the list itself the mark stands in its place. */
@@ -234,12 +112,8 @@ export default function ClientShell({
   return (
     <div className={`ad__wrap${pinnedCollapsed ? " is-collapsed" : ""}`}>
       <SheetDrag />
-      <aside
-        className={`ad__side${pinnedCollapsed && hoverExpanded ? " is-hoverExpanded" : ""}`}
-        onMouseEnter={() => pinnedCollapsed && setHoverExpanded(true)}
-        onMouseLeave={() => setHoverExpanded(false)}
-      >
-        <Sidebar collapsed={visuallyCollapsed} onTogglePin={togglePin} pinnedCollapsed={pinnedCollapsed} clientCompany={clientCompany} user={user} canSupport={canSupport} canBilling={canBilling} />
+      <aside className="ad__side" aria-label="Main">
+        <Sidebar collapsed={pinnedCollapsed} onTogglePin={togglePin} onExpand={() => (pinnedCollapsed ? togglePin() : drawer.show())} clientCompany={clientCompany} user={user} canSupport={canSupport} canBilling={canBilling} counts={counts} />
       </aside>
 
       <div className="ad__column">
@@ -256,10 +130,6 @@ export default function ClientShell({
           <div className="ad__topActions">
             <Link href="/portal/notifications" className="ad__topIcon" aria-label="Your project inbox" title="Your project inbox" data-tour="workspace-inbox-link"><Bell aria-hidden="true" /></Link>
             <TopChoresSlot />
-            {!supportReadOnly ? <TourLauncher /> : null}
-            <ThemeButton />
-            <span className="ad__topRule" aria-hidden="true" />
-            <AccountMenu user={user} clientCompany={clientCompany} />
           </div>
         </header>
         <main className="ad__main">{children}</main>
@@ -268,8 +138,8 @@ export default function ClientShell({
         <ConfirmHost />
       </div>
 
-      <NavDrawer open={drawer.open} onClose={drawer.hide} label="Portal menu" tools={<ThemeButton />}>
-        <Sidebar clientCompany={clientCompany} user={user} canSupport={canSupport} canBilling={canBilling} />
+      <NavDrawer open={drawer.open} onClose={drawer.hide} label="Portal menu">
+        <Sidebar drawer onClose={drawer.hide} clientCompany={clientCompany} user={user} canSupport={canSupport} canBilling={canBilling} counts={counts} />
       </NavDrawer>
     </div>
   );
