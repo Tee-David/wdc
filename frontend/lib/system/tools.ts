@@ -15,7 +15,7 @@ import { headObject, r2Config } from "@/lib/r2";
  */
 
 export type ToolResult = { at: string; by: string; summary: string; ok: boolean };
-export const TOOLS = ["retry-mail", "invitations", "revalidate", "media", "realtors-practice"] as const;
+export const TOOLS = ["retry-mail", "revalidate", "media"] as const;
 export type ToolName = (typeof TOOLS)[number];
 const KEY = (n: ToolName) => `tool.${n}`;
 
@@ -63,23 +63,6 @@ export async function retryFailedFormEmails(by: string): Promise<ToolResult> {
   }
   const parts = [`${sent} sent`, refused ? `${refused} refused again` : "", done ? `${done} already retried` : "", other ? `${other} other failed emails are resent from their own record` : ""].filter(Boolean);
   return keep("retry-mail", by, `retried failed form emails: ${parts.join(", ")}`, refused === 0);
-}
-
-/** Withdrawn or expired invitations, unredeemed, older than 30 days. */
-export async function purgeInvitations(by: string): Promise<ToolResult> {
-  const r = await db.query(`
-    DELETE FROM invitations
-    WHERE redeemed_at IS NULL AND (revoked_at IS NOT NULL OR expires_at < now())
-      AND created_at < now() - INTERVAL '30 days'
-  `);
-  return keep("invitations", by, `removed ${r.rowCount ?? 0} expired or withdrawn invitations older than 30 days`);
-}
-
-/** Realtors' Practice and Shop With Peculiar, from the studio's invoice files. See lib/system/import-realtors.ts. */
-export async function importRealtors(by: string): Promise<ToolResult> {
-  const { importRealtorsPractice } = await import("./import-realtors");
-  const r = await importRealtorsPractice(by);
-  return keep("realtors-practice", by, r.summary);
 }
 
 /** Every public page rebuilt on its next visit. */

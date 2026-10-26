@@ -3,7 +3,7 @@ import { adminRole } from "@/lib/admin/guard";
 import { can } from "@/lib/admin/permissions";
 import { lastProbes, PROBES, SLOW, type ProbeName } from "@/lib/system/probes";
 import { migrationStatus } from "@/lib/system/migrations";
-import { lastTools, MEDIA_CHECK_LIMIT, RETRY_DAYS, RETRY_LIMIT, type ToolName } from "@/lib/system/tools";
+import { lastTools, MEDIA_CHECK_LIMIT, type ToolName } from "@/lib/system/tools";
 import { failedLoggedCount, stuckQueuedCount } from "@/lib/message-log";
 import { lastAuditFor } from "@/lib/audit-db";
 import { selectedPaystackMode } from "@/lib/paystack-mode";
@@ -30,10 +30,7 @@ const PROBE_LABEL: Record<ProbeName, string> = {
 };
 
 const TOOL_ROWS: { tool: ToolName; label: string; what: string; confirm?: string }[] = [
-  { tool: "retry-mail", label: "Retry failed form emails", what: `Receipts, notices and next steps from the last ${RETRY_DAYS} days that did not go, rebuilt from their entries and sent again, up to ${RETRY_LIMIT} a run. Runs behind the page.` },
-  { tool: "invitations", label: "Remove old invitations", what: "Invitations that expired or were withdrawn more than 30 days ago and were never used." },
   { tool: "revalidate", label: "Refresh public pages", what: "Every public page is rebuilt on its next visit. For a change that is saved but not showing." },
-  { tool: "realtors-practice", label: "Bring in Realtors' Practice", what: "Thirteen invoices from the studio's own files (Jul 2025 to Oct 2026), each paid in full by transfer on its date: Realtors' Practice with its seven pieces of work (the website is complete, the retainer maintains the scraper app, the website and the VPS), and Shop With Peculiar with one. Finds the client by name if it is already here and adds only what is missing. Owner only.", confirm: "This adds a client record or updates the existing one, seven projects, thirteen invoices and thirteen paid receipts. Running it again adds nothing twice." },
   { tool: "media", label: "Check the media library", what: `Asks the bucket whether each of the newest ${MEDIA_CHECK_LIMIT} files is still there. Reports; never deletes. Runs behind the page.` },
 ];
 
