@@ -3,11 +3,14 @@
 Usage: analyze_reference.py VIDEO [VIDEO...] [--out DIR] [--frames 12] [--trim-end 3.2]
 --trim-end ignores the last N seconds (TikTok/IG outro cards) for cuts/palette/audio.
 Writes DIR/<name>_sheet.jpg and DIR/analysis.json. Audio tempo is a ROUGH estimate (octave errors);
-loudness / onset density / brightness are reliable."""
+loudness / onset density / brightness are reliable. `cuts` counts hard scene cuts only; `pacing` counts every change event
+(cuts, morphs and big moves on one ground) and lists the holds, which is the better measure of rhythm."""
 import argparse, glob, json, os, re, subprocess, sys, tempfile
 import numpy as np
 from PIL import Image, ImageDraw
 from scipy.signal import stft
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import motionlib
 
 def run(cmd): return subprocess.run(cmd, capture_output=True, text=True)
 def probe(f):
@@ -68,7 +71,7 @@ def main():
         sheet(ims, h>w*1.2, f'{name[:18]} {dur:.0f}s').save(f'{a.out}/{name}_sheet.jpg',quality=82)
         c = cuts(f,end)
         res[name] = {'size':[w,h],'duration':round(dur,1),'cuts':len(c),'avg_shot_s':round(end/(len(c)+1),2),
-                     'cuts_per_10s':round(len(c)/end*10,1),'palette':palette(ims),'audio':audio(f,end)}
-        print(name, 'shots', len(c)+1, 'avg', res[name]['avg_shot_s'], flush=True)
+                     'cuts_per_10s':round(len(c)/end*10,1),'pacing':motionlib.pacing(f,end)[0],'palette':palette(ims),'audio':audio(f,end)}
+        pc = res[name]['pacing']; print(name, 'cuts', len(c), '| change events', pc['change_events'], f"({pc['changes_per_10s']}/10s)", '| longest hold', pc['longest_hold_s'], 's', flush=True)
     json.dump(res,open(f'{a.out}/analysis.json','w'),indent=1)
 if __name__=='__main__': main()

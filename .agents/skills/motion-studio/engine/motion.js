@@ -24,6 +24,32 @@ M.xio = x=>x<=0?0:x>=1?1:x<.5?Math.pow(2,20*x-10)/2:(2-Math.pow(2,-20*x+10))/2; 
 M.back = (x,s=1.70158)=>{const c=s+1;return 1+c*Math.pow(x-1,3)+s*Math.pow(x-1,2)};  // overshoot
 M.spring = x=>x<=0?0:x>=1?1:1-Math.exp(-7*x)*Math.cos(11*x);                         // springy settle
 M.rnd = i=>{const x=Math.sin(i*127.1+311.7)*43758.5453;return x-Math.floor(x)};       // deterministic noise
+/* bez(x1,y1,x2,y2): a CSS cubic-bezier as an easing function of x 0..1, so the film and the website share one curve. */
+M.bez = (x1,y1,x2,y2)=>{
+  const cx=3*x1, bx=3*(x2-x1)-cx, ax=1-cx-bx, cy=3*y1, by=3*(y2-y1)-cy, ay=1-cy-by;
+  const X=s=>((ax*s+bx)*s+cx)*s, Y=s=>((ay*s+by)*s+cy)*s, dX=s=>(3*ax*s+2*bx)*s+cx;
+  return x=>{ if(x<=0) return 0; if(x>=1) return 1; let s=x;
+    for(let i=0;i<8;i++){const e=X(s)-x, d=dX(s); if(Math.abs(e)<1e-6) break; if(Math.abs(d)<1e-6) break; s-=e/d;}
+    if(s<0||s>1||Math.abs(X(s)-x)>1e-4){let a=0,b=1; s=x; for(let i=0;i<30;i++){ if(X(s)<x) a=s; else b=s; s=(a+b)/2; }}
+    return Y(s); };
+};
+/* Named curves by role (see references/craft/timing-and-easing.md). */
+M.ease = {
+  arrive: M.bez(.16,1,.3,1),  exit: M.bez(.4,0,1,1),    travel: M.bez(.65,0,.35,1), sheet: M.bez(.77,0,.18,1),
+  fall: M.bez(.55,0,1,.45),   pop: M.bez(.2,.7,.3,1),   reach: M.bez(.34,1.45,.64,1), rivet: M.bez(.34,1.6,.64,1),
+  orbit: M.bez(.45,0,.2,1),   sine: x=>-(Math.cos(Math.PI*x)-1)/2,
+};
+/* springD(x, damping): a closed-form spring settling at x=1, named by damping ratio (1 = no overshoot, .7-.85 premium,
+   .4-.6 playful). Pure function of x, so any frame renders on its own. */
+M.springD = (x,z=.75)=>{ if(x<=0) return 0; if(x>=1) return 1; const w=12, t=x;
+  if(z>=1) return 1-(1+w*t)*Math.exp(-w*t);
+  const wd=w*Math.sqrt(1-z*z); return 1-Math.exp(-z*w*t)*(Math.cos(wd*t)+(z*w/wd)*Math.sin(wd*t)); };
+/* pscale(a,b,p): interpolate scale in log space so a zoom does not appear to slow as it grows. */
+M.pscale = (a,b,p)=>Math.exp(Math.log(Math.max(a,1e-4))+(Math.log(Math.max(b,1e-4))-Math.log(Math.max(a,1e-4)))*p);
+/* poster(t,fps): hold every n-th frame for a hand-made, stepped look (a choice, never an accident). */
+M.poster = (t,step=2,fps=30)=>Math.floor(t*fps/step)*step/fps;
+/* seg(t,t0,dur,ease): progress of a segment that starts at t0 and lasts dur, eased. The building block of every move. */
+M.seg = (t,t0,dur,ease=M.ease.arrive)=>ease(M.P(t,t0,t0+dur));
 M.blink = (rate=3.6)=>(Math.floor(M.RT*rate)%2)===0;
 M.typed = (s,t,t0,dt)=>s.slice(0,clamp(Math.floor((t-t0)/dt),0,s.length));
 

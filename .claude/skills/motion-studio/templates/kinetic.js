@@ -3,7 +3,7 @@
 const T=M.T,F=M.F,W=M.W,H=M.H,V=M.V,u=Math.min(W,H)/1080;
 const {P,eo,ei,eio,xo,xi,xio,back,spring,lerp,clamp,tf,swap,typed,rnd}=M;
 M.cfg.bg=T.bg; M.cfg.fonts=[`800 100px ${F.display}`,`500 30px ${F.body}`];
-const COPY={lines:['I bring','ideas','to life'],pre:'Thousand of',box:['Inspirations','Motion','Brands','Ideas'],post:'is here',
+const COPY={lines:['I bring','ideas','to life'],pre:'Thousands of',box:['Inspirations','Motion','Brands','Ideas'],post:'is here',
   cards:['Brand','Web','Motion'],capt:'Made to be noticed.',word:'yourbrand',url:'yourbrand.com'};
 const DCSS=`font-family:${F.display};font-weight:800;letter-spacing:-0.035em;white-space:pre`;
 
@@ -16,14 +16,14 @@ M.scene('words',0,3.4,{pad:.3,
   c.conf=C.confetti(root,{x:W/2,y:H/2,n:46,speed:1100*u,colors:[T.accent,T.ink,T.mute,'#FFB020','#4D7CFE']});
  },
  update(lt,t,c){
-  let n=0; c.spans.forEach((sp,li)=>sp.forEach((s,wi)=>{const i=n++, k=back(P(lt,.1+i*.14,.75+i*.14),1.25), q=1-clamp(k,0,1.2);
-    tf(s,{x:(rnd(i+1)-.5)*W*.9*q,y:(rnd(i+7)-.5)*H*.8*q,rz:(rnd(i+3)-.5)*60*q,s:lerp(.6,1,clamp(k,0,1.1)),o:clamp(P(lt,.1+i*.14,.3+i*.14)),b:Math.abs(q)*10});}));
+  let n=0; c.spans.forEach((sp,li)=>sp.forEach((s,wi)=>{const i=n++, k=back(P(lt,-.25+i*.14,.4+i*.14),1.25), q=1-clamp(k,0,1.2);
+    tf(s,{x:(rnd(i+1)-.5)*W*.9*q,y:(rnd(i+7)-.5)*H*.8*q,rz:(rnd(i+3)-.5)*60*q,s:lerp(.6,1,clamp(k,0,1.1)),o:clamp(P(lt,-.25+i*.14,-.05+i*.14)),b:Math.abs(q)*10});}));
   c.conf.update(lt-1.0);
-  c.lines.forEach((l,i)=>l.tf(swap(1,P(lt,3.0+i*.05,3.2+i*.05),{dist:50})));
+  c.lines.forEach((l,i)=>l.tf(swap(1,P(lt,2.8+i*.05,3.0+i*.05),{dist:50})));  // leave before the next scene's ground arrives
  }});
-M.cue(.15,'whoosh'); M.cue(.85,'riser',{gain:.5}); M.cue(1.05,'impact'); M.cue(1.05,'pop'); M.cue(3.05,'swap');
+M.cue(.15,'whoosh'); M.cue(.85,'riser',{gain:.5}); M.cue(1.05,'impact'); M.cue(1.05,'pop'); M.cue(2.85,'swap');
 
-M.scene('swapbox',3.0,5.8,{pad:.3,
+M.scene('swapbox',3.0,5.8,{pad:0,
  build(root,c){
   root.style.background=T.bg2; c.fs=Math.round(120*u);
   const css=DCSS+`;font-size:${c.fs}px`; c.wp=M.measure(COPY.pre,css)+c.fs*.3; c.pad=c.fs*.3;

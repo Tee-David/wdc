@@ -1,3 +1,11 @@
+## Motion Studio skill rebuilt, 26 October 2026
+
+- `.claude/skills/motion-studio` and `.agents/skills/motion-studio` (identical) rebuilt as one steering document plus references in `process/`, `craft/`, `genres/`, `taste/`, `brands/` and `tech/`, with Film, Web motion and Review modes. Written to stand alone as an open-source repository later; the name is still a placeholder.
+- New: storylines, SPEC and storyboard gates; a lessons ledger from approved work; R26 to R33 in the style library (the Vale launch film, three logo reveals, the Ink and Blueprint preloaders and curtains); the shipped preloaders as a worked example; `scripts/review.py` and `scripts/motionlib.py`; change events and holds in `analyze_reference.py`; shared curves, a damping spring and perceptual scale in the engine.
+- Fixed: Chromium detection for current Playwright builds, the Google Fonts download URL, an invented stat in the keynote template, and a black opening in the kinetic template.
+- Verified here: every script compiles; a project was scaffolded, rendered to MP4 with sound, and passed `qc.py` and `review.py`. Not verified: voice alignment and the ElevenLabs and local voice tools (no models or keys in this environment).
+- Before publishing as open source: remove client brand profiles, third-party reference sheets and production code you do not want public, and add a licence (see the skill's README).
+
 ## Phone top bar and the last board gaps, 26 October 2026
 
 - On phones the page's ⋮ moves into the top bar after the bell (kit and live); the phone bar drops the mark, help and avatar, which are in the drawer. Measured at 390 and 320 on Money, Clients, the message log and the portal home: the ⋮ is 44px (40 at 320), the menu opens, no top bar overflow, the section name is no longer clipped. Canvas Version 58.

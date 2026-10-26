@@ -3,9 +3,10 @@
 const T=M.T,F=M.F,W=M.W,H=M.H,V=M.V,u=Math.min(W,H)/1080;
 const {P,eo,ei,eio,xo,xi,xio,back,lerp,clamp,tf,swap,typed}=M;
 M.cfg.bg=T.bg; M.cfg.fonts=[`700 100px ${F.display}`,`500 30px ${F.body}`];
+/* No invented numbers: stat stays 0 until the client gives a real figure (facts.md). */
 const COPY={hook1:'What if your brand',hook2:['made itself?','sold itself?'],chaos:'Five vendors. One headache.',
   tiles:['Designer','Developer','SEO guy','Social manager','Ads manager','Copywriter','Photographer','Printer','Hosting','Another WhatsApp group'],
-  stat:'200+',statLabel:'clients served',end:'Your Brand',url:'yourbrand.com'};
+  stat:'0+',statLabel:'[CLIENT TO CONFIRM] a real figure',end:'Your Brand',url:'yourbrand.com'};
 const DCSS=`font-family:${F.display};font-weight:700;letter-spacing:-0.035em;white-space:pre`;
 const GRAD=`radial-gradient(ellipse at 50% 50%,${T.bg2} 0%,${T.bg} 72%)`, SH={wipe:{x:W/2,y:H/2}};
 const reveal=(root,lt,o,dur=.45)=>{const p=xio(P(lt,0,dur));root.style.clipPath=p>=1?'none':`circle(${p*Math.hypot(W,H)}px at ${o.x}px ${o.y}px)`;return p;};
@@ -59,7 +60,7 @@ for(let i=0;i<COPY.tiles.length;i++) M.cue(2.7+i*.12,'pop',{gain:.6}); M.cue(4.3
 
 const UI=pw=>`<div style="width:286px;height:626px;transform:scale(${(pw-24)/286});transform-origin:0 0;font-family:${F.body};color:#0e0e2c;padding:48px 14px 0;box-sizing:border-box">
  <div style="font-weight:700;font-size:20px;font-family:${F.display}">Overview</div>
- <div style="margin-top:10px;background:${T.accent};color:#fff;border-radius:18px;padding:16px"><div style="font-size:11px;opacity:.9">This month</div><div style="font-size:32px;font-weight:700;font-family:${F.display}">+248%</div>
+ <div style="margin-top:10px;background:${T.accent};color:#fff;border-radius:18px;padding:16px"><div style="font-size:11px;opacity:.9">This month</div><div style="font-size:32px;font-weight:700;font-family:${F.display}">+00%</div>
  <svg width="230" height="46" viewBox="0 0 230 46"><path d="M0 40 C30 38 40 20 70 24 S120 10 150 14 S200 4 230 2" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg></div>
  ${[1,2,3,4].map(i=>`<div style="margin-top:10px;background:#fff;border-radius:14px;padding:13px;display:flex;justify-content:space-between;font-size:12px"><span>Campaign ${i}</span><b>${i*37+12}%</b></div>`).join('')}</div>`;
 M.scene('product',4.9,7.3,{pad:.3,

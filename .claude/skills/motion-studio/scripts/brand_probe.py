@@ -7,7 +7,15 @@ import argparse, asyncio, colorsys, json, os, re, urllib.request, urllib.parse, 
 from collections import Counter
 from playwright.async_api import async_playwright
 def chrome():
-    for p in glob.glob('/opt/pw-browsers/chromium-*/chrome-linux/chrome')+glob.glob(os.path.expanduser('~/.cache/ms-playwright/chromium-*/chrome-linux/chrome')): return p
+    """Chromium for Playwright: $CHROME_PATH, else a Playwright-managed build, else None (Playwright's own default)."""
+    if os.environ.get('CHROME_PATH'): return os.environ['CHROME_PATH']
+    roots = ['/opt/pw-browsers', os.path.expanduser('~/.cache/ms-playwright'), os.path.expanduser('~/Library/Caches/ms-playwright'), os.path.join(os.environ.get('LOCALAPPDATA',''),'ms-playwright')]
+    tails = ['chrome-linux64/chrome','chrome-linux/chrome','chrome-mac*/Chromium.app/Contents/MacOS/Chromium','chrome-mac*/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing','chrome-win*/chrome.exe']
+    for r in roots:
+        for t in tails:
+            hits = sorted(glob.glob(os.path.join(r,'chromium-*',t)))
+            if hits: return hits[-1]
+    return None
 JS = """() => {
  const parse = c => { const m = c.match(/rgba?\\(([^)]+)\\)/); if(!m) return null; const p = m[1].split(',').map(Number); if (p.length>3 && p[3] < .2) return null; return p.slice(0,3).map(Math.round); };
  const hex = a => '#' + a.map(x => x.toString(16).padStart(2,'0')).join('');

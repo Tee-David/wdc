@@ -14,7 +14,7 @@ def fetch(family, d):
     if not path: sys.exit(f'Unknown family {family!r}. Known: {", ".join(REG)}. Add it to REG (path under google/fonts/ofl).')
     fn = os.path.basename(path).replace('[','').replace(']','').replace(',','_'); dst = os.path.join(d,fn)
     if not os.path.exists(dst):
-        url = 'https://github.com/google/fonts/raw/main/ofl/'+urllib.parse.quote(path,safe='/,')
+        url = 'https://raw.githubusercontent.com/google/fonts/main/ofl/'+urllib.parse.quote(path,safe='/,')
         try: urllib.request.urlretrieve(url,dst)
         except Exception as e:
             b = os.path.join(BUNDLED,fn.replace('wght',''))

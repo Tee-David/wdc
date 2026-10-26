@@ -9,8 +9,15 @@ from PIL import Image
 from playwright.async_api import async_playwright
 
 def chrome():
+    """Chromium for Playwright: $CHROME_PATH, else a Playwright-managed build, else None (Playwright's own default)."""
     if os.environ.get('CHROME_PATH'): return os.environ['CHROME_PATH']
-    for p in glob.glob('/opt/pw-browsers/chromium-*/chrome-linux/chrome')+glob.glob(os.path.expanduser('~/.cache/ms-playwright/chromium-*/chrome-linux/chrome')): return p
+    roots = ['/opt/pw-browsers', os.path.expanduser('~/.cache/ms-playwright'), os.path.expanduser('~/Library/Caches/ms-playwright'), os.path.join(os.environ.get('LOCALAPPDATA',''),'ms-playwright')]
+    tails = ['chrome-linux64/chrome','chrome-linux/chrome','chrome-mac*/Chromium.app/Contents/MacOS/Chromium','chrome-mac*/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing','chrome-win*/chrome.exe']
+    for r in roots:
+        for t in tails:
+            hits = sorted(glob.glob(os.path.join(r,'chromium-*',t)))
+            if hits: return hits[-1]
+    return None
 class TimeMap:
     def __init__(s,path=None):
         s.out = None
