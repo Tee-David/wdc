@@ -198,7 +198,7 @@ export default async function WorkCategoryPage(
                   Motion <b>design</b>
                 </h2>
                 <p style={{ color: "var(--muted)", fontSize: ".92rem" }}>
-                  {MOTION_PIECES.length} loops: promo films, reels and explainers
+                  {MOTION_PIECES.length} loops: promo films, reels, explainers and logo reveals
                 </p>
               </div>
               <MotionWall />

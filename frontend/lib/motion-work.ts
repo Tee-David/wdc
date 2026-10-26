@@ -1,5 +1,6 @@
 /**
- * Motion work: muted four second loops cut from finished films.
+ * Motion work: muted four second loops cut from finished films, and the
+ * studio's own preloaders played whole.
  *
  * Built by scripts/make-motion-loops.sh from clips that are not in git, so the
  * files in public/work/motion can always be remade. `kind` uses the same names
@@ -10,7 +11,7 @@ export type MotionPiece = {
   id: string;
   title: string;
   client: string;
-  kind: "Promo video" | "Social reel" | "Explainer" | "Animated post";
+  kind: "Promo video" | "Social reel" | "Explainer" | "Animated post" | "Logo reveal";
   src: string;
   poster: string;
   width: number;
@@ -42,4 +43,8 @@ export const MOTION_PIECES: MotionPiece[] = [
     "The vertical Litch Consulting reel with the line Nothing adds up."),
   piece("realtors-post", "Realtors' Practice post", "Realtors' Practice", "Animated post", 512, 640,
     "An animated four by five post for Realtors' Practice: fragmented property information on a blue ground."),
+  piece("wdc-preloader-ink", "Studio preloader: ink", "We Dig Creativity", "Logo reveal", 640, 640,
+    "The We Dig Creativity preloader on paper: the mark builds out from the pen nib and the name types in beside it."),
+  piece("wdc-preloader-blueprint", "Studio preloader: blueprint", "We Dig Creativity", "Logo reveal", 640, 640,
+    "The We Dig Creativity preloader on navy: construction lines cross, the mark turns into place and the name writes on."),
 ];

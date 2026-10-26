@@ -1,3 +1,7 @@
+## Studio preloaders on the Motion design wall, 26 October 2026
+
+The two shipped preloaders (ink on paper, blueprint on navy) now play on `/work/branding` beside the studio film, Litch and Realtors' Practice pieces, as "Logo reveal" loops: whole, cropped to the logo's centre square, 640px, 21 KB and 39 KB. `scripts/make-motion-loops.sh` rebuilds them from the owner's square renders (`wdc-preloader-ink.mp4`, `wdc-preloader-blueprint.mp4`, not in git). Measured at 320, 390, 834 and 1440 in both themes: no horizontal overflow, both loops play, 44px buttons. Rank Indeed has no motion files in the repo or the uploads yet; it joins when the owner supplies them.
+
 ## Motion Pilot skill rebuilt, 26 October 2026
 
 - `.claude/skills/motion-pilot` and `.agents/skills/motion-pilot` (identical) rebuilt as one steering document plus references in `process/`, `craft/`, `genres/`, `taste/`, `brands/` and `tech/`, with Film, Web motion and Review modes. Renamed Motion Pilot and published as an open-source repository at github.com/Tee-David/Motion-Pilot.
