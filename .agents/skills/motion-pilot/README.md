@@ -1,4 +1,4 @@
-# Motion Studio
+# Motion Pilot
 
 A motion design skill for AI agents. It turns an agent into the motion director of a small studio: it researches the brand, writes three storylines and lets you pick one, specifies the film in numbers instead of adjectives, boards it, builds it as deterministic HTML, scores it with sound and voice, renders it to MP4 in 16:9 and 9:16, light and dark, and reviews it with measurements before anything ships. It also makes motion for websites (preloaders, page curtains, hero loops, arrival choreography) and reviews motion made by anyone.
 
@@ -36,7 +36,7 @@ reference-implementations/  worked examples: a voice-led reel and two shipped pr
 
 ## Install
 
-Copy the folder into your agent's skills directory (for example `.claude/skills/motion-studio/` or `.agents/skills/motion-studio/`). The agent loads `SKILL.md` when a request matches its description.
+Copy the folder into your agent's skills directory (for example `.claude/skills/motion-pilot/` or `.agents/skills/motion-pilot/`). The agent loads `SKILL.md` when a request matches its description.
 
 Rendering needs Python 3 with `playwright`, `numpy`, `pillow` and `scipy`, plus `ffmpeg` and a Playwright Chromium (`render.py` finds one, or set `CHROME_PATH`). Voice alignment needs `faster-whisper`; the local draft voice needs `kokoro-onnx`. Nothing is needed until a render is actually requested.
 

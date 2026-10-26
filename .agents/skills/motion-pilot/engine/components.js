@@ -1,4 +1,4 @@
-/* motion-studio components: small, composable builders. Each returns a controller; all state comes from time. */
+/* motion-pilot components: small, composable builders. Each returns a controller; all state comes from time. */
 (function(){
 const C = window.C = {}, {el,tf,clamp,lerp,P,eo,eio,back} = M;
 
