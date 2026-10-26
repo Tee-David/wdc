@@ -1660,15 +1660,16 @@ export function setApproval(id: Id, approval: Approval, note?: string, actor?: {
 
 /** Opens a ticket with its first message in one call -- there is no such
     thing as a ticket with nothing said yet. */
-export function addTicket(d: { clientId: Id; projectId?: Id | null; subject: string; body: string; author: string }): Ticket | null {
+export function addTicket(d: { clientId: Id; projectId?: Id | null; subject: string; body: string; author: string; from?: "client" | "studio" }): Ticket | null {
   if (!CLIENTS.some((c) => c.id === d.clientId)) return null;
-  const at = now();
+  const at = now(), from = d.from ?? "client";
+  /* A conversation the studio starts is waiting on the client, so it opens as Answered. */
   const t: Ticket = {
     id: mint("tk"), clientId: d.clientId, projectId: d.projectId ?? null,
-    subject: d.subject, status: "Open", createdAt: at, updatedAt: at,
+    subject: d.subject, status: from === "studio" ? "Answered" : "Open", createdAt: at, updatedAt: at,
   };
   TICKETS.push(t);
-  TICKET_MESSAGES.push({ id: mint("tm"), ticketId: t.id, at, author: d.author, from: "client", body: d.body });
+  TICKET_MESSAGES.push({ id: mint("tm"), ticketId: t.id, at, author: d.author, from, body: d.body });
   return t;
 }
 

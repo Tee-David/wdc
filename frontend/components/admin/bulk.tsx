@@ -74,7 +74,8 @@ export function BulkBar({ target, noun, actions, more = [], onRun }: {
     setBusy(a.kind);
     const r = await (onRun ? onRun(a.kind, ids) : runBulk(a.kind, ids)).catch(() => null);
     setBusy(null);
-    toast(r?.message ?? "That could not be done just now.", r?.ok ? "good" : "bad");
+    /* An empty message means the action already said so itself (a sheet's own form toasts on submit). */
+    if (r?.message !== "") toast(r?.message ?? "That could not be done just now.", r?.ok ? "good" : "bad");
     if (r?.outcomes?.length) { setOutcomes(r.outcomes); clear(); router.refresh(); }
     if (r?.ok && !r.outcomes?.length) { clear(); router.refresh(); }
   };

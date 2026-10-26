@@ -24,11 +24,11 @@ import { Chips } from "@/components/admin/chips";
 import { UrlSearch } from "@/components/admin/url-search";
 import { ClickRow } from "@/components/admin/click-row";
 import { Pager, readPer } from "@/components/admin/pager";
-import { BulkBar, PickAll, RowPick } from "@/components/admin/bulk";
+import { PickAll, RowPick } from "@/components/admin/bulk";
 import { DateRange } from "@/components/admin/date-range";
 import { ClientMenu } from "@/components/admin/row-actions";
 import { AddClient } from "@/components/admin/client-form";
-import { ClientFilters, ClientsChores } from "@/components/admin/clients-parts";
+import { ClientFilters, ClientsBulk, ClientsChores } from "@/components/admin/clients-parts";
 import { Empty } from "@/components/admin/bits";
 import { SavedToast } from "@/components/admin/saved-toast";
 import { serviceGlyph } from "@/components/client/service-glyph";
@@ -294,7 +294,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
             {exportable ? <a className="ad__btn" href={exportHref}>Export</a> : null}
           </div>
           {destructive ? (
-            <BulkBar target="clients-table" noun="clients" actions={[
+            <ClientsBulk actions={[
               { kind: "clients:invite", label: "Send portal invite", icon: "mail", confirm: "Send a portal invite to {n} clients? Anyone who already has an account is skipped." },
               { kind: "clients:archive", label: "Archive", icon: "archive", danger: true, confirm: "Archive {n} clients? Their projects, invoices and history stay; you can restore them from Archived." },
             ]} />
@@ -347,7 +347,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                       <td className="num">{r.live.length}</td>
                       {money ? <td className="num" style={r.late ? { color: "var(--ad-bad-ink)", fontWeight: 600 } : undefined}>{r.owed ? naira(r.owed) : <span className="ad__dim">Nothing owed</span>}</td> : null}
                       <td className="num">{dateWords(c.since, nowMs(), false)}</td>
-                      <td className="ad__rmC"><ClientMenu client={c} /></td>
+                      <td className="ad__rmC"><ClientMenu client={c} lead={r.state === "lead"} /></td>
                     </ClickRow>
                   );
                 })}

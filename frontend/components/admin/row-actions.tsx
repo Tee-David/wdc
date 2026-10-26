@@ -8,7 +8,7 @@ import {
   Archive, ArchiveRestore, ArrowRight, Ban, Banknote, CalendarDays, Copy,
   CheckCircle2, CornerUpLeft, FilePlus2, FolderPlus, MessageSquarePlus, Move, Pencil,
   Receipt, Printer, Send, Trash2, Undo2, UserPlus, Users, Wallet,
-  ListPlus, MessageSquare, Pause, Play, X, type LucideIcon,
+  ListPlus, MessageSquare, NotebookPen, Pause, Play, X, type LucideIcon,
 } from "lucide-react";
 import {currencyOf,money} from "@/lib/money/currency";
 import { SERVICES } from "@/lib/services";
@@ -19,7 +19,7 @@ import {
   type Project, type Submission,
 } from "@/lib/admin/types";
 import {
-  addNote, answerEstimate, archiveClient, attachSubmission, createProject, setProjectPaused, invoiceQuoteBalance, withdrawQuote,
+  addNote, answerEstimate, archiveClient, attachSubmission, createProject, setProjectPaused, invoiceQuoteBalance, withdrawQuote, messageClients, logMessage,
   deleteInvoice, duplicateEstimate, duplicateInvoice, issueInvoice, moveStage, overpaymentToCredit,
   recordPayment, refundPayment, removeExpense, reversePayment,
   sendEstimate, sendReceipt, setDue, setProjectArchived, updateClient,
@@ -214,11 +214,33 @@ export function ProjectMenu({
 
 /* ---------------------------------------------------------------- clients */
 
-export function ClientMenu({ client }: { client: Client }) {
+export function ClientMenu({ client, lead = false }: { client: Client; lead?: boolean }) {
   const back = Boolean(client.archived);
+  const money = can(useAdminRole(), "money");
 
   const items: RowMenuItem[] = [
     { kind: "link", label: "Open the client", href: `/admin/clients/${client.id}`, icon: ArrowRight },
+    ...(back ? [] : [{
+      kind: "dialog" as const, label: `Message ${client.company}`, icon: MessageSquare, title: `Message ${client.company}`,
+      render: (close: () => void) => <MessageClientForm ids={[client.id]} close={close} />,
+    }, {
+      kind: "dialog" as const, label: "Log a call or message", icon: NotebookPen, title: `Write down a conversation with ${client.company}`,
+      render: (close: () => void) => (
+        <Form action={logMessage} onDone={() => close()}>
+          <Hidden name="clientId" value={client.id} />
+          <Fields>
+            <Select name="channel" label="How" required half defaultValue="Phone"
+                    options={[{ value: "Phone", label: "Phone call" }, { value: "WhatsApp", label: "WhatsApp" }, { value: "In person", label: "In person" }]} />
+            <Field name="to" label="With" half placeholder={client.name} />
+            <Radios name="direction" label="Who started it" defaultValue="Outbound" options={[{ value: "Outbound", label: "We did" }, { value: "Inbound", label: "They did" }]} />
+            <Field name="subject" label="About" required placeholder="Agreed the launch date" />
+            <Area name="summary" label="What was said" rows={3} />
+          </Fields>
+          <Actions><Submit icon={NotebookPen}>Log it</Submit></Actions>
+        </Form>
+      ),
+    }]),
+    ...(back || !money ? [] : [{ kind: "link" as const, label: "New invoice", href: `/admin/money/new?client=${client.id}`, icon: Receipt }]),
     {
       kind: "dialog", label: "Edit their details", icon: Pencil, wide: true,
       title: `Edit ${client.company}`,
@@ -232,7 +254,7 @@ export function ClientMenu({ client }: { client: Client }) {
       ),
     },
     {
-      kind: "dialog", label: "Open a project for them", icon: FilePlus2, wide: true, area: "intake",
+      kind: "dialog", label: lead ? "Convert: open their first project" : "Open a project for them", icon: FilePlus2, wide: true, area: "intake",
       title: `A project for ${client.company}`,
       /* createProject redirects to the project it opened, so the dialog goes
          with the page rather than being closed by hand. */
@@ -861,4 +883,19 @@ export function EstimateMenu({ estimate, noEmail }: { estimate: Estimate; noEmai
   });
 
   return <RowMenu items={items} label={estimate.number} />;
+}
+
+/** One message to one client or many: each gets their own conversation and an email (their setting decides). */
+export function MessageClientForm({ ids, close }: { ids: string[]; close: () => void }) {
+  return (
+    <Form action={messageClients} onDone={() => close()}>
+      {ids.map((id) => <Hidden key={id} name="clientId" value={id} />)}
+      <Fields>
+        <Field name="subject" label="About" required placeholder="Your October report" />
+        <Area name="body" label="Message" rows={5} required placeholder="Hello, a quick note about..." />
+      </Fields>
+      <p className="ad__dim" style={{ margin: ".25rem 0 0", fontSize: ".85rem" }}>{ids.length > 1 ? `Each of the ${ids.length} clients gets their own conversation. ` : ""}They answer from the portal or by replying to the email.</p>
+      <Actions><Submit icon={Send}>{ids.length > 1 ? `Send to ${ids.length} clients` : "Send the message"}</Submit></Actions>
+    </Form>
+  );
 }

@@ -4,6 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { Download, Filter, Inbox, Trash2, Upload } from "lucide-react";
 import { RowMenu, type RowMenuItem } from "./row-menu";
+import { BulkBar, type BulkAction } from "./bulk";
+import { MessageClientForm } from "./row-actions";
+import { runBulk } from "@/lib/admin/bulk-actions";
+import type { ActionState } from "@/lib/admin/validate";
 import { Dialog } from "./dialog";
 import { FilterPick } from "./pick";
 import { ImportClientsBody } from "./client-import";
@@ -52,6 +56,27 @@ export function ClientFilters({ keep, money, portal, dept, departments, active }
             </div>
           </form>
         ) : null}
+      </Dialog>
+    </>
+  );
+}
+
+/**
+ * The Clients bulk bar with Message: Message asks for the words in a sheet first, then sends one conversation
+ * per ticked client. The other actions run through the shared bar as before.
+ */
+export function ClientsBulk({ actions }: { actions: BulkAction[] }) {
+  const [ids, setIds] = useState<string[] | null>(null);
+  const [answer, setAnswer] = useState<((r: ActionState) => void) | null>(null);
+  const done = (r: ActionState) => { answer?.(r); setAnswer(null); setIds(null); };
+  return (
+    <>
+      <BulkBar target="clients-table" noun="clients" actions={[{ kind: "clients:message", label: "Message", icon: "mail" }, ...actions]}
+        onRun={(kind, picked) => kind === "clients:message"
+          ? new Promise<ActionState>((resolve) => { setIds(picked); setAnswer(() => resolve); })
+          : runBulk(kind, picked)} />
+      <Dialog open={Boolean(ids)} onClose={() => done({ ok: false, message: "Nothing was sent." })} title={`Message ${ids?.length ?? 0} ${ids?.length === 1 ? "client" : "clients"}`} wide>
+        {ids ? <MessageClientForm ids={ids} close={() => done({ ok: true, message: "" })} /> : null}
       </Dialog>
     </>
   );

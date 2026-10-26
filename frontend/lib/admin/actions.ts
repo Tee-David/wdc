@@ -1671,6 +1671,44 @@ export async function duplicateInvoice(_prev: ActionState, fd: FormData): Promis
 
 /* ----------------------------------------------------------- portal: support */
 
+/**
+ * START A CONVERSATION WITH ONE CLIENT OR MANY (the Clients row menu and bulk
+ * bar): each gets their own conversation, opened by the studio, that they
+ * answer from the portal or by email. The email goes behind the response and
+ * respects their own setting, the same as a support reply.
+ */
+export async function messageClients(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
+  const refused = await allow("clients");
+  if (refused) return refused;
+  const ids = [...new Set(fd.getAll("clientId").map(String).flatMap((x) => x.split(",")).map((x) => x.trim()).filter(Boolean))].slice(0, 50);
+  const subject = str(fd, "subject").slice(0, 140), body = str(fd, "body").slice(0, 4000);
+  const errors: Record<string, string> = {};
+  if (!subject) errors.subject = "What it is about, in a few words.";
+  if (body.length < 5) errors.body = "Write the message.";
+  if (Object.keys(errors).length) return FAIL(errors);
+  if (!ids.length) return FAIL({}, "Pick at least one client.");
+  const author = await actorName();
+  let sent = 0;
+  const skipped: string[] = [];
+  for (const id of ids) {
+    const scoped = await outOfScope({ client: id });
+    const c = db.getClient(id);
+    if (scoped || !c || c.archived) { skipped.push(c?.company ?? "one client"); continue; }
+    const t = db.addTicket({ clientId: id, subject, body, author, from: "studio" });
+    if (!t) { skipped.push(c.company); continue; }
+    const first = db.getTicketMessages(t.id)[0];
+    const run = await stageSupportReply({ ticket: t, reply: body, author, messageId: first?.id ?? t.id, by: author });
+    if (typeof run === "function") after(run);
+    refresh(`/admin/clients/${id}`);
+    sent++;
+  }
+  refresh("/admin/clients", "/admin/messages", "/admin/clients/support", "/portal/support", "/portal");
+  if (!sent) return FAIL({}, "Nothing was sent. Those clients are archived or not yours.");
+  return OK(`Saved. ${sent === 1 ? "The message is" : `${sent} messages are`} in Messages and on the way by email${skipped.length ? `. Skipped: ${skipped.join(", ")}` : ""}.`);
+}
+
 export async function replyToTicketAsStudio(_prev: ActionState, fd: FormData): Promise<ActionState> {
   await syncStore();
   persistSoon();
