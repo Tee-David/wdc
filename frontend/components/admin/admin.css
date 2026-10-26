@@ -1026,7 +1026,10 @@ body:has(.adDrawer[open]) .st { display: none; }
   display: grid; place-items: center; width: 2rem; height: 2rem;
   border: 0; border-radius: 8px; background: transparent; color: var(--ad-dim); cursor: pointer;
 }
-.ad__lineX:hover { background: color-mix(in srgb, var(--ad-bad) 12%, transparent); color: var(--ad-bad); }
+.ad__lineX:hover { background: var(--ad-tone-bad); color: #fff; }
+/* The remove cross keeps its look and gets a 44px target. */
+.ad__lineX { position: relative; }
+.ad__lineX::after { content: ""; position: absolute; inset: -.4rem; }
 .ad__lineX svg { width: .95rem; height: .95rem; }
 .ad__lineAdd { justify-self: start; margin-top: .2rem; }
 
