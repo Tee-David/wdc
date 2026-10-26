@@ -97,3 +97,15 @@ export async function tagClickersAction(_p: ActionState, fd: FormData): Promise<
   const n = await tagClickers(text(fd, "id"), text(fd, "tag"));
   return n ? OK(`${n} people tagged.`) : FAIL({ tag: "Name the tag, and note that only people who clicked are tagged." });
 }
+
+/** A fresh draft with the same design, audience and tracking, to send again or adapt. Nothing is sent. */
+export async function duplicateCampaignAction(_p: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner(); if (refused) return refused;
+  const { getCampaign } = await import("@/lib/campaigns");
+  const c = await getCampaign(text(fd, "id"));
+  if (!c) return FAIL({}, "That campaign is no longer there.");
+  const n = await createCampaign(`${c.title} (copy)`, c.design, await actorName());
+  if (!n) return FAIL({}, "The copy could not be made just now.");
+  await updateCampaign(n, { audience: c.audience, track: c.track });
+  redirect(`/admin/email/campaigns/${n}`);
+}

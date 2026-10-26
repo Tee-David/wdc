@@ -9,7 +9,7 @@ import { RailCard, Workbench } from "@/components/admin/workbench";
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {
   return <section className="adList" aria-label={title}><div className="adList__hd"><h2>{title}</h2></div>{children}</section>;
 }
-import { AfterButtons, AudienceForm, SendForm, StateButtons, TagClickers } from "@/components/admin/email/campaign-ui";
+import { AfterButtons, AudienceForm, DuplicateCampaign, SendForm, StateButtons, TagClickers } from "@/components/admin/email/campaign-ui";
 import { CAMPAIGN_STATE } from "@/components/admin/email/campaigns-tab";
 import { DesignEditor } from "@/components/admin/email/design-editor";
 import { audienceCount, getCampaign, reportFor } from "@/lib/campaigns";
@@ -41,7 +41,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
           <span className={`ad__pill${st.tone ? ` ad__pill--${st.tone}` : ""}`}>{st.label}</span>
           {c.scheduledAt && c.status === "scheduled" ? ` Goes out ${when(c.scheduledAt)}.` : c.startedAt ? ` Started ${when(c.startedAt)}.` : ""}
         </>}
-        action={<StateButtons id={c.id} status={c.status} />}
+        action={<span className="ad__row"><StateButtons id={c.id} status={c.status} /><DuplicateCampaign id={c.id} /></span>}
       />
       {!draft ? (
           <Workbench railLabel="After sending" rail={<>

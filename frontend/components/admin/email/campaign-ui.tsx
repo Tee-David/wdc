@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Ban, Pause, Play, RotateCw, Send, Tag, Users } from "lucide-react";
+import { Ban, Copy, Pause, Play, RotateCw, Send, Tag, Users } from "lucide-react";
 import {
-  campaignStateAction, copyUnopenedAction, countAudience, newCampaignAction, retryFailedAction, saveAudienceAction, sendCampaignAction, tagClickersAction,
+  campaignStateAction, copyUnopenedAction, countAudience, duplicateCampaignAction, newCampaignAction, retryFailedAction, saveAudienceAction, sendCampaignAction, tagClickersAction,
 } from "@/lib/admin/campaign-actions";
 import { Actions, Checks, Field, Fields, Form, Hidden, Select, Submit } from "../form";
 import { DialogButton } from "../dialog";
@@ -131,4 +131,9 @@ export function TagClickers({ id, people, suggested }: { id: string; people: num
       </Form>
     </div>
   );
+}
+
+/** "Duplicate campaign": a new draft with the same design, audience and tracking (it opens straight away). */
+export function DuplicateCampaign({ id }: { id: string }) {
+  return <Form action={duplicateCampaignAction}><Hidden name="id" value={id} /><Submit tone="plain" icon={Copy}>Duplicate campaign</Submit></Form>;
 }
