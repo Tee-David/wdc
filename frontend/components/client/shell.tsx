@@ -1,5 +1,6 @@
 "use client";
 
+import { PortalSearch } from "./portal-search";
 import { TopChoresSlot } from "@/components/admin/top-chores";
 import { SheetDrag } from "@/components/admin/sheet-drag";
 import { useSupportReadOnly } from "./support-context";
@@ -49,10 +50,13 @@ function Sidebar({
   const supportReadOnly = useSupportReadOnly();
   const path = usePathname();
   const router = useRouter();
-  const items: KitNavLink[] = CLIENT_NAV
+  const all: (KitNavLink & { group?: string })[] = CLIENT_NAV
     .filter((item) => (item.href !== "/portal/support" || canSupport) && (item.href !== "/portal/billing" || canBilling))
     .map((item) => ({ href: item.href, label: item.label, icon: item.icon, tour: item.tour, on: isClientNavActive(item.href, path), current: path === item.href,
-      count: counts?.[item.label] ?? 0, tone: item.label === "Billing" ? "warn" : "brand" }));
+      count: counts?.[item.label] ?? 0, tone: item.label === "Billing" ? "warn" : "brand", group: item.group }));
+  /* Support sits in its own group below, as on the admin. */
+  const items = all.filter((i) => !i.group);
+  const general = all.filter((i) => i.group);
   const brand = <KitBrand href="/portal" name={clientCompany ?? "Client portal"} sub={clientCompany ? "Client portal" : undefined} label="WDC client portal" />;
   const exit = () => { const form = document.createElement("form"); form.method = "post"; form.action = SUPPORT_EXIT; document.body.append(form); form.submit(); };
   const foot = (
@@ -69,7 +73,7 @@ function Sidebar({
           {brand}
           <button type="button" className="adK__ibtn adK__xBtn" aria-label="Close the menu" onClick={onClose}><KitIcon name="x" size={18} /></button>
         </div>
-        <div className="adK__scroll" data-lenis-prevent><KitNav items={items} label="Portal sections" drawer /></div>
+        <div className="adK__scroll" data-lenis-prevent><KitNav items={items} label="Portal sections" drawer />{general.length ? <KitNav items={general} label="Help" drawer /> : null}</div>
         {foot}
       </div>
     );
@@ -77,7 +81,7 @@ function Sidebar({
   return (
     <div className={`adK${collapsed ? " is-mini" : ""}`}>
       {brand}
-      <div className="adK__scroll" data-lenis-prevent><KitNav items={items} label="Portal sections" mini={collapsed} /></div>
+      <div className="adK__scroll" data-lenis-prevent><KitNav items={items} label="Portal sections" mini={collapsed} />{general.length ? <KitNav items={general} label="Help" mini={collapsed} /> : null}</div>
       {foot}
     </div>
   );
@@ -127,6 +131,7 @@ export default function ClientShell({
           {/* The section name, not the page's heading: every page renders its own
               h1, and a second one here made two per page. */}
           <p className="ad__topTitle">{active?.label ?? "Portal"}</p>
+          <PortalSearch />
           <div className="ad__topActions">
             <Link href="/portal/notifications" className="ad__topIcon" aria-label="Your project inbox" title="Your project inbox" data-tour="workspace-inbox-link"><Bell aria-hidden="true" /></Link>
             <TopChoresSlot />

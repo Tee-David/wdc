@@ -27,7 +27,7 @@ import { ProfileTheme } from "@/components/client/profile-setup";
  * established Litch-style shell" for BOTH admin and client navigation, not
  * two shells that happen to look similar.
  */
-import { getInvoices } from "@/lib/admin/store";
+import { getInvoices, getTicketsFor } from "@/lib/admin/store";
 import { invoiceStatus } from "@/lib/admin/types";
 
 export const metadata: Metadata = {
@@ -76,7 +76,9 @@ export default async function PortalLayout({ children }: { children: React.React
 
   /* Billing's count is what this client still has to pay: sent, part paid or past due. */
   const owed = isPrimaryContact ? getInvoices().filter((i) => i.clientId === client.id && ["Sent", "Part paid", "Overdue"].includes(invoiceStatus(i))).length : 0;
-  const shell = <ClientShell user={user} clientCompany={isPrimaryContact?client.company:"Your assigned projects"} canSupport={isPrimaryContact} canBilling={isPrimaryContact||billingProjectIds.length>0} counts={{ Billing: owed }}>
+  /* Messages: conversations the studio has answered that the client has not yet read. */
+  const replies = isPrimaryContact ? getTicketsFor(client.id).filter((t) => t.status === "Answered").length : 0;
+  const shell = <ClientShell user={user} clientCompany={isPrimaryContact?client.company:"Your assigned projects"} canSupport={isPrimaryContact} canBilling={isPrimaryContact||billingProjectIds.length>0} counts={{ Billing: owed, Messages: replies }}>
     {support ? <SupportBanner name={support.name} expiresAt={support.expiresAt} /> : null}
     {children}
   </ClientShell>;
