@@ -3,6 +3,9 @@
 ## Who does what
 The client (or you, when given an API key) generates the voice, usually in ElevenLabs v3 or with a recorded actor, and supplies the file; the toolkit aligns it, builds the time map, rebuilds the visuals around it, and mixes it with the sound bed. The video is exactly as long as the audio. **Never time-stretch the voice.**
 
+
+A voice can come from ElevenLabs, a recorded person, another text-to-speech service, the voice built into an AI app, or a free local model. All of them end as an audio file and go through the same alignment. Offer the options plainly, as in `process/intake.md` §6; many pieces need no voice at all.
+
 ## 1. Script for the ear
 - 2.3-2.8 spoken words/second for a calm, charismatic read; 30s ≈ 70-80 words. Leave a beat after punchlines.
 - Short sentences. Questions pull the viewer in. Contrast pairs ("Five vendors. One headache.").
