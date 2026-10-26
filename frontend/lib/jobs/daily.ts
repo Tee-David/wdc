@@ -11,7 +11,7 @@ import { alertFailures } from "@/lib/mail-alert";
 import { runRetention, type RetentionCounts } from "@/lib/privacy/retention";
 import { sendScheduledReminders, type ReminderCounts } from "./reminders";
 
-export type DailyResult = { retainerDrafts?: number; staffDays?: { sent: number; skipped: number; failed: number }; waitlist?: { sent: number; failed: number; purged: number }; workspaceReminders?: {checked:number}; invitationReminders?: {checked:number;queued:number}; logRows: number; trashed: Record<string, number>; posts: number; retention: RetentionCounts | null; reminders: ReminderCounts | null; errors: string[] };
+export type DailyResult = { approvalReminders?: number; retainerDrafts?: number; staffDays?: { sent: number; skipped: number; failed: number }; waitlist?: { sent: number; failed: number; purged: number }; workspaceReminders?: {checked:number}; invitationReminders?: {checked:number;queued:number}; logRows: number; trashed: Record<string, number>; posts: number; retention: RetentionCounts | null; reminders: ReminderCounts | null; errors: string[] };
 
 /**
  * The once-a-day tidy: the message log past its retention, each form's
@@ -120,6 +120,13 @@ export async function runDaily(by: string): Promise<DailyResult> {
     if (result.staffDays.failed) result.errors.push(`staff day emails: ${result.staffDays.failed} failed`);
   } catch (error) {
     result.errors.push(`staff day emails: ${error instanceof Error ? error.message : "failed"}`);
+  }
+  /* Work waiting on a client's decision: a reminder on day two and day four, then a card on Today. */
+  try {
+    const { sendApprovalReminders } = await import("./approval-reminders");
+    result.approvalReminders = (await sendApprovalReminders(new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Lagos" }).format(new Date()))).reminded;
+  } catch (error) {
+    result.errors.push(`approval reminders: ${error instanceof Error ? error.message : "failed"}`);
   }
   /* A gentle nudge for a brief left half done: at most two per draft, each
      switchable off. Needs migration 0039; does nothing until it is applied. */

@@ -240,7 +240,22 @@ export async function AdminDashboardView({ firstName, money = true, me, params }
     facts: [{ k: "Amount", v: naira(invoiceTotals(i).total) }, { k: "Invoice", v: i.number }],
     primary: { label: "Open and send", href: `/admin/money/${i.id}` }, secondary: { label: "Open the client", href: `/admin/clients/${i.clientId}` }, open: `/admin/money/${i.id}`,
   })) : [];
-  const deckItems: DeckItem[] = [...retainerDrafts, ...attention.slice(0, 12).map((item, i): DeckItem => ({
+  /* A CLIENT WHO HAS GONE QUIET: work shared five days or more ago and still not decided, after two reminders by
+     email. Nothing is approved for them; Admin decides how to nudge. */
+  const { waitingOnClients } = await import("@/lib/jobs/approval-reminders");
+  const silent: DeckItem[] = (money ? await waitingOnClients().catch(() => []) : []).filter((w) => w.days >= 5).flatMap((w): DeckItem[] => {
+    const proj = projects.find((x) => x.id === w.projectId), cl = proj ? getClient(proj.clientId) : undefined;
+    if (!proj || !cl || proj.archived) return [];
+    const n = w.items.length;
+    return [{
+      id: `quiet-${w.projectId}-${n}`, kind: "Approval", urgency: `${w.days} days waiting`, tone: "bad", label: proj.title,
+      title: `${cl.company} has not answered on ${n} ${n === 1 ? "item" : "items"}`,
+      body: `${w.items.slice(0, 3).map((x) => x.title).join(", ")}${n > 3 ? ` and ${n - 3} more` : ""}. Two reminders went by email. Nothing moves until they approve or ask for changes.`,
+      facts: [{ k: "Contact", v: cl.name }, ...(cl.phone ? [{ k: "Phone", v: cl.phone }] : [])], why: "A call usually settles it faster than a third email.",
+      primary: { label: "Message them", href: `/admin/messages?c=p-${proj.id}` }, secondary: { label: "Open the approvals", href: `/admin/projects/${proj.id}?tab=approvals` }, open: `/admin/projects/${proj.id}`,
+    }];
+  });
+  const deckItems: DeckItem[] = [...silent, ...retainerDrafts, ...attention.slice(0, 12).map((item, i): DeckItem => ({
     id: `${item.href}#${i}`,
     kind: kindFor(item.icon),
     urgency: item.tone === "bad" ? "Needs you now" : item.tone === "warn" ? "Waiting" : "Open",

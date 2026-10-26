@@ -24,6 +24,7 @@ import { RemindButton } from "@/components/admin/client-bits";
 import { Calendar } from "@/components/admin/calendar/calendar";
 import { studioStamp } from "@/components/admin/calendar/studio-time";
 import { ProjectWorkspace } from "@/components/workspace/project-workspace";
+import { BatchApproval } from "@/components/workspace/batch-approval";
 import { ServiceWork, serviceWorkLabel } from "@/components/admin/service-work";
 import { stageName, stageNames } from "@/lib/admin/service-stages";
 import { listServiceRecords } from "@/lib/workspace/service-store";
@@ -117,6 +118,8 @@ export default async function ProjectPage({ params, searchParams }: { params: Pr
     try { records = await listServiceRecords(p.id, false); } catch { recordsFailed = true; }
   }
   const posts = p.service === "social" ? postCalendar(records, p.id) : null;
+  /* Posts still with the team: what "Send for approval" would send, together. */
+  const readyPosts = posts ? records.filter((r) => r.kind === "post" && r.visibility === "internal" && ["draft", "internal_review"].includes(r.state)).length : 0;
 
   /* WHAT NEEDS ATTENTION, derived from the records so it cannot go stale. */
   const openTasks = tasks.filter((t) => !t.done);
@@ -295,6 +298,7 @@ export default async function ProjectPage({ params, searchParams }: { params: Pr
             <section className="adList" aria-label="Content calendar" data-tour="proj-calendar">
               <div className="adList__hd">
                 <h2>Content calendar</h2><span className="adList__n">{posts.total}</span><span className="adList__sp" />
+                {readyPosts && (isOwner || role === "staff") ? <BatchApproval projectId={p.id} count={readyPosts} company={getClient(p.clientId)?.company ?? "the client"} /> : null}
               </div>
               {posts.events.length ? (
                 <Calendar

@@ -1,3 +1,11 @@
+## Client approvals: batches, reminders, silent clients and published links, 26 October 2026
+
+- A social project's content calendar has Send N posts for approval: every post still with the team becomes a shared version waiting on the client, and the client gets one notice listing them, not one per post (owner, 2026-10-25). Checked: two posts sent, both with the client, one event.
+- Work waiting on a client's decision (any service) gets a reminder on day two and day four, recorded by the daily run and sent by the five-minute mail heartbeat. One per project per day: a second run adds nothing. The client's own reminders setting switches it off. Checked at two days: one reminder; a second run added none.
+- From day five it is a card at the front of Today for Admin ("Mira Skincare has not answered on 2 items", with the contact's phone, Message them and Open the approvals). Nothing is ever approved on their behalf. Checked with work six days old.
+- Publishing a post tells the client with the link ("Published: Body oil teaser. It is live now: https://..."). Checked through the post's state form.
+- The monthly results report is the plan report (Monthly plans above).
+
 ## People and assigning, 26 October 2026
 
 - Departments can have leads (Settings, Users, Departments: a Leads tick list under the people). A lead manages the projects of the clients their department looks after: assigns and edits tasks and requests handovers, as a project owner can. Checked both where access is read and again inside the write's transaction. **Needs migration 0060 (Settings, System).** Before it, nobody is a lead and nothing else changes.
