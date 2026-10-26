@@ -1,6 +1,5 @@
-import Link from "next/link";
+import { PageHead } from "@/components/admin/page-head";
 import { BuilderPage } from "@/components/admin/money-forms";
-import PageTourButton from "@/components/admin/tour/page-tour-button";
 import { syncStore } from "@/lib/admin/persist";
 import { creditBalances, financeDefaults, getClients } from "@/lib/admin/store";
 import { noticeBlocks } from "@/lib/admin/money-rules";
@@ -24,14 +23,8 @@ export default async function NewDocument({ searchParams }: { searchParams: Prom
   const client = sp.client && getClients().some((c) => c.id === sp.client) ? sp.client : undefined;
   return (
     <>
-      <div className="ad__head">
-        <div>
-          <p className="ad__dim"><Link href="/admin/money">Money</Link></p>
-          <h1>{quote ? "New quote" : "New invoice"}</h1>
-          <p>{quote ? "Price a piece of work. " : "Raise a bill. "}<b>The document grows beside the form.</b></p>
-        </div>
-        <div className="ad__row"><PageTourButton /></div>
-      </div>
+      <PageHead title={quote ? "New quote" : "New invoice"} crumbs={[{ href: "/admin/money", label: "Money" }]}
+        lede={<>{quote ? "Price a piece of work. " : "Raise a bill. "}<strong>The document grows beside the form.</strong></>} />
       <BuilderPage
         estimate={quote} clientId={client}
         defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays}
