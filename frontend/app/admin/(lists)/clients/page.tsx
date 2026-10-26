@@ -1,6 +1,6 @@
 import { nowMs } from "@/lib/admin/when";
 import Link from "next/link";
-import { Activity, FolderKanban, Lightbulb, UserCheck, Users, Wallet } from "lucide-react";
+import { Clock, FolderKanban, Lightbulb, UserCheck, Users, Wallet } from "lucide-react";
 import { SERVICES } from "@/lib/services";
 import { getEstimates, getProjects } from "@/lib/admin/store";
 import { estimateTotals, naira } from "@/lib/admin/types";
@@ -130,6 +130,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
   const deck = buildClientDeck(all, money);
   const projects = getProjects();
   const liveProjects = projects.filter((p) => p.stage !== "Delivered" && live.some((r) => r.client.id === p.clientId));
+  const dueWeek = liveProjects.filter((p) => p.due && Date.parse(p.due) >= nowMs() - 86_400_000 && Date.parse(p.due) <= nowMs() + 7 * 86_400_000).length;
   const waiting = liveProjects.filter((p) => p.health === "Waiting on client").length;
   const withAccount = active.filter((r) => r.portal === "account").length;
   const quarter = new Date(nowMs() + 3_600_000); quarter.setUTCMonth(Math.floor(quarter.getUTCMonth() / 3) * 3, 1);
@@ -200,7 +201,10 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
             { label: "Live projects", value: String(liveProjects.length), note: waiting ? `${waiting} waiting on clients` : "None waiting on clients", noteTone: waiting ? "accent" : undefined, icon: FolderKanban, tone: "live", href: "/admin/projects" },
             portalKnown
               ? { label: "Using the portal", value: `${withAccount} of ${active.length}`, note: `${active.length - withAccount} not yet`, noteTone: active.length - withAccount ? "accent" : undefined, icon: UserCheck, tone: "good", href: href({ portal: "invited", page: undefined }) }
-              : { label: "New this quarter", value: String(newThisQuarter), note: "Since the quarter began", icon: UserCheck, tone: "good" },
+              : money
+                ? { label: "New this quarter", value: String(newThisQuarter), note: "Since the quarter began", icon: UserCheck, tone: "good" }
+                /* Staff already see New this quarter above; the fourth figure is what is due for their clients this week. */
+                : { label: "Due this week", value: String(dueWeek), note: dueWeek ? "Projects with a date in the next 7 days" : "Nothing is due this week", icon: Clock, tone: "warn", href: "/admin/projects?view=calendar" },
           ]} />
           <RailCard title="Pipeline" aside={money ? (quotes.length ? `${quotes.length} open · ${naira(pipeValue)}` : "Nothing open") : undefined}>
             {pipe.map((p) => (
