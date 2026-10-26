@@ -223,6 +223,19 @@ export const SETTINGS: SettingDef[] = [
     parse: flag, revalidate: [],
   },
   {
+    key: "messages.saved", label: "Saved replies", shipped: () => "[]",
+    note: "Ready answers for Messages. {name} becomes the person's first name.",
+    parse: (raw) => {
+      try {
+        const list = JSON.parse(raw) as { t?: unknown; s?: unknown }[];
+        if (!Array.isArray(list)) throw new Error();
+        const clean = list.map((x) => ({ t: String(x?.t ?? "").trim().slice(0, 60), s: String(x?.s ?? "").trim().slice(0, 1200) })).filter((x) => x.t && x.s).slice(0, 30);
+        return { ok: true as const, value: JSON.stringify(clean) };
+      } catch { return { ok: false as const, error: "Each saved reply needs a name and the words." }; }
+    },
+    revalidate: ["/admin/messages"],
+  },
+  {
     key: "notify.meetings", label: "Meetings", shipped: () => "1",
     note: "Email the studio when a meeting is booked, moved or cancelled.",
     parse: flag, revalidate: [],

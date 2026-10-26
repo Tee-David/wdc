@@ -302,3 +302,12 @@
 .adMxD__list img { width: 44px; height: 44px; border-radius: 10px; object-fit: cover; flex: none; }
 .adMxD__ic { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 10px; background: var(--ad-tone-brand); color: #fff; flex: none; }
 .adMxD__ic svg { width: 20px; height: 20px; }
+.adMxS__pick { display: grid; gap: .2rem; width: 100%; text-align: left; padding: .7rem .85rem; border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel); color: var(--ad-ink); font: inherit; cursor: pointer; min-height: 44px; }
+.adMxS__pick span { color: var(--ad-dim); font-size: .85rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+@media (hover: hover) { .adMxS__pick:hover { background: var(--ad-hover); } }
+.adMxS__pick:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
+.adMxS__edit > summary { list-style: none; width: max-content; }
+.adMxS__edit > summary::-webkit-details-marker { display: none; }
+.adMxS__edit form { display: grid; gap: .9rem; margin-top: .9rem; }
+.adMxS__row { display: grid; gap: .5rem; padding-bottom: .9rem; border-bottom: 1px solid var(--ad-line); }
+.adMx__replyTools { display: flex; justify-content: flex-end; gap: .25rem; margin-bottom: .25rem; }

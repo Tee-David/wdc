@@ -198,3 +198,19 @@ export async function taskFromMessage(projectId: string, text: string): Promise<
     return { ok: true, message: `Saved. "${title.length > 60 ? `${title.slice(0, 59)}…` : title}" is a task on the project. Give it a person and a date there.` };
   } catch (e) { return { ok: false, message: e instanceof Error ? e.message : "The task could not be added." }; }
 }
+
+/** The saved replies list, edited by Admin from Messages (stored as the "messages.saved" setting). */
+export async function saveSavedReplies(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const { owner, actorName } = await import("@/lib/admin/guard");
+  const refused = await owner(); if (refused) return refused;
+  const titles = fd.getAll("t").map(String), bodies = fd.getAll("s").map(String);
+  const list = titles.map((t, i) => ({ t: t.trim(), s: (bodies[i] ?? "").trim() })).filter((x) => x.t || x.s);
+  if (list.some((x) => !x.t || !x.s)) return FAIL({}, "Each saved reply needs a name and the words, or leave both empty to remove it.");
+  const { settingDef } = await import("@/lib/settings/registry");
+  const parsed = settingDef("messages.saved")!.parse!(JSON.stringify(list));
+  if (!parsed.ok) return FAIL({}, parsed.error);
+  const { writeSetting } = await import("@/lib/settings/store");
+  try { await writeSetting("messages.saved", parsed.value, await actorName()); } catch { return FAIL({}, "The saved replies could not be stored just now."); }
+  revalidatePath("/admin/messages");
+  return OK(`Updated. ${list.length} saved ${list.length === 1 ? "reply" : "replies"}.`);
+}

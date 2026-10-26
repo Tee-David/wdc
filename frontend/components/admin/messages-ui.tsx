@@ -3,8 +3,8 @@
 import { useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "./toast";
-import { Archive, ArchiveRestore, CheckCheck, Download, FileText, Info, Link2, Pin, PinOff, Plus, Send, Video } from "lucide-react";
-import { markAllRead, markThreadRead, postTeamMessage, setThreadFlag, startTeamThread } from "@/lib/messages/actions";
+import { Archive, ArchiveRestore, CheckCheck, Download, FileText, Info, Link2, Pencil, Pin, PinOff, Plus, Send, Video, Zap } from "lucide-react";
+import { markAllRead, markThreadRead, postTeamMessage, saveSavedReplies, setThreadFlag, startTeamThread } from "@/lib/messages/actions";
 import { DialogButton } from "./dialog";
 import { Area, Field, Form, Hidden, Submit } from "./form";
 import { RemoteChecks } from "./remote-pick";
@@ -107,5 +107,54 @@ export function ConvDetails({ name, people, files, links }: { name: string; peop
         </div>
       )}
     </DialogButton>
+  );
+}
+
+type Saved = { t: string; s: string };
+
+/** Put text into the open conversation's reply box, the way typing would (React sees the change). */
+function fillReply(text: string) {
+  const box = document.querySelector<HTMLTextAreaElement>(".adMx__reply textarea[name=\"body\"]");
+  if (!box) return;
+  const set = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")?.set;
+  set?.call(box, box.value ? `${box.value.replace(/\s+$/, "")}\n${text}` : text);
+  box.dispatchEvent(new Event("input", { bubbles: true }));
+  box.focus();
+}
+
+/** "Saved replies" beside the reply box: pick one and it is written in, {name} as their first name. Nothing is sent. */
+export function SavedReplies({ replies, firstName, canEdit }: { replies: Saved[]; firstName: string; canEdit: boolean }) {
+  if (!replies.length && !canEdit) return null;
+  return (
+    <DialogButton label="Saved replies" title="Saved replies" icon={Zap} tone="plain" iconOnly>
+      {(close) => (
+        <div className="adMxD">
+          {replies.length ? <ul className="adMxD__list adMxS">{replies.map((r) => (
+            <li key={r.t}><button type="button" className="adMxS__pick" onClick={() => { fillReply(r.s.replaceAll("{name}", firstName || "there")); close(); }}>
+              <b>{r.t}</b><span>{r.s.replaceAll("{name}", firstName || "there")}</span></button></li>
+          ))}</ul> : <p className="ad__dim">No saved replies yet. Add the answers you write most often.</p>}
+          {canEdit ? <SavedRepliesEditor replies={replies} /> : null}
+        </div>
+      )}
+    </DialogButton>
+  );
+}
+
+function SavedRepliesEditor({ replies }: { replies: Saved[] }) {
+  const rows = [...replies, { t: "", s: "" }, { t: "", s: "" }];
+  return (
+    <details className="adMxS__edit">
+      <summary className="ad__btn"><Pencil aria-hidden="true" />Edit the list</summary>
+      <Form action={saveSavedReplies}>
+        {rows.map((r, i) => (
+          <div key={i} className="adMxS__row">
+            <Field name="t" label={`Name ${i + 1}`} defaultValue={r.t} placeholder="Payment reminder" />
+            <Area name="s" label="The words" rows={3} defaultValue={r.s} placeholder="Hello {name}, ..." />
+          </div>
+        ))}
+        <p className="ad__dim" style={{ margin: 0, fontSize: ".85rem" }}>{"{name}"} becomes the person&apos;s first name. Empty both fields to remove one.</p>
+        <Submit>Save the replies</Submit>
+      </Form>
+    </details>
   );
 }

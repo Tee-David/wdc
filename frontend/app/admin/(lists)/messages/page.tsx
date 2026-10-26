@@ -19,7 +19,9 @@ import { Empty } from "@/components/admin/bits";
 import { AdminState } from "@/components/admin/admin-state";
 import { StudioReply, TicketStatusButtons } from "@/components/admin/ticket-controls";
 import { ProjectReply } from "@/components/admin/project-reply";
-import { ConvDetails, MarkAllRead, MarkRead, NewTeamThread, TeamReply, ThreadFlags } from "@/components/admin/messages-ui";
+import { ConvDetails, MarkAllRead, MarkRead, NewTeamThread, SavedReplies, TeamReply, ThreadFlags } from "@/components/admin/messages-ui";
+import { hydrateSettings } from "@/lib/settings/store";
+import { getSetting } from "@/lib/admin/store";
 import { messagesReady, othersRead, readStates, unreadCounts, teamMessages, teamThreadsFor, type TeamThread } from "@/lib/messages/store";
 import type { Project, Ticket } from "@/lib/admin/types";
 import { ThreadLines, ThreadProvider, type ThreadLine } from "@/components/admin/thread";
@@ -222,6 +224,10 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
   /* Pictures and files on the open conversation's messages, with signed links. */
   const files = open ? await attachmentsFor(open.key, lines.map((l) => l.id)) : new Map();
   const openClient = open?.ticket ? getClient(open.ticket.clientId) : open?.project ? getClient(open.project.clientId) : null;
+  /* Saved replies (Settings key "messages.saved"), written into the reply box with {name} filled in. */
+  await hydrateSettings();
+  const saved = (() => { try { return JSON.parse(getSetting("messages.saved") ?? "[]") as { t: string; s: string }[]; } catch { return []; } })();
+  const replyName = (open?.team ? open.team.members.find((m) => m.id !== me)?.name : openClient?.name)?.split(/\s+/)[0] ?? "";
   /* A fresh ticket read, so a reply that just changed its status shows it. */
   const ticket = open?.ticket ? getTicket(open.ticket.id) ?? open.ticket : null;
 
@@ -336,6 +342,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
                   )}
                 </div>
                 <div className="adMx__reply">
+                  {!threadError && !(ticket?.status === "Closed") ? <div className="adMx__replyTools"><SavedReplies replies={saved} firstName={replyName} canEdit={role === "owner"} /></div> : null}
                   {ticket ? (ticket.status === "Closed"
                     ? <p className="ad__dim">Closed. Reopen it to reply, or it reopens by itself if the client writes again.</p>
                     : <StudioReply ticketId={ticket.id} />)
