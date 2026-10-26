@@ -17,12 +17,16 @@ import { effectiveWorkspacePreferences } from "@/lib/workspace/notifications-pre
  */
 export async function sendStaffDays(day: string): Promise<{ sent: number; skipped: number; failed: number }> {
   const out = { sent: 0, skipped: 0, failed: 0 };
+  /* Working days arrive with migration 0061; before it, everyone works Monday to Friday. */
+  const weekday = String(((new Date(`${day}T12:00:00Z`).getUTCDay() + 6) % 7) + 1);
+  const days = await db.query<{ user_id: string; work_days: string }>("SELECT user_id,work_days FROM workspace_notification_preferences").then((r) => new Map(r.rows.map((x) => [x.user_id, x.work_days])), () => new Map<string, string>());
   const people = await db.query<{ id: string; name: string; email: string; modes: unknown; digest_days: number }>(
     `SELECT u.id,u.name,u.email,p.modes,p.digest_days FROM "user" u LEFT JOIN workspace_notification_preferences p ON p.user_id=u.id
       WHERE u.role='staff' AND u."deactivatedAt" IS NULL LIMIT 200`).catch(() => ({ rows: [] }));
   const until = `${day}T23:59:59+01:00`;
   for (const person of people.rows) {
     if (effectiveWorkspacePreferences(person.email, person.modes, person.digest_days).modes.reminders === "off") { out.skipped++; continue; }
+    if (!(days.get(person.id) ?? "1,2,3,4,5").split(",").includes(weekday)) { out.skipped++; continue; }
     const [tasks, handovers, unread] = await Promise.all([
       db.query<{ id: string; project_id: string; title: string; due_at: Date | null }>(
         `SELECT id,project_id,title,due_at FROM workspace_team_tasks WHERE assignee_id=$1 AND completed_at IS NULL AND due_at IS NOT NULL AND due_at <= $2::TIMESTAMPTZ + INTERVAL '1 day' ORDER BY due_at LIMIT 8`, [person.id, until]).catch(() => ({ rows: [] })),

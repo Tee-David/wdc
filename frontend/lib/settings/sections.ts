@@ -25,6 +25,7 @@ export type SettingsSection = {
 
 export const SETTINGS_SECTIONS: SettingsSection[] = [
   { href: "/admin/settings/account", label: "My account", line: "Name, password and devices.", group: "You", icon: "user", area: null, words: "profile password sign in google devices sessions tours" },
+  { href: "/admin/settings/me", label: "Notifications and week", line: "What reaches you, and the days you work.", group: "You", icon: "bell", area: null, words: "my notifications email preferences digest working week days quiet" },
   { href: "/admin/settings/general", label: "Studio and invoices", line: "VAT, payment terms and reminders.", group: "Studio", icon: "sliders", area: "settings", words: "vat payment due terms reminders invoices estimates finance defaults" },
   { href: "/admin/settings/business", label: "Business profile", line: "Registered details and social profiles.", group: "Studio", icon: "building", area: "settings", words: "business company legal registered bn cac name motto social linkedin instagram x twitter facebook tiktok youtube behance whatsapp profiles footer" },
   { href: "/admin/settings/services", label: "Services", line: "What the studio sells and how each is worked.", group: "Studio", icon: "layers", area: "settings", words: "services branding social seo web apps software stages deliverables work types projects" },

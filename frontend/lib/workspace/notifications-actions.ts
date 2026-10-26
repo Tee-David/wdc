@@ -54,3 +54,13 @@ export async function retryWorkspaceNotification(_prev:ActionState,fd:FormData):
   after(()=>dispatchWorkspaceEvents({eventIds:[r.rows[0].event_id]}));refresh();return OK('Retry queued. Acceptance will be recorded after the provider answers.');
  }catch{return FAIL({},'The retry could not be saved.');}
 }
+/** Your working days (migration 0061). The morning email goes out only on these. */
+export async function saveWorkingWeek(_prev:ActionState,fd:FormData):Promise<ActionState> {
+ try {
+  const actor=await requireWorkspaceUser(true);
+  const days=[...new Set(fd.getAll('days').map(String).filter(d=>/^[1-7]$/.test(d)))].sort();
+  if(!days.length)return FAIL({days:'Pick at least one working day.'});
+  await db.query(`INSERT INTO workspace_notification_preferences(user_id,work_days) VALUES($1,$2) ON CONFLICT(user_id) DO UPDATE SET work_days=excluded.work_days,updated_at=now()`,[actor.id,days.join(',')]);
+  revalidatePath('/admin/settings/me');return OK('Updated your working week.');
+ }catch{return FAIL({},'Your working week could not be saved. Settings, System may have a database update waiting.');}
+}
