@@ -464,7 +464,7 @@
     }
     var client = s.vis === 'client';
     var anyOverlay = !!(s.sheet || s.drawer || s.pal || (s.pop && s.pop.asSheet) || s.tour >= 0);
-    return { svOn: !!svq.get('sv'), svName: svq.get('who') ? svq.get('who') + ' as ' + svq.get('sv') : 'read only', svEnds: '09:00',
+    var kv = { svOn: !!svq.get('sv'), svName: svq.get('who') ? svq.get('who') + ' as ' + svq.get('sv') : 'read only', svEnds: '09:00',
       rootCls: 'wdc' + (s.dark ? ' dark' : '') + (s.dev === 'phone' ? ' isPhone' : '') + (anyOverlay ? ' locked' : ''),
       themeLabel: s.dark ? 'Switch to light mode' : 'Switch to dark mode', themeIcon: s.dark ? I.sun : I.moon, themeShort: s.dark ? 'Light' : 'Dark', themeLong: s.dark ? 'Light mode' : 'Dark mode',
       toggleTheme: function () { self.setState({ dark: !self.state.dark }); },
@@ -515,6 +515,10 @@
       closeToast: function () { clearInterval(self.ti); var tid = self.state.ta; self.exitThen('.toastP', function () { if (self.state.ta === tid) self.setState({ toast: null }); }); },
       loading: !s.ready, ready: s.ready
     };
+    /* The page's ⋮ moves into the top bar on phones. A getter, because the page's own values (openChores, hasChores) are
+       merged onto this object after it is built: it answers for whatever page is rendering. */
+    Object.defineProperty(kv, 'topChores', { enumerable: true, get: function () { return typeof this.openChores === 'function' && this.hasChores !== false; } });
+    return kv;
   }
   /* One map of every role's pages, so every board links to every other. Counts come from the page. */
   roleNav() {
