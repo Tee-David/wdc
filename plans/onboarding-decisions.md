@@ -1,6 +1,6 @@
 # Onboarding redesign: decisions (7 October 2026)
 
-The owner said: use Flow 1 (Size first) for every service, and "do the best for all decisions". These are the calls made on the owner's behalf, so each can be reversed by changing one thing. Source of every question and condition: the six artifacts in plan section 14.1, kept as data in `plans/onboarding-artifact-specs/` (`branding.js`, `web.js`, `seo.js`, `data_apps.js`, `data_software.js`, `data_social.js`, shared `engine.js`). Build only the Size first flow (tier 1 questions always, tier 2 at Medium and Large, tier 3 at Large only). The Outcome first and Choose your depth flows are not built.
+The owner said: use Flow 1 (Size first) for every service, and "do the best for all decisions". These are the calls made on the owner's behalf, so each can be reversed by changing one thing. Source of every question and condition: the six artifacts in plan section 14.1, kept as data in `design/onboarding/specs/` (`branding.js`, `web.js`, `seo.js`, `data_apps.js`, `data_software.js`, `data_social.js`, shared `engine.js`). Build only the Size first flow (tier 1 questions always, tier 2 at Medium and Large, tier 3 at Large only). The Outcome first and Choose your depth flows are not built.
 
 | # | Decision | Reverse by |
 |---|---|---|
