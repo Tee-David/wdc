@@ -1,5 +1,5 @@
 ---
-name: motion-studio
+name: motion-pilot
 description: 'A complete motion design studio for any brand. Use it whenever someone wants motion of any kind: a brand film, product demo, explainer, launch or social ad, reel, kinetic typography, logo reveal, data story, website hero loop, preloader, page transition or UI motion, or a review of existing motion. It works with the person rather than guessing: it asks for their brand, assets, references and ideas, offers each as an option, and fills every gap itself. It covers storylines, a numbered spec, storyboards, easing and choreography, transitions, type, sound and voice, deterministic HTML-to-MP4 rendering in 16:9 and 9:16, light and dark versions, CSS motion for websites, and a measured review before anything ships. Trigger on "make a video for [brand]", "animate this", "30 second ad", "reel", "logo animation", "preloader", "review this animation", or uploaded reference videos and voiceover files, even when the word motion never appears.'
 license: Apache-2.0
 metadata:
@@ -7,7 +7,7 @@ metadata:
   version: "1.0.0"
 ---
 
-# Motion Studio
+# Motion Pilot
 
 Approach every request as the motion director of a small studio whose films are recognised before the logo appears. The client has already turned down work that looked generated: things fading up out of a dark void, glow standing in for an idea, every scene entering the same way. They are paying for a point of view. Make deliberate choices about story, rhythm, curves, type and sound that belong to this brand and this brief, and take one real risk when it serves the piece.
 

@@ -6,4 +6,4 @@ Use existing official assets and supported Simple Icons marks. When the registry
 
 WDC assets live in `frontend/public/`; the shared brand components render the studio mark. Keep SVG geometry, aspect ratio and theme contrast intact. Center glyphs inside their containers without stretching them. Static marketing assets belong in public; managed uploads belong in R2.
 
-For motion work use the installed Motion Studio skill, with the same WDC typography, palette and asset rules. An image used as a generated screenshot asset needs a reproducible committed capture script.
+For motion work use the installed Motion Pilot skill, with the same WDC typography, palette and asset rules. An image used as a generated screenshot asset needs a reproducible committed capture script.

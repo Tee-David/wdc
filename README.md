@@ -18,7 +18,7 @@ The studio's website, the studio admin and the client portal, in one Next.js app
 | [docs](docs/README.md) | Maintained product and operational documentation |
 | plans | Active Meetings and Users/roles proposals |
 | prototypes/cal-meetings | Sample-data design preview, not live scheduling |
-| .agents/skills and .claude/skills | Project skills, including the owner-provided Motion Studio workflow |
+| .agents/skills and .claude/skills | Project skills, including Motion Pilot, the owner's motion design skill (public at github.com/Tee-David/motionpilot) |
 
 Use the frontend guide for environment boundaries, persistence, provider integration, tests and deployment. Production migrations remain owner-managed through Settings › System. A successful Git push is not live deployment evidence. Retired mockups and handoff material remain in Git history where previously tracked.
 

@@ -1,4 +1,4 @@
-/* motion-studio engine core.
+/* motion-pilot engine core.
  * RULE: everything on screen must be a PURE FUNCTION of time. render(t) may not depend on previous calls.
  * That is what makes frames reproducible, chunk-resumable and splice-able. No CSS animations, no timers. */
 (function(){
