@@ -15,7 +15,7 @@
 }
 .eb *, .eb *::before, .eb *::after { box-sizing: border-box; }
 .eb button { font-family: inherit; }
-.eb :is(button, input, textarea, [role="tab"], [tabindex]):focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.eb :is(button, input, textarea, [role="tab"], [tabindex]):focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
 /* The words have no ring of their own: the selected block's ring (or the subject's / heading's frame) says where the cursor is. */
 .eb .eb-ed:focus-visible, .eb .eb-ed:focus { outline: none; }
 
@@ -35,7 +35,7 @@
 .eb-sw-t::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgb(0 0 0 / .3); transition: transform .2s; }
 .eb-sw input:checked + .eb-sw-t { background: var(--ad-tone-good); }
 .eb-sw input:checked + .eb-sw-t::after { transform: translateX(18px); }
-.eb-sw input:focus-visible + .eb-sw-t { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.eb-sw input:focus-visible + .eb-sw-t { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
 .eb-sw input:disabled ~ * { opacity: .6; }
 
 .eb-seg { display: inline-flex; gap: 2px; padding: 3px; border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel-2); }
@@ -49,7 +49,7 @@
 .eb-lab { flex: none; width: 4.2rem; color: var(--ad-dim); font: 600 .75rem var(--font-outfit), system-ui, sans-serif; text-transform: uppercase; letter-spacing: .08em; }
 .eb-subjed { flex: 1; min-width: 0; border-radius: 8px; }
 .eb-subjed:hover { background: var(--ad-panel-2); }
-.eb-subjed:focus-within { box-shadow: 0 0 0 2px var(--ad-accent); }
+.eb-subjed:focus-within { border-color: var(--ad-ink); box-shadow: 0 0 0 4px var(--ad-ring); }
 .eb-subjed .eb-ed { min-height: 2.75rem; padding: .55rem .5rem; color: var(--ad-ink); font: 600 1rem/1.6 var(--font-space-grotesk), system-ui, sans-serif; white-space: pre-wrap; }
 .eb-subjed .eb-ed p.is-editor-empty:first-child::before { color: var(--ad-dim); }
 .eb-subjed .eb-mt:not(.eb-mt--static) { background: var(--ad-tone-neutral); color: var(--ad-on-neutral); }

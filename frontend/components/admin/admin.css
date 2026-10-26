@@ -591,7 +591,7 @@ body:has(.adDrawer[open]) .st { display: none; }
   border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel); color: var(--ad-ink);
   font: 500 .88rem var(--font-body), system-ui, sans-serif;
 }
-.ad__filterBar input:focus-visible, .ad__filterBar select:focus-visible, .adMedia__find input:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.ad__filterBar input:focus-visible, .ad__filterBar select:focus-visible, .adMedia__find input:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
 .ad__filterSearch { flex: 1 1 15rem; }
 .ad__filterSearch input { width: 100%; }
 .ad__listMeta, .ad__pagination {
@@ -850,7 +850,7 @@ body:has(.adDrawer[open]) .st { display: none; }
   background: var(--ad-panel-2);
   color: var(--ad-ink); font-weight: 600;
 }
-.ad__check:has(input:focus-visible) { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.ad__check:has(input:focus-visible) { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
 
 .ad__formActions {
   display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem;
@@ -1107,7 +1107,7 @@ body:has(.adDrawer[open]) .st { display: none; }
 .ad__rm svg { width: 18px; height: 18px; }
 .ad__rm:hover { background: var(--ad-bg); color: var(--ad-ink); border-color: var(--ad-line); }
 .ad__rm.is-on { background: var(--ad-bg); color: var(--ad-ink); border-color: var(--ad-line); }
-.ad__rm:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.ad__rm:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
 
 /* The cell it sits in. Narrow, and it never wraps or grows with the row. */
 .ad__t th.ad__rmH, .ad__t td.ad__rmC {
@@ -1149,7 +1149,7 @@ body:has(.adDrawer[open]) .st { display: none; }
 .ad__rmItem svg { width: 16px; height: 16px; flex: none; color: var(--ad-dim); }
 .ad__rmGap { width: 16px; flex: none; }
 .ad__rmItem:hover, .ad__rmItem:focus-visible { background: var(--ad-bg); outline: none; }
-.ad__rmItem:focus-visible { box-shadow: inset 0 0 0 2px var(--ad-accent); }
+.ad__rmItem:focus-visible { box-shadow: inset 0 0 0 2px var(--ad-focus); }
 .ad__rmItem.is-danger { color: var(--ad-bad); }
 .ad__rmItem.is-danger svg { color: var(--ad-bad); }
 
@@ -1202,7 +1202,7 @@ body:has(.adDrawer[open]) .st { display: none; }
   width: 44px; height: 44px; transform: translate(-50%, -50%);
 }
 .ad__tick:hover { border-color: var(--ad-accent); }
-.ad__tick:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.ad__tick:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
 .ad__tick svg { width: .95rem; height: .95rem; }
 .ad__tick.is-on {
   background: var(--ad-fill); border-color: var(--ad-fill); color: var(--ad-on-fill);
@@ -1258,7 +1258,7 @@ body:has(.adDrawer[open]) .st { display: none; }
 }
 .ad__switch a[aria-current="true"] { background: var(--ad-panel); color: var(--ad-ink); box-shadow: var(--ad-sh-1); }
 .ad__switch a:hover:not([aria-current="true"]) { color: var(--ad-ink); }
-.ad__switch a:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.ad__switch a:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
 
 /* ----------------------------------------------------------- the filters --
    A row of selects in a GET form. No JavaScript: submitting navigates, which
@@ -1438,7 +1438,7 @@ a.ad__pgBtn:active { transform: translateY(1px); }
 }
 .ad__perPage > summary::-webkit-details-marker, .ad__range > summary::-webkit-details-marker { display: none; }
 .ad__perPage > summary:hover, .ad__range > summary:hover { background: var(--ad-panel-2); }
-.ad :is(.ad__perPage, .ad__range) > summary:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.ad :is(.ad__perPage, .ad__range) > summary:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
 .ad__perPage summary svg, .ad__range summary svg { width: 1rem; height: 1rem; flex: none; color: var(--ad-dim); }
 .ad__range > summary > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .ad__perPage[open] > summary svg:last-child, .ad__range[open] > summary svg:last-child { transform: rotate(180deg); }
@@ -1624,7 +1624,7 @@ html.is-dragging, html.is-dragging * { cursor: grabbing !important; }
 .ad__kgrip::after { content: ""; position: absolute; inset: -.5rem; }
 .ad__kgrip svg { width: 1rem; height: 1rem; }
 .ad__kgrip:hover, .ad__kgrip[aria-pressed="true"] { color: var(--ad-ink); background: var(--ad-panel-2); }
-.ad__kgrip:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 1px; }
+.ad__kgrip:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 1px; }
 .ad__kempty { margin: 0; padding: .6rem .25rem; color: var(--ad-dim); font-size: .84rem; }
 .ad__av--sm { width: 1.75rem; height: 1.75rem; font-size: .62rem; }
 
@@ -1736,7 +1736,7 @@ html.is-dragging, html.is-dragging * { cursor: grabbing !important; }
 .ad .tip__b::before { content: ""; position: absolute; inset: -.8rem; }
 .ad .tip__b:hover, .ad .tip__b.is-on { color: var(--ad-accent-ink); }
 .dark .ad .tip__b:hover, .dark .ad .tip__b.is-on { color: var(--ad-accent); }
-.ad .tip__b:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.ad .tip__b:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
 .ad .tip__b svg { width: 100%; height: 100%; }
 
 /* NOTHING IN A DIALOG SCROLLS SIDEWAYS: a field never outgrows its column. */
@@ -1877,7 +1877,7 @@ html.is-dragging, html.is-dragging * { cursor: grabbing !important; }
   border-right: 2px solid var(--ad-dim); border-bottom: 2px solid var(--ad-dim); transform: rotate(45deg); transition: transform .15s ease;
 }
 .adFold[open] > .adFold__sum::after { transform: rotate(-135deg); }
-.adFold__sum:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: -2px; border-radius: var(--ad-r); }
+.adFold__sum:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: -2px; border-radius: var(--ad-r); }
 .adFold__body { padding: 0 1rem 1rem; }
 @media (prefers-reduced-motion: reduce) { .adFold__sum::after { transition: none; } }
 
@@ -1901,9 +1901,9 @@ html.is-dragging, html.is-dragging * { cursor: grabbing !important; }
 .adIcons__dot::before { content: ""; width: 1.75rem; height: 1.75rem; border-radius: 50%; background: var(--dot); box-shadow: 0 0 0 1px var(--ad-line); }
 .adIcons__dot:hover::before { box-shadow: 0 0 0 2px var(--ad-dim); }
 .adIcons__dot[aria-pressed="true"]::before { box-shadow: 0 0 0 2px var(--ad-panel), 0 0 0 4px var(--ad-ink); }
-.adIcons__dot:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: -2px; }
+.adIcons__dot:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: -2px; }
 .adIcons__search input { flex: 1; min-width: 0; min-height: 2.5rem; border: 0; background: transparent; color: var(--ad-ink); font: inherit; outline: none; }
-.adIcons__search:focus-within { outline: 2px solid var(--ad-accent); outline-offset: 2px; border-radius: 10px; }
+.adIcons__search:focus-within { outline: 2px solid var(--ad-focus); outline-offset: 2px; border-radius: 10px; }
 .adIcons__none { grid-column: 1 / -1; margin: .5rem 0; }
 .adIcons__opt { position: relative; }
 .adIcons__opt input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
@@ -1911,7 +1911,7 @@ html.is-dragging, html.is-dragging * { cursor: grabbing !important; }
 .adIcons__opt > span svg { width: 1.1rem; height: 1.1rem; }
 .adIcons__opt:hover > span { border-color: var(--ad-dim); }
 .adIcons__opt input:checked + span { background: var(--ad-fill); border-color: var(--ad-fill); color: var(--ad-on-fill); }
-.adIcons__opt input:focus-visible + span { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.adIcons__opt input:focus-visible + span { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
 @media (max-width: 560px) {
   .adIcons__top { display: grid; grid-template-columns: 2.75rem minmax(0, 1fr); align-items: center; }
   .adIcons__now { grid-column: 1; grid-row: 1; }
@@ -1994,7 +1994,7 @@ td:has(.adRowPick) , .ad__pickCell { white-space: nowrap; }
 .adAsk .adAsk__sure input { width: 1.5rem; height: 1.5rem; min-height: 0; padding: 0; accent-color: #c62828; }
 .adAsk .adAsk__sure svg { width: 1.5rem; height: 1.5rem; padding: .08rem; color: #c62828; }
 .adAsk .adAsk__sure > span { min-width: 0; line-height: 1.5rem; overflow-wrap: anywhere; }
-.adAsk .adAsk__sure:has(input:focus-visible) { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.adAsk .adAsk__sure:has(input:focus-visible) { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
 @media (max-width: 360px) { .adAsk .adAsk__sure { column-gap: .5rem; padding: .7rem; font-size: .9rem; } }
 .adAsk__acts { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .6rem; }
 .adAsk__acts .ad__btn { min-height: 44px; }

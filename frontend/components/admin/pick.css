@@ -155,3 +155,7 @@
 
 /* The fieldset around a ChecklistPick, wherever it is used (reports, and any form list of five or more). */
 .rp__fs { border: 0; padding: 0; margin: 0; min-width: 0; display: grid; gap: .55rem; }
+
+/* Dashboards: keyboard focus is the ad-focus ring and inputs never take an orange edge. The public forms keep their own look. */
+.ad :is(.adPick__btn, .adPick__retry, .adCal__title, .adCal__pick, .adCal__day, .adCal__nav):focus-visible { outline-color: var(--ad-focus); }
+.dark .ad .ad__f .adPick__btn:focus-visible { border-color: var(--ad-ink); box-shadow: 0 0 0 4px var(--ad-ring); }
