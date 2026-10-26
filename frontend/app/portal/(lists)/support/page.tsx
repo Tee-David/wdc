@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { CheckCircle2, FolderKanban, LifeBuoy, MessageSquare, Phone, Plus } from "lucide-react";
 import { siteFaqs } from "@/lib/site-content";
 import { nowMs, whenWords } from "@/lib/admin/when";
@@ -32,6 +33,8 @@ export default async function PortalSupport({ searchParams }: { searchParams: Pr
   if (!client) return null;
   if (!isPrimaryContact) return <div className="adDash"><header className="adDash__head"><h1>Messages</h1></header><Empty title="Ask in your project" icon={MessageSquare} action={<Link className="ad__btn" href="/portal/projects">Open your projects</Link>}>Your invitation gives you access to specific projects. Use their shared conversations to speak with the team.</Empty></div>;
   const sp = await searchParams;
+  /* Help articles moved to their own Support page (C-Support). */
+  if (sp.tab === "articles") redirect(`/portal/help${sp.q ? `?q=${encodeURIComponent(sp.q)}` : ""}`);
   const asking = sp.new === "1";
   const now = nowMs();
 
