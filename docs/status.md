@@ -1,3 +1,11 @@
+## Monthly plans: the plan page, costs, systems and reports, 26 October 2026
+
+- Each client's plan has its own page (`/admin/clients/<id>/plan`, "Open plan" on the client card; money only). It opens with This plan needs (a draft to send, costs not yet billed, a system renewing within a month, last month's report not shared), four figures (the term, drafted, paid, costs to bill), then four tabs: Parts and payments (every part of the term with its invoice, status and what was paid, and the parts still scheduled: the plan's accounting log), Costs passed on, Systems (access holder, renewal date, notes) and Reports.
+- Billing can now be quarterly as well (owner, 2026-10-25). A quarter asks for the months it covers, so a short last quarter asks for less (`npm run check:retainer`).
+- Costs paid on the client's behalf ride on the next part's draft as "Passed on" lines, or are drafted on their own with Bill them now. A billed cost cannot be removed.
+- A month's report is written in a sheet and stays a draft until Share. Sharing puts it on the client's Billing page (the new Your plan card, with the next invoice date and what a month includes) and raises a portal notice, emailed only if the client keeps progress emails on.
+- Checked end to end at 1440: a cost added, a system added (renewal flagged Soon), a report written and shared, costs billed onto INV-26-YE54BH, the client's Billing page shows the plan and the report. No overflow at 390 (dark) or 320 on any tab; no page errors. Figures measured from the tiles' labels with motion reduced.
+
 ## Shell gaps closed, 26 October 2026
 
 - Messages carries a count on the sidebar. Admin and staff: client questions waiting on the studio plus messages from others they have not read in their project channels and team chats (their own scope). Client: conversations the studio has answered. Proven with a test note from another author (badge 1, then removed).

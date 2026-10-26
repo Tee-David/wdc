@@ -52,7 +52,7 @@ import { projectGlyph, projectTileStyle } from "@/components/client/service-glyp
 import { Deck, type DeckItem } from "@/components/admin/deck";
 import { remindInvoice, reinviteClient } from "@/lib/admin/client-deck-actions";
 import { db } from "@/lib/db/pool";
-import { EndRetainer, RetainerSheet } from "@/components/admin/retainer-card";
+import { RetainerSheet } from "@/components/admin/retainer-card";
 import { RETAINER_BILLING, remainingParts, termEnd, type RetainerBilling } from "@/lib/admin/retainer-rules";
 
 /* NO generateStaticParams. The client list is written to now, and a route
@@ -235,7 +235,7 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
   /* Each billing, described from the parts it would really ask for, so a change midway reads true. */
   const describe = (parts: ReturnType<typeof remainingParts>) => !plan || !parts.length ? "Nothing left to bill this term"
     : parts.length <= 2 ? parts.map((x) => `${naira(x.amount)} ${x.date === plan.start ? "before the start" : `on ${dayW(x.date)}`}`).join(", ")
-    : `${naira(parts[parts.length - 1].amount)} on the same day each month, ${parts.length} parts from ${dayW(parts[0].date)}`;
+    : `${naira(parts[parts.length - 1].amount)} ${plan.billing === "Quarterly" ? "every three months" : "on the same day each month"}, ${parts.length} parts from ${dayW(parts[0].date)}`;
   const planNotes = plan ? Object.fromEntries(RETAINER_BILLING.map((bl) => [bl, describe(remainingParts({ ...plan, billing: bl }))])) as Record<RetainerBilling, string> : null;
   const planBillSub = plan ? describe(planParts) : "";
   const planNext = planParts[0] ? `Draft on Today, ${dateWords(`${planParts[0].date}T12:00:00.000Z`, now)} · ${naira(planParts[0].amount)}` : "Nothing more to draft this term";
@@ -314,7 +314,7 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
                 <div className="adPlan__next"><strong>{plan.billing}</strong><span>{planBillSub}</span><span>{planNext}</span></div>
                 <span className="adPlan__acts">
                   <RetainerSheet clientId={c.id} company={c.company} plan={planProps} projects={planProjects} notes={planNotes} label="Change billing" />
-                  <EndRetainer id={plan.id} title={plan.title} />
+                  <Link className="ad__btn" href={`/admin/clients/${c.id}/plan`}>Open plan</Link>
                 </span>
               </section>
             ) : (

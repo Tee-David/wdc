@@ -246,3 +246,14 @@ a.adRc__row:hover, button.adRc__row:hover, a.adRc__row.on, button.adRc__row.on {
 .adPlan__acts { display: flex; gap: .5rem; flex-wrap: wrap; }
 .adPlan__acts > * { flex: 1 1 8rem; }
 .adPlan__acts .ad__btn { width: 100%; justify-content: center; }
+.adPlan__bar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.adList__pad.adPlan__bar { padding-top: .75rem; padding-bottom: .75rem; }
+.adPlan__reports { list-style: none; margin: 0; padding: .5rem 1.25rem 1.25rem; display: grid; gap: .75rem; }
+.adPlan__reports > li { display: grid; gap: .5rem; padding: .875rem 1rem; border: 1px solid var(--ad-line); border-radius: 16px; background: var(--ad-panel); min-width: 0; }
+.adPlan__repHd { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; justify-content: space-between; }
+.adPlan__repBody { margin: 0; white-space: pre-line; overflow-wrap: anywhere; color: var(--ad-ink); }
+@media (max-width: 640px) { .adPlan__reports { padding-inline: .75rem; } }
+.adPlan__shared { display: grid; gap: .35rem; }
+.adPlan__shared details { border-top: 1px solid var(--ad-line); padding-top: .35rem; }
+.adPlan__shared summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }
+.adPlan__shared p { margin: 0 0 .5rem; white-space: pre-line; overflow-wrap: anywhere; font-size: .875rem; }

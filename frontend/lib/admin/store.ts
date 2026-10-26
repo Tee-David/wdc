@@ -2095,6 +2095,75 @@ export function endRetainer(id: Id, actor = "Studio"): Retainer | null {
   return r;
 }
 
+/** Something the plan looks after. Saved new, or updated in place by id. */
+export function saveRetainerSystem(id: Id, sys: { id?: Id; name: string; notes: string; access: string; renews: string | null }, actor = "Studio"): Retainer | null {
+  const r = getRetainer(id);
+  if (!r) return null;
+  r.systems ??= [];
+  const at = sys.id ? r.systems.findIndex((x) => x.id === sys.id) : -1;
+  if (at >= 0) r.systems[at] = { ...r.systems[at], ...sys, id: r.systems[at].id };
+  else r.systems.push({ ...sys, id: mint("sy") });
+  audit({ actor, kind: "client", subjectId: r.clientId, subject: getClient(r.clientId)?.company ?? r.clientId, action: `${at >= 0 ? "updated" : "added"} ${sys.name} on the ${r.title.toLowerCase()}` });
+  return r;
+}
+export function removeRetainerSystem(id: Id, sysId: Id, actor = "Studio"): Retainer | null {
+  const r = getRetainer(id);
+  const sys = r?.systems?.find((x) => x.id === sysId);
+  if (!r || !sys) return null;
+  r.systems = r.systems!.filter((x) => x.id !== sysId);
+  audit({ actor, kind: "client", subjectId: r.clientId, subject: getClient(r.clientId)?.company ?? r.clientId, action: `removed ${sys.name} from the ${r.title.toLowerCase()}` });
+  return r;
+}
+export function addRetainerCost(id: Id, c: { date: string; what: string; amount: number }, actor = "Studio"): Retainer | null {
+  const r = getRetainer(id);
+  if (!r) return null;
+  (r.costs ??= []).push({ ...c, id: mint("rc"), invoiceId: null });
+  audit({ actor, kind: "client", subjectId: r.clientId, subject: getClient(r.clientId)?.company ?? r.clientId, action: `noted a cost to pass on: ${c.what}`, note: naira(c.amount) });
+  return r;
+}
+/** Only a cost not yet on an invoice can be taken off; a billed one is part of the books. */
+export function removeRetainerCost(id: Id, costId: Id, actor = "Studio"): Retainer | null {
+  const r = getRetainer(id);
+  const c = r?.costs?.find((x) => x.id === costId);
+  if (!r || !c || c.invoiceId) return null;
+  r.costs = r.costs!.filter((x) => x.id !== costId);
+  audit({ actor, kind: "client", subjectId: r.clientId, subject: getClient(r.clientId)?.company ?? r.clientId, action: `took off a cost to pass on: ${c.what}`, note: naira(c.amount) });
+  return r;
+}
+/** Costs not yet billed, drafted now on their own invoice for Admin to send. */
+export function billRetainerCosts(id: Id, today: string, actor = "Studio"): Invoice | null {
+  const r = getRetainer(id);
+  const costs = (r?.costs ?? []).filter((c) => !c.invoiceId);
+  if (!r || !costs.length) return null;
+  const { vatRate, dueInDays } = financeDefaults();
+  const issued = new Date(`${today}T12:00:00Z`);
+  const inv = addInvoice({ clientId: r.clientId, projectId: r.projectId, issued: issued.toISOString(), due: new Date(issued.getTime() + dueInDays * 86_400_000).toISOString(),
+    vatRate, lines: costs.map((c) => ({ description: `Passed on: ${c.what} (${dayWords(c.date)})`, qty: 1, unit: c.amount })), status: "Draft" });
+  inv.retainerId = r.id;
+  for (const c of costs) c.invoiceId = inv.id;
+  audit({ actor, kind: "invoice", subjectId: inv.id, subject: inv.number, action: `drafted the costs passed on for the ${r.title.toLowerCase()}`, note: "Waiting on Today for Admin to send." });
+  return inv;
+}
+/** The month's report, written or rewritten. A shared report can still be corrected; it is shared again by pressing Share. */
+export function saveRetainerReport(id: Id, month: string, body: string, actor = "Studio"): Retainer | null {
+  const r = getRetainer(id);
+  if (!r) return null;
+  r.reports ??= [];
+  const old = r.reports.find((x) => x.month === month);
+  if (old) Object.assign(old, { body, at: now(), by: actor });
+  else r.reports.push({ id: mint("rr"), month, body, at: now(), by: actor, sharedAt: null });
+  audit({ actor, kind: "client", subjectId: r.clientId, subject: getClient(r.clientId)?.company ?? r.clientId, action: `${old ? "updated" : "wrote"} the ${month} report for the ${r.title.toLowerCase()}` });
+  return r;
+}
+export function markRetainerReportShared(id: Id, reportId: Id, actor = "Studio") {
+  const r = getRetainer(id);
+  const rep = r?.reports?.find((x) => x.id === reportId);
+  if (!r || !rep) return null;
+  rep.sharedAt = now();
+  audit({ actor, kind: "client", subjectId: r.clientId, subject: getClient(r.clientId)?.company ?? r.clientId, action: `shared the ${rep.month} report with the client` });
+  return { r, rep };
+}
+
 /**
  * DRAFT EVERY PART THAT HAS FALLEN DUE, as an invoice Admin sends from Today.
  * Never sent from here. SAFE TO RUN TWICE: a part is recorded on the plan the
@@ -2109,9 +2178,12 @@ export function draftDueRetainers(today: string, actor = "Daily schedule"): Invo
         ? `${r.title}, ${new Intl.DateTimeFormat("en-GB", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${part.date}T12:00:00Z`))}`
         : `${r.title}, ${part.of > 1 ? `part ${part.n} of ${part.of}, ` : ""}${dayWords(r.start)} to ${dayWords(termEnd(r.start, r.months))}`;
       const issued = new Date(`${today}T12:00:00Z`);
+      /* Costs paid on their behalf up to today ride on this part's invoice. */
+      const costs = (r.costs ?? []).filter((c) => !c.invoiceId && c.date <= today);
       const inv = addInvoice({ clientId: r.clientId, projectId: r.projectId, issued: issued.toISOString(), due: new Date(issued.getTime() + dueInDays * 86_400_000).toISOString(),
-        vatRate, lines: [{ description: label, qty: 1, unit: part.amount }], status: "Draft" });
+        vatRate, lines: [{ description: label, qty: 1, unit: part.amount }, ...costs.map((c) => ({ description: `Passed on: ${c.what} (${dayWords(c.date)})`, qty: 1, unit: c.amount }))], status: "Draft" });
       inv.retainerId = r.id;
+      for (const c of costs) c.invoiceId = inv.id;
       r.drafted.push({ date: part.date, amount: part.amount, invoiceId: inv.id });
       audit({ actor, kind: "invoice", subjectId: inv.id, subject: inv.number, action: `drafted from the ${r.title.toLowerCase()}`, note: "Waiting on Today for Admin to send." });
       made.push(inv);
