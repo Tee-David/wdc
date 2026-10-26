@@ -32,6 +32,11 @@ Publishing is done by the main session (owner's call, 2026-10-25). Design runs r
   - Money data made consistent: Reconciliation's bank line is now Bloom Pharmacy ₦180,000 for INV-26-7HB2QA (it said Mira paid Kora's invoice), the Paystack event and failed receipt belong to Zara's INV-26-4WE9KS, Notifications say Zara paid ₦200,000 yesterday, the client's notification is Mira's deposit INV-26-9QX4LM due Wed 14 Oct. Mira's deposit reads "due Wed" everywhere; the Halo demo is on Monday.
   - Checked: A-Projects and S-Projects at 1440, phone, dark tablet: no overflow, no small targets. Scenario: hand over, book a handover, send the demo agenda, resume with a reason (disabled until a reason), service bar filter: passed.
 
+- 2026-10-26 Client portal. READY TO PUBLISH: C-Billing.dc.html, C-Projects.dc.html, A-Project.dc.html, S-Project.dc.html (shared project data), and all of `canvas/project/` rebuilt.
+  - Billing: the pay card names Paystack and Flutterwave beside their logos (the logos alone were unreadable). The social media second half is ₦450,000 on 1 Dec (it said ₦225,000, which did not add up to the ₦900,000 quote), and its note says the invoice reaches them by email on 1 Dec and nothing is taken automatically.
+  - Projects (client view): the client reads about themselves as "you" ("Final files start once you pick a route", "You pick a route", "Assets from you"), and a wait on them shows as "Waiting on you" rather than a day count. Brand identity dates now match the admin side (final files Sat 17 Oct, handover Thu 22 Oct, document Sat 24 Oct) and the quote is EST-2026-009, accepted 18 Sep, everywhere.
+  - Settings (client): Password card from the earlier pass; the rest was already at the standard.
+  - Checked: 1440, phone, dark tablet and 320 on all three: no overflow, no small targets.
+
 ## Next
-1. Hybrid lists, part 2: Clients, Support, Money, Meetings, Users (check against the standard; most already have a deck).
-3. Client portal pages, then staff pages.
+1. Staff pages (S-Clients, S-Project, S-Settings, S-Support, S-Notifications). Hybrid lists are done: Clients was already at the standard (deck, pipeline, by service, activity); checked at 1440 and 320.
