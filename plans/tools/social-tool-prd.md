@@ -2,15 +2,24 @@
 
 Product requirements document. Draft for the owner (Tee-David). Written 26 Oct 2026.
 
-Status: proposal. Nothing in this document is built. No code was changed in any repository to write it.
-
-Owner's decision (26 Oct 2026): run Postiz unmodified behind WDC. Everything a client or a staff member sees is WDC: WDC's name, logo, screens and emails. The name "Postiz" appears only in the licence notices the AGPL requires. The owner does not mind the licence saying so; clients must not see it as the product.
+Status: proposal with one decision made (branding, section 1). Nothing in this document is built. No code was changed in any repository to write it.
 
 Writing standard: this document follows ASD-STE100 Simplified Technical English rules where practical. It is not a certified STE document.
 
 ---
 
 ## 1. Summary and recommendation
+
+### Decided (owner, 26 Oct 2026): the tool is WDC, Postiz runs behind it
+
+Run Postiz unmodified behind WDC. Everything a client or a staff member sees is WDC: WDC's name, logo, screens and emails. The name "Postiz" appears only in the licence notices the AGPL requires. The owner does not mind the licence saying so; clients must not see it as the product.
+
+What this means in practice:
+
+- **Phase 1 (headless) already meets it.** Nobody signs in to Postiz. Clients approve in the WDC portal, staff plan in WDC, and every email comes from WDC. The only names a client meets are WDC's and the social platform's own consent screen, which shows the studio's developer app name ("WDC Studio"), not Postiz (decision D2).
+- **Phase 2 (thin fork), if staff ever need Postiz's screens:** the fork carries WDC's name, logo, colours, page titles, favicon and email sender everywhere a person looks (the 509 strings and four logo files in section 3.9). It runs on a WDC address, for example `social.wedigcreativity.com.ng`. Clients never get a login to it.
+- **The licence notice stays.** The fork's About or footer page says it is based on Postiz, under the AGPL-3.0, with a link to the fork's source. That is the one place the name appears, and it is what the licence asks for (section 10).
+- **No Postiz name in WDC's product name, domain or advertising** (section 10, trademark).
 
 ### The short answer
 
@@ -32,6 +41,7 @@ Writing standard: this document follows ASD-STE100 Simplified Technical English 
 | D3 | Who connects a client's social account: the client, or a staff member's personal account? | The client's own admin, or a studio-owned Business Manager partner. Never a staff member's personal login. |
 | D4 | Headless first release (no staff sign-in to Postiz) or a fork from day one? | Headless first. |
 | D5 | Is the social tool a product for sale, now or later? | Not now. Review after six months of internal use. |
+| D6 | What name do clients and staff see? | **Decided:** WDC everywhere. Postiz only in the licence notice. |
 
 The full list of open questions with recommended answers is in section 14.
 
