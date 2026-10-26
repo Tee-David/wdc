@@ -310,3 +310,14 @@ label.adChip input:focus-visible + span { outline: 2px solid var(--ad-accent); o
 .adSet__facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 .adSet__facts a { color: var(--ad-accent-ink); font-weight: 600; }
 @media (max-width: 640px) { .adSet__facts > div { grid-template-columns: minmax(0, 1fr); gap: .15rem; } }
+
+/* On a phone a settings row is two lines: icon and text across the width, then what sits at its end
+   (pills, a button) under the text, so the text never becomes a tower. */
+@media (max-width: 640px) {
+  .adSet__row { grid-template-columns: auto minmax(0, 1fr); row-gap: .5rem; }
+  .adSet__row > .adSet__end { grid-column: 2; justify-self: start; flex-wrap: wrap; }
+}
+/* Policies: Edit, View and PDF as 44px targets. */
+.adSet__links { display: flex; flex-wrap: wrap; gap: .25rem; }
+.adSet__links a { display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0 .6rem; border-radius: 10px; font-weight: 600; }
+@media (hover: hover) { .adSet__links a:hover { background: var(--ad-hover); } }
