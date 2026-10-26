@@ -15,7 +15,8 @@ import { studioStamp } from "@/components/admin/calendar/studio-time";
 import type { CalEvent } from "@/components/admin/calendar/types";
 import { Calendar } from "@/components/admin/calendar/calendar";
 import { PageHead } from "@/components/admin/page-head";
-import { RailCard, StatTiles, Workbench } from "@/components/admin/workbench";
+import { MiniBar, RailCard, StatTiles, Workbench } from "@/components/admin/workbench";
+import { serviceGlyph } from "@/components/client/service-glyph";
 import { Deck, type DeckItem } from "@/components/admin/deck";
 import { Chips } from "@/components/admin/chips";
 import { Tabs } from "@/components/admin/tabs";
@@ -156,6 +157,10 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
     {live.length} live {live.length === 1 ? "project" : "projects"} {scope ? "in your work" : <>across {usedServices} {usedServices === 1 ? "service" : "services"}</>}.{" "}
     <strong>{waiting.length ? `${waiting.length} ${waiting.length === 1 ? "waits" : "wait"} on clients.` : "Nobody is waiting on a client."}</strong>
   </>;
+
+  /* The rail's service bars: live projects per service, each a filter like its chip. */
+  const svcN = SERVICES.map((s) => ({ s, n: live.filter((r) => r.project.service === s.slug).length })).filter((x) => x.n || x.s.slug === service);
+  const smax = Math.max(1, ...svcN.map((x) => x.n));
 
   /* Chips and tabs. */
   const chipItems = [
@@ -376,7 +381,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
           { label: "Due next 7 days", value: String(dueSoon.length), note: dueNote || (dueSoon.length ? "Projects with a date this week" : "Nothing is due this week"), icon: CalendarDays, tone: "live", href: href({ view: "calendar", page: undefined }) },
         ]} />
       </div>
-      <Workbench railLabel="This week" rail={view !== "list" ? null : (
+      <Workbench railLabel="This week and services" rail={view !== "list" ? null : (<>
         <RailCard title="This week" aside={`${weekRows.length} ${weekRows.length === 1 ? "item" : "items"}`}>
           {weekRows.length ? weekRows.map((w) => (
             <Link key={w.key} href={w.href} className="adRc__row">
@@ -385,7 +390,19 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
             </Link>
           )) : <p className="ad__dim" style={{ margin: 0 }}>Nothing is due and no meeting is booked in the next seven days.</p>}
         </RailCard>
-      )}>
+        {svcN.length ? (
+          <RailCard title="By service" aside="Tap to filter">
+            {svcN.map(({ s, n }) => (
+              <Link key={s.slug} href={href({ service: service === s.slug ? undefined : s.slug, page: undefined })} scroll={false} className={`adRc__row${service === s.slug ? " on" : ""}`} aria-pressed={service === s.slug} aria-label={`${s.short}: ${n} live ${n === 1 ? "project" : "projects"}. ${service === s.slug ? "Showing them. Press to show all." : "Press to filter the table."}`}>
+                <span className="adRc__split">
+                  <span className="adRc__ic">{serviceGlyph(s.slug)}</span>
+                  <span><span className="adRc__line"><strong>{s.short}</strong><span className="ad__num" style={{ color: "var(--ad-dim)" }}>{n}</span></span><MiniBar share={n / smax} /></span>
+                </span>
+              </Link>
+            ))}
+          </RailCard>
+        ) : null}
+      </>)}>
       <section className="adList adPl" aria-label="All projects" data-tour="projects-switch">
         <div className="adList__hd adPl__hd">
           <nav className="ad__switch" aria-label="Project views">
