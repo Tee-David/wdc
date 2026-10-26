@@ -429,7 +429,7 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
               {getEstimatesFor(c.id).length ? getEstimatesFor(c.id).map((e) => (
                 <Link key={e.id} href="/admin/money" className="adRc__row">
                   <span className="adRc__line"><strong>{e.number}</strong><span className="ad__num">{naira(estimateTotals(e).total)}</span></span>
-                  <span className="adRc__sub">{estimateState(e)}{e.state === "Sent" ? `, stands until ${dateWords(e.expires, now)}` : ""}</span>
+                  <span className="adRc__sub">{e.withdrawnAt ? "Withdrawn" : estimateState(e)}{e.state === "Sent" && !e.withdrawnAt ? `, stands until ${dateWords(e.expires, now)}` : ""}</span>
                 </Link>
               )) : <p className="ad__dim" style={{ margin: 0 }}>No quote has been sent to {c.company}.</p>}
             </RailCard>

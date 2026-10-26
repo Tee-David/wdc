@@ -15,7 +15,7 @@ Two read-only audits compared every canvas board's controls with the live code, 
 - [x] Client page People: add person, make main contact, remove, give portal access (to every live project, approvals and invoices as ticked), send the invitation again; colleagues the client added themselves are listed
 - [x] Projects: Pause with a reason and Resume (Admin only): banner on the project, Paused tag in the list, the client sees "Paused since" and the reason and is told on both moves
 - [ ] Project page: Post an update with who sees it, delivery evidence, budget and scope sheet, service sections still missing (SEO keywords and month's work, website pages and launch checks, app device testing and store release, software demo checklist, ads launch checklist)
-- [ ] Quotes: create the deposit invoice from an accepted quote, withdraw a quote
+- [x] Quotes: on acceptance invoice the whole amount or a deposit first (a percentage); "Invoice the balance" drafts the rest less the deposit; "Withdraw the quote" ends a sent quote (its page reads as no longer standing; the public page itself is untouched)
 - [ ] Today deck: Hand over on cards, act in place (match, approve payouts, book handover, draft quote, set follow up), renewal card
 - [ ] Clients list: row Message, Convert lead, New invoice, Log a call; bulk Message
 - [ ] Messages: mark all read, search inside messages, reactions, tags, saved replies, schedule send, conversation details with media, files and links, start a Google Meet, create a task from a conversation

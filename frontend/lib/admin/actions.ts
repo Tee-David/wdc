@@ -1588,6 +1588,7 @@ export async function answerEstimate(_prev: ActionState, fd: FormData): Promise<
     id: str(fd, "id"), accepted, by,
     note: str(fd, "note"),
     dueInDays: num(fd, "dueInDays") ?? 30,
+    depositPercent: str(fd, "invoiceNow") === "deposit" ? num(fd, "depositPercent") ?? 0 : 0,
     actor: str(fd, "actor") || "Studio",
   });
 
@@ -1613,8 +1614,34 @@ export async function answerEstimate(_prev: ActionState, fd: FormData): Promise<
 
   refresh("/admin/money", `/admin/clients/${res.estimate.clientId}`);
   return OK((res.invoice
-    ? `Accepted, and raised as ${res.invoice.number}. The estimate keeps its own number and its own page.`
+    ? res.estimate.depositPercent
+      ? `Accepted. The ${res.estimate.depositPercent}% deposit is raised as ${res.invoice.number}; invoice the balance from the quote when it is due.`
+      : `Accepted, and raised as ${res.invoice.number}. The estimate keeps its own number and its own page.`
     : "Recorded as declined. It stays on the books, because a quote nobody took is worth knowing about later.") + told);
+}
+
+/** Raise the balance after a deposit, as a draft to check and send. */
+export async function invoiceQuoteBalance(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
+  const refused = await owner();
+  if (refused) return refused;
+  const res = db.invoiceEstimateBalance(str(fd, "id"), num(fd, "dueInDays") ?? 30, await actorName());
+  if (!res.ok) return FAIL({}, res.reason);
+  refresh("/admin/money", `/admin/money/${res.invoice.id}`, `/admin/clients/${res.estimate.clientId}`);
+  return OK(`Saved. The balance is ${res.invoice.number}, a draft. Check it and send it from its page.`);
+}
+
+/** Withdraw a sent quote: the price stops standing today, and nothing is owed. */
+export async function withdrawQuote(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
+  const refused = await owner();
+  if (refused) return refused;
+  const e = db.withdrawEstimate(str(fd, "id"), await actorName(), str(fd, "note"));
+  if (!e) return FAIL({}, "Only a sent quote that nobody has answered can be withdrawn.");
+  refresh("/admin/money", `/admin/clients/${e.clientId}`);
+  return OK(`Updated. ${e.number} is withdrawn. Its page now says the price no longer stands.`);
 }
 
 /** Quote the same thing again, as a fresh draft at today's date. */

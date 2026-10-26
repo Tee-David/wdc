@@ -6,7 +6,7 @@ import type {
   Refund, Retainer, Stage, Submission, Task, Ticket, TicketMessage, TicketStatus, Update,
 } from "./types";
 import {
-  estimateState, estimateTotals, invoiceStatus, invoiceTotals, naira, paidFrom, paymentNet,
+  estimateState, estimateTotals, invoiceStatus, invoiceTotals, lineTotal, naira, paidFrom, paymentNet,
   providerNeedsAttention, refundedTotal,
 } from "./types";
 import { checkInvoiceEdit } from "./money-rules";
@@ -2254,6 +2254,8 @@ export function answerEstimate(d: {
   id: Id; accepted: boolean; by: string; note?: string;
   /** Days from today. Only read on an acceptance. */
   dueInDays?: number;
+  /** Invoice this percentage of the net now, as a deposit; the balance is raised later from the quote. */
+  depositPercent?: number;
   actor?: string;
 }):
   | { ok: true; estimate: Estimate; invoice: Invoice | null }
@@ -2271,8 +2273,10 @@ export function answerEstimate(d: {
   let invoice: Invoice | null = null;
   if (d.accepted) {
     const t = estimateTotals(e);
-    const lines: InvoiceLine[] = [...e.lines];
-    if (t.discount > 0) {
+    const pct = d.depositPercent && d.depositPercent > 0 && d.depositPercent < 100 ? Math.trunc(d.depositPercent) : 0;
+    const lines: InvoiceLine[] = pct ? [{ description: `Deposit, ${pct}% of ${e.number}`, qty: 1, unit: Math.round((t.net * pct) / 100) }] : [...e.lines];
+    if (pct) e.depositPercent = pct;
+    if (!pct && t.discount > 0) {
       lines.push({
         description: `Agreed discount, ${e.discount}%`,
         qty: 1,
@@ -2288,7 +2292,7 @@ export function answerEstimate(d: {
     });
     e.invoiceId = invoice.id;
     audit({ actor, kind: "invoice", subjectId: invoice.id, subject: invoice.number,
-            action: "raised from an accepted estimate", note: e.number });
+            action: pct ? "raised as the deposit on an accepted estimate" : "raised from an accepted estimate", note: e.number });
   }
 
   audit({ actor, kind: "invoice", subjectId: e.id, subject: e.number,
@@ -2296,6 +2300,46 @@ export function answerEstimate(d: {
           to: who, note: d.note?.trim() || undefined });
 
   return { ok: true, estimate: e, invoice };
+}
+
+/**
+ * THE BALANCE AFTER A DEPOSIT: the quote's own lines, its discount, and the
+ * deposit's net taken off as a line that names the deposit invoice, so the two
+ * invoices together come to exactly the quote's total (VAT included, because
+ * both are taxed at the quote's rate).
+ */
+export function invoiceEstimateBalance(id: Id, dueInDays: number, actor: string):
+  | { ok: true; estimate: Estimate; invoice: Invoice }
+  | { ok: false; reason: string } {
+  const e = getEstimate(id);
+  if (!e) return { ok: false, reason: "That quote is no longer there." };
+  if (e.state !== "Accepted" || !e.depositPercent || !e.invoiceId) return { ok: false, reason: "Only an accepted quote with a deposit invoice has a balance to raise." };
+  if (e.balanceInvoiceId) return { ok: false, reason: "The balance is already invoiced." };
+  const deposit = getInvoice(e.invoiceId);
+  const t = estimateTotals(e);
+  const depositNet = deposit ? deposit.lines.reduce((n, l) => n + lineTotal(l), 0) : Math.round((t.net * e.depositPercent) / 100);
+  const lines: InvoiceLine[] = [...e.lines];
+  if (t.discount > 0) lines.push({ description: `Agreed discount, ${e.discount}%`, qty: 1, unit: -t.discount });
+  lines.push({ description: `Less the deposit${deposit ? ` on ${deposit.number}` : ""}`, qty: 1, unit: -depositNet });
+  const days = Number.isFinite(dueInDays) ? Math.max(0, Math.trunc(dueInDays)) : 30;
+  const invoice = addInvoice({
+    clientId: e.clientId, projectId: e.projectId, currency: currencyOf(e), paymentAccount: e.paymentAccount ? { ...e.paymentAccount } : null,
+    issued: now(), due: new Date(Date.now() + days * 86_400_000).toISOString(), vatRate: e.vatRate, lines, status: "Draft",
+  });
+  e.balanceInvoiceId = invoice.id;
+  audit({ actor, kind: "invoice", subjectId: invoice.id, subject: invoice.number, action: "raised as the balance on an accepted estimate", note: e.number });
+  return { ok: true, estimate: e, invoice };
+}
+
+/** Withdraw a sent quote: its price stops standing today. The record and its page stay. */
+export function withdrawEstimate(id: Id, actor: string, note?: string): Estimate | null {
+  const e = getEstimate(id);
+  if (!e || e.state !== "Sent" || e.withdrawnAt) return null;
+  const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
+  e.withdrawnAt = now();
+  if (e.expires.slice(0, 10) > yesterday) e.expires = yesterday;
+  audit({ actor, kind: "invoice", subjectId: e.id, subject: e.number, action: "withdrawn", note: note?.trim() || undefined });
+  return e;
 }
 
 /**

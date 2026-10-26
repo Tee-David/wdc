@@ -1076,8 +1076,14 @@ export type Estimate = {
   terms?: string;
   /** Set when the client answers. The date is theirs, not ours. */
   answered?: { at: string; by: string; note?: string };
-  /** The invoice raised from it, once accepted. */
+  /** The invoice raised from it, once accepted: the whole amount, or the deposit when `depositPercent` is set. */
   invoiceId?: Id;
+  /** On acceptance Admin may invoice a deposit first (a whole percentage of the net). */
+  depositPercent?: number;
+  /** The invoice for what is left after the deposit. */
+  balanceInvoiceId?: Id;
+  /** Set when Admin withdrew a sent quote; the price stops standing that day (it reads as Expired to the client). */
+  withdrawnAt?: string;
 };
 
 export function estimateTotals(e: Estimate) {

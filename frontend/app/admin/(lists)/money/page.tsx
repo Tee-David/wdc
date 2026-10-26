@@ -559,7 +559,7 @@ export default async function MoneyPage({
                                 : st === "Declined" ? "ad__pill--bad"
                                   : st === "Expired" ? "ad__pill--warn"
                                     : st === "Draft" ? "ad__pill--flat" : ""
-                            }`}>{st}</span>
+                            }`}>{e.withdrawnAt ? "Withdrawn" : st}</span>
                             {e.answered ? (
                               <p className="ad__dim" style={{ margin: ".2rem 0 0", fontSize: ".78rem" }}>
                                 {e.answered.by}, {when(e.answered.at)}

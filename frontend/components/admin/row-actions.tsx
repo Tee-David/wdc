@@ -8,7 +8,7 @@ import {
   Archive, ArchiveRestore, ArrowRight, Ban, Banknote, CalendarDays, Copy,
   CheckCircle2, CornerUpLeft, FilePlus2, FolderPlus, MessageSquarePlus, Move, Pencil,
   Receipt, Printer, Send, Trash2, Undo2, UserPlus, Users, Wallet,
-  ListPlus, MessageSquare, Pause, Play, type LucideIcon,
+  ListPlus, MessageSquare, Pause, Play, X, type LucideIcon,
 } from "lucide-react";
 import {currencyOf,money} from "@/lib/money/currency";
 import { SERVICES } from "@/lib/services";
@@ -19,7 +19,7 @@ import {
   type Project, type Submission,
 } from "@/lib/admin/types";
 import {
-  addNote, answerEstimate, archiveClient, attachSubmission, createProject, setProjectPaused,
+  addNote, answerEstimate, archiveClient, attachSubmission, createProject, setProjectPaused, invoiceQuoteBalance, withdrawQuote,
   deleteInvoice, duplicateEstimate, duplicateInvoice, issueInvoice, moveStage, overpaymentToCredit,
   recordPayment, refundPayment, removeExpense, reversePayment,
   sendEstimate, sendReceipt, setDue, setProjectArchived, updateClient,
@@ -787,7 +787,7 @@ export function EstimateMenu({ estimate, noEmail }: { estimate: Estimate; noEmai
             name="answer" label="Their answer" defaultValue="accepted"
             options={[
               { value: "accepted", label: "They accepted it",
-                note: `Raises an invoice for ${naira(total)} straight away. The estimate keeps its own number and its own page.` },
+                note: `Raises an invoice straight away: all ${naira(total)}, or a deposit first. The estimate keeps its own number and its own page.` },
               { value: "declined", label: "They declined it",
                 note: "Nothing is raised. It stays on the books, because a quote nobody took is worth knowing about later." },
             ]}
@@ -795,6 +795,10 @@ export function EstimateMenu({ estimate, noEmail }: { estimate: Estimate; noEmai
           <Fields>
             <Field name="by" label="Who said so" required placeholder="Tobi Moore"
                    hint="Theirs, not ours. An acceptance with the studio's own name on it is a row nobody can defend." />
+            <Radios name="invoiceNow" label="Invoice now" defaultValue="whole"
+              options={[{ value: "whole", label: "The whole amount" }, { value: "deposit", label: "A deposit first" }]} />
+            <Field name="depositPercent" label="Deposit (%)" half inputMode="numeric" defaultValue="50"
+                   hint="Only read when a deposit comes first. The balance is raised from the quote later." />
             <Field name="dueInDays" label="Invoice due in (days)" half inputMode="numeric"
                    defaultValue="30" hint="Only read on an acceptance." />
             <Area name="note" label="Anything they said" rows={2}
@@ -805,6 +809,36 @@ export function EstimateMenu({ estimate, noEmail }: { estimate: Estimate; noEmai
           <Actions>
             <Submit icon={MessageSquarePlus}>Record it</Submit>
           </Actions>
+        </Form>
+      ),
+    });
+  }
+
+  if (estimate.state === "Accepted" && estimate.depositPercent && !estimate.balanceInvoiceId) {
+    items.push({
+      kind: "dialog", label: "Invoice the balance", icon: Receipt,
+      title: `The balance on ${estimate.number}`,
+      render: (close) => (
+        <Form action={invoiceQuoteBalance} onDone={() => close()}>
+          <div className="ad__sure"><p>A draft for the quote less the {estimate.depositPercent}% deposit already invoiced. The two together come to {naira(total)}. Nothing is sent until you send it from its page.</p></div>
+          <Hidden name="id" value={estimate.id} />
+          <Fields><Field name="dueInDays" label="Due in (days)" half inputMode="numeric" defaultValue="14" /></Fields>
+          <Actions><button type="button" className="ad__btn" onClick={close}>Leave it</button><Submit icon={Receipt}>Draft the balance</Submit></Actions>
+        </Form>
+      ),
+    });
+  }
+
+  if (state === "Sent") {
+    items.push({
+      kind: "dialog", label: "Withdraw the quote", icon: X, tone: "danger",
+      title: `Withdraw ${estimate.number}?`,
+      render: (close) => (
+        <Form action={withdrawQuote} onDone={() => close()}>
+          <div className="ad__sure"><p>The price stops standing today and the client&apos;s page says so. The quote stays on the books; quote it again if the work comes back.</p></div>
+          <Hidden name="id" value={estimate.id} />
+          <Fields><Area name="note" label="Why (kept on the record)" rows={2} placeholder="Scope changed after the call." /></Fields>
+          <Actions><button type="button" className="ad__btn" onClick={close}>Leave it</button><Submit tone="danger" icon={X}>Withdraw it</Submit></Actions>
         </Form>
       ),
     });
