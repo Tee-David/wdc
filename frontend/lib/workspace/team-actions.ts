@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { after } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db/pool';
+import { getClient, getProject } from '@/lib/admin/store';
 import { FAIL,OK,type ActionState } from '@/lib/admin/validate';
 import { requireProjectActor,projectRecipients } from './access';
 import { workspaceTransaction,emitWorkspaceEvent,dispatchWorkspaceEvents,cancelWorkspaceEvents,type Queryable, type WorkspaceEvent,type WorkspaceRecipient } from './events';
@@ -12,7 +13,11 @@ import { confirmUploads, readUploads, saveAttachments } from '@/lib/messages/att
 const value=(fd:FormData,key:string)=>String(fd.get(key)??'').trim();
 function refresh(projectId:string){revalidatePath(`/admin/projects/${projectId}`);revalidatePath(`/portal/projects/${projectId}`);revalidatePath('/admin');}
 async function staffRecipient(projectId:string,userId:string) {
- const eligible=await projectRecipients(projectId,'internal');if(!eligible.some(r=>r.userId===userId))throw new Error('Choose an active staff member who has access to this project.');
+ const eligible=await projectRecipients(projectId,'internal');
+ /* Anyone in a department that looks after this client can be given its work (owner, 2026-10-25). */
+ const depts=getClient(getProject(projectId)?.clientId??'')?.departments??[];
+ const inDept=depts.length?Boolean((await db.query('SELECT 1 FROM department_members WHERE user_id=$1 AND department_id=ANY($2::TEXT[]) LIMIT 1',[userId,depts]).catch(()=>({rowCount:0}))).rowCount):false;
+ if(!eligible.some(r=>r.userId===userId)&&!inDept)throw new Error('Choose an active staff member who has access to this project.');
  const found=await db.query(`SELECT id FROM "user" WHERE id=$1 AND role IN('owner','staff') AND "deactivatedAt" IS NULL`,[userId]);if(!found.rowCount)throw new Error('Choose an active staff account.');
  return [{userId}];
 }
@@ -27,7 +32,7 @@ export async function createWorkspaceHandover(_prev:ActionState,fd:FormData):Pro
   await workspaceTransaction(async tx=>{
    const current=await assertTeamActor(tx,actor,true);await assertTeamRecipient(tx,current.project,to);
    await tx.query(`INSERT INTO workspace_handovers(id,project_id,from_user_id,to_user_id,title,context,files,decisions,risks,next_action,due_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,[id,projectId,actor.id,to,title,context,value(fd,'files').slice(0,3000),value(fd,'decisions').slice(0,3000),value(fd,'risks').slice(0,3000),nextAction,due]);
-   await event({projectId,clientId:actor.clientId,kind:'team.handover_requested',category:'actions',actorId:actor.id,actorName:actor.name,title:`Handover needs your acceptance: ${title}`,summary:`${context}\nNext action: ${nextAction}`,href:`/admin/projects/${projectId}?workspace=team#handover-${id}`,visibility:'internal',recipients,dueAt:due,staleKey:`handover:${id}`},tx,events);
+   await event({projectId,clientId:actor.clientId,kind:'team.handover_requested',category:'actions',actorId:actor.id,actorName:actor.name,title:`Handover needs your acceptance: ${title}`,summary:`${context}\nNext action: ${nextAction}`,href:`/admin/projects/${projectId}?tab=activity#handover-${id}`,visibility:'internal',recipients,dueAt:due,staleKey:`handover:${id}`},tx,events);
   });schedule(events,projectId);return OK('Saved the handover. The receiving lead will be notified.');
  }catch(error){return FAIL({},error instanceof Error?error.message:'The handover could not be saved.');}
 }
@@ -38,9 +43,9 @@ export async function acceptWorkspaceHandover(_prev:ActionState,fd:FormData):Pro
    await assertTeamActor(tx,actor);
    const r=await tx.query<{to_user_id:string;from_user_id:string;title:string;accepted_at:Date|null}>(`SELECT * FROM workspace_handovers WHERE id=$1 AND project_id=$2 FOR UPDATE`,[id,projectId]);const h=r.rows[0];if(!h||h.to_user_id!==actor.id||actor.kind==='client')throw new Error('Only the assigned receiving lead can accept this handover.');if(h.accepted_at)throw new Error('This handover is already accepted.');
    await tx.query('UPDATE workspace_handovers SET accepted_at=now(),accepted_by=$2 WHERE id=$1',[id,actor.id]);await cancelWorkspaceEvents(projectId,`handover:${id}`,tx);
-   await event({projectId,clientId:actor.clientId,kind:'team.handover_accepted',category:'progress',actorId:actor.id,actorName:actor.name,title:`Handover accepted: ${h.title}`,summary:`${actor.name} accepted the context and next action. Dependent work can now start.`,href:`/admin/projects/${projectId}?workspace=team#handover-${id}`,visibility:'internal',recipients:[{userId:h.from_user_id}]},tx,events);
+   await event({projectId,clientId:actor.clientId,kind:'team.handover_accepted',category:'progress',actorId:actor.id,actorName:actor.name,title:`Handover accepted: ${h.title}`,summary:`${actor.name} accepted the context and next action. Dependent work can now start.`,href:`/admin/projects/${projectId}?tab=activity#handover-${id}`,visibility:'internal',recipients:[{userId:h.from_user_id}]},tx,events);
    const tasks=await tx.query<{id:string;title:string;assignee_id:string}>(`SELECT id,title,assignee_id FROM workspace_team_tasks WHERE handover_id=$1 AND completed_at IS NULL`,[id]);
-   for(const task of tasks.rows)await event({projectId,clientId:actor.clientId,kind:'task.unblocked',category:'actions',actorId:actor.id,actorName:actor.name,title:`You can start: ${task.title}`,summary:'The receiving lead accepted the handover. Open the task and check any other dependency.',href:`/admin/projects/${projectId}?workspace=team#task-${task.id}`,visibility:'internal',recipients:[{userId:task.assignee_id}],staleKey:`task:${task.id}`},tx,events);
+   for(const task of tasks.rows)await event({projectId,clientId:actor.clientId,kind:'task.unblocked',category:'actions',actorId:actor.id,actorName:actor.name,title:`You can start: ${task.title}`,summary:'The receiving lead accepted the handover. Open the task and check any other dependency.',href:`/admin/projects/${projectId}?tab=activity#task-${task.id}`,visibility:'internal',recipients:[{userId:task.assignee_id}],staleKey:`task:${task.id}`},tx,events);
   });schedule(events,projectId);return OK('Accepted the handover and notified the people who can start.');
  }catch(error){return FAIL({},error instanceof Error?error.message:'The handover could not be accepted.');}
 }
@@ -59,8 +64,8 @@ export async function saveWorkspaceTask(_prev:ActionState,fd:FormData):Promise<A
    const existing=await tx.query<{project_id:string;assignee_id:string}>('SELECT project_id,assignee_id FROM workspace_team_tasks WHERE id=$1 FOR UPDATE',[id]);if(existing.rows[0]&&existing.rows[0].project_id!==projectId)throw new Error('That task does not belong to this project.');
    await tx.query(`INSERT INTO workspace_team_tasks(id,project_id,title,assignee_id,due_at,priority,handover_id,blocked_by,created_by) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) ON CONFLICT(id) DO UPDATE SET title=excluded.title,assignee_id=excluded.assignee_id,due_at=excluded.due_at,priority=excluded.priority,handover_id=excluded.handover_id,blocked_by=excluded.blocked_by,updated_at=now()`,[id,projectId,title,assignee,due,priority,handover,blockedBy,actor.id]);
    await cancelWorkspaceEvents(projectId,`task:${id}`,tx);
-   await event({projectId,clientId:actor.clientId,kind:existing.rowCount?'task.changed':'task.assigned',category:'actions',actorId:actor.id,actorName:actor.name,title:`${existing.rowCount?'Task updated':'Task assigned'}: ${title}`,summary:`${priority} priority.${handover?' Wait for handover acceptance.':''}${blockedBy?' Wait for the dependent task.':''}`,href:`/admin/projects/${projectId}?workspace=team#task-${id}`,visibility:'internal',recipients,dueAt:due,staleKey:`task:${id}`},tx,events);
-   if(existing.rows[0]&&existing.rows[0].assignee_id!==assignee)await event({projectId,clientId:actor.clientId,kind:'task.reassigned',category:'progress',actorId:actor.id,actorName:actor.name,title:`Your task was reassigned: ${title}`,summary:'The project lead selected a new responsible staff account.',href:`/admin/projects/${projectId}?workspace=team#task-${id}`,visibility:'internal',recipients:[{userId:existing.rows[0].assignee_id}]},tx,events);
+   await event({projectId,clientId:actor.clientId,kind:existing.rowCount?'task.changed':'task.assigned',category:'actions',actorId:actor.id,actorName:actor.name,title:`${existing.rowCount?'Task updated':'Task assigned'}: ${title}`,summary:`${priority} priority.${handover?' Wait for handover acceptance.':''}${blockedBy?' Wait for the dependent task.':''}`,href:`/admin/projects/${projectId}?tab=activity#task-${id}`,visibility:'internal',recipients,dueAt:due,staleKey:`task:${id}`},tx,events);
+   if(existing.rows[0]&&existing.rows[0].assignee_id!==assignee)await event({projectId,clientId:actor.clientId,kind:'task.reassigned',category:'progress',actorId:actor.id,actorName:actor.name,title:`Your task was reassigned: ${title}`,summary:'The project lead selected a new responsible staff account.',href:`/admin/projects/${projectId}?tab=activity#task-${id}`,visibility:'internal',recipients:[{userId:existing.rows[0].assignee_id}]},tx,events);
   });schedule(events,projectId);return OK('Saved the task and its responsible person.');
  }catch(error){return FAIL({},error instanceof Error?error.message:'The task could not be saved.');}
 }
@@ -74,9 +79,9 @@ export async function completeWorkspaceTask(_prev:ActionState,fd:FormData):Promi
    if(task.handover_id&&!(await tx.query('SELECT id FROM workspace_handovers WHERE id=$1 AND accepted_at IS NOT NULL',[task.handover_id])).rowCount)throw new Error('The handover must be accepted first.');
    if(task.blocked_by&&!(await tx.query('SELECT id FROM workspace_team_tasks WHERE id=$1 AND completed_at IS NOT NULL',[task.blocked_by])).rowCount)throw new Error('Complete the dependent task first.');
    await tx.query('UPDATE workspace_team_tasks SET completed_at=now(),updated_at=now() WHERE id=$1',[id]);await cancelWorkspaceEvents(projectId,`task:${id}`,tx);
-   await event({projectId,clientId:actor.clientId,kind:'task.completed',category:'progress',actorId:actor.id,actorName:actor.name,title:`Task completed: ${task.title}`,summary:`${actor.name} completed the task.`,href:`/admin/projects/${projectId}?workspace=team#task-${id}`,visibility:'internal',recipients:leads},tx,events);
+   await event({projectId,clientId:actor.clientId,kind:'task.completed',category:'progress',actorId:actor.id,actorName:actor.name,title:`Task completed: ${task.title}`,summary:`${actor.name} completed the task.`,href:`/admin/projects/${projectId}?tab=activity#task-${id}`,visibility:'internal',recipients:leads},tx,events);
    const next=await tx.query<{id:string;title:string;assignee_id:string}>('SELECT id,title,assignee_id FROM workspace_team_tasks WHERE blocked_by=$1 AND completed_at IS NULL',[id]);
-   for(const t of next.rows)await event({projectId,clientId:actor.clientId,kind:'task.unblocked',category:'actions',actorId:actor.id,actorName:actor.name,title:`You can start: ${t.title}`,summary:'The dependent task is complete. Check the handover and start your next step.',href:`/admin/projects/${projectId}?workspace=team#task-${t.id}`,visibility:'internal',recipients:[{userId:t.assignee_id}],staleKey:`task:${t.id}`},tx,events);
+   for(const t of next.rows)await event({projectId,clientId:actor.clientId,kind:'task.unblocked',category:'actions',actorId:actor.id,actorName:actor.name,title:`You can start: ${t.title}`,summary:'The dependent task is complete. Check the handover and start your next step.',href:`/admin/projects/${projectId}?tab=activity#task-${t.id}`,visibility:'internal',recipients:[{userId:t.assignee_id}],staleKey:`task:${t.id}`},tx,events);
   });schedule(events,projectId);return OK('Completed the task and notified the next responsible people.');
  }catch(error){return FAIL({},error instanceof Error?error.message:'The task could not be completed.');}
 }
@@ -95,7 +100,36 @@ export async function addWorkspaceTeamNote(_prev:ActionState,fd:FormData):Promis
    if(replyTo){const parent=await tx.query<{author_id:string;visibility:string}>('SELECT author_id,visibility FROM workspace_team_notes WHERE id=$1 AND project_id=$2',[replyTo,projectId]);if(!parent.rows[0]||parent.rows[0].visibility!==visibility)throw new Error('A reply must keep the original note’s visibility.');const person=(await projectRecipients(projectId,visibility==='internal'?'internal':'all')).find(r=>r.userId===parent.rows[0].author_id);if(person)recipients=[...recipients,person];}
    await tx.query('INSERT INTO workspace_team_notes(id,project_id,handover_id,author_id,author_name,visibility,body,mention_user_id,reply_to) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)',[id,projectId,handover,actor.id,actor.name,visibility,body,mention,replyTo]);
    if(files.files.length)await saveAttachments(`p-${projectId}`,id,actor.id,files.files);
-   await event({projectId,clientId:actor.clientId,kind:replyTo?'team.note_replied':visibility==='client'?'project.update_published':'team.note_added',category:mention||replyTo?'actions':'progress',actorId:actor.id,actorName:actor.name,title:replyTo?'A project note has a reply':mention?'A colleague needs your attention':visibility==='client'?'A project update is ready':'An internal project note was added',summary:body.slice(0,3000),href:`/admin/projects/${projectId}?workspace=team#note-${id}`,visibility:visibility as 'internal'|'client',recipients},tx,events);
+   await event({projectId,clientId:actor.clientId,kind:replyTo?'team.note_replied':visibility==='client'?'project.update_published':'team.note_added',category:mention||replyTo?'actions':'progress',actorId:actor.id,actorName:actor.name,title:replyTo?'A project note has a reply':mention?'A colleague needs your attention':visibility==='client'?'A project update is ready':'An internal project note was added',summary:body.slice(0,3000),href:`/admin/projects/${projectId}?tab=activity#note-${id}`,visibility:visibility as 'internal'|'client',recipients},tx,events);
   });schedule(events,projectId);return OK(visibility==='client'?'Published the client update.':'Saved the internal note.');
  }catch(error){return FAIL({},error instanceof Error?error.message:'The note could not be saved.');}
+}
+/**
+ * HAND MY TASK OVER (owner, 2026-10-25: "staff can hand their own task over").
+ * The person it is assigned to, or a project lead, passes it to a colleague
+ * who can see the project, with a line on why. The new person is told; the
+ * leads hear about it; the reason is kept as an internal note on the project.
+ */
+export async function passOnWorkspaceTask(_prev:ActionState,fd:FormData):Promise<ActionState> {
+ try {
+  const projectId=value(fd,'projectId'),actor=await requireProjectActor(projectId,'comment'),id=value(fd,'id'),to=value(fd,'toUserId'),why=value(fd,'why').slice(0,600),events:string[]=[];
+  if(actor.kind==='client')return FAIL({},'Only the studio can hand work over.');
+  if(!to)return FAIL({toUserId:'Pick who takes it.'});
+  if(why.length<5)return FAIL({why:'Say in a line why, so they know where it stands.'});
+  const recipients=await staffRecipient(projectId,to),leads=await projectRecipients(projectId,'internal');
+  await workspaceTransaction(async tx=>{
+   const current=await assertTeamActor(tx,actor);
+   const r=await tx.query<{assignee_id:string;title:string;completed_at:Date|null}>('SELECT assignee_id,title,completed_at FROM workspace_team_tasks WHERE id=$1 AND project_id=$2 FOR UPDATE',[id,projectId]);const task=r.rows[0];
+   if(!task||(task.assignee_id!==actor.id&&!current.canManage))throw new Error('Only the person it is assigned to, or a project lead, can hand it over.');
+   if(task.completed_at)throw new Error('This task is already complete.');
+   if(to===task.assignee_id)throw new Error('It is already theirs.');
+   await assertTeamRecipient(tx,current.project,to);
+   await tx.query('UPDATE workspace_team_tasks SET assignee_id=$2,updated_at=now() WHERE id=$1',[id,to]);
+   await cancelWorkspaceEvents(projectId,`task:${id}`,tx);
+   await tx.query(`INSERT INTO workspace_team_notes(id,project_id,author_id,author_name,visibility,body) VALUES($1,$2,$3,$4,'internal',$5)`,[randomUUID(),projectId,actor.id,actor.name,`Handed over “${task.title}”: ${why}`]);
+   await event({projectId,clientId:actor.clientId,kind:'task.handed_over',category:'actions',actorId:actor.id,actorName:actor.name,title:`${actor.name} handed you a task: ${task.title}`,summary:why,href:`/admin/projects/${projectId}?tab=activity#task-${id}`,visibility:'internal',recipients,staleKey:`task:${id}`},tx,events);
+   const others=leads.filter(l=>l.userId!==actor.id&&l.userId!==to);
+   if(others.length)await event({projectId,clientId:actor.clientId,kind:'task.reassigned',category:'progress',actorId:actor.id,actorName:actor.name,title:`Task handed over: ${task.title}`,summary:`${actor.name} passed it on. ${why}`,href:`/admin/projects/${projectId}?tab=activity#task-${id}`,visibility:'internal',recipients:others},tx,events);
+  });schedule(events,projectId);return OK('Updated. They have been told, with your reason.');
+ }catch(error){return FAIL({},error instanceof Error?error.message:'The task could not be handed over.');}
 }

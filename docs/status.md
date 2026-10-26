@@ -1,3 +1,12 @@
+## People and assigning, 26 October 2026
+
+- Departments can have leads (Settings, Users, Departments: a Leads tick list under the people). A lead manages the projects of the clients their department looks after: assigns and edits tasks and requests handovers, as a project owner can. Checked both where access is read and again inside the write's transaction. **Needs migration 0060 (Settings, System).** Before it, nobody is a lead and nothing else changes.
+- Anyone in a department that looks after the client can be given its tasks; the assignee pickers list them.
+- A task's assignee (or a lead) can Hand over their own task to a colleague with a one-line reason: the new person is told, the other leads hear about it, and the reason stays as an internal note on the project.
+- Each staff member gets one morning email (the daily run): tasks overdue or due by tomorrow, handovers waiting on them and their unread notices; nothing waiting, no email. Their own "reminders" setting switches it off. Keyed by person and day, so a second run sends nothing (checked: the first run wrote "Your day, Chiamaka", the second skipped).
+- Task and handover notices now open the project's Activity tab at the task (they pointed at an address the new project page no longer reads).
+- Checked as the staff lead: Assign task shown, a task assigned to themselves, handed to Admin with a reason, the row shows the new person.
+
 ## Monthly plans: the plan page, costs, systems and reports, 26 October 2026
 
 - Each client's plan has its own page (`/admin/clients/<id>/plan`, "Open plan" on the client card; money only). It opens with This plan needs (a draft to send, costs not yet billed, a system renewing within a month, last month's report not shared), four figures (the term, drafted, paid, costs to bill), then four tabs: Parts and payments (every part of the term with its invoice, status and what was paid, and the parts still scheduled: the plan's accounting log), Costs passed on, Systems (access holder, renewal date, notes) and Reports.
@@ -9,6 +18,7 @@
 ## Studio preloaders on the Motion design wall, 26 October 2026
 
 The two shipped preloaders (ink on paper, blueprint on navy) now play on `/work/branding` beside the studio film, Litch and Realtors' Practice pieces, as "Logo reveal" loops: whole, cropped to the logo's centre square, 640px, 21 KB and 39 KB. `scripts/make-motion-loops.sh` rebuilds them from the owner's square renders (`wdc-preloader-ink.mp4`, `wdc-preloader-blueprint.mp4`, not in git). Measured at 320, 390, 834 and 1440 in both themes: no horizontal overflow, both loops play, 44px buttons. Rank Indeed has no motion files in the repo or the uploads yet; it joins when the owner supplies them.
+
 ## Shell gaps closed, 26 October 2026
 
 - Messages carries a count on the sidebar. Admin and staff: client questions waiting on the studio plus messages from others they have not read in their project channels and team chats (their own scope). Client: conversations the studio has answered. Proven with a test note from another author (badge 1, then removed).

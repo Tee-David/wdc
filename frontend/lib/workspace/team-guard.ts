@@ -11,6 +11,8 @@ export async function assertTeamActor(tx:Queryable,actor:WorkspaceActor,manage=f
  const clients=await tx.query<{data:Client}>(`SELECT data FROM admin_records WHERE collection='CLIENTS' AND id=$1 FOR UPDATE`,[project.clientId]);
  const client=clients.rows[0]?.data;if(!client||client.archived||client.mergedInto)throw Error('This client is no longer open for changes.');
  let canManage=actor.role==='owner'||Boolean(project.ownerIds?.includes(actor.id));
+ /* A department lead (0060) of a department this client belongs to manages its projects. Fails closed before the migration. */
+ if(!canManage&&(client.departments??[]).length){const led=await tx.query(`SELECT 1 FROM department_members WHERE user_id=$1 AND lead AND department_id=ANY($2::TEXT[]) LIMIT 1`,[actor.id,client.departments]).catch(()=>({rowCount:0}));canManage=Boolean(led.rowCount);}
  if(!canManage){const members=await tx.query<{can_manage:boolean}>(`SELECT can_manage FROM workspace_project_members WHERE project_id=$1 AND user_id=$2 AND revoked_at IS NULL FOR UPDATE`,[project.id,actor.id]);if(!members.rows[0])throw Error('Your project access changed. Reload before continuing.');canManage=members.rows[0].can_manage;}
  if(manage&&!canManage)throw Error('Only the current project lead can change this work.');
  return {project,canManage};
@@ -19,5 +21,8 @@ export async function assertTeamRecipient(tx:Queryable,project:Project,userId:st
  const people=await tx.query<{role:string}>(`SELECT role FROM "user" WHERE id=$1 AND "deactivatedAt" IS NULL FOR UPDATE`,[userId]);
  const role=people.rows[0]?.role;if(role!=='owner'&&role!=='staff')throw Error('Choose an active studio account.');
  if(role==='owner'||project.ownerIds?.includes(userId))return;
+ const clients=await tx.query<{data:Client}>(`SELECT data FROM admin_records WHERE collection='CLIENTS' AND id=$1`,[project.clientId]);
+ const depts=clients.rows[0]?.data?.departments??[];
+ if(depts.length){const inDept=await tx.query(`SELECT 1 FROM department_members WHERE user_id=$1 AND department_id=ANY($2::TEXT[]) LIMIT 1`,[userId,depts]).catch(()=>({rowCount:0}));if(inDept.rowCount)return;}
  const member=await tx.query(`SELECT 1 FROM workspace_project_members WHERE project_id=$1 AND user_id=$2 AND revoked_at IS NULL FOR UPDATE`,[project.id,userId]);if(!member.rowCount)throw Error('That person no longer has access to this project.');
 }

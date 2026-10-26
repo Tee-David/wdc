@@ -5,6 +5,7 @@ import { getAdminRequest } from "@/lib/admin/session";
 import { getPortalRequest } from "@/lib/portal/session";
 import { syncStore } from "@/lib/admin/persist";
 import { getClient, getProject } from "@/lib/admin/store";
+import { ledDepartments } from "@/lib/departments";
 import type { Project,Client } from "@/lib/admin/types";
 import { clientSupportCookiePresent, readOnlySupportPresent } from "@/lib/users/support";
 import { SITE_URL } from "@/lib/site";
@@ -57,8 +58,11 @@ export async function requireProjectActor(projectId:string,permission:WorkspaceP
   await syncStore();const project=getProject(projectId),client=project?getClient(project.clientId):null;
   if(!project || !client || client.mergedInto)throw new WorkspaceAccessError();
   let canRead=false,canManage=false,canReview=false,canBilling=false;
+  const leads=user.role==="staff"?await ledDepartments(user.userId):new Set<string>();
   if(user.role==="owner"){canRead=true;canManage=true;}
   else if(user.role==="staff" && project.ownerIds?.includes(user.userId)){canRead=true;canManage=true;}
+  /* A department lead (0060) manages the projects of the clients their department looks after. */
+  else if(user.role==="staff" && (client.departments??[]).length && (client.departments??[]).some((d)=>leads.has(d))){canRead=true;canManage=true;}
   else if(user.role==="client" && user.email===client.email.toLowerCase()){canRead=true;canReview=true;canBilling=true;}
   else {
     const result=await db.query<{can_manage:boolean;can_review:boolean;can_billing:boolean}>(`SELECT can_manage,can_review,can_billing FROM workspace_project_members WHERE project_id=$1 AND user_id=$2 AND revoked_at IS NULL`,[project.id,user.userId]);

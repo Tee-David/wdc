@@ -11,7 +11,7 @@ import { alertFailures } from "@/lib/mail-alert";
 import { runRetention, type RetentionCounts } from "@/lib/privacy/retention";
 import { sendScheduledReminders, type ReminderCounts } from "./reminders";
 
-export type DailyResult = { retainerDrafts?: number; waitlist?: { sent: number; failed: number; purged: number }; workspaceReminders?: {checked:number}; invitationReminders?: {checked:number;queued:number}; logRows: number; trashed: Record<string, number>; posts: number; retention: RetentionCounts | null; reminders: ReminderCounts | null; errors: string[] };
+export type DailyResult = { retainerDrafts?: number; staffDays?: { sent: number; skipped: number; failed: number }; waitlist?: { sent: number; failed: number; purged: number }; workspaceReminders?: {checked:number}; invitationReminders?: {checked:number;queued:number}; logRows: number; trashed: Record<string, number>; posts: number; retention: RetentionCounts | null; reminders: ReminderCounts | null; errors: string[] };
 
 /**
  * The once-a-day tidy: the message log past its retention, each form's
@@ -112,6 +112,14 @@ export async function runDaily(by: string): Promise<DailyResult> {
     result.retainerDrafts = made.length;
   } catch (error) {
     result.errors.push(`retainers: ${error instanceof Error ? error.message : "failed"}`);
+  }
+  /* Each staff member's morning email: tasks due, handovers waiting, unread notices. Switchable per person. */
+  try {
+    const { sendStaffDays } = await import("./staff-day");
+    result.staffDays = await sendStaffDays(new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Lagos" }).format(new Date()));
+    if (result.staffDays.failed) result.errors.push(`staff day emails: ${result.staffDays.failed} failed`);
+  } catch (error) {
+    result.errors.push(`staff day emails: ${error instanceof Error ? error.message : "failed"}`);
   }
   /* A gentle nudge for a brief left half done: at most two per draft, each
      switchable off. Needs migration 0039; does nothing until it is applied. */
