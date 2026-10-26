@@ -70,6 +70,8 @@ Users under Settings reuses `Panel`, `ad__t`, `RowMenu`, `BulkBar`, `PickAll`, `
 
 My Day (staff) uses `Deck`, `StatTiles`, `ad__t`, `RowMenu` (`TaskRowMenu` in `components/admin/task-row.tsx`), `BulkBar`, `PickAll`, `RowPick` and `Pager`. Task states are To do, In progress, In review and Blocked; the Status chip is flat for routine states, brand for review, red for blocked and green for done. A successful deck action raises a toast with the action's own message.
 
+Client People uses `AddPerson` and `PersonMenu` (`components/admin/people-parts.tsx`) on `RowMenu`; portal status pills are flat (No access), warn (Invited) and good (Portal access). A paused project shows the `way` banner on its page, a warn Paused pill in lists, and `.adPause` (a flat panel with a warn edge) on the client's project.
+
 Newly invited clients get one optional `/portal/welcome` profile screen after secure sign-in. It reuses `Panel`, `Form`, `Field`, `Radios`, `Submit` and portal chrome; later edits use `SettingsForm` and its save bar in portal Settings. Continue saves the display name, optional normalized private photo and System/Light/Dark preference; Skip preserves current choices. Existing clients are not enrolled. Migration 0038 is applied by the owner from Settings › System before activating new invitations. Profile controls and uploads deny capture and read-only support sessions; the public default remains dark.
 
 Onboarding service explanations reuse the existing press-to-open Tip and field hints. Keep stored keys and option values stable; historical Client dashboard and Your client portal answers map to Client portal on draft load. Specialist explanations remain optional unless needed to answer safely.

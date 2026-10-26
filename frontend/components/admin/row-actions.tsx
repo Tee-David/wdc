@@ -8,7 +8,7 @@ import {
   Archive, ArchiveRestore, ArrowRight, Ban, Banknote, CalendarDays, Copy,
   CheckCircle2, CornerUpLeft, FilePlus2, FolderPlus, MessageSquarePlus, Move, Pencil,
   Receipt, Printer, Send, Trash2, Undo2, UserPlus, Users, Wallet,
-  ListPlus, MessageSquare, type LucideIcon,
+  ListPlus, MessageSquare, Pause, Play, type LucideIcon,
 } from "lucide-react";
 import {currencyOf,money} from "@/lib/money/currency";
 import { SERVICES } from "@/lib/services";
@@ -19,7 +19,7 @@ import {
   type Project, type Submission,
 } from "@/lib/admin/types";
 import {
-  addNote, answerEstimate, archiveClient, attachSubmission, createProject,
+  addNote, answerEstimate, archiveClient, attachSubmission, createProject, setProjectPaused,
   deleteInvoice, duplicateEstimate, duplicateInvoice, issueInvoice, moveStage, overpaymentToCredit,
   recordPayment, refundPayment, removeExpense, reversePayment,
   sendEstimate, sendReceipt, setDue, setProjectArchived, updateClient,
@@ -93,7 +93,7 @@ function Sure({
 export function ProjectMenu({
   project, clientName, extra, onProject = false,
 }: {
-  project: Pick<Project, "id" | "title" | "stage" | "due" | "clientId" | "archived">;
+  project: Pick<Project, "id" | "title" | "stage" | "due" | "clientId" | "archived" | "pausedAt">;
   clientName?: string;
   /** Items to put first, such as "Edit details" on the project's own page. */
   extra?: RowMenuItem[];
@@ -105,6 +105,19 @@ export function ProjectMenu({
     ...(onProject ? [] : [{ kind: "link" as const, label: "Open the project", href: `/admin/projects/${project.id}`, icon: ArrowRight }]),
     { kind: "link", label: clientName ? `Message ${clientName}` : "Message the client", href: `/admin/messages?c=p-${project.id}`, icon: MessageSquare },
     ...(project.archived ? [] : [{ kind: "link" as const, label: "Add a task", href: `/admin/projects/${project.id}?tab=tasks`, icon: ListPlus }]),
+    ...(project.archived || project.stage === "Delivered" ? [] : [{
+      kind: "dialog" as const, area: "intake" as const, label: project.pausedAt ? "Resume the work" : "Pause the work", icon: project.pausedAt ? Play : Pause,
+      title: project.pausedAt ? `Resume ${project.title}` : `Pause ${project.title}`,
+      render: (close: () => void) => (
+        <Form action={setProjectPaused} onDone={() => close()}>
+          <Hidden name="id" value={project.id} /><Hidden name="paused" value={project.pausedAt ? "false" : "true"} />
+          {project.pausedAt
+            ? <div className="ad__sure"><p>The pause banner comes off and the client is told the work has started again.</p></div>
+            : <Fields><Area name="reason" label="Why it is paused" rows={3} required placeholder="Waiting for the deposit before the next round." hint="The client sees this on their project and in the notice we send." /></Fields>}
+          <Actions><Submit icon={project.pausedAt ? Play : Pause}>{project.pausedAt ? "Resume the work" : "Pause the work"}</Submit></Actions>
+        </Form>
+      ),
+    }]),
     {
       kind: "dialog", label: "Move its stage", icon: Move,
       title: `Move ${project.title}`,

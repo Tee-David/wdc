@@ -3,7 +3,7 @@
 import { CalendarDays, MessageSquarePlus, Plus } from "lucide-react";
 import { SERVICES } from "@/lib/services";
 import { CHANNELS, STAGES, type Project } from "@/lib/admin/types";
-import { addNote, createProject, moveStage, setDue } from "@/lib/admin/actions";
+import { addNote, createProject, moveStage, setDue, setProjectPaused } from "@/lib/admin/actions";
 import { useState } from "react";
 import { Actions, Area, Field, Fields, Form, Hidden, Select, Submit, Wrap } from "./form";
 import { RemotePick } from "./remote-pick";
@@ -182,6 +182,17 @@ export function SetDue({ project }: { project: Project }) {
       <Actions>
         <Submit tone="plain" icon={CalendarDays}>Set it</Submit>
       </Actions>
+    </Form>
+  );
+}
+
+/** The pause banner's one button: resume, asked first (the client is told). */
+export function ResumeProject({ id, title }: { id: string; title: string }) {
+  if (!can(useAdminRole(), "intake")) return null;
+  return (
+    <Form action={setProjectPaused} confirm={`Resume ${title}? The pause banner comes off and the client is told the work has started again.`}>
+      <Hidden name="id" value={id} /><Hidden name="paused" value="false" />
+      <Submit>Resume the work</Submit>
     </Form>
   );
 }

@@ -133,8 +133,10 @@ export async function createColleagueInvitation(input: {
     const linked = await c.query<{ data: { email?: string; archived?: boolean; mergedInto?: string } | null }>(`SELECT data FROM admin_records WHERE collection='CLIENTS' AND id=$1 FOR UPDATE`, [input.clientId]);
     const client = linked.rows[0]?.data;
     if (!client || client.archived || client.mergedInto) throw new ClientInvitationError("Your business record is not available just now. Ask Admin.");
-    const actor = await c.query<{ email: string }>(`SELECT "email" FROM "user" WHERE "id"=$1 AND "role"='client' AND "deactivatedAt" IS NULL FOR UPDATE`, [input.actorId]);
-    if (!actor.rows[0] || normaliseEmail(actor.rows[0].email) !== normaliseEmail(client.email ?? "")) throw new ClientInvitationError("Only the main contact for your business can add people.");
+    /* The main contact adds their colleagues; the studio (Admin, or staff on their own clients) can do it for them. */
+    const actor = await c.query<{ email: string; role: string }>(`SELECT "email","role" FROM "user" WHERE "id"=$1 AND "role" IN ('client','owner','staff') AND "deactivatedAt" IS NULL FOR UPDATE`, [input.actorId]);
+    const a = actor.rows[0];
+    if (!a || (a.role === "client" && normaliseEmail(a.email) !== normaliseEmail(client.email ?? ""))) throw new ClientInvitationError("Only the main contact for your business can add people.");
     if (email === normaliseEmail(client.email ?? "")) throw new ClientInvitationError("That is the main contact's own address.");
     if (!input.projects.length) throw new ClientInvitationError("There is no live project to share yet.");
     for (const p of input.projects) {

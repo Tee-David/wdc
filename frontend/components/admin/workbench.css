@@ -267,3 +267,8 @@ a.adRc__row:hover, button.adRc__row:hover, a.adRc__row.on, button.adRc__row.on {
 .adCw__mark { display: inline-grid; place-items: center; flex: none; width: 1.5rem; height: 1.5rem; border-radius: 6px; color: #fff; font: 700 .62rem/1 var(--font-display, "Space Grotesk"), sans-serif; }
 .adRc__row .adSt { margin-top: .4rem; }
 .adCw__wk { display: grid; text-align: center; gap: .1rem; min-width: 0; }
+.adPpl__end { display: flex; align-items: center; gap: .25rem; flex: none; }
+
+/* The client's pause notice: a solid flat panel with a warn edge, never a tint. */
+.adPause { display: grid; gap: .25rem; margin: 0 0 1rem; padding: .9rem 1.1rem; border: 1px solid var(--ad-line); border-left: 4px solid var(--ad-tone-warn); border-radius: 12px; background: var(--ad-panel); }
+.adPause span { color: var(--ad-dim); }

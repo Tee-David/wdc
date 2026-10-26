@@ -906,6 +906,14 @@ export async function toggleTask(_prev:ActionState,fd:FormData):Promise<ActionSt
 }
 
 /** Move an open task between To do, In progress, In review and Blocked (with what it waits on). Review tells the project's leads. */
+/** Pause or resume a project (Admin only): the client sees the reason, and both moves are on the record. */
+export async function setProjectPaused(_prev:ActionState,fd:FormData):Promise<ActionState>{
+ await syncStore();const refused=await allow("intake");if(refused)return refused;
+ const id=str(fd,"id"),paused=str(fd,"paused")==="true",reason=str(fd,"reason");
+ if(paused&&!reason)return FAIL({reason:"Say why. The client sees this."});
+ try{const result=await changeProjectRecord(id,{kind:'pause',paused,reason});after(()=>dispatchWorkspaceEvents({eventIds:result.eventIds}));refreshProject(id);revalidatePath("/admin/projects");return OK(paused?`Updated. ${result.project.title} is paused and the client has been told.`:`Updated. ${result.project.title} has resumed.`);}catch(error){return FAIL({},error instanceof Error?error.message:"The project could not be updated.");}
+}
+
 export async function setTaskState(_prev:ActionState,fd:FormData):Promise<ActionState>{
  const refused=await allow("projects");if(refused)return refused;
  const state=TASK_STATES.find((x)=>x===str(fd,"state"));if(!state)return FAIL({},"Choose where the task is.");

@@ -12,8 +12,8 @@ Two read-only audits compared every canvas board's controls with the live code, 
 - [x] Staff Welcome: the "Try Messages" step; the help rail links the staff help centre and Message Admin
 
 ## Admin
-- [ ] Client page People: add person, make main contact, remove, resend invite, give portal access
-- [ ] Projects: Pause with a reason and Resume (banner, "Paused since")
+- [x] Client page People: add person, make main contact, remove, give portal access (to every live project, approvals and invoices as ticked), send the invitation again; colleagues the client added themselves are listed
+- [x] Projects: Pause with a reason and Resume (Admin only): banner on the project, Paused tag in the list, the client sees "Paused since" and the reason and is told on both moves
 - [ ] Project page: Post an update with who sees it, delivery evidence, budget and scope sheet, service sections still missing (SEO keywords and month's work, website pages and launch checks, app device testing and store release, software demo checklist, ads launch checklist)
 - [ ] Quotes: create the deposit invoice from an accepted quote, withdraw a quote
 - [ ] Today deck: Hand over on cards, act in place (match, approve payouts, book handover, draft quote, set follow up), renewal card

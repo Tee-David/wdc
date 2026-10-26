@@ -24,6 +24,8 @@ import { listDepartments } from "@/lib/departments";
 import { ClientDepartments } from "@/components/admin/departments";
 import AuditLog from "@/components/admin/audit-log";
 import PortalAccess from "@/components/admin/portal-access";
+import { AddPerson, PersonMenu } from "@/components/admin/people-parts";
+import { colleaguesOf } from "@/lib/portal/people";
 import { adminRole } from "@/lib/admin/guard";
 import { inScope, staffScope } from "@/lib/admin/staff-scope";
 import { AdminState as ScopeState } from "@/components/admin/admin-state";
@@ -124,6 +126,8 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
 
   const asked: Tab = TABS.find((t) => t === query.tab) ?? "overview";
   const tab: Tab = asked === "money" && !money ? "overview" : asked;
+  /* Who else at the business can use the portal: accounts with access and invitations still waiting. */
+  const colleagueAccess = new Map((tab === "people" ? (await colleaguesOf(c)) ?? [] : []).map((x) => [x.email.trim().toLowerCase(), x.kind === "person" ? "account" as const : "invited" as const]));
   const people = [{ name: c.name, role: "Main contact", email: c.email, phone: c.phone }, ...(c.contacts ?? []).map((x) => ({ name: x.name, role: x.role ?? "Contact", email: x.email ?? "", phone: x.phone ?? "" }))];
   const portal = await portalMaps();
   const hasAccount = portal.accounts.has(c.email.trim().toLowerCase());
@@ -553,20 +557,35 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
           </>}
         >
           <section className="adList" aria-label="People">
-            <div className="adList__hd"><h2>People</h2><span className="adList__n">{people.length}</span></div>
+            <div className="adList__hd"><h2>People</h2><span className="adList__n">{people.length}</span><span className="adList__sp" />{c.archived ? null : <AddPerson clientId={c.id} company={c.company} />}</div>
             <div className="adPanelPad">
-              {people.map((p, i) => (
-                <div key={`${p.name}-${i}`} className="adPpl">
-                  <span className={`adMk adMk--${avTone(p.name)}`} aria-hidden="true">{initials(p.name)}</span>
-                  <div>
-                    <b>{p.name}</b>
-                    <small>{p.role}</small>
-                    <span className="adT__row" style={{ marginTop: ".25rem" }}>
-                      {p.email ? <a href={`mailto:${p.email}`} className="adRc__foot" style={{ minHeight: "2.75rem" }}><Mail aria-hidden="true" />{p.email}</a> : null}
-                      {p.phone ? <a href={`tel:${p.phone.replace(/\s/g, "")}`} className="adRc__foot" style={{ minHeight: "2.75rem" }}><Phone aria-hidden="true" />{p.phone}</a> : null}
-                    </span>
+              {people.map((p, i) => {
+                const access = i === 0 ? null : colleagueAccess.get(p.email.trim().toLowerCase()) ?? "none";
+                return (
+                  <div key={`${p.name}-${i}`} className="adPpl">
+                    <span className={`adMk adMk--${avTone(p.name)}`} aria-hidden="true">{initials(p.name)}</span>
+                    <div>
+                      <b>{p.name}</b>
+                      <small>{p.role}</small>
+                      <span className="adT__row" style={{ marginTop: ".25rem" }}>
+                        {p.email ? <a href={`mailto:${p.email}`} className="adRc__foot" style={{ minHeight: "2.75rem" }}><Mail aria-hidden="true" />{p.email}</a> : null}
+                        {p.phone ? <a href={`tel:${p.phone.replace(/\s/g, "")}`} className="adRc__foot" style={{ minHeight: "2.75rem" }}><Phone aria-hidden="true" />{p.phone}</a> : null}
+                      </span>
+                    </div>
+                    {i === 0
+                      ? <span className={`ad__pill ad__pill--${hasAccount ? "good" : invited ? "warn" : "flat"}`}>{hasAccount ? "Active" : invited ? "Invited" : "No account"}</span>
+                      : <span className="adPpl__end">
+                          <span className={`ad__pill ad__pill--${access === "account" ? "good" : access === "invited" ? "warn" : "flat"}`}>{access === "account" ? "Portal access" : access === "invited" ? "Invited" : "No access"}</span>
+                          {c.archived ? null : <PersonMenu clientId={c.id} at={i - 1} name={p.name} email={p.email || undefined} access={access ?? "none"} />}
+                        </span>}
                   </div>
-                  {i === 0 ? <span className={`ad__pill ad__pill--${hasAccount ? "good" : invited ? "warn" : "flat"}`}>{hasAccount ? "Active" : invited ? "Invited" : "No account"}</span> : null}
+                );
+              })}
+              {[...colleagueAccess].filter(([e]) => !people.some((p) => p.email.trim().toLowerCase() === e)).map(([e, a]) => (
+                <div key={e} className="adPpl">
+                  <span className={`adMk adMk--${avTone(e)}`} aria-hidden="true">{initials(e)}</span>
+                  <div><b>{e}</b><small>Added by the main contact from their portal</small></div>
+                  <span className={`ad__pill ad__pill--${a === "account" ? "good" : "warn"}`}>{a === "account" ? "Portal access" : "Invited"}</span>
                 </div>
               ))}
             </div>

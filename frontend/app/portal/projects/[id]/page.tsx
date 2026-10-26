@@ -192,8 +192,16 @@ export default async function PortalProjectDetail({ params, searchParams }: { pa
           <span className="ad__pill ad__pill--flat">{service?.short ?? p.service}</span>
           {p.health === "Waiting on client" ? <span className="ad__pill ad__pill--warn">Waiting on you</span> : null}
           {p.stage === "Delivered" ? <span className="ad__pill ad__pill--good">Delivered</span> : null}
+          {p.pausedAt ? <span className="ad__pill ad__pill--warn">Paused</span> : null}
         </p>
       </PageHead>
+
+      {p.pausedAt ? (
+        <section className="adPause" role="status" aria-label="This project is paused">
+          <b>Paused since {new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Lagos" }).format(new Date(p.pausedAt))}.</b>
+          <span>{p.pauseReason ?? "The studio has paused the work."} We will tell you as soon as it starts again.</span>
+        </section>
+      ) : null}
 
       <section className="adPg__stage" aria-label="Stage">
         <Stepper steps={STAGES} at={at} done={p.stage === "Delivered"} label={`Stage: ${p.stage}, ${at + 1} of ${STAGES.length}`} />

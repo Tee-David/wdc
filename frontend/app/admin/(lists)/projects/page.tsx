@@ -243,7 +243,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                         <td>
                           <span className="adT__stack adPl__stage">
                             <span className="adT__row">
-                              {p.health !== "On track" ? <span className={`ad__pill ${p.health === "Blocked" ? "ad__pill--bad" : "ad__pill--warn"}`}>{p.health === "Waiting on client" ? `Waiting on client` : p.health}</span> : <StagePill stage={p.stage} />}
+                              {p.pausedAt ? <span className="ad__pill ad__pill--warn">Paused</span> : p.health !== "On track" ? <span className={`ad__pill ${p.health === "Blocked" ? "ad__pill--bad" : "ad__pill--warn"}`}>{p.health === "Waiting on client" ? `Waiting on client` : p.health}</span> : <StagePill stage={p.stage} />}
                               <small className="ad__dim">{r.stageIndex + 1} of {STAGES.length}</small>
                             </span>
                             <span className="adBar" aria-hidden="true"><span style={{ "--w": r.progress } as React.CSSProperties} /></span>

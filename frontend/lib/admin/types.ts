@@ -133,6 +133,9 @@ export type Project = {
    * and those are the financial and evidential record. Archiving takes it out
    * of the lists; there is deliberately no way to destroy it.
    */
+  /** Set while Admin has paused the work (owner, 2026-10-26): when, and the reason the client is shown. */
+  pausedAt?: string | null;
+  pauseReason?: string;
   archived?: boolean;
   /** One of lib/project-icons.ts, picked or random when it was opened; the client sees it too. */
   icon?: string;

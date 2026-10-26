@@ -27,6 +27,7 @@ import { ProjectWorkspace } from "@/components/workspace/project-workspace";
 import { BatchApproval } from "@/components/workspace/batch-approval";
 import { ServiceWork, serviceWorkLabel } from "@/components/admin/service-work";
 import { stageName, stageNames } from "@/lib/admin/service-stages";
+import { ResumeProject } from "@/components/admin/project-forms";
 import { listServiceRecords } from "@/lib/workspace/service-store";
 import type { ServiceRecord } from "@/lib/workspace/service-model";
 import { postCalendar } from "@/lib/admin/content-calendar";
@@ -133,6 +134,7 @@ export default async function ProjectPage({ params, searchParams }: { params: Pr
 
   type Way = { key: string; tone: "bad" | "warn" | "live"; icon: typeof AlertTriangle; title: string; body: string; actions?: React.ReactNode };
   const way: Way[] = [];
+  if (p.pausedAt) way.push({ key: "paused", tone: "warn", icon: Hourglass, title: `Paused since ${dateWords(p.pausedAt, nowMs(), false)}`, body: p.pauseReason ?? "The work is paused.", actions: <ResumeProject id={p.id} title={p.title} /> });
   if (p.stage !== "Delivered") {
     if (p.health === "Blocked") way.push({ key: "blocked", tone: "bad", icon: AlertTriangle, title: "Blocked", body: lastBlockers ?? "The project is marked blocked. Say what is in the way in an update.", actions: <Link className="ad__btn" href={tabHref("activity")}>Post an update</Link> });
     if (p.health === "Waiting on client") way.push({ key: "waiting", tone: "warn", icon: Hourglass, title: "Waiting on the client", body: lastBlockers ?? `Work has paused until ${client?.company ?? "the client"} answers.`, actions: client ? <Link className="ad__btn" href={`/admin/clients/${client.id}`}>Open {client.company}</Link> : undefined });
