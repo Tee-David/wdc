@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { Check, CheckCircle2, Clock, FolderKanban, Hourglass, Inbox, MessageSquare } from "lucide-react";
+import { Check, CheckCircle2, ChevronLeft, ChevronRight, Clock, FolderKanban, Hourglass, Inbox, MessageSquare } from "lucide-react";
 import { getClient, getDeliverablesFor, getProjects, getTasks, getTickets } from "@/lib/admin/store";
-import { TASK_STATE_WORDS, taskIsWaiting, type Task } from "@/lib/admin/types";
+import { STAGES, TASK_STATE_WORDS, taskIsWaiting, type Task } from "@/lib/admin/types";
 import { BulkBar, PickAll, RowPick } from "@/components/admin/bulk";
 import { TaskRowMenu } from "@/components/admin/task-row";
 import { buildProjectRows } from "@/lib/admin/project-signals";
@@ -12,7 +12,7 @@ import { toggleTask } from "@/lib/admin/actions";
 import { dateWords, nowMs } from "@/lib/admin/when";
 import { studioStamp } from "@/components/admin/calendar/studio-time";
 import { PageHead } from "@/components/admin/page-head";
-import { MiniBar, RailCard, RailHead, StatTiles, Workbench } from "@/components/admin/workbench";
+import { RailCard, RailHead, StatTiles, Workbench } from "@/components/admin/workbench";
 import { Deck, type DeckItem } from "@/components/admin/deck";
 import { Tabs } from "@/components/admin/tabs";
 import { UrlSearch } from "@/components/admin/url-search";
@@ -20,6 +20,10 @@ import { Pager, readPer } from "@/components/admin/pager";
 import { Empty } from "@/components/admin/bits";
 import { Form, Hidden } from "@/components/admin/form";
 import { FirstWeek } from "@/components/admin/first-week";
+import { Stepper } from "@/components/admin/stepper";
+import { stageName, stageNames } from "@/lib/admin/service-stages";
+import { listServiceRecords } from "@/lib/workspace/service-store";
+import { postCalendar } from "@/lib/admin/content-calendar";
 
 /**
  * MY DAY, a member of staff's front page: the tasks that are theirs first (a deck), the rest as a list, the shape
@@ -71,6 +75,18 @@ export async function StaffDay({ me, params, firstName }: { me: { id: string; na
     /* Reminded today (by the daily run or a nudge): the card rests until tomorrow. */
     db.query<{ project_id: string }>(`SELECT DISTINCT project_id FROM workspace_events WHERE kind='review.reminder' AND created_at > now() - interval '20 hours'`).then((r) => new Set(r.rows.map((x) => x.project_id)), () => new Set<string>()),
   ]);
+  /* THE CONTENT CALENDAR CARD: this week's planned posts across their social projects, from the post records. */
+  const wk = Math.max(-4, Math.min(4, Number.parseInt(one(params.wk) || "0", 10) || 0));
+  const dow = (new Date(`${stamp.date}T12:00:00Z`).getUTCDay() + 6) % 7;
+  const monday = Date.parse(`${stamp.date}T12:00:00Z`) - dow * DAY + wk * 7 * DAY;
+  const weekDays = Array.from({ length: 7 }, (_, i) => new Date(monday + i * DAY).toISOString().slice(0, 10));
+  const social = mineRows.filter((r) => r.project.service === "social");
+  const weekPosts = (await Promise.all(social.map(async (r) => {
+    const recs = await listServiceRecords(r.project.id, false).catch(() => []);
+    return postCalendar(recs, r.project.id).events.filter((e) => weekDays.includes(e.date)).map((e) => ({ ...e, client: r.client?.company ?? "" }));
+  }))).flat().sort((a, b) => `${a.date}${a.start ?? ""}`.localeCompare(`${b.date}${b.start ?? ""}`));
+  const withClient = weekPosts.filter((e) => e.tag?.text === "With client").length;
+  const short = (d: string) => new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", timeZone: "UTC" }).format(new Date(`${d}T12:00:00Z`));
   const placeOf = (projectId: string) => { const p = projectOf.get(projectId), c = p ? getClient(p.clientId) : undefined; return { p, c, label: p ? `${c?.company ?? "Client"} · ${p.title}` : undefined }; };
   const ago = (at: string) => { const h = Math.max(0, Math.round((now - Date.parse(at)) / 3_600_000)); return h < 24 ? `${h} ${h === 1 ? "hour" : "hours"}` : `${Math.round(h / 24)} ${Math.round(h / 24) === 1 ? "day" : "days"}`; };
   const askFirst = { label: "Ask Admin first", href: "/admin/help?ask=1" };
@@ -153,7 +169,7 @@ export async function StaffDay({ me, params, firstName }: { me: { id: string; na
   const shown = list.slice((page - 1) * per, page * per);
   const href = (patch: Record<string, string | undefined>) => {
     const n = new URLSearchParams();
-    for (const [k, v] of Object.entries({ t: tab === "open" ? "" : tab, q: one(params.q), per: one(params.per), ...patch })) if (v) n.set(k, v);
+    for (const [k, v] of Object.entries({ t: tab === "open" ? "" : tab, q: one(params.q), per: one(params.per), wk: one(params.wk), ...patch })) if (v) n.set(k, v);
     const s = n.toString();
     return `/admin${s ? `?${s}` : ""}`;
   };
@@ -178,18 +194,36 @@ export async function StaffDay({ me, params, firstName }: { me: { id: string; na
           <RailHead title="My week" href="/admin/projects" link="View all" />
           <StatTiles items={[
             { label: "Due today", value: String(today.length), note: tomorrow.length ? `${tomorrow.length} more tomorrow` : late.length ? `${late.length} overdue` : "Nothing tomorrow", noteTone: late.length ? "bad" : tomorrow.length ? "accent" : undefined, icon: Clock, tone: "live", href: href({ t: "open", page: undefined }) },
-            { label: "With clients", value: String(withClients.length), note: withClients.length ? `${withClients[0].d.name} and more waiting` : "Nothing waiting on a client", icon: Hourglass, tone: "brand" },
+            { label: "With clients", value: String(withClients.length), note: withClients.length ? `${withClients[0].d.name} and more waiting` : "Nothing waiting on a client", icon: Hourglass, tone: "brand", href: withClients.length ? `/admin/projects/${withClients[0].r.project.id}?tab=approvals` : undefined },
             { label: "Replies waiting", value: String(replies.length), note: replies.length ? "Questions from your clients" : "No question is open", noteTone: replies.length ? "accent" : undefined, icon: MessageSquare, tone: "warn", href: "/admin/messages?kind=client" },
             { label: "Done this week", value: String(doneWeek.length), note: doneWeek.length > doneBefore ? `${doneWeek.length - doneBefore} more than last week` : doneBefore ? `${doneBefore} last week` : "Starts counting as you finish", icon: CheckCircle2, tone: "good", href: href({ t: "done", page: undefined }) },
           ]} />
+          {social.length ? (
+            <RailCard title="Content this week" link={{ href: `/admin/projects/${social[0].project.id}?tab=work`, label: "Calendar" }}>
+              <div className="adCw__nav">
+                <Link className="ad__btn ad__btn--icon" href={href({ wk: wk - 1 ? String(Math.max(-4, wk - 1)) : undefined })} aria-label="Previous week"><ChevronLeft aria-hidden="true" /></Link>
+                <span className="adCw__wk"><b>{short(weekDays[0])} to {short(weekDays[6])}</b><span className="ad__dim">{weekPosts.length} {weekPosts.length === 1 ? "post" : "posts"}{withClient ? ` · ${withClient} with client` : ""}</span></span>
+                <Link className="ad__btn ad__btn--icon" href={href({ wk: wk + 1 ? String(Math.min(4, wk + 1)) : undefined })} aria-label="Next week"><ChevronRight aria-hidden="true" /></Link>
+              </div>
+              {weekPosts.length ? weekPosts.slice(0, 6).map((e) => (
+                <Link key={e.id} href={e.href ?? "/admin/projects"} className="adRc__row">
+                  <span className="adRc__line"><span className="adCw__mark" style={{ background: e.mark?.bg }} aria-hidden="true">{e.mark?.text}</span><strong>{e.title}</strong>{e.tag ? <span className={`ad__pill ad__pill--${e.tag.tone}`}>{e.tag.text}</span> : null}</span>
+                  <span className="adRc__sub">{short(e.date)}{e.start ? ` ${e.start}` : ""} · {e.client}</span>
+                </Link>
+              )) : <p className="ad__dim" style={{ margin: 0, fontSize: ".85rem" }}>No post is planned this week. Plan one on the project&apos;s content calendar.</p>}
+            </RailCard>
+          ) : null}
           <RailCard title="My projects" aside={mineRows.length ? `${mineRows.length} live` : undefined} link={{ href: "/admin/projects", label: "View all" }}>
-            {mineRows.length ? mineRows.slice(0, 3).map((r) => (
-              <Link key={r.project.id} href={`/admin/projects/${r.project.id}`} className="adRc__row">
-                <span className="adRc__line"><strong>{r.project.title}</strong><span className="ad__pill ad__pill--flat">{r.payment.text}</span></span>
-                <span className="adRc__sub">{r.client?.company ?? "Unknown client"} · {r.project.stage}</span>
-                <MiniBar share={r.progress} />
-              </Link>
-            )) : <p className="ad__dim" style={{ margin: 0, fontSize: ".85rem" }}>Projects where you are named as answerable show here. Ask Admin to name you on one.</p>}
+            {mineRows.length ? mineRows.slice(0, 3).map((r) => {
+              const at = Math.max(0, STAGES.indexOf(r.project.stage));
+              return (
+                <Link key={r.project.id} href={`/admin/projects/${r.project.id}`} className="adRc__row">
+                  <span className="adRc__line"><strong>{r.project.title}</strong><span className="ad__pill ad__pill--flat">{r.payment.text}</span></span>
+                  <span className="adRc__sub">{r.client?.company ?? "Unknown client"} · {stageName(r.project.service, r.project.stage)}</span>
+                  <Stepper steps={stageNames(r.project.service)} at={at} done={r.project.stage === "Delivered"} label={`${r.project.title}: stage ${at + 1} of ${STAGES.length}`} />
+                </Link>
+              );
+            }) : <p className="ad__dim" style={{ margin: 0, fontSize: ".85rem" }}>Projects where you are named as answerable show here. Ask Admin to name you on one.</p>}
           </RailCard>
         </>}
       >

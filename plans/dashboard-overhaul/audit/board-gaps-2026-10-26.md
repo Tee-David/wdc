@@ -7,7 +7,7 @@ Two read-only audits compared every canvas board's controls with the live code, 
 - [x] Staff Settings: (appearance is the theme switch in the sidebar; quiet hours skipped, the morning email follows working days) notifications (what reaches you, quiet hours), working week, appearance
 - [x] My Day deck: client waiting (reply, Ask Admin first), handover to accept, blocked on client (Nudge), named team tasks, Hand over on cards. Not built: "review asked" and "weekly update" have no data model yet (no peer review requests or weekly updates exist in the app)
 - [x] My Day tasks: In progress, In review, Blocked (with what it waits on) states, row menu (start, review, blocked, back, hand over, open), bulk Start, Send for review, Mark done
-- [ ] My Day rail: content calendar card, sheets behind the week tiles, project steppers
+- [x] My Day rail: content calendar card (week arrows, posts from the records), week tiles open their list, project steppers. Platform filter on the card skipped (the project calendar has it)
 - [ ] Staff Projects and Clients: no New client or Start a project for staff, Your move and Waiting on client tabs, Message a client, calendar meetings for staff
 - [ ] Staff Welcome: the "Try Messages" step; Support link to the staff help centre
 
