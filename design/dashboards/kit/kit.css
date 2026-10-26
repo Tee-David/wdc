@@ -1633,3 +1633,6 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 .attnSec { font-size: 12px; font-weight: 600; color: var(--ad-dim); white-space: nowrap; }
 @container app (max-width: 420px) { .attnSec { display: none; } }
 .afPlus{position:relative}.afPlus::after{content:"";position:absolute;inset:-6px;border-radius:50%}
+
+/* Phones: the page's ⋮ lives in the top bar, after the bell; the copy in the page head is hidden. */
+@container app (max-width:640px){.pageHead [data-menu="chores"]{display:none !important}}

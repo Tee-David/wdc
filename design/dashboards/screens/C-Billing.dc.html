@@ -1647,6 +1647,9 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
 @container app (max-width: 420px) { .attnSec { display: none; } }
 .afPlus{position:relative}.afPlus::after{content:"";position:absolute;inset:-6px;border-radius:50%}
 
+/* Phones: the page's ⋮ lives in the top bar, after the bell; the copy in the page head is hidden. */
+@container app (max-width:640px){.pageHead [data-menu="chores"]{display:none !important}}
+
 </style>
 </helmet>
 <div class="{{rootCls}}" onClick="{{rootClick}}">
@@ -1731,6 +1734,7 @@ button.item:hover{border-color:var(--ad-ink);background:var(--ad-hover)}
               <svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
               <sc-if value="{{hasUnread}}" hint-placeholder-val="{{ true }}"><span class="tag num" style="position: absolute; top: -6px; right: -6px; height: 20px; min-width: 20px; padding: 0 6px; justify-content: center; background: var(--ad-tone-bad); color: #fff">{{unread}}</span></sc-if>
             </button>
+            <sc-if value="{{topChores}}" hint-placeholder-val="{{ false }}"><button class="ibtn showS topChores" data-menu="chores" aria-label="More for this page" aria-haspopup="menu" aria-expanded="{{choresX}}" onClick="{{openChores}}"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg></button></sc-if>
             
           </header>
 
@@ -2914,7 +2918,7 @@ class Component extends DCLogic {
     }
     var client = s.vis === 'client';
     var anyOverlay = !!(s.sheet || s.drawer || s.pal || (s.pop && s.pop.asSheet) || s.tour >= 0);
-    return { svOn: !!svq.get('sv'), svName: svq.get('who') ? svq.get('who') + ' as ' + svq.get('sv') : 'read only', svEnds: '09:00',
+    var kv = { svOn: !!svq.get('sv'), svName: svq.get('who') ? svq.get('who') + ' as ' + svq.get('sv') : 'read only', svEnds: '09:00',
       rootCls: 'wdc' + (s.dark ? ' dark' : '') + (s.dev === 'phone' ? ' isPhone' : '') + (anyOverlay ? ' locked' : ''),
       themeLabel: s.dark ? 'Switch to light mode' : 'Switch to dark mode', themeIcon: s.dark ? I.sun : I.moon, themeShort: s.dark ? 'Light' : 'Dark', themeLong: s.dark ? 'Light mode' : 'Dark mode',
       toggleTheme: function () { self.setState({ dark: !self.state.dark }); },
@@ -2965,6 +2969,10 @@ class Component extends DCLogic {
       closeToast: function () { clearInterval(self.ti); var tid = self.state.ta; self.exitThen('.toastP', function () { if (self.state.ta === tid) self.setState({ toast: null }); }); },
       loading: !s.ready, ready: s.ready
     };
+    /* The page's ⋮ moves into the top bar on phones. A getter, because the page's own values (openChores, hasChores) are
+       merged onto this object after it is built: it answers for whatever page is rendering. */
+    Object.defineProperty(kv, 'topChores', { enumerable: true, get: function () { return typeof this.openChores === 'function' && this.hasChores !== false; } });
+    return kv;
   }
   /* One map of every role's pages, so every board links to every other. Counts come from the page. */
   roleNav() {
