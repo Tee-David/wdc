@@ -10,6 +10,8 @@ import { createClient, mergeClient, updateClient } from "@/lib/admin/actions";
 import { Actions, Area, Checks, Field, Fields, Form, Hidden, Submit } from "./form";
 import { RemoteSelect } from "./remote-pick";
 import { DialogButton } from "./dialog";
+import { useAdminRole } from "./shell";
+import { can } from "@/lib/admin/permissions";
 
 const SERVICE_OPTIONS = SERVICES.map((s) => ({ value: s.slug, label: s.short }));
 
@@ -56,6 +58,8 @@ export function ClientFields({ client, email, onEmail, phone, onPhone }: {
 }
 
 export function AddClient({ dataTour, startOpen, label = "Add a client" }: { dataTour?: string; startOpen?: boolean; label?: string } = {}) {
+  /* Adding a client is Admin's call (the "intake" area). */
+  if (!can(useAdminRole(), "intake")) return null;
   return (
     <DialogButton label={label} title="Add a client" icon={Plus} wide dataTour={dataTour} startOpen={startOpen}>
       {/* No onDone: createClient redirects to the new client, so the sheet

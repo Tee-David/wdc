@@ -25,7 +25,8 @@ export type Area =
   | "settings"    // site settings, finance defaults, integrations
   | "team"        // who has access, invitations to staff, sessions
   | "exports"     // CSV downloads of whole tables
-  | "destructive"; // archive or merge a client, archive a project
+  | "destructive" // archive or merge a client, archive a project
+  | "intake";     // add a client or start a project (Admin's call: what the studio takes on)
 
 const STAFF: ReadonlySet<Area> = new Set<Area>(["clients", "projects", "forms", "content"]);
 

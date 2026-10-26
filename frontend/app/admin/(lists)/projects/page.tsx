@@ -114,7 +114,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
   const paymentsSoon = invoices.filter((i) => Date.parse(i.due) <= week && Date.parse(i.due) >= nowMs() - DAY);
 
   /* Meetings come from the persisted bookings: a week ahead for the figure's note, a wider window for the calendar. */
-  const meetingsOn = isOwner;
+  const meetingsOn = true;
   let meetings: Awaited<ReturnType<typeof meetingList>> = [];
   let meetingsFailed = false;
   if (meetingsOn) {
@@ -122,7 +122,13 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
     const to = view === "calendar" ? nowMs() + 150 * DAY : week;
     try { meetings = await meetingList(new Date(from).toISOString(), new Date(to).toISOString()); } catch { meetingsFailed = true; }
   }
-  const liveMeetings = meetings.filter((b) => !["cancelled", "rejected"].includes(b.status.toLowerCase()));
+  /* Staff see the meetings booked by their own clients (matched on the attendee's email), and open the client, not
+     the Meetings page, which is Admin's. */
+  const emailOwner = new Map<string, string>();
+  if (!isOwner) for (const r of all) for (const e of [r.client?.email, ...(r.client?.contacts ?? []).map((c) => c.email)]) if (e) emailOwner.set(e.trim().toLowerCase(), r.client!.id);
+  const meetingClient = (b: (typeof meetings)[number]) => (b.attendees ?? []).map((a) => emailOwner.get((a.email ?? "").trim().toLowerCase())).find(Boolean);
+  const liveMeetings = meetings.filter((b) => !["cancelled", "rejected"].includes(b.status.toLowerCase()) && (isOwner || meetingClient(b)));
+  const meetingHref = (b: (typeof meetings)[number]) => isOwner ? "/admin/meetings" : `/admin/clients/${meetingClient(b)}`;
   const meetingsSoon = liveMeetings.filter((b) => Date.parse(b.start) >= nowMs() && Date.parse(b.start) <= week).length;
 
   /* PROJECTS NEEDING YOU (the approved board), from the records: blocked work,
@@ -145,7 +151,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
   /* THIS WEEK, beside the list: what is due and who we meet in the next seven days. */
   const weekRows = [
     ...dueSoon.filter((r) => r.due >= today).map((r) => ({ key: `p-${r.project.id}`, at: r.project.due!, title: r.project.title, sub: `${r.client?.company ?? "Client"} · due`, href: `/admin/projects/${r.project.id}` })),
-    ...liveMeetings.filter((b) => Date.parse(b.start) >= nowMs() && Date.parse(b.start) <= week).map((b) => ({ key: `m-${b.start}-${b.title}`, at: b.start, title: b.title, sub: "Meeting", href: "/admin/meetings" })),
+    ...liveMeetings.filter((b) => Date.parse(b.start) >= nowMs() && Date.parse(b.start) <= week).map((b) => ({ key: `m-${b.start}-${b.title}`, at: b.start, title: b.title, sub: "Meeting", href: meetingHref(b) })),
   ].sort((a, b) => a.at.localeCompare(b.at)).slice(0, 8);
 
   const dueNote = [
@@ -338,7 +344,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
         const s = studioStamp(b.start), e = studioStamp(b.end);
         if (needle && !`${b.title} ${b.attendees?.[0]?.name ?? ""}`.toLocaleLowerCase().includes(needle)) continue;
         events.push({
-          id: `meet-${b.uid}`, date: s.date, start: s.time, end: e.date === s.date ? e.time : undefined, title: b.title, sub: b.attendees?.[0]?.name, cal: "meetings", href: "/admin/meetings",
+          id: `meet-${b.uid}`, date: s.date, start: s.time, end: e.date === s.date ? e.time : undefined, title: b.title, sub: b.attendees?.[0]?.name, cal: "meetings", href: meetingHref(b),
           tag: b.status.toLowerCase() === "pending" ? { text: "Awaiting confirmation", tone: "warn" } : undefined,
         });
       }
@@ -353,7 +359,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
         {meetingsFailed ? <p className="adPl__note" role="status">Meetings could not be read just now, so they are left out. Deadlines{money ? " and payments" : ""} are shown.</p> : null}
         <Calendar
           id="projects" cals={cals} events={events} today={nowStamp.date} now={nowStamp.time}
-          add={meetingsOn ? { label: "Book a meeting", href: "/meet" } : undefined}
+          add={isOwner ? { label: "Book a meeting", href: "/meet" } : undefined}
           exportName="Studio projects" dataTour="projects-calendar"
           emptyNote="Nothing is due in this view. Pick another day or turn a calendar back on."
         />

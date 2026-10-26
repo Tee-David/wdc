@@ -29,6 +29,8 @@ export function AddProject({
   dataTour?: string;
   label?: string;
 }) {
+  /* Starting a project is Admin's call (the "intake" area); staff are given projects, they do not open them. */
+  if (!can(useAdminRole(), "intake")) return null;
   return (
     <DialogButton label={label} title="Open a project" icon={Plus} wide dataTour={dataTour}>
       {/* createProject redirects to the project it opened. */}

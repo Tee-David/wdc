@@ -2,7 +2,8 @@ import { nowMs } from "@/lib/admin/when";
 import Link from "next/link";
 import { Clock, FolderKanban, Lightbulb, UserCheck, Users, Wallet } from "lucide-react";
 import { SERVICES } from "@/lib/services";
-import { getEstimates, getProjects } from "@/lib/admin/store";
+import { getEstimates, getProjects, getTasks, getTickets } from "@/lib/admin/store";
+import { waitingOnClients } from "@/lib/jobs/approval-reminders";
 import { estimateTotals, naira } from "@/lib/admin/types";
 import { adminRole } from "@/lib/admin/guard";
 import { inScope, staffScope } from "@/lib/admin/staff-scope";
@@ -11,7 +12,7 @@ import { nairaTile } from "@/lib/admin/short-money";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 import { listDepartments } from "@/lib/departments";
 import { avTone, initials } from "@/lib/admin/client-mark";
-import { buildClientRows, openQuotes, unownedSubmissions, type ClientRow, type ClientState } from "@/lib/admin/client-signals";
+import { buildClientRows, openQuotes, unownedSubmissions, type ClientRow } from "@/lib/admin/client-signals";
 import { buildClientDeck } from "@/lib/admin/client-deck";
 import { activityFeed } from "@/lib/admin/activity-feed";
 import { dateWords } from "@/lib/admin/when";
@@ -49,7 +50,9 @@ type Q = {
 
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 const TABS = [["all", "All"], ["active", "Active"], ["lead", "Leads"], ["past", "Past"], ["archived", "Archived"]] as const;
-type Tab = (typeof TABS)[number][0];
+/* Staff sort their clients by whose turn it is, not by the studio's books (the kit's S-Clients). */
+const STAFF_TABS = [["all", "All"], ["yours", "Your move"], ["waiting", "Waiting on client"]] as const;
+type Tab = (typeof TABS)[number][0] | (typeof STAFF_TABS)[number][0];
 const SORTS = ["company", "projects", "owed", "since"] as const;
 type Sort = (typeof SORTS)[number];
 
@@ -62,7 +65,9 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
   const exportable = can(role, "exports");
   const destructive = can(role, "destructive");
 
-  const tab: Tab = (TABS.find(([k]) => k === query.tab)?.[0]) ?? (query.status === "archived" ? "archived" : "all");
+  const staffView = role !== "owner";
+  const tabList = staffView ? STAFF_TABS : TABS;
+  const tab: Tab = (tabList.find(([k]) => k === query.tab)?.[0]) ?? (!staffView && query.status === "archived" ? "archived" : "all");
   const service = SERVICES.find((s) => s.slug === query.service)?.slug;
   const search = query.q?.trim().toLocaleLowerCase() ?? "";
   const per = readPer(query.per);
@@ -80,11 +85,26 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
   const { rows: allRows, portalKnown } = await buildClientRows({ money });
   const all = allRows.filter((r) => inScope(scope, "clients", r.client.id));
 
+  /* WHOSE TURN IT IS, for the staff tabs. Waiting on client: shared work they have not decided on, or a project marked
+     waiting on them. Your move: a question of theirs is open, or an open task on their projects is not blocked. */
+  const liveIds = (clientId: string) => getProjects().filter((p) => p.clientId === clientId && p.stage !== "Delivered" && !p.archived).map((p) => p.id);
+  const waitingProjects = staffView ? new Set((await waitingOnClients()).map((w) => w.projectId)) : new Set<string>();
+  const openTickets = new Set(getTickets().filter((t) => t.status === "Open").map((t) => t.clientId));
+  const openTaskProjects = new Set(getTasks().filter((t) => !t.done && t.state !== "blocked").map((t) => t.projectId));
+  const turn = (r: ClientRow): "yours" | "waiting" | null => {
+    const ids = liveIds(r.client.id);
+    if (openTickets.has(r.client.id) || ids.some((id) => openTaskProjects.has(id))) return "yours";
+    if (ids.some((id) => waitingProjects.has(id)) || getProjects().some((p) => ids.includes(p.id) && p.health === "Waiting on client")) return "waiting";
+    return null;
+  };
+  const matchesTab = (r: ClientRow, t: Tab) => (t === "yours" || t === "waiting") ? r.state !== "archived" && turn(r) === t
+    : t === "archived" ? r.state === "archived" : r.state !== "archived" && (t === "all" || r.state === t);
+
   /* ONE FILTER, APPLIED WITH ONE FACET LEFT OUT, so each tab and chip counts
      what it would show if pressed, with every other choice kept. */
   const matches = (r: ClientRow, skip: "tab" | "service" | null) => {
     const c = r.client;
-    if (skip !== "tab" && !(tab === "archived" ? r.state === "archived" : r.state !== "archived" && (tab === "all" || r.state === (tab as ClientState)))) return false;
+    if (skip !== "tab" && !matchesTab(r, tab)) return false;
     if (skip !== "service" && service && !c.services.includes(service)) return false;
     if (dept && !(c.departments ?? []).includes(dept)) return false;
     if ((from && c.since.slice(0, 10) < from) || (to && c.since.slice(0, 10) > to)) return false;
@@ -155,7 +175,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
   const feed = await activityFeed({ money, limit: 4, kinds: ["client", "project", "deliverable", "submission", "update", "invoice", "payment"] });
 
   /* THE CHIPS AND TABS COUNT WHAT PRESSING THEM WOULD SHOW. */
-  const tabItems = TABS.map(([key, label]) => {
+  const tabItems = tabList.map(([key, label]) => {
     const n = all.filter((r) => matchesTab(r, key as Tab) && matches(r, "tab")).length;
     return { key, label, href: href({ tab: key === "all" ? undefined : key, page: undefined }), count: n };
   });
@@ -173,7 +193,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
   const emptyTitle = !all.length ? "No clients yet"
     : search ? `No client matches “${query.q?.trim()}”`
     : tab === "archived" ? "Nothing is archived"
-    : tab === "lead" ? "No open leads" : tab === "past" ? "No past clients yet" : "No clients match these filters";
+    : tab === "yours" ? "Nothing is your move" : tab === "waiting" ? "No client is holding anything up" : tab === "lead" ? "No open leads" : tab === "past" ? "No past clients yet" : "No clients match these filters";
   const emptyBody = !all.length ? "Add your first client. They get a portal to approve work and pay."
     : search ? "Search by business, contact, email, sector or tag."
     : tab === "archived" ? "Clients you archive land here, with their history kept."
@@ -348,6 +368,3 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
   );
 }
 
-function matchesTab(r: ClientRow, t: Tab) {
-  return t === "archived" ? r.state === "archived" : r.state !== "archived" && (t === "all" || r.state === t);
-}

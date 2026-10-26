@@ -128,7 +128,7 @@ function readClient(fd: FormData) {
 export async function createClient(_prev: ActionState, fd: FormData): Promise<ActionState> {
   await syncStore();
   persistSoon();
-  const refused = await allow("clients");
+  const refused = await allow("intake");
   if (refused) return refused;
   const { errors, draft } = readClient(fd);
   if (Object.keys(errors).length) return FAIL(errors);
@@ -249,7 +249,7 @@ export async function deletePermanently(_prev: ActionState, fd: FormData): Promi
 /* -------------------------------------------------------------- projects */
 
 export async function createProject(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  await syncStore();const refused=await allow("projects");if(refused)return refused;
+  await syncStore();const refused=await allow("intake");if(refused)return refused;
   const errors:Record<string,string>={},title=required(errors,"title",str(fd,"title"),"A project name"),clientId=str(fd,"clientId"),[service]=services(fd,"service"),at=stage(fd)??"Onboarding",iconColor=str(fd,"iconColor");
   if(clientId==="__new"){if(!str(fd,"newClientCompany"))errors.newClientCompany="A company or a name.";}else if(!db.getClient(clientId))errors.clientId="Choose an existing client.";
   if(!service)errors.service="Pick the service.";if(iconColor&&!isIconColor(iconColor))errors.iconColor="Pick one of the icon colours offered.";

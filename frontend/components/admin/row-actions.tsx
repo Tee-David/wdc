@@ -8,7 +8,7 @@ import {
   Archive, ArchiveRestore, ArrowRight, Ban, Banknote, CalendarDays, Copy,
   CheckCircle2, CornerUpLeft, FilePlus2, FolderPlus, MessageSquarePlus, Move, Pencil,
   Receipt, Printer, Send, Trash2, Undo2, UserPlus, Users, Wallet,
-  type LucideIcon,
+  ListPlus, MessageSquare, type LucideIcon,
 } from "lucide-react";
 import {currencyOf,money} from "@/lib/money/currency";
 import { SERVICES } from "@/lib/services";
@@ -103,6 +103,8 @@ export function ProjectMenu({
   const items: RowMenuItem[] = [
     ...(extra ?? []),
     ...(onProject ? [] : [{ kind: "link" as const, label: "Open the project", href: `/admin/projects/${project.id}`, icon: ArrowRight }]),
+    { kind: "link", label: clientName ? `Message ${clientName}` : "Message the client", href: `/admin/messages?c=p-${project.id}`, icon: MessageSquare },
+    ...(project.archived ? [] : [{ kind: "link" as const, label: "Add a task", href: `/admin/projects/${project.id}?tab=tasks`, icon: ListPlus }]),
     {
       kind: "dialog", label: "Move its stage", icon: Move,
       title: `Move ${project.title}`,
@@ -217,7 +219,7 @@ export function ClientMenu({ client }: { client: Client }) {
       ),
     },
     {
-      kind: "dialog", label: "Open a project for them", icon: FilePlus2, wide: true,
+      kind: "dialog", label: "Open a project for them", icon: FilePlus2, wide: true, area: "intake",
       title: `A project for ${client.company}`,
       /* createProject redirects to the project it opened, so the dialog goes
          with the page rather than being closed by hand. */
@@ -658,7 +660,7 @@ export function SubmissionMenu({
          automatically: what a client wrote in an onboarding form is their
          description of what they want, and the scope is what we agreed to do,
          which is a different sentence and sometimes a shorter one. */
-      kind: "dialog", label: "Open a project from this", icon: FolderPlus,
+      kind: "dialog", label: "Open a project from this", icon: FolderPlus, area: "intake",
       title: `A project for ${who}`,
       render: () => (
         <Form action={createProject}>
