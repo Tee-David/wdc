@@ -38,5 +38,9 @@ Publishing is done by the main session (owner's call, 2026-10-25). Design runs r
   - Settings (client): Password card from the earlier pass; the rest was already at the standard.
   - Checked: 1440, phone, dark tablet and 320 on all three: no overflow, no small targets.
 
+- 2026-10-26 Staff pages. READY TO PUBLISH: S-Clients.dc.html (all of `canvas/project/` rebuilt).
+  - S-Projects was done in the projects pass (own cards only, no amounts). S-Project, S-Support, S-Notifications and S-Settings were already at the standard; S-Settings gained the Password card earlier.
+  - S-Clients: the three figure tiles had the same chart icon; now people, target and clock. Mira's next step names Bola, who holds the Instagram account.
+
 ## Next
-1. Staff pages (S-Clients, S-Project, S-Settings, S-Support, S-Notifications). Hybrid lists are done: Clients was already at the standard (deck, pipeline, by service, activity); checked at 1440 and 320.
+1. A full 320 scan of every board in both themes (running). Hybrid lists are done: Clients was already at the standard (deck, pipeline, by service, activity); checked at 1440 and 320.
