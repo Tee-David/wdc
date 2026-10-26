@@ -10,8 +10,9 @@ import { SITE_URL } from "@/lib/site";
 /**
  * "Tell this address when an email fails."
  *
- * There is no automatic retry, so a failed message has failed for the last
- * time unless a person resends it. The alert makes sure a person knows.
+ * A failure that can pass later is tried again on its own a few times
+ * (lib/mail-retry.ts); one that still fails after that waits for a person.
+ * The alert makes sure a person knows.
  *
  * AT MOST ONE AN HOUR, as a list. A mail server that starts refusing
  * everything would otherwise send one alert per failure. The hour is claimed

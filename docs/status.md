@@ -1,3 +1,10 @@
+## Mail retries and System tools, 26 October 2026
+
+- The "550 message discarded as high-probability spam" refusals come from the SMTP host's own outgoing filter, not from WDC. Scored the invoice, meeting, invitation, code and enquiry templates with SpamAssassin locally: all under 1 point (5 is spam), so the words are not what it objects to.
+- Failed mail is now tried again automatically on the five-minute heartbeat (`lib/mail-retry.ts`, rule in `lib/mail-retry-rule.ts`, `npm run check:mail-retry`): spam verdicts, timeouts and 4xx only, at 10 minutes, 1 hour and 6 hours after the last try, then left for a person. A refused address or a missing configuration is never retried. Verified locally against the database: a 15-minute-old spam refusal was retried once, a refused address and a 2-minute-old refusal were left, and a second tick did not retry early.
+- Settings > System > Tools lists only Refresh public pages and Check the media library. Retry failed form emails is automatic now (the message log keeps its Retry failed button), old invitations are removed by the daily retention job, and the Realtors' Practice import is migration 0059.
+- Not verified: inbox placement or a production send. The lasting fix for the spam refusals is a transactional sender (Brevo or Postmark, already supported in Settings > Email > Connections) as the default, with the studio server as the fallback.
+
 ## Preloader concepts and the intro on phones, 25 October 2026
 
 The homepage intro (the logo ring) plays on phones again. A Lighthouse pass on 11 September 2026 (`61eeafbd`) added a `max-width: 767px` test to the pre-paint script that switched both the intro and the preloader off below 768px, which is why the owner stopped seeing it. Short screens get tighter intro type so the arc clears the copy. The chat launcher, accessibility button and back-to-top step out while the intro, the preloader or a page curtain covers the screen.

@@ -21,7 +21,8 @@
     "check:ad-budget": "node --experimental-strip-types scripts/check-ad-budget.mjs",
     "check:readability": "node --experimental-strip-types scripts/check-readability.mjs",
     "check:broken-links": "node --experimental-strip-types scripts/check-broken-links.mjs",
-    "check:brand-kit": "node --experimental-strip-types scripts/check-brand-kit.mjs"
+    "check:brand-kit": "node --experimental-strip-types scripts/check-brand-kit.mjs",
+    "check:mail-retry": "node --experimental-strip-types scripts/check-mail-retry.mjs"
   },
   "dependencies": {
     "@pdf-lib/fontkit": "^1.1.1",
