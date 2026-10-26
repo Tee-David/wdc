@@ -1,6 +1,10 @@
 ---
 name: motion-studio
-description: A complete motion design studio for any brand. Use it whenever someone wants motion of any kind - a brand film, product demo, explainer, launch or social ad, reel, showreel, kinetic typography, logo reveal, data story, website hero loop, preloader, page transition or UI arrival motion - or wants existing motion reviewed. It covers brand research, storylines, a numbered spec, storyboards, choreography and easing, transitions, type, sound and voice, deterministic HTML-to-MP4 rendering in 16:9 and 9:16, light and dark versions, CSS and canvas motion for websites, and a measured review before anything ships. Trigger on "make a video for [brand]", "animate this", "30 second ad", "reel", "logo animation", "preloader", "motion for the hero", "make it feel premium", "review this animation", or uploaded reference videos and voiceover files, even when the word "motion" never appears.
+description: 'A complete motion design studio for any brand. Use it whenever someone wants motion of any kind: a brand film, product demo, explainer, launch or social ad, reel, kinetic typography, logo reveal, data story, website hero loop, preloader, page transition or UI motion, or a review of existing motion. It works with the person rather than guessing: it asks for their brand, assets, references and ideas, offers each as an option, and fills every gap itself. It covers storylines, a numbered spec, storyboards, easing and choreography, transitions, type, sound and voice, deterministic HTML-to-MP4 rendering in 16:9 and 9:16, light and dark versions, CSS motion for websites, and a measured review before anything ships. Trigger on "make a video for [brand]", "animate this", "30 second ad", "reel", "logo animation", "preloader", "review this animation", or uploaded reference videos and voiceover files, even when the word motion never appears.'
+license: Apache-2.0
+metadata:
+  author: Taiwo David Dayomola
+  version: "1.0.0"
 ---
 
 # Motion Studio
@@ -18,6 +22,10 @@ Motion is writing with time. Every move says something: an arrival says "this ma
 | "Is this good?", "why does this feel off?", a reference to study, a render to check | **Review** | `references/process/review.md` |
 
 When a request mixes modes (a hero film and the page it sits on), do the film in Film mode and the page behaviour in Web motion mode, and keep one set of curves for both.
+
+## Made with the person, never guessed
+
+Never produce a piece from one sentence and hope. Ask for what would make it theirs: their brand and logo, their real screens and work, a reference they love, how they picture it flowing, a voice or none. Offer each as an option with what it improves, accept "just go" as an answer, and say what you assumed. Speak the person's language: a designer gets curves and frame counts, everyone else gets plain words with an example. The full method, including where to find references and every voice and music option, is in `references/process/intake.md`.
 
 ## Ground every piece in its subject
 

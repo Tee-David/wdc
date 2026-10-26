@@ -1,46 +1,101 @@
-# Intake: research first, ask second, pitch third, build last
+# The brief: ask, gather, then make
 
-A piece built on a guess is rebuilt later at five times the cost. Before any concept, either research and ask a few sharp questions, or pitch storylines, or ask for the material you need. When the client says "choose for me", choose, but still satisfy the brand's mood and feel, and say what you chose and why in one line.
+Good motion is made with someone, not for them. This skill never produces a film from one sentence and hopes. It asks for what would make the piece theirs: the brand, the material, a reference they love, how they picture it flowing. Then it fills every gap itself, says what it assumed, and gets on with the work.
 
-## 1. Research before asking
+Every ask is an offer, not a gate. Each one is optional, explained in one line by what it improves, and paired with what happens without it. Someone who answers nothing still gets a considered piece; someone who brings a brand guide, three references and a voice file gets a far better one. Never make the person feel tested.
 
-Do this quietly, then ask better questions.
+## 1. Read the person first
 
-- **The website.** `python scripts/brand_probe.py URL --out probe --pages /about,/services` returns the real colours ranked by on-screen area, the fonts, headlines, navigation, meta descriptions, logo files and desktop and phone screenshots. Look at the screenshots: light or dark, dense or airy, photography or flat, rounded or sharp, serious or playful.
-- **The brand folder.** Logos as SVG first (note colour variants, lockups, the icon alone). A brand guide, if one exists, is law for colour and type and advice for everything else.
-- **What they already made.** Flyers, social posts, decks, past videos. These say more about mood than the website does.
-- **The business in one line.** Who pays, for what problem, with what proof.
-- **References they sent.** Run `python scripts/analyze_reference.py ref.mp4 --out refs` on each: a contact sheet, change events per 10 s, holds, the palette by share, loudness and brightness. Write down the grammar (shot length, title entrances, transitions, palette roles) and mark what you measured apart from what you guessed.
+Within the first message, judge two things and adapt:
 
-## 2. Ask at most five questions at a time
+- **How technical they are.** A designer says "ease-out on the arrivals, 9:16, no VO". Someone else says "make my logo move nicely for Instagram". Match their language. With a non-specialist, never use a term without its plain meaning beside it ("a hold, a moment where everything stays still so it can be read").
+- **How much they already decided.** If they bring a script, a storyboard or a reference film, follow theirs and ask only what is missing. If they bring a single sentence, offer more help.
 
-Skip any the research already answers. Offer tappable options where the host has a question tool. In order of value:
+## 2. Research before asking
 
-1. **Where it plays and for how long.** Social 9:16, 16:9 or 1:1; a website hero (muted loop); a preloader or page transition; a pitch deck; an event screen. 6, 15, 30, 45 or 60 seconds.
-2. **Energy.** Calm and premium, confident and clean, upbeat and friendly, loud and hyped. Offer two or three looks from `taste/style-library.md` with their sheets.
-3. **Voice.** None, or a voice: gender, accent, calm or cheeky. Do they generate it (ElevenLabs or a recorded actor) and send the file, or is a draft voice enough for timing?
-4. **Music and sound.** A synthesised bed, their licensed track, effects only, or silence (a hero loop).
-5. **The one message and the one action.** What should the viewer remember, in the viewer's words, and what should they do next?
+Do this quietly, so the questions are sharp and few.
 
-Then, only if they matter: proof they can state (real numbers, real clients), hard no's (words, claims, colours, competitors), legal limits (finance, health and law need calm, conservative claims), and themes (dark, light, or both when the site switches).
+- **Their website**, if there is one: `python scripts/brand_probe.py URL --out probe --pages /about,/services` returns real colours ranked by on-screen area, fonts, headlines, logo files and screenshots. Look at the screenshots: light or dark, dense or airy, photographic or flat, serious or playful.
+- **Anything attached.** Logos (SVG first), brand guides (law for colour and type, advice for the rest), flyers, posts, decks and past videos, which say more about mood than any website.
+- **Their references.** Run `python scripts/analyze_reference.py ref.mp4 --out refs` on each: a contact sheet, the pace (change events per 10 s), the holds, the palette by share, loudness. Write down the grammar you will borrow and mark what you measured apart from what you guessed.
 
-## 3. Ask for materials, and say what happens without them
+## 3. The first reply: one short message
 
-| Need | Why | If missing |
+Open with what you understood in one or two lines, then ask. Keep it to one message the person can answer in a minute, with options they can tap where the host offers a question tool. Ask at most five things, in order of value, and skip any the research already answered:
+
+1. **Where it will play, and for how long.** Instagram or TikTok (tall, 9:16), YouTube or a website (wide, 16:9), a square post, a website's background video, a loading animation on a site, a presentation. 6, 15, 30 or 60 seconds.
+2. **How it should feel.** Calm and premium, confident and clean, friendly and upbeat, loud and exciting. Offer two or three looks from the style library with a picture each; a person who cannot name a feeling can always point at one.
+3. **What the viewer should remember, and do.** The one thing, in their words, and the one action (visit, download, book, follow).
+4. **A voice, music, or neither.** See section 6 for the options to offer.
+5. **What they can share.** See section 4: offer the list, not a demand.
+
+Then one line of assumptions you will make if they would rather not answer ("If you'd like me to choose: 30 seconds, tall and wide, light and dark, music with no voice, your site's colours"), so "just go" is always a valid reply.
+
+## 4. Materials worth asking for
+
+Offer this as a menu. Each line says what it adds.
+
+| Material | What it improves | Without it |
 | --- | --- | --- |
-| Logo as SVG: colour, white, icon only | Parts can animate; crisp at any size | Rebuild from a PNG only as a last resort and say so |
-| Brand colours and fonts | A faithful palette | Use the probe's values and confirm them |
-| Real screens, UI states, photos, work | The product as hero needs the real product | Recreate the screen in HTML at the real ratio and label it recreated |
-| People: team, founder, customers | The human beat | Leave it out or use the work instead |
-| Footage, b-roll | Realism for free | Not required |
-| Voice file | The timing backbone | Write the script; offer a draft voice for timing |
-| Music and its licence | Real music | The synthesised palette |
-| Claim approvals, legal wording | Regulated claims | Draft conservatively and flag every claim |
-| 3D renders or illustration | Looks the engine does not draw | Say it is out of scope without assets and offer the nearest CSS-3D or 2D alternative |
+| Logo as SVG (colour, white, icon alone) | The logo can build itself from its own parts, sharp at any size | A PNG is traced as a last resort, and you say so |
+| Brand guide, or colours and fonts | A faithful palette and type | Taken from their site and confirmed with them |
+| Real screens, photos, past work, product clips | The real product as the hero; real proof | Screens are recreated and labelled as recreated; no stock photos posing as their work |
+| References they love (videos, links, screenshots) | The fastest way to agree on a feel | The style library and your recommendation |
+| How they picture it flowing ("starts with the problem, ends on the logo", a rough sketch, a list of scenes) | Their story, not a template's | Three storylines for them to choose from |
+| A script or key lines | Their voice and claims | You write it and mark every claim to confirm |
+| Real numbers, client names, awards | Proof that is true | Left out; never invented |
+| A voice file or a voice preference | Timing built round real speech | See section 6 |
+| A music track and its licence | Real music | A synthesised bed, or silence |
 
-## 4. Mood and feel
+Ask for exactly what the chosen piece needs and no more. A logo reveal needs the SVG and a feeling; it does not need a script.
 
-Use this to choose, then say why. A brand profile in `brands/` overrides it.
+## 5. Where to find references (optional)
+
+If they have no reference but would like to find one, suggest a few places and how to use them. A reference is a picture of a feeling: it saves rounds of "not quite".
+
+- **Dribbble** and **Behance**: search "logo animation", "motion design", "product promo"; strong for logo reveals, UI motion and brand systems.
+- **Pinterest**: search a feeling plus "motion graphics" ("minimal motion graphics", "kinetic typography"); good for building a mood board quickly.
+- **Vimeo**: search "brand film", "explainer", "title sequence"; the Staff Picks are a reliable bar for craft.
+- **YouTube**: brand launch films, product keynotes and "motion design reel" searches.
+- **Instagram and TikTok**: their own saved posts are often the truest reference; screen-record the one they like.
+- **Awwwards** and **Godly**: website heroes, preloaders and page transitions in their real context.
+- **Mobbin**: real app screens and flows, for product demos.
+- **Their competitors and heroes**: the brands they admire, or the ones they want to stand apart from.
+
+A screen recording, a link, or a screenshot is enough. Borrow the grammar of a reference (pace, how things arrive, the palette's roles), never its content or its brand.
+
+## 6. Voice and sound: offer the options plainly
+
+Many pieces need no voice: logo reveals, website loops, loading animations and most short social clips. Offer a voice only where the story is spoken.
+
+| Option | What they need | Notes |
+| --- | --- | --- |
+| No voice | Nothing | Type and pictures carry it; the default for short and muted pieces |
+| A recorded voice | A phone recording or a voice actor's file | The most human result; the pipeline aligns any clean recording |
+| ElevenLabs | Their API key (`ELEVENLABS_API_KEY`) or a file they generate in the web app | Natural, expressive, many accents; `scripts/voice_elevenlabs.py` and a paste-ready prompt in `craft/voice.md` |
+| Another text-to-speech service or the voice built into their AI app | A file exported from it | Fine for many uses; check the service's terms for commercial use |
+| A free local voice | `kokoro-onnx` and its model files | Good for draft timing and some finals; `scripts/voice_local.py` |
+
+For sound, offer: a synthesised music bed and effects made by the pipeline (no licence needed); their own licensed track; free music libraries (YouTube Audio Library, Pixabay Music) or paid ones (Artlist, Epidemic Sound, Musicbed), checked for commercial use; sound effects from Freesound or Pixabay with each licence noted; or silence. Free tools that help: ffmpeg for everything, Audacity for a quick listen and trim. Licensing stays with the person: ask where a track came from, and never use one lifted from a reference video.
+
+## 7. Variants
+
+Offer variants where a choice is genuinely open, never as padding:
+
+- three storylines in words before anything is built (`process/storylines.md`);
+- two orders for a logo lockup (mark first then the name, or the name typed beside the mark);
+- light and dark, tall and wide, as standard deliverables;
+- two or three stills of a key frame in different looks, when the look is undecided.
+
+Variants are cheap as words and stills, and expensive as finished films. Decide early.
+
+## 8. Push back, kindly
+
+Say it plainly, offer two or three options and recommend one, when the brief packs too much into the length (a 30 s film holds five or six beats), a line reads as a guarantee, invented numbers are asked for, the assets are too small or the wrong shape, the screen and the voice would say different sentences at once, the look needs 3D or illustration the engine cannot make, or motion is asked for on something people use dozens of times a day.
+
+## 9. Mood and feel
+
+Use this to choose a direction and say why. A brand profile in `brands/` overrides it.
 
 | Feeling | Palette | Type | Physics | Sound |
 | --- | --- | --- | --- | --- |
@@ -51,19 +106,7 @@ Use this to choose, then say why. A brand profile in `brands/` overrides it.
 | Event, hype | Duotone, giant condensed type | Condensed 800 and up | Hard cuts every 0.3 to 0.8 s; slams | Heavy bass, hits on cuts |
 | AI and modern product | The product's own ground; one horizon of light | A clean sans | Typing as a story step, soft reveals | Glassy, airy |
 
-## 5. Push back
+## 10. What intake leaves behind
 
-Say it plainly, offer two or three options and recommend one, when:
-
-- the brief packs too much into the length (a 30 s film holds five or six beats; 15 s holds three);
-- a line reads as a guarantee, or invented numbers are asked for;
-- the assets are low resolution or the wrong shape for the format;
-- the screen and the voice would say different sentences at once;
-- the look needs 3D, illustration or photography the engine cannot make;
-- a hero film's motion will sit under the page's own headline;
-- motion is asked for something people use dozens of times a day (see the frequency rule in `genres/web-motion.md`).
-
-## 6. Outputs of intake
-
-- `facts.md`: every fact, number, name and claim that may appear, each with its source (file and page, URL, or "said by the client on <date>"). Nothing goes on screen without a line here.
-- A short brief at the top of `STORYLINES.md`: format, length as a range, aspect ratios, themes, voice or not, music or not, and every assumption in one line each.
+- `facts.md`: every fact, number, name and claim that may appear, each with its source. Nothing goes on screen without a line here.
+- The brief at the top of `STORYLINES.md`: format, length as a range, ratios, themes, voice or not, music or not, the materials received, and every assumption in one line each.
