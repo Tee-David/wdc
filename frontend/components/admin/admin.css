@@ -98,6 +98,10 @@
 }
 
 .ad {
+  /* The dashboards' body face is Outfit (app/layout.tsx); Space Grotesk stays for headings and figures, and
+     catches ₦, which Outfit does not draw. Everything here that asks for --font-outfit or --font-body gets it. */
+  --font-outfit: var(--font-outfit-face), var(--font-space-grotesk);
+  --font-body: var(--font-outfit-face), var(--font-space-grotesk), system-ui, sans-serif;
   min-height: 100dvh;
   max-width: 100%; overflow-x: clip;
   background: var(--ad-bg);

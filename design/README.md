@@ -28,7 +28,7 @@ The artifacts are private to the owner until shared from their Share menu.
 - Logos, icons and the document watermark: `frontend/public/brand/`
 - Work and portfolio images: `frontend/public/brand-work/`, `frontend/public/work/`
 - Payment marks: `frontend/public/payments/`
-- Fonts: Space Grotesk, self-hosted in `frontend/public/fonts/` (500 and 700). The design system asks for Outfit on body text, but the live site does not load Outfit yet: `--font-outfit` in `frontend/app/globals.css` points at Space Grotesk, so body text renders in Space Grotesk today. The boards load both from Google Fonts.
+- Fonts: Space Grotesk for headings, figures and the wordmark (`frontend/assets/fonts/SpaceGrotesk-*.woff2`); Outfit for body text, labels and controls in the dashboards (`frontend/assets/fonts/Outfit-Variable-latin.woff2`, one variable file, OFL). The public site keeps Space Grotesk. ₦ falls back to Space Grotesk, which draws it.
 - Site colour tokens: `frontend/app/globals.css` (`--btn-fill`, `--btn-ink`, `--accent-*`)
 - Dashboard colour tokens: `frontend/components/admin/admin.css` (`--ad-*`), the same values as `design-system/project/tokens.json`
 

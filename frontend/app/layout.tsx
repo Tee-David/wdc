@@ -33,6 +33,20 @@ const spaceGrotesk = localFont({
   fallback: ["system-ui", "sans-serif"],
 });
 
+/* Outfit, the body face of the dashboards (owner's call, 2026-10-26: Space
+   Grotesk stays the main face; body text, labels and controls in the
+   dashboards are Outfit). One variable file, Latin only, weights 100 to 900
+   (Outfit-OFL.txt beside it). Not preloaded: only `.ad` uses it, so the
+   public pages never fetch it. It has no Naira sign, so ₦ falls back to
+   Space Grotesk through the stack in admin.css. */
+const outfit = localFont({
+  src: [{ path: "../assets/fonts/Outfit-Variable-latin.woff2", weight: "100 900" }],
+  variable: "--font-outfit-face",
+  display: "swap",
+  preload: false,
+  fallback: ["system-ui", "sans-serif"],
+});
+
 const BASE_METADATA: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
@@ -118,7 +132,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${spaceGrotesk.variable} h-full antialiased`}
+      className={`${spaceGrotesk.variable} ${outfit.variable} h-full antialiased`}
     >
       <body suppressHydrationWarning className="min-h-full flex flex-col">
         {/* FIRST TAB STOP ON EVERY PAGE, and it has to be first in the DOM to
