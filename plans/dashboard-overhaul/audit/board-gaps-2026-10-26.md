@@ -31,7 +31,7 @@ Two read-only audits compared every canvas board's controls with the live code, 
 - [ ] Blog: reads and top posts in the rail, idea cards, search check in the editor; case study "waiting on client" reminder
 - [ ] Email: duplicate campaign, template earlier versions
 - [ ] Media: replace a file; Content: lawyer approval card
-- [ ] Client data export from the client page
+- [x] Client data export from the client page: "Export everything about them" (record, plan, projects with tasks, updates and deliverables, invoices with payments, quotes, questions; JSON, Admin, audited) plus the privacy export for forms and accounts
 
 ## Client portal
 - [ ] Home: Your files, Your team, approve in place from the deck, client task cards (upload photos, share access), meeting reschedule

@@ -1,6 +1,8 @@
 "use client";
 
-import { Archive, ArchiveRestore, Combine, FilePlus2, Pencil, Trash2 } from "lucide-react";
+import { Archive, ArchiveRestore, Combine, Download, FilePlus2, Pencil, Trash2 } from "lucide-react";
+import { useAdminRole } from "./shell";
+import { can } from "@/lib/admin/permissions";
 import type { Client } from "@/lib/admin/types";
 import { archiveClient } from "@/lib/admin/actions";
 import { Actions, Form, Hidden, Submit } from "./form";
@@ -21,9 +23,10 @@ export function ClientChores({ client, likely, hasOthers }: {
   hasOthers: boolean;
 }) {
   const back = Boolean(client.archived);
+  const owner = can(useAdminRole(), "settings");
   const items: RowMenuItem[] = [
     { kind: "dialog", label: "Edit details", icon: Pencil, wide: true, title: `Edit ${client.company}`, render: (close) => <EditClientBody client={client} close={close} /> },
-    ...(!back ? [{ kind: "dialog" as const, label: "New project", icon: FilePlus2, wide: true, title: `A project for ${client.company}`, render: () => <OpenProjectForm clientId={client.id} /> }] : []),
+    ...(!back ? [{ kind: "dialog" as const, area: "intake" as const, label: "New project", icon: FilePlus2, wide: true, title: `A project for ${client.company}`, render: () => <OpenProjectForm clientId={client.id} /> }] : []),
     ...(hasOthers && !client.mergedInto && !back ? [{
       kind: "dialog" as const, area: "destructive" as const, label: "Merge a duplicate", icon: Combine, title: `Fold a duplicate into ${client.company}`,
       render: (close: () => void) => <MergeBody keepId={client.id} keepName={client.company} likely={likely} close={close} />,
@@ -53,5 +56,10 @@ export function ClientChores({ client, likely, hasOthers }: {
       render: (close: () => void) => <PermanentDelete kind="client" id={client.id} name={client.company} close={close} />,
     }] : []),
   ];
+  /* Everything held about them, for a data request or a handover (the privacy export, logged). */
+  if (owner) items.push(
+    { kind: "link", label: "Export everything about them", href: `/admin/clients/${client.id}/export`, icon: Download },
+    ...(client.email ? [{ kind: "link" as const, label: "Export forms and accounts (privacy)", href: `/admin/settings/privacy/export?email=${encodeURIComponent(client.email)}`, icon: Download }] : []),
+  );
   return <RowMenu items={items} label={`${client.company}, more`} />;
 }
