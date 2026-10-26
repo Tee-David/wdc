@@ -6,6 +6,9 @@
 - A month's report is written in a sheet and stays a draft until Share. Sharing puts it on the client's Billing page (the new Your plan card, with the next invoice date and what a month includes) and raises a portal notice, emailed only if the client keeps progress emails on.
 - Checked end to end at 1440: a cost added, a system added (renewal flagged Soon), a report written and shared, costs billed onto INV-26-YE54BH, the client's Billing page shows the plan and the report. No overflow at 390 (dark) or 320 on any tab; no page errors. Figures measured from the tiles' labels with motion reduced.
 
+## Studio preloaders on the Motion design wall, 26 October 2026
+
+The two shipped preloaders (ink on paper, blueprint on navy) now play on `/work/branding` beside the studio film, Litch and Realtors' Practice pieces, as "Logo reveal" loops: whole, cropped to the logo's centre square, 640px, 21 KB and 39 KB. `scripts/make-motion-loops.sh` rebuilds them from the owner's square renders (`wdc-preloader-ink.mp4`, `wdc-preloader-blueprint.mp4`, not in git). Measured at 320, 390, 834 and 1440 in both themes: no horizontal overflow, both loops play, 44px buttons. Rank Indeed has no motion files in the repo or the uploads yet; it joins when the owner supplies them.
 ## Shell gaps closed, 26 October 2026
 
 - Messages carries a count on the sidebar. Admin and staff: client questions waiting on the studio plus messages from others they have not read in their project channels and team chats (their own scope). Client: conversations the studio has answered. Proven with a test note from another author (badge 1, then removed).
