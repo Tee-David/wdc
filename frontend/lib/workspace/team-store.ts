@@ -1,4 +1,5 @@
 import 'server-only';
+import { getClient } from '@/lib/admin/store';
 import { db } from '@/lib/db/pool';
 import { requireProjectActor, projectRecipients } from './access';
 export type Handover = {id:string;projectId:string;fromUserId:string;toUserId:string;fromName:string;toName:string;title:string;context:string;files:string;decisions:string;risks:string;nextAction:string;dueAt:string|null;acceptedAt:string|null};
@@ -13,6 +14,9 @@ export async function getWorkspaceTeam(projectId:string):Promise<TeamData> {
   db.query<TeamNote>(`SELECT id,author_id AS "authorId",author_name AS "authorName",reply_to AS "replyTo",body,visibility,created_at AS "createdAt" FROM workspace_team_notes WHERE project_id=$1 AND ($2=false OR visibility='client') ORDER BY created_at DESC LIMIT 80`,[projectId,actor.kind==='client'])
  ]);
  const ids=actor.kind==='client'?[]:(await projectRecipients(projectId,'internal')).map(r=>r.userId);
+ /* The people in the departments that look after this client can be given its work too (0060 era). */
+ const depts=actor.kind==='client'?[]:getClient(actor.clientId)?.departments??[];
+ if(depts.length)ids.push(...(await db.query<{user_id:string}>('SELECT user_id FROM department_members WHERE department_id=ANY($1::TEXT[])',[depts]).then(r=>r.rows.map(x=>x.user_id),()=>[] as string[])));
  const staff=ids.length?(await db.query<{id:string;name:string}>(`SELECT id,name FROM "user" WHERE id=ANY($1::STRING[]) AND role IN('owner','staff') AND "deactivatedAt" IS NULL ORDER BY name`,[ids])).rows:[];
  const date=(value:string|null)=>value?new Date(value).toISOString():null;
  return {handovers:handovers.rows.map(h=>({...h,dueAt:date(h.dueAt),acceptedAt:date(h.acceptedAt)})),tasks:tasks.rows.map(t=>({...t,dueAt:date(t.dueAt),completedAt:date(t.completedAt)})),notes:notes.rows.map(n=>({...n,createdAt:new Date(n.createdAt).toISOString()})),staff};

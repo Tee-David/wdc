@@ -53,7 +53,7 @@ export async function saveDepartmentMembers(_p: ActionState, fd: FormData): Prom
   if (!ids.length && clients.length) {
     return FAIL({ members: `${clients.length} client${clients.length === 1 ? " is" : "s are"} looked after by ${dept.name} (${clients.slice(0, 3).map((c) => c.company).join(", ")}${clients.length > 3 ? "…" : ""}). Keep at least one person, or move those clients to another department first.` });
   }
-  await setMembers(id, ids);
+  await setMembers(id, ids, fd.getAll("leads").map(String));
   done();
   return OK("Updated.");
 }

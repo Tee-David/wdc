@@ -22,7 +22,7 @@ export function AddDepartment() {
 /** One department: who is in it, rename, remove. */
 export function DepartmentBody({ id, name, members, clients }: {
   id: string; name: string;
-  members: { id: string; name: string; active: boolean }[];
+  members: { id: string; name: string; active: boolean; lead?: boolean }[];
   /** Clients this department looks after. */
   clients: { id: string; company: string }[];
 }) {
@@ -38,6 +38,10 @@ export function DepartmentBody({ id, name, members, clients }: {
         <Fields>
           <RemoteChecks name="members" label="People in this department" kind="staff" placeholder="Search the team" addLabel="Add another person"
             defaultValue={members.map((m) => m.id)} defaultLabels={labels} hint="A person can be in more than one department." />
+          {members.some((m) => m.active) ? (
+            <Checks name="leads" label="Leads" long options={members.filter((m) => m.active).map((m) => ({ value: m.id, label: m.name }))} defaultValue={members.filter((m) => m.lead).map((m) => m.id)}
+              hint={`A lead assigns and moves work on the projects of the clients ${name} looks after, and requests handovers. Save new people first to make them a lead.`} />
+          ) : null}
         </Fields>
         <Actions><Submit icon={Save}>Save people</Submit></Actions>
       </Form>
