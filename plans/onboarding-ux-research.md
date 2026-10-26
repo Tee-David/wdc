@@ -1,6 +1,6 @@
 # Onboarding UX research: keeping clients engaged to the end
 
-Written 7 October 2026 for the owner. Inputs read first: the six artifact data files in `plans/onboarding-artifact-specs/`, `plans/onboarding-redesign-plan.md`, `plans/onboarding-decisions.md`, `plans/onboarding-build-brief.md`, and `frontend/lib/onboarding.ts` (the shared steps and the time weights). Nothing else in the repo was changed.
+Written 7 October 2026 for the owner. Inputs read first: the six artifact data files in `design/onboarding/specs/`, `plans/onboarding-redesign-plan.md`, `plans/onboarding-decisions.md`, `plans/onboarding-build-brief.md`, and `frontend/lib/onboarding.ts` (the shared steps and the time weights). Nothing else in the repo was changed.
 
 ## How to read this report
 
@@ -321,7 +321,7 @@ It appears at every size when the deliverables include Full identity system, Bra
 
 ## E. Concrete changes for each form
 
-Reading notes. "Today" means the artifact specs in `plans/onboarding-artifact-specs/`. Counts are mine from those files and are always visible questions excluding the size question: Branding 5/5/6 for Small/Medium/Large, Web 5/8/10, SEO 5/8/9, Apps 4/7/11, Software 4/7/11, Social 4/7/12. Each also opens one to four conditional follow ups. Required questions inside the service step today (at Small): Branding 6, Web 4 to 5, SEO 6 to 7, Apps 3, Software 2, Social 3 to 5. The shared steps add 12 required.
+Reading notes. "Today" means the artifact specs in `design/onboarding/specs/`. Counts are mine from those files and are always visible questions excluding the size question: Branding 5/5/6 for Small/Medium/Large, Web 5/8/10, SEO 5/8/9, Apps 4/7/11, Software 4/7/11, Social 4/7/12. Each also opens one to four conditional follow ups. Required questions inside the service step today (at Small): Branding 6, Web 4 to 5, SEO 6 to 7, Apps 3, Software 2, Social 3 to 5. The shared steps add 12 required.
 
 ### E0. Shared steps (all six forms), the largest single saving
 

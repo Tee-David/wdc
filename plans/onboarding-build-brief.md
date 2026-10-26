@@ -1,6 +1,6 @@
 # Onboarding build brief (for the agents that implement the forms)
 
-Read first: `CLAUDE.md` and `AGENTS.md` (repo root), `plans/onboarding-decisions.md` (decisions, final), `plans/onboarding-redesign-plan.md` sections 1, 2, 6, 7, 14, and the artifact data file for your service in `plans/onboarding-artifact-specs/`. The artifact data is the ground truth for questions, wording, conditions and tiers. The published artifacts are the visual reference (links in plan 14.1).
+Read first: `CLAUDE.md` and `AGENTS.md` (repo root), `plans/onboarding-decisions.md` (decisions, final), `plans/onboarding-redesign-plan.md` sections 1, 2, 6, 7, 14, and the artifact data file for your service in `design/onboarding/specs/`. The artifact data is the ground truth for questions, wording, conditions and tiers. The published artifacts are the visual reference (links in plan 14.1).
 
 ## How the form works (verified)
 
@@ -24,7 +24,7 @@ Read first: `CLAUDE.md` and `AGENTS.md` (repo root), `plans/onboarding-decisions
 
 ## Update, 7 October 2026 (after the UX research)
 
-The question lists are now FINAL and live in `frontend/lib/onboarding-services/*.ts` and the shared screens in `frontend/lib/onboarding.ts` (`CORE_STEPS`, `CLOSING_STEPS`). They supersede the artifact data in `plans/onboarding-artifact-specs/`, which is history. Read `plans/onboarding-decisions.md` decisions 21 to 33 and `plans/onboarding-ux-research.md` (sections B, D, F) before you start.
+The question lists are now FINAL and live in `frontend/lib/onboarding-services/*.ts` and the shared screens in `frontend/lib/onboarding.ts` (`CORE_STEPS`, `CLOSING_STEPS`). They supersede the artifact data in `design/onboarding/specs/`, which is history. Read `plans/onboarding-decisions.md` decisions 21 to 33 and `plans/onboarding-ux-research.md` (sections B, D, F) before you start.
 
 Engine facts you can rely on: `showIf` takes one condition or a list (all must hold). A condition is `{ key, equals?, filled? }`, `{ any: [...] }` or `{ tier: 2 | 3 }`. `isVisible`, `tierOf`, `SIZE_TIER`, `SIZE_KEYS` are in `lib/onboarding.ts` and `lib/onboarding-shared.ts`. A screen with no visible question is skipped by the form. `Field` has `optionInfo` (`{ desc?, images?, swatches? }` per option), `groups` and `popular` (for the grouped searchable list), kinds `notice` and `colours`. Legacy answers are read through `lib/onboarding-aliases.ts` (`displayAnswers`, `shownInBrief`, `earlierAnswers`).
 
