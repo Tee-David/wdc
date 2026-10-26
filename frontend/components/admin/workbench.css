@@ -9,6 +9,10 @@
 .adPh__lede { margin: .45rem 0 0; color: var(--ad-dim); font-size: .95rem; line-height: 1.5; }
 .adPh__lede strong { color: var(--ad-ink); font-weight: 700; }
 .adPh__acts { display: flex; align-items: center; gap: .5rem; flex: none; }
+/* The ⋮ beside the head's action. On a phone it lives in the top bar (components/admin/top-chores.tsx). */
+.adPh__chores { display: contents; }
+@media (max-width: 640px) { .adPh__chores { display: none; } .adPh__acts:not(:has(> :not(.adPh__chores))) { display: none; } }
+.adPh__acts:empty { display: none; }
 .adPh__acts .ad__rm { width: 2.75rem; height: 2.75rem; border-radius: 12px; border: 1px solid var(--ad-line-2); background: var(--ad-panel); color: var(--ad-ink); }
 .adPh__acts .ad__rm:hover, .adPh__acts .ad__rm.is-on { background: var(--ad-hover); }
 .adPh__acts .ad__btn { min-height: 2.75rem; }

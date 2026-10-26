@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import { PhoneChores } from "./top-chores";
 import "./workbench.css";
 
 /**
  * THE HEAD OF EVERY ADMIN PAGE: an h1, one line of lede, the page's one action
  * in the right slot and its chores behind a ⋮ menu (`chores`, a client
  * component that renders a RowMenu). The lede may stress one phrase with
- * <strong>. A record page passes `mark` (initials on a solid tile) and
- * `crumbs`. Server component: nothing here needs script.
+ * <strong>. On a phone the ⋮ moves into the top bar (`PhoneChores`). A record page passes `mark` (initials on a solid tile) and
+ * `crumbs`. Server component; only the ⋮ wrapper is client code.
  */
 export function PageHead({
   title, lede, action, chores, crumbs, mark, markTone = "brand", children,
@@ -41,7 +42,7 @@ export function PageHead({
             {children}
           </div>
         </div>
-        {action || chores ? <div className="adPh__acts">{action}{chores}</div> : null}
+        {action || chores ? <div className="adPh__acts">{action}{chores ? <PhoneChores>{chores}</PhoneChores> : null}</div> : null}
       </header>
     </>
   );

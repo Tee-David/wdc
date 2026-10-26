@@ -63,7 +63,7 @@ export function RetryFailed({ count }: { count: number }) {
 export function LogMore() {
   return (
     <RowMenu
-      label="More for the message log"
+      label="message log, more"
       items={[{
         kind: "dialog", label: "Run the daily tidy now", title: "Run the daily tidy now?", icon: Trash2, tone: "danger",
         render: (close) => (

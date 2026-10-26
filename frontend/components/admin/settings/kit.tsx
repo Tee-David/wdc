@@ -309,6 +309,6 @@ function ConfirmButton({ children, danger }: { children: React.ReactNode; danger
 }
 
 /** The page's own title and one line, the same on every section. */
-export function Head({ title, line, children }: { title: string; line?: string; children?: React.ReactNode }) {
-  return <PageHead title={title} lede={line} action={children} />;
+export function Head({ title, line, chores, children }: { title: string; line?: string; chores?: React.ReactNode; children?: React.ReactNode }) {
+  return <PageHead title={title} lede={line} action={children} chores={chores} />;
 }

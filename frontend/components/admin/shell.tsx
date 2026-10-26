@@ -1,5 +1,6 @@
 "use client";
 
+import { TopChoresSlot } from "./top-chores";
 import { SheetDrag } from "@/components/admin/sheet-drag";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -603,6 +604,7 @@ function ShellFrame({ children, counts, user, support }: { children: ReactNode; 
         <TourLauncher />
         <ThemeButton />
         <Notifications openForms={counts.Forms ?? 0} failedMail={counts.FailedMail ?? 0} inReview={counts.Blog ?? 0} unchecked={Boolean(counts.Unchecked)} />
+        <TopChoresSlot />
         <span className="ad__topRule" aria-hidden="true" />
         <AccountMenu user={user} />
       </div>
