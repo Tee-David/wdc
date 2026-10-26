@@ -2169,3 +2169,38 @@ td:has(.adRowPick) , .ad__pickCell { white-space: nowrap; }
 .ad table td a:not(.ad__btn):not(.ad__rm):not(.ad__pill) { min-width: 2.75rem; }
 /* Reports: the names in a highlights list are links too. */
 .rp__hlTop a { display: inline-flex; align-items: center; min-height: 2.75rem; }
+
+/* MOTION, MATCHED TO THE KIT (design/dashboards/kit/kit.css), keyframe for
+   keyframe: the head rises 10px in .5s, the blocks follow it a beat apart
+   (.04s, .1s, .16s...), the rail a beat behind the work, table rows rise 6px
+   in .36s, a tab's content rises as it switches, a sheet's contents rise in
+   .42s after it lands, menus pop on the spring in .26s, the bell's popover in
+   .22s, the search palette drops in .26s over a .2s fade, and a toast rises on
+   the spring in .3s. Transform and opacity only, nothing under reduced motion. */
+@keyframes ad-rise { from { opacity: 0; transform: translateY(10px); } }
+@keyframes ad-row { from { opacity: 0; transform: translateY(6px); } }
+@keyframes ad-pop { from { opacity: 0; transform: translateY(-6px) scale(.97); } }
+@keyframes ad-pal { from { opacity: 0; transform: translateY(-10px) scale(.98); } }
+@keyframes ad-toast-kit { from { opacity: 0; transform: translateY(16px) scale(.98); } }
+@media (prefers-reduced-motion: no-preference) {
+  .ad__main :is(.adPh__crumb, .adPh) { animation: ad-rise .5s var(--ad-ease) backwards; }
+  .ad__main :is(.adWb__work, .adWb__rail) > * { animation: ad-rise .5s var(--ad-ease) backwards; }
+  .ad__main .adWb__work > :nth-child(1) { animation-delay: .04s; }
+  .ad__main .adWb__work > :nth-child(2), .ad__main .adWb__rail > :nth-child(1) { animation-delay: .1s; }
+  .ad__main .adWb__work > :nth-child(3), .ad__main .adWb__rail > :nth-child(2) { animation-delay: .16s; }
+  .ad__main .adWb__work > :nth-child(4), .ad__main .adWb__rail > :nth-child(3) { animation-delay: .22s; }
+  .ad__main .adWb__work > :nth-child(5), .ad__main .adWb__rail > :nth-child(4) { animation-delay: .28s; }
+  .ad__main .adWb__work > :nth-child(n + 6), .ad__main .adWb__rail > :nth-child(n + 5) { animation-delay: .34s; }
+  .ad__main .ad__t tbody tr { animation-name: ad-row; animation-duration: .36s; animation-timing-function: var(--ad-ease); }
+  .adList > .adTabs ~ * { animation: ad-rise .35s var(--ad-ease) backwards; }
+  .addlg[open] .addlg__b > * { animation: ad-rise .42s var(--ad-ease) backwards; }
+  .addlg[open] .addlg__b > :nth-child(2) { animation-delay: .04s; }
+  .addlg[open] .addlg__b > :nth-child(n + 3) { animation-delay: .08s; }
+  .ad__rmList { animation: ad-pop .26s var(--ad-spring) backwards; }
+  .ad__popover { animation: ad-pop .22s var(--ad-ease) backwards; }
+  .ad__overlay { animation: ad-fade .2s ease-out; }
+  .ad__command { animation: ad-pal .26s var(--ad-ease) backwards; }
+  .adToast { animation: ad-toast-kit .3s var(--ad-spring) backwards; }
+}
+@keyframes ad-toast-out { to { opacity: 0; transform: translateY(14px) scale(.98); } }
+@media (prefers-reduced-motion: no-preference) { .adToast.is-out { animation: ad-toast-out .2s var(--ad-ease-out) forwards; pointer-events: none; } }
