@@ -6,7 +6,7 @@ import {
   Check, ChevronDown, Copy, ExternalLink, FileText, Film, FolderInput, ImageIcon, RotateCcw, RotateCw, Save, Trash2, Upload, X,
 } from "lucide-react";
 import { checkMediaFile, MEDIA_ACCEPT, MEDIA_ALT_MAX, readableBytes } from "@/lib/media-validate";
-import { archiveMedia, archiveMediaMany, deleteMediaForever, mediaUsedIn, moveMediaFiles, recordMediaUpload, restoreMedia, saveMediaDetails, signMediaUpload } from "@/lib/admin/media-actions";
+import { archiveMedia, archiveMediaMany, deleteMediaForever, mediaUsedIn, moveMediaFiles, recordMediaReplace, recordMediaUpload, restoreMedia, saveMediaDetails, signMediaReplace, signMediaUpload } from "@/lib/admin/media-actions";
 import type { FolderTree } from "@/lib/media-folders";
 import { ask } from "./confirm";
 import { DRAG_FILES, FolderPane, FolderSheet, MoveToDialog } from "./media-folders";
@@ -453,6 +453,7 @@ function Details({ item, onMoved, folder, onMove, canDelete }: { item: MediaAsse
         )}
       </div>
       <div className="adMediaD__side">
+        {item.archivedAt ? null : <ReplaceFile id={item.id} ext={item.key.split(".").pop() ?? ""} />}
         {item.archivedAt ? (
           <p className="ad__dim adMediaD__arch">Files in the Trash are read-only. Restore it to change its details.</p>
         ) : (
@@ -538,5 +539,36 @@ function CopyUrl({ url }: { url: string }) {
       {copied === "yes" ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
       <span aria-live="polite">{copied === "yes" ? "Copied" : copied === "no" ? "Select the address in Open" : "Copy address"}</span>
     </button>
+  );
+}
+
+/**
+ * "Replace the file": a new file of the same type goes to the same address, so
+ * everything that uses it shows the new one. Pictures are measured first, the
+ * same as an upload.
+ */
+function ReplaceFile({ id, ext }: { id: string; ext: string }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const pick = async (f: File | undefined) => {
+    if (!f) return;
+    setBusy(true);
+    try {
+      const grant = await signMediaReplace({ id, filename: f.name, size: f.size }).catch(() => null);
+      if (!grant?.ok) { toast(grant?.error ?? "The file could not be replaced just now.", "bad"); return; }
+      const put = await fetch(grant.url, { method: "PUT", headers: { "Content-Type": grant.contentType }, body: f }).then((r) => r.ok).catch(() => false);
+      if (!put) { toast("The upload did not finish. Nothing changed; try again.", "bad"); return; }
+      const size = f.type.startsWith("image/") ? await createImageBitmap(f).then((b) => ({ width: b.width, height: b.height }), () => ({})) : {};
+      const r = await recordMediaReplace({ id, ...size }).catch(() => null);
+      if (!r?.ok) { toast(r && !r.ok ? r.error : "The new file arrived but could not be recorded. Try again.", "bad"); return; }
+      toast("Updated. Every page using it shows the new file; a cached copy can take a few minutes to refresh.", "good");
+      router.refresh();
+    } finally { setBusy(false); }
+  };
+  return (
+    <label className="ad__btn adMediaD__replace">
+      <RotateCw aria-hidden="true" />{busy ? "Replacing..." : "Replace the file"}
+      <input type="file" accept={`.${ext}`} className="ad__sr" disabled={busy} onChange={(e) => { void pick(e.target.files?.[0]); e.target.value = ""; }} />
+    </label>
   );
 }

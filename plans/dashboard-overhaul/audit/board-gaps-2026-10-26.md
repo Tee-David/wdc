@@ -30,7 +30,7 @@ Two read-only audits compared every canvas board's controls with the live code, 
 - [ ] Settings: one Recently deleted section across kinds, Teams, one Money section (currencies, banks, providers, VAT and numbering)
 - [ ] Blog: reads and top posts in the rail, idea cards, search check in the editor; case study "waiting on client" reminder
 - [x] Email: Duplicate campaign (same design, audience and tracking, as a new draft); template earlier versions were already live in the builder settings pane (last 15 saves, restore)
-- [ ] Media: replace a file; Content: lawyer approval card
+- [x] Media: "Replace the file" (same type, same address, so every use shows the new one; upload leg not testable locally without R2 keys). Content: lawyer approval card on Settings › Policies (approval and switch state, read from code and env)
 - [x] Client data export from the client page: "Export everything about them" (record, plan, projects with tasks, updates and deliverables, invoices with payments, quotes, questions; JSON, Admin, audited) plus the privacy export for forms and accounts
 
 ## Client portal

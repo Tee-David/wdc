@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { deleteObject, headObject, mediaKey, presignPut, r2Config } from "@/lib/r2";
 import { rateLimit } from "@/lib/rate-limit";
 import { checkMediaFile, isMediaKey, maxBytesFor, MEDIA_ALT_MAX, MEDIA_TYPES } from "@/lib/media-validate";
-import { deleteMediaRow, listMedia, mediaById, mediaDatabaseConfigured, recordMedia, setMediaAlt, setMediaArchived, setMediaDetails, type MediaAsset, type MediaKind } from "@/lib/media";
+import { deleteMediaRow, listMedia, mediaById, mediaDatabaseConfigured, recordMedia, setMediaAlt, setMediaArchived, setMediaDetails, setMediaFile, type MediaAsset, type MediaKind } from "@/lib/media";
 import { createFolder, deleteFolder, folderTree, foldersReady, FOLDER_COLORS, moveFiles, moveFolder, renameFolder, setFolderColor, type FolderColor, type FolderTree } from "@/lib/media-folders";
 import { audit } from "./store";
 import { actorName, adminRole, allow } from "./guard";
@@ -420,4 +420,39 @@ export async function mediaUsedIn(input: { id: string }): Promise<{ ok: true; us
   } catch {
     return { ok: false, error: "Where it is used could not be read just now." };
   }
+}
+
+/**
+ * REPLACE A FILE, KEEPING ITS ADDRESS. The new file goes to the same key, so
+ * every page, post and email that uses it shows the new one without being
+ * edited. That is only true for the same kind of file, so the type must match.
+ * Step one signs the upload; step two re-reads what the bucket stored.
+ */
+export async function signMediaReplace(input: { id: string; filename: string; size: number }): Promise<Signed> {
+  const refused = await allow("content");
+  if (refused) return { ok: false, error: refused.message ?? "Sign in again, then retry." };
+  const item = UUID.test(String(input?.id ?? "")) ? await mediaById(String(input.id)).catch(() => null) : null;
+  if (!item || item.archivedAt) return { ok: false, error: "That file is gone or in the Trash. Restore it before replacing it." };
+  const file = checkMediaFile(String(input?.filename ?? "").slice(0, 200), Number(input?.size));
+  if (!file.ok) return { ok: false, error: file.error };
+  if (item.key.split(".").pop() !== file.ext) return { ok: false, error: `Pick a .${item.key.split(".").pop()} file. A different type would need a new address, so upload it as a new file instead.` };
+  const config = r2Config();
+  if (!config.ok) return { ok: false, error: `Uploads are not configured: ${config.missing.join(", ")} not set.` };
+  const signed = presignPut({ config: config.config, key: item.key, contentType: file.contentType });
+  return { ok: true, url: signed.url, key: signed.key, contentType: file.contentType };
+}
+
+export async function recordMediaReplace(input: { id: string; width?: number; height?: number; durationMs?: number }): Promise<{ ok: true } | { ok: false; error: string }> {
+  const refused = await allow("content");
+  if (refused) return { ok: false, error: refused.message ?? "Sign in again, then retry." };
+  const item = UUID.test(String(input?.id ?? "")) ? await mediaById(String(input.id)).catch(() => null) : null;
+  if (!item) return { ok: false, error: "That file is no longer in the library." };
+  const config = r2Config();
+  if (!config.ok) return { ok: false, error: `Uploads are not configured: ${config.missing.join(", ")} not set.` };
+  const stored = await headObject({ config: config.config, key: item.key });
+  if (!stored.ok) return { ok: false, error: "The file store could not confirm the new file. Try again." };
+  await setMediaFile(item.id, { bytes: stored.bytes >= 0 ? stored.bytes : item.bytes, width: dim(input?.width, 20000), height: dim(input?.height, 20000), durationMs: dim(input?.durationMs, 6 * 60 * 60 * 1000) });
+  audit({ actor: await actorName(), kind: "content", subjectId: item.id, subject: item.filename, action: "replaced the file", note: "Same address; pages using it show the new one." });
+  revalidatePath(PAGE);
+  return { ok: true };
 }

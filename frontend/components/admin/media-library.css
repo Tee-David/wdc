@@ -270,3 +270,7 @@
 /* A file's details: where it is used, one line each. */
 .adMediaD__uses { list-style: none; margin: 0; padding: 0; display: grid; gap: .25rem; }
 .adMediaD__uses a { font-weight: 600; overflow-wrap: anywhere; }
+
+/* Replace the file: a label around a hidden picker, so it needs its own focus ring. */
+.adMediaD__replace { justify-self: start; margin-bottom: .75rem; cursor: pointer; }
+.adMediaD__replace:focus-within { outline: 2px solid var(--ad-focus); outline-offset: 2px; }

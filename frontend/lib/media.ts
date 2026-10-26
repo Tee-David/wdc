@@ -245,6 +245,14 @@ export async function mediaByKey(key: string) {
   return r.rows[0] ? toAsset(r.rows[0]) : null;
 }
 
+/** A replaced file: same key and address, new bytes and measurements. */
+export async function setMediaFile(id: string, d: { bytes: number; width: number | null; height: number | null; durationMs: number | null }) {
+  const r = (await mediaHasDetails())
+    ? await db.query("UPDATE media_assets SET bytes = $2, width = $3, height = $4, duration_ms = $5 WHERE id = $1", [id, d.bytes, d.width, d.height, d.durationMs])
+    : await db.query("UPDATE media_assets SET bytes = $2 WHERE id = $1", [id, d.bytes]);
+  return (r.rowCount ?? 0) > 0;
+}
+
 export async function setMediaAlt(id: string, alt: string) {
   const r = await db.query("UPDATE media_assets SET alt = $2 WHERE id = $1", [id, alt]);
   return (r.rowCount ?? 0) > 0;

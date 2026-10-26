@@ -5,6 +5,7 @@ import { AdminState } from "@/components/admin/admin-state";
 import { Panel, when } from "@/components/admin/bits";
 import { Head } from "@/components/admin/settings/kit";
 import { getLegalStates } from "@/lib/legal-store";
+import { ENGAGEMENT_VERSION, LAWYER_APPROVED } from "@/lib/onboarding-engagement";
 
 export const metadata = { title: "Policies" };
 
@@ -35,6 +36,18 @@ export default async function PoliciesPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </Panel>
+        <Panel title="Lawyer approval">
+          <div className="adPanelPad" style={{ display: "grid", gap: ".6rem" }}>
+            <p style={{ margin: 0 }}>
+              <span className={`ad__pill ad__pill--${LAWYER_APPROVED ? "good" : "warn"}`}>{LAWYER_APPROVED ? "Approved" : "Waiting on a lawyer"}</span>{" "}
+              <span className={`ad__pill ad__pill--${process.env.ONBOARDING_ENGAGEMENT === "on" ? "good" : "flat"}`}>{process.env.ONBOARDING_ENGAGEMENT === "on" ? "Switched on" : "Switched off"}</span>
+            </p>
+            <p style={{ margin: 0 }}>The client engagement section of the onboarding forms (version {ENGAGEMENT_VERSION}) stays off the live forms until <b>both</b> are true: a qualified Nigerian lawyer has approved the text, and it is switched on for the site.</p>
+            <p className="ad__dim" style={{ margin: 0, fontSize: ".9rem" }}>{LAWYER_APPROVED
+              ? process.env.ONBOARDING_ENGAGEMENT === "on" ? "Clients see it and tick it at the end of their form." : "Approved, but not shown yet. Set ONBOARDING_ENGAGEMENT to on for the site to show it."
+              : "Send the draft and these policies to the lawyer. When their version comes back, it is committed with the approval flag, and the section can then be switched on."}</p>
           </div>
         </Panel>
         <p className="ad__dim">These are drafts written for a lawyer to review. Before you change what a policy promises, check it still matches the signed agreement for any client it affects.</p>
