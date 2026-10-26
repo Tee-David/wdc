@@ -165,3 +165,36 @@ export async function askAdmin(prev: ActionState, fd: FormData): Promise<ActionS
   next.set("body", `${kind}${about ? `, about ${about}` : ""}:\n${body}`);
   return startTeamThread(prev, next);
 }
+
+/** "Mark all read": every conversation in this person's list, read up to now. Their own state only. */
+export async function markAllRead(keys: string[]): Promise<{ ok: boolean; message: string }> {
+  const list = [...new Set((Array.isArray(keys) ? keys : []).map(String).filter((k) => KEY.test(k)))].slice(0, 300);
+  if (!list.length) return { ok: true, message: "Everything is already read." };
+  try {
+    const me = await requireWorkspaceUser(true, false);
+    await db.query(`INSERT INTO message_reads (user_id,thread_key,last_read_at,updated_at) SELECT $1,k,now(),now() FROM unnest($2::STRING[]) AS k
+      ON CONFLICT (user_id,thread_key) DO UPDATE SET last_read_at=now(),updated_at=now()`, [me.userId, list]);
+  } catch { return { ok: false, message: NOT_READY }; }
+  revalidatePath("/admin/messages"); revalidatePath("/admin", "layout");
+  return { ok: true, message: `Updated. ${list.length === 1 ? "The conversation is" : `${list.length} conversations are`} marked read.` };
+}
+
+/**
+ * "Make it a task": a message on a project's conversation becomes an open task on that project, named by its
+ * first line, with nobody assigned yet. The same task the project page adds, with its history line.
+ */
+export async function taskFromMessage(projectId: string, text: string): Promise<{ ok: boolean; message: string }> {
+  const { allow } = await import("@/lib/admin/guard");
+  if (await allow("projects")) return { ok: false, message: "Your account cannot add tasks." };
+  const { outOfScope } = await import("@/lib/admin/staff-scope");
+  if (await outOfScope({ project: String(projectId ?? "") })) return { ok: false, message: "That project is not one of yours." };
+  const title = String(text ?? "").split("\n").map((l) => l.trim()).find(Boolean)?.slice(0, 200) ?? "";
+  if (!title) return { ok: false, message: "That message has no words to make a task from." };
+  try {
+    const { changeLegacyTask } = await import("@/lib/workspace/project-changes");
+    const r = await changeLegacyTask({ kind: "create", projectId: String(projectId), task: { title, assignee: "", due: null, priority: "Normal", blockedBy: null } });
+    after(() => dispatchWorkspaceEvents({ eventIds: r.eventIds }));
+    revalidatePath(`/admin/projects/${projectId}`); revalidatePath("/admin");
+    return { ok: true, message: `Saved. "${title.length > 60 ? `${title.slice(0, 59)}…` : title}" is a task on the project. Give it a person and a date there.` };
+  } catch (e) { return { ok: false, message: e instanceof Error ? e.message : "The task could not be added." }; }
+}

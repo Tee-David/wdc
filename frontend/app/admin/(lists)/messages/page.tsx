@@ -19,7 +19,7 @@ import { Empty } from "@/components/admin/bits";
 import { AdminState } from "@/components/admin/admin-state";
 import { StudioReply, TicketStatusButtons } from "@/components/admin/ticket-controls";
 import { ProjectReply } from "@/components/admin/project-reply";
-import { MarkRead, NewTeamThread, TeamReply, ThreadFlags } from "@/components/admin/messages-ui";
+import { ConvDetails, MarkAllRead, MarkRead, NewTeamThread, TeamReply, ThreadFlags } from "@/components/admin/messages-ui";
 import { messagesReady, othersRead, readStates, unreadCounts, teamMessages, teamThreadsFor, type TeamThread } from "@/lib/messages/store";
 import type { Project, Ticket } from "@/lib/admin/types";
 import { ThreadLines, ThreadProvider, type ThreadLine } from "@/components/admin/thread";
@@ -177,10 +177,21 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
       count: k === "unread" ? (boxN.unread ? (boxN.unread > 99 ? "99+" : boxN.unread) : undefined) : k === "waiting" ? tally.waiting || undefined : undefined,
       href: hrefFor(query, k === "unread" || k === "pinned" ? { box: k, kind: undefined, page: undefined, c: undefined } : { box: undefined, kind: k === "all" ? undefined : k, page: undefined, c: undefined }),
     }));
+  /* SEARCH READS THE MESSAGES TOO, not only names and the last line: question replies from memory, project notes
+     and team chats from two bounded queries. */
+  const inText = new Set<string>();
+  if (search.length >= 2) {
+    for (const c of convs) if (c.ticket && getTicketMessages(c.ticket.id).some((m) => m.body.toLocaleLowerCase().includes(search))) inText.add(c.key);
+    const like = `%${search.replace(/[%_\\]/g, (x) => `\\${x}`)}%`;
+    await Promise.all([
+      projectIds.length ? db.query<{ k: string }>("SELECT DISTINCT 'p-'||project_id AS k FROM workspace_team_notes WHERE project_id=ANY($1::STRING[]) AND body ILIKE $2 LIMIT 200", [projectIds, like]).then((r) => r.rows.forEach((x) => inText.add(x.k)), () => {}) : null,
+      team.length ? db.query<{ k: string }>("SELECT DISTINCT 'd-'||thread_id::STRING AS k FROM team_messages WHERE thread_id=ANY($1::UUID[]) AND body ILIKE $2 LIMIT 200", [team.map((t) => t.id), like]).then((r) => r.rows.forEach((x) => inText.add(x.k)), () => {}) : null,
+    ]);
+  }
   const rows = convs
     .filter((c) => inBox(c, box))
     .filter((c) => !kind || (kind === "waiting" ? c.waiting : c.kind === kind))
-    .filter((c) => !search || `${c.name} ${c.sub} ${c.last ?? ""}`.toLocaleLowerCase().includes(search));
+    .filter((c) => !search || inText.has(c.key) || `${c.name} ${c.sub} ${c.last ?? ""}`.toLocaleLowerCase().includes(search));
   const pageCount = Math.max(1, Math.ceil(rows.length / per));
   const page = Math.min(Math.max(1, Number.parseInt(query.page ?? "1", 10) || 1), pageCount);
   const shown = rows.slice((page - 1) * per, page * per);
@@ -243,7 +254,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
       <div className="adMxBox">
         <div className={`adMx ${picked ? "is-thread" : "is-list"}`}>
           <section className="adMx__list" aria-label="Conversations" data-tour="messages-list">
-            <div className="adMx__tools"><UrlSearch label="Search messages" placeholder="Search conversations" /></div>
+            <div className="adMx__tools"><UrlSearch label="Search messages" placeholder="Search names and messages" />{ready && boxN.unread ? <MarkAllRead keys={convs.filter((c) => c.unread).map((c) => c.key)} /> : null}</div>
             <div className="adMx__kinds"><Chips label="Show" current={filter} items={filters} /></div>
             {ready && box !== "archived" && boxN.archived ? (
               <Link className="adMx__arch" href={hrefFor(query, { box: "archived", kind: undefined, page: undefined, c: undefined })}>
@@ -298,7 +309,10 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
                     <h2>{open.name}</h2>
                     <p>{open.kind === "client" ? ticket?.subject : open.kind === "team" ? open.sub : `${openClient?.company ?? "Client"} · ${open.count} ${open.count === 1 ? "message" : "messages"}`}</p>
                   </div>
-                  {ticket || ready ? <div className="adMx__headActs">{ticket ? <TicketStatusButtons ticketId={ticket.id} status={ticket.status} /> : null}{ready ? <ThreadFlags threadKey={open.key} pinned={!!open.pinned} archived={!!open.archived} /> : null}</div> : null}
+                  {ticket || ready ? <div className="adMx__headActs">{ticket ? <TicketStatusButtons ticketId={ticket.id} status={ticket.status} /> : null}{ready ? <ThreadFlags threadKey={open.key} pinned={!!open.pinned} archived={!!open.archived} /> : null}<ConvDetails name={open.name}
+                    people={[...new Set(lines.map((l) => (l.mine ? "You" : l.who)))]}
+                    files={lines.slice().reverse().flatMap((l) => (files.get(l.id) ?? []).map((f: { key: string; name: string; kind: string; open: string; download: string }) => ({ key: f.key, name: f.name, kind: f.kind, open: f.open, download: f.download, at: l.at })))}
+                    links={lines.slice().reverse().flatMap((l) => (l.body.match(/https?:\/\/[^\s)>"']+/g) ?? []).map((url) => ({ url, at: l.at })))} /></div> : null}
                   {ready ? <MarkRead threadKey={open.key} /> : null}
                 </header>
                 <nav className="adMx__ctx" aria-label="Linked records">
@@ -309,7 +323,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
                 </nav>
                 <div className="adMx__body" data-lenis-prevent tabIndex={0} aria-label="Messages, newest at the bottom">
                   {threadError ? <AdminState kind="error" title="This channel did not load" description={threadError} /> : lines.length ? (
-                    <ThreadLines label="Messages" lines={lines.map((m, i): ThreadLine => {
+                    <ThreadLines label="Messages" taskProject={can(role, "projects") ? open.project?.id ?? undefined : undefined} lines={lines.map((m, i): ThreadLine => {
                       const day = dateWords(m.at, now, true), prev = lines[i - 1];
                       return {
                         ...m, files: files.get(m.id), day: !prev || dateWords(prev.at, now, true) !== day ? day : undefined,

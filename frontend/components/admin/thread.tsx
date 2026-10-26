@@ -1,9 +1,9 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
-import { ArrowDown, Camera, ChevronLeft, ChevronRight, Copy, CornerUpLeft, Download, FileText, Image as ImageIcon, Loader2, Paperclip, X } from "lucide-react";
+import { ArrowDown, Camera, ChevronLeft, ChevronRight, Copy, CornerUpLeft, Download, FileText, Image as ImageIcon, ListPlus, Loader2, Paperclip, X } from "lucide-react";
 import { toast } from "./toast";
-import { signChatUpload } from "@/lib/messages/actions";
+import { signChatUpload, taskFromMessage } from "@/lib/messages/actions";
 
 /**
  * A CONVERSATION THAT BEHAVES LIKE A CHAT APP. Swipe a message to the right
@@ -50,7 +50,7 @@ export function useSent() {
 const clip = (s: string, n = 140) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
 const SWIPE = 56;
 
-function Bubble({ m, quoted, onReply, onJump }: { m: ThreadLine; quoted: ThreadLine | null | undefined; onReply: () => void; onJump: (id: string) => void }) {
+function Bubble({ m, quoted, onReply, onJump, onTask }: { m: ThreadLine; quoted: ThreadLine | null | undefined; onReply: () => void; onJump: (id: string) => void; onTask?: () => void }) {
   const row = useRef<HTMLDivElement>(null);
   const drag = useRef<{ x: number; y: number; on: boolean; id: number } | null>(null);
   const hold = useRef<number>(0);
@@ -107,11 +107,13 @@ function Bubble({ m, quoted, onReply, onJump }: { m: ThreadLine; quoted: ThreadL
           {m.body ? <p className="adConv__body">{m.body}</p> : null}
         </div>
         <button type="button" className="adTh__replyBtn" onClick={onReply} aria-label={`Reply to ${m.mine ? "your message" : m.who}`} title="Reply"><CornerUpLeft aria-hidden="true" /></button>
+        {onTask && m.body ? <button type="button" className="adTh__replyBtn" onClick={onTask} aria-label="Make this message a task" title="Make it a task"><ListPlus aria-hidden="true" /></button> : null}
       </div>
       {menu ? (
         <div className="adTh__menu" role="menu" aria-label="Message actions">
           <button type="button" role="menuitem" onClick={() => { setMenu(false); onReply(); }}><CornerUpLeft aria-hidden="true" />Reply</button>
           <button type="button" role="menuitem" onClick={copy}><Copy aria-hidden="true" />Copy text</button>
+          {onTask && m.body ? <button type="button" role="menuitem" onClick={() => { setMenu(false); onTask(); }}><ListPlus aria-hidden="true" />Make it a task</button> : null}
           <button type="button" role="menuitem" className="adTh__menuX" onClick={() => setMenu(false)} aria-label="Close the actions"><X aria-hidden="true" /></button>
         </div>
       ) : null}
@@ -120,7 +122,7 @@ function Bubble({ m, quoted, onReply, onJump }: { m: ThreadLine; quoted: ThreadL
 }
 
 /** The message list, with day separators, quotes, and the jump to the newest message. */
-export function ThreadLines({ lines, label }: { lines: ThreadLine[]; label: string }) {
+export function ThreadLines({ lines, label, taskProject }: { lines: ThreadLine[]; label: string; /** Set on a conversation tied to a project: a message can become a task on it. */ taskProject?: string }) {
   const { setReply } = useReply();
   const end = useRef<HTMLDivElement>(null);
   const [away, setAway] = useState(false);
@@ -158,7 +160,8 @@ export function ThreadLines({ lines, label }: { lines: ThreadLine[]; label: stri
         {lines.map((m) => (
           <li key={m.id} className="adMx__item">
             {m.day ? <p className="adMx__day"><span>{m.day}</span></p> : null}
-            <Bubble m={m} quoted={m.replyTo ? byId.get(m.replyTo) ?? null : undefined} onReply={() => pick(m)} onJump={jump} />
+            <Bubble m={m} quoted={m.replyTo ? byId.get(m.replyTo) ?? null : undefined} onReply={() => pick(m)} onJump={jump}
+              onTask={taskProject ? () => { void taskFromMessage(taskProject, m.body).then((r) => toast(r.message, r.ok ? "good" : "bad"), () => toast("The task could not be added.", "bad")); } : undefined} />
           </li>
         ))}
       </ol>
