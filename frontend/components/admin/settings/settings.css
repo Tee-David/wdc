@@ -321,3 +321,12 @@ label.adChip input:focus-visible + span { outline: 2px solid var(--ad-focus); ou
 .adSet__links { display: flex; flex-wrap: wrap; gap: .25rem; }
 .adSet__links a { display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0 .6rem; border-radius: 10px; font-weight: 600; }
 @media (hover: hover) { .adSet__links a:hover { background: var(--ad-hover); } }
+
+/* Needs you, above the sections (settings-needs.tsx): solid tone tiles, a count in the head. */
+.adSet__needs { margin-bottom: 1rem; }
+.adSet__needs .ad__panelH { display: flex; align-items: center; gap: .5rem; }
+.adSet__needs .ad__panelH h2 { flex: 1; }
+.adSet__needsN { min-width: 1.5rem; height: 1.5rem; padding: 0 .45rem; display: inline-grid; place-items: center; border-radius: 999px; background: var(--ad-tone-live); color: var(--ad-on-live); font: 700 .78rem/1 var(--font-space-grotesk), system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+.adSet__icon--live { background: var(--ad-tone-live); color: var(--ad-on-live); }
+.adSet__icon--warn { background: var(--ad-tone-warn); color: var(--ad-on-warn); }
+.adSet__icon--bad { background: var(--ad-tone-bad); color: var(--ad-on-bad); }
