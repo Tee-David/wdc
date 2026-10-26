@@ -233,3 +233,16 @@ a.adRc__row:hover, button.adRc__row:hover, a.adRc__row.on, button.adRc__row.on {
 /* A title link in a list cell keeps its look and gets a 44px hit area; chips never narrower than a touch target. */
 .adT__stack > a { display: block; padding-block: .6rem; margin-block: -.6rem; }
 .adChip { min-width: 2.75rem; justify-content: center; }
+
+/* THE MONTHLY PLAN card on a client (the kit's "Social media plan"). */
+.adPlan { gap: .75rem; }
+.adRc__hd > .ad__pill { color: var(--ad-on-brand); font-size: .75rem; }
+.adPlan__term { font-size: .8125rem; }
+.adPlan__incl { display: grid; grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr)); gap: .5rem; }
+.adPlan__incl > span { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: .625rem .75rem; border-radius: 12px; background: var(--ad-panel-2); font-size: .75rem; color: var(--ad-dim); }
+.adPlan__incl strong { font: 700 1rem/1.2 var(--font-space-grotesk), system-ui, sans-serif; color: var(--ad-ink); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.adPlan__next { display: flex; flex-direction: column; min-width: 0; padding: .625rem .75rem; border-radius: 14px; background: var(--ad-panel-2); border: 1px solid var(--ad-line); }
+.adPlan__next > span { font-size: .75rem; color: var(--ad-dim); }
+.adPlan__acts { display: flex; gap: .5rem; flex-wrap: wrap; }
+.adPlan__acts > * { flex: 1 1 8rem; }
+.adPlan__acts .ad__btn { width: 100%; justify-content: center; }
