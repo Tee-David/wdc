@@ -29,9 +29,12 @@ export default async function Welcome() {
   const first = (user.name ?? "").split(/\s+/)[0] || "there";
   const help = (who: string) => (
     <RailCard title="Need a hand?" aside={`Ask ${who}`}>
-      <RailRows empty="" rows={[
+      <RailRows empty="" rows={user.role === "owner" ? [
         { key: "faq", title: "Help centre", sub: "Short guides for each step", icon: UserRound, tone: "neutral", href: "/admin/settings/faq" },
         { key: "support", title: "Support", sub: "Questions clients have asked", icon: Bell, tone: "neutral", href: "/admin/clients/support" },
+      ] : [
+        { key: "faq", title: "Help centre", sub: "Short guides for the team", icon: UserRound, tone: "neutral", href: "/admin/help" },
+        { key: "ask", title: "Message Admin", sub: "The answer lands in Messages", icon: Bell, tone: "neutral", href: "/admin/help?ask=1" },
       ]} />
     </RailCard>
   );
@@ -71,6 +74,7 @@ export default async function Welcome() {
     { key: "profile", icon: "person", title: "Check your profile", body: "Your name, a password and the devices you use.", label: "Check profile", href: "/admin/settings/account" },
     { key: "day", icon: "home", title: "Look at your dashboard", body: "Your tasks, meetings and what waits on you.", label: "Open dashboard", href: "/admin" },
     { key: "projects", icon: "projects", title: "Meet your projects", body: "The projects in your departments. No amounts, only chips.", label: "Open projects", href: "/admin/projects" },
+    { key: "msg", icon: "msg", title: "Try Messages", body: "Replies, mentions and notes to the team, in one list.", label: "Open Messages", href: "/admin/messages" },
     { key: "notify", icon: "bell", title: "Choose what reaches you", body: "Tasks, mentions and approvals, by email or in the app.", label: "Choose", href: "/admin/notifications" },
   ];
   return (
@@ -78,7 +82,7 @@ export default async function Welcome() {
       <PageHead title={`Welcome, ${first}`} lede={<>A few quick steps and you are ready. <strong>{mine.length ? `You are in ${mine.map((d) => d.name).join(", ")}.` : "You are not in a department yet. Admin can add you."}</strong></>}
         action={<Form action={finishStaffWelcome}><Hidden name="how" value="skip" /><Submit tone="plain">Skip for now</Submit></Form>} />
       <Workbench railLabel="Help" rail={help("Admin")}>
-        <WelcomeSteps id={`staff-${user.id}`} title="Get ready for your first day" blurb="Four steps. Your dashboard, your projects and your notifications are all in the menu."
+        <WelcomeSteps id={`staff-${user.id}`} title="Get ready for your first day" blurb="Five steps. Your dashboard, projects, messages and notifications are all in the menu."
           steps={steps} finish={<Form action={finishStaffWelcome}><Hidden name="how" value="done" /><Submit>Take me to the dashboard</Submit></Form>} />
       </Workbench>
     </>

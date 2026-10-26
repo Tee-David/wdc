@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useMemo, useSyncExternalStore } from "react";
-import { Banknote, Bell, Check, CreditCard, FolderKanban, Home, Percent, UserPlus, UserRound, Users, type LucideIcon } from "lucide-react";
+import { Banknote, Bell, Check, CreditCard, FolderKanban, Home, MessageSquare, Percent, UserPlus, UserRound, Users, type LucideIcon } from "lucide-react";
 import "./welcome.css";
 
 /**
@@ -12,7 +12,7 @@ import "./welcome.css";
  * never claims more than "you looked"). The first step not done is "Next" and carries the primary button.
  */
 /* Icons go by name: a server page cannot hand a component to a client one. */
-const ICONS: Record<string, LucideIcon> = { banknote: Banknote, bell: Bell, card: CreditCard, projects: FolderKanban, home: Home, percent: Percent, invite: UserPlus, person: UserRound, people: Users };
+const ICONS: Record<string, LucideIcon> = { banknote: Banknote, bell: Bell, card: CreditCard, projects: FolderKanban, home: Home, percent: Percent, invite: UserPlus, person: UserRound, people: Users, msg: MessageSquare };
 export type WelcomeStep = { key: string; icon: keyof typeof ICONS; title: string; body: string; label: string; href: string; done?: boolean };
 
 export function WelcomeSteps({ id, title, blurb, steps, finish }: { id: string; title: string; blurb: string; steps: WelcomeStep[]; finish?: React.ReactNode }) {

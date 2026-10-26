@@ -9,7 +9,7 @@ Two read-only audits compared every canvas board's controls with the live code, 
 - [x] My Day tasks: In progress, In review, Blocked (with what it waits on) states, row menu (start, review, blocked, back, hand over, open), bulk Start, Send for review, Mark done
 - [x] My Day rail: content calendar card (week arrows, posts from the records), week tiles open their list, project steppers. Platform filter on the card skipped (the project calendar has it)
 - [x] Staff Projects and Clients: no New client or Start a project for staff (refused on the server too, the "intake" area), Your move and Waiting on client tabs, Message the client and Add a task on the project row menu, staff calendar shows meetings booked by their own clients
-- [ ] Staff Welcome: the "Try Messages" step; Support link to the staff help centre
+- [x] Staff Welcome: the "Try Messages" step; the help rail links the staff help centre and Message Admin
 
 ## Admin
 - [ ] Client page People: add person, make main contact, remove, resend invite, give portal access

@@ -433,3 +433,4 @@ Production build (`next build`) at ae19839 passes: compiled, type checked, 136 p
 - Adding a client and starting a project are Admin's call: a new permission area, `intake` (owner only), guards `createClient` and `createProject`, and hides New client, New project and the row menu's "Open a project" items for staff.
 - Staff Clients tabs are All, Your move (an open question, or an open unblocked task on their projects) and Waiting on client (shared work undecided, or a project marked waiting). The project row menu gains "Message the client" and "Add a task" for everyone.
 - The staff project calendar shows meetings booked by their own clients (attendee email matched to a client in scope), linking to the client rather than to Meetings.
+- Staff welcome: a fifth step, "Try Messages"; the help rail for staff links their help centre and Message Admin (it pointed at the owner-only FAQ editor and client questions). The first-week panel says Admin, not the owner.
