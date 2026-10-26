@@ -1,7 +1,7 @@
 # Kit design progress (prototype boards)
 
 Resume file for the design runs on the prototype kit. Build order is in `remaining-screens.md`.
-Kit source in the session scratchpad `proto/`; saved to `plans/dashboard-overhaul/kit/` by sync.
+Kit source in the session scratchpad `proto/`; saved to `design/dashboards/kit/` by sync.
 Publishing is done by the main session (owner's call, 2026-10-25). Design runs rebuild `canvas/project/` with build.py, sync, and list here the boards ready to publish.
 
 ## Done

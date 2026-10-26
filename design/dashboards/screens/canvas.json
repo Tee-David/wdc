@@ -1,0 +1,568 @@
+{
+ "v": 3,
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-10-10T12:00:00Z"
+ },
+ "title": "WDC Dashboard Concepts",
+ "launch": {
+  "view": "canvas"
+ },
+ "pages": [],
+ "boards": {
+  "D-Admin.dc.html": {
+   "x": 4720,
+   "y": 0,
+   "w": 1440,
+   "h": 1900,
+   "title": "Admin \u00b7 Today",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "D-Staff.dc.html": {
+   "x": 4720,
+   "y": 2400,
+   "w": 1440,
+   "h": 1900,
+   "title": "Staff \u00b7 My Day",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "D-Client.dc.html": {
+   "x": 4720,
+   "y": 4800,
+   "w": 1440,
+   "h": 1900,
+   "title": "Client \u00b7 Home",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "A-Clients.dc.html": {
+   "x": 0,
+   "y": 7500,
+   "w": 1440,
+   "h": 1900,
+   "title": "Admin \u00b7 Clients",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "A-Client.dc.html": {
+   "x": 1520,
+   "y": 7500,
+   "w": 1440,
+   "h": 1900,
+   "title": "Admin \u00b7 Client page",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "A-Projects.dc.html": {
+   "x": 3040,
+   "y": 7500,
+   "w": 1440,
+   "h": 1900,
+   "title": "Admin \u00b7 Projects",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "A-Project.dc.html": {
+   "x": 4560,
+   "y": 7500,
+   "w": 1440,
+   "h": 1900,
+   "title": "Admin \u00b7 Project page",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "A-Money.dc.html": {
+   "x": 0,
+   "y": 9600,
+   "w": 1440,
+   "h": 1900,
+   "title": "Admin \u00b7 Money",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "A-Reports.dc.html": {
+   "x": 1520,
+   "y": 9600,
+   "w": 1440,
+   "h": 1900,
+   "title": "Admin \u00b7 Reports",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "A-Invoice.dc.html": {
+   "x": 3040,
+   "y": 9600,
+   "w": 1440,
+   "h": 1900,
+   "title": "Admin \u00b7 Invoice and quote",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "A-Messages.dc.html": {
+   "x": 4560,
+   "y": 9600,
+   "w": 1440,
+   "h": 1900,
+   "title": "Admin \u00b7 Messages",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "A-Support.dc.html": {
+   "x": 0,
+   "y": 11700,
+   "w": 1440,
+   "h": 1900,
+   "title": "Admin \u00b7 Support",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "A-Blog.dc.html": {
+   "x": 1520,
+   "y": 11700,
+   "w": 1440,
+   "h": 1900,
+   "title": "Admin \u00b7 Blog",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "A-Cases.dc.html": {
+   "x": 3040,
+   "y": 11700,
+   "w": 1440,
+   "h": 1900,
+   "title": "Admin \u00b7 Case studies",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "A-Email.dc.html": {
+   "x": 4560,
+   "y": 11700,
+   "w": 1440,
+   "h": 1900,
+   "title": "Admin \u00b7 Marketing (email)",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "A-EmailBuilder.dc.html": {
+   "x": 0,
+   "y": 13800,
+   "w": 1440,
+   "h": 1900,
+   "title": "Admin \u00b7 Email builder",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "A-Automation.dc.html": {
+   "x": 1520,
+   "y": 13800,
+   "w": 1440,
+   "h": 1900,
+   "title": "Admin \u00b7 Automation flow",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "A-Media.dc.html": {
+   "x": 3040,
+   "y": 13800,
+   "w": 1440,
+   "h": 1900,
+   "title": "Admin \u00b7 Media library",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "A-Content.dc.html": {
+   "x": 4560,
+   "y": 13800,
+   "w": 1440,
+   "h": 1900,
+   "title": "Admin \u00b7 Site content",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "A-Users.dc.html": {
+   "x": 0,
+   "y": 15900,
+   "w": 1440,
+   "h": 1900,
+   "title": "Admin \u00b7 Users",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "A-Forms.dc.html": {
+   "x": 1520,
+   "y": 15900,
+   "w": 1440,
+   "h": 1900,
+   "title": "Admin \u00b7 Forms (enquiries)",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "A-Entry.dc.html": {
+   "x": 3040,
+   "y": 15900,
+   "w": 1440,
+   "h": 1900,
+   "title": "Admin \u00b7 Form entry (social media brief)",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "A-Meetings.dc.html": {
+   "x": 4560,
+   "y": 15900,
+   "w": 1440,
+   "h": 1900,
+   "title": "Admin \u00b7 Meetings",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "A-Reconcile.dc.html": {
+   "x": 0,
+   "y": 18000,
+   "w": 1440,
+   "h": 1900,
+   "title": "Admin \u00b7 Reconciliation",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "A-Notifications.dc.html": {
+   "x": 1520,
+   "y": 18000,
+   "w": 1440,
+   "h": 1900,
+   "title": "Admin \u00b7 Notifications",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "A-FormBuilder.dc.html": {
+   "x": 3040,
+   "y": 18000,
+   "w": 1440,
+   "h": 1900,
+   "title": "Admin \u00b7 Forms (contact form builder)",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "A-Welcome.dc.html": {
+   "x": 4560,
+   "y": 18000,
+   "w": 1440,
+   "h": 1900,
+   "title": "Admin \u00b7 Welcome",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "A-Settings.dc.html": {
+   "x": 0,
+   "y": 20100,
+   "w": 1440,
+   "h": 1900,
+   "title": "Admin \u00b7 Settings",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "P-Invoice.dc.html": {
+   "x": 0,
+   "y": 22700,
+   "w": 1440,
+   "h": 1900,
+   "title": "Public \u00b7 Invoice",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "P-Quote.dc.html": {
+   "x": 1520,
+   "y": 22700,
+   "w": 1440,
+   "h": 1900,
+   "title": "Public \u00b7 Quote",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "P-Receipt.dc.html": {
+   "x": 3040,
+   "y": 22700,
+   "w": 1440,
+   "h": 1900,
+   "title": "Public \u00b7 Receipt",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "P-Meet.dc.html": {
+   "x": 4560,
+   "y": 22700,
+   "w": 1440,
+   "h": 1900,
+   "title": "Public \u00b7 Book a meeting",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "P-Form.dc.html": {
+   "x": 0,
+   "y": 24800,
+   "w": 1440,
+   "h": 1900,
+   "title": "Public \u00b7 Public form",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "P-Onboarding.dc.html": {
+   "x": 1520,
+   "y": 24800,
+   "w": 1440,
+   "h": 1900,
+   "title": "Public \u00b7 Client onboarding",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "P-States.dc.html": {
+   "x": 3040,
+   "y": 24800,
+   "w": 1440,
+   "h": 1900,
+   "title": "Public \u00b7 System states",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "S-Projects.dc.html": {
+   "x": 0,
+   "y": 27400,
+   "w": 1440,
+   "h": 1900,
+   "title": "Staff \u00b7 Projects",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "S-Project.dc.html": {
+   "x": 1520,
+   "y": 27400,
+   "w": 1440,
+   "h": 1900,
+   "title": "Staff \u00b7 Project page",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "S-Clients.dc.html": {
+   "x": 3040,
+   "y": 27400,
+   "w": 1440,
+   "h": 1900,
+   "title": "Staff \u00b7 Clients",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "S-Messages.dc.html": {
+   "x": 4560,
+   "y": 27400,
+   "w": 1440,
+   "h": 1900,
+   "title": "Staff \u00b7 Messages",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "S-Support.dc.html": {
+   "x": 0,
+   "y": 29500,
+   "w": 1440,
+   "h": 1900,
+   "title": "Staff \u00b7 Support",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "S-Settings.dc.html": {
+   "x": 1520,
+   "y": 29500,
+   "w": 1440,
+   "h": 1900,
+   "title": "Staff \u00b7 Settings",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "S-Notifications.dc.html": {
+   "x": 3040,
+   "y": 29500,
+   "w": 1440,
+   "h": 1900,
+   "title": "Staff \u00b7 Notifications",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "S-Welcome.dc.html": {
+   "x": 4560,
+   "y": 29500,
+   "w": 1440,
+   "h": 1900,
+   "title": "Staff \u00b7 Welcome",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "C-Projects.dc.html": {
+   "x": 0,
+   "y": 32100,
+   "w": 1440,
+   "h": 1900,
+   "title": "Client \u00b7 Projects",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "C-Billing.dc.html": {
+   "x": 1520,
+   "y": 32100,
+   "w": 1440,
+   "h": 1900,
+   "title": "Client \u00b7 Billing",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "C-Messages.dc.html": {
+   "x": 3040,
+   "y": 32100,
+   "w": 1440,
+   "h": 1900,
+   "title": "Client \u00b7 Messages",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "C-Support.dc.html": {
+   "x": 4560,
+   "y": 32100,
+   "w": 1440,
+   "h": 1900,
+   "title": "Client \u00b7 Support",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "C-Settings.dc.html": {
+   "x": 0,
+   "y": 34200,
+   "w": 1440,
+   "h": 1900,
+   "title": "Client \u00b7 Settings",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "C-Notifications.dc.html": {
+   "x": 1520,
+   "y": 34200,
+   "w": 1440,
+   "h": 1900,
+   "title": "Client \u00b7 Notifications",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "C-Welcome.dc.html": {
+   "x": 3040,
+   "y": 34200,
+   "w": 1440,
+   "h": 1900,
+   "title": "Client \u00b7 Welcome",
+   "expand": "fill",
+   "is_interactive": true
+  }
+ },
+ "order": [
+  "D-Admin.dc.html",
+  "D-Staff.dc.html",
+  "D-Client.dc.html",
+  "A-Clients.dc.html",
+  "A-Client.dc.html",
+  "A-Projects.dc.html",
+  "A-Project.dc.html",
+  "A-Money.dc.html",
+  "A-Reports.dc.html",
+  "A-Invoice.dc.html",
+  "A-Messages.dc.html",
+  "A-Support.dc.html",
+  "A-Blog.dc.html",
+  "A-Cases.dc.html",
+  "A-Email.dc.html",
+  "A-EmailBuilder.dc.html",
+  "A-Automation.dc.html",
+  "A-Media.dc.html",
+  "A-Content.dc.html",
+  "A-Users.dc.html",
+  "A-Forms.dc.html",
+  "A-Entry.dc.html",
+  "A-Meetings.dc.html",
+  "A-Reconcile.dc.html",
+  "A-Notifications.dc.html",
+  "A-FormBuilder.dc.html",
+  "A-Welcome.dc.html",
+  "A-Settings.dc.html",
+  "P-Invoice.dc.html",
+  "P-Quote.dc.html",
+  "P-Receipt.dc.html",
+  "P-Meet.dc.html",
+  "P-Form.dc.html",
+  "P-Onboarding.dc.html",
+  "P-States.dc.html",
+  "S-Projects.dc.html",
+  "S-Project.dc.html",
+  "S-Clients.dc.html",
+  "S-Messages.dc.html",
+  "S-Support.dc.html",
+  "S-Settings.dc.html",
+  "S-Notifications.dc.html",
+  "S-Welcome.dc.html",
+  "C-Projects.dc.html",
+  "C-Billing.dc.html",
+  "C-Messages.dc.html",
+  "C-Support.dc.html",
+  "C-Settings.dc.html",
+  "C-Notifications.dc.html",
+  "C-Welcome.dc.html"
+ ],
+ "notes": {
+  "rowAdmin": {
+   "x": 0,
+   "y": -300,
+   "text": "Admin (owner): Today",
+   "kind": "title1",
+   "maxW": 6160
+  },
+  "rowStaff": {
+   "x": 0,
+   "y": 2100,
+   "text": "Staff: My Day",
+   "kind": "title1",
+   "maxW": 6160
+  },
+  "rowClient": {
+   "x": 0,
+   "y": 4500,
+   "text": "Client: Home",
+   "kind": "title1",
+   "maxW": 6160
+  },
+  "rowOverAdmin": {
+   "x": 0,
+   "y": 7200,
+   "text": "Overhaul \u00b7 Admin pages",
+   "kind": "title1",
+   "maxW": 6160
+  },
+  "rowOverPublic": {
+   "x": 0,
+   "y": 22400,
+   "text": "Overhaul \u00b7 Public and sign in pages",
+   "kind": "title1",
+   "maxW": 6160
+  },
+  "rowOverStaff": {
+   "x": 0,
+   "y": 27100,
+   "text": "Overhaul \u00b7 Staff pages",
+   "kind": "title1",
+   "maxW": 6160
+  },
+  "rowOverClient": {
+   "x": 0,
+   "y": 31800,
+   "text": "Overhaul \u00b7 Client pages",
+   "kind": "title1",
+   "maxW": 6160
+  }
+ },
+ "designSystems": []
+}

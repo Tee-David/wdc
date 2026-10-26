@@ -116,9 +116,9 @@ Model rule, binding (updated 2026-10-11): the remaining prototype pages, for eve
 - Colour tokens use the codebase's admin names (`--ad-bg`, `--ad-panel`, `--ad-ink`, `--ad-tone-*`), so the prototype, the design system and `components/admin/admin.css` share one vocabulary. Orange text in light mode is `#b84a00` (4.9:1 on the page ground); `#c95000` fell to 4.2:1 there.
 - Primary navigation stays at six pages per role plus the owner's Blog. Support sits in a second nav group in the sidebar for every role, so it is always one tap away without breaking that rule.
 - Document numbers follow the code: invoices `INV-26-XXXXXX`, quotes `EST-2026-NNN` (called Quote in the interface), receipts `RCT-2026-NNN`.
-- The design system artifact is built from `plans/dashboard-overhaul/design-system/` (`make.py` turns the kit into tokens, the stylesheet and component previews).
+- The design system artifact is built from `design/design-system/` (`make.py` turns the kit into tokens, the stylesheet and component previews).
 
-- The boards are built from one shared kit in `plans/dashboard-overhaul/kit/` (styles, shell, sheets, behaviour) plus a module per page, assembled by `build.py`. A correction goes into the kit once and lands on every page. The implementation follows the kit's patterns, not its prototype data.
+- The boards are built from one shared kit in `design/dashboards/kit/` (styles, shell, sheets, behaviour) plus a module per page, assembled by `build.py`. A correction goes into the kit once and lands on every page. The implementation follows the kit's patterns, not its prototype data.
 
 ## Standing direction for the page prototypes (owner, 2026-10-11)
 

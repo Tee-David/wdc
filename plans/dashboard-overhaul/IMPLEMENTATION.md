@@ -32,7 +32,7 @@ A local Postgres and the dev server are already running. Do not start another.
 - Screenshot real pages signed in: `node /tmp/wdc-tools/live.js <width> <height> <out-prefix> <light|dark> /admin /admin/clients ...`. It prints status, `h1`, horizontal overflow and page errors, and writes one PNG per URL. Read the PNGs.
 - For states that need a click, write a short Playwright script with `playwright-core` (chromium at `/opt/pw-browsers/chromium-1194/chrome-linux/chrome`, module path `/tmp/wdc-tools/node_modules`). Sign in the way `live.js` does. Only one Playwright run at a time.
 - Theme is set with `localStorage.theme` (`light` or `dark`).
-- Boards (the design): `node /tmp/wdc-tools/snap.js <Board> <outdir> <width> <height> <light|dark> [state chip labels]` writes PNGs of any board, one per "Preview as" chip. Prerendered public-page states are in `/tmp/wdc-design/`. The board sources are in `plans/dashboard-overhaul/kit/pages/` (HTML structure and the JS that shows each state) and `kit/kit.css` (the CSS, class by class). The design system is `design-system/project/` (README, Patterns, States, Writing, Motion, `tokens.json`).
+- Boards (the design): `node /tmp/wdc-tools/snap.js <Board> <outdir> <width> <height> <light|dark> [state chip labels]` writes PNGs of any board, one per "Preview as" chip. Prerendered public-page states are in `/tmp/wdc-design/`. The board sources are in `design/dashboards/kit/pages/` (HTML structure and the JS that shows each state) and `kit/kit.css` (the CSS, class by class). The design system is `design-system/project/` (README, Patterns, States, Writing, Motion, `tokens.json`).
 - The dev store persists in Postgres. Sample data is for looking, never for committing.
 
 ## Report format

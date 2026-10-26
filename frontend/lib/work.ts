@@ -83,7 +83,7 @@ export type CaseStudy = {
   app?: AppCase;
 };
 
-/** One screen of a build. Captured by the scripts in plans/case-study, with
+/** One screen of a build. Captured by the scripts in design/case-study, with
     sample data, so no client record appears. */
 export type AppShot = {
   src: string; w: number; h: number;
@@ -94,7 +94,7 @@ export type AppCase = {
   shots: AppShot[];
   /** Which shots stand in the opening stage: laptop, tablet, phone. */
   stage: [number, number, number];
-  /** The public site captured top to bottom (plans/case-study/scripts/fullcap.js). */
+  /** The public site captured top to bottom (design/case-study/scripts/fullcap.js). */
   site?: { src: string; w: number; h: number };
   tiers: { label: string; boxes: { name: string; detail: string }[] }[];
 };
