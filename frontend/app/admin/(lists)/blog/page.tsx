@@ -197,7 +197,7 @@ export default async function BlogPostsPage({ searchParams }: { searchParams: Pr
               { label: "Scheduled", value: String(counts.scheduled), note: queued.length ? `Next ${when(queued[0])}` : "Nothing waiting on a date", icon: CalendarClock, tone: "brand", href: queryHref(query, { state: "scheduled", page: undefined }) },
               { label: "In review", value: String(counts.review), note: isOwner ? "Waiting for you" : "Waiting for the owner", noteTone: counts.review ? "accent" : undefined, icon: SearchCheck, tone: counts.review ? "live" : "neutral", href: queryHref(query, { state: "review", page: undefined }) },
             ]} />
-            <RailCard title="Coming up" aside="Scheduled posts" link={{ href: "/admin/email?tab=calendar", label: "Calendar" }}>
+            <RailCard title="Coming up" aside="Scheduled posts" link={isOwner ? { href: "/admin/email?tab=calendar", label: "Calendar" } : undefined}>
               <RailRows empty="Nothing is waiting on a date. Schedule a draft from its row." rows={upcoming.map((p) => ({ key: p.id, title: p.title, sub: `${when(p.publishedAt)} · ${SERVICES.find((s) => s.slug === p.topic)?.short ?? p.topic}`, icon: CalendarClock, tone: "brand" as const, href: `/admin/blog/${p.id}`, tag: { text: "Booked", tone: "good" as const } }))} />
             </RailCard>
             <RailCard title="Latest posts" aside="Published">
