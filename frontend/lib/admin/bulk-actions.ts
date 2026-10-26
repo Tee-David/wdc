@@ -1,7 +1,7 @@
 "use server";
 
 import { FAIL, OK, type ActionState } from "./validate";
-import { archiveClient, emailReminder, moveStage, setProjectArchived, setTicketState } from "./actions";
+import { archiveClient, emailReminder, moveStage, setProjectArchived, setTaskState, setTicketState, toggleTask } from "./actions";
 import { moveBlogPostToDraft, publishBlogPostNow, trashBlogDraft } from "./blog-actions";
 import { bulkUsers } from "./user-actions";
 import { bulkCancelInvites, inviteClient } from "./invite-actions";
@@ -30,6 +30,9 @@ const RUN: Record<string, Job> = {
   /* One per stage, so a stage move is the same moveStage a person presses:
      its history line and the client's email included. */
   ...Object.fromEntries(STAGES.map((st) => [`projects:stage:${st}`, { run: moveStage, fields: (id: string) => ({ id, stage: st, expectedStage: getProject(id)?.stage ?? "" }), done: `moved to ${st}` } satisfies Job])),
+  "tasks:doing": { run: setTaskState, fields: (id) => ({ id, state: "doing" }), done: "started" },
+  "tasks:review": { run: setTaskState, fields: (id) => ({ id, state: "review" }), done: "sent for review" },
+  "tasks:done": { run: toggleTask, fields: (id) => ({ id, expectedDone: "false" }), done: "marked done" },
   "posts:publish": { run: publishBlogPostNow, fields: (id) => ({ id }), done: "published" },
   "posts:draft": { run: moveBlogPostToDraft, fields: (id) => ({ id }), done: "moved to draft" },
   "posts:trash": { run: trashBlogDraft, fields: (id) => ({ id }), done: "moved to the Trash" },

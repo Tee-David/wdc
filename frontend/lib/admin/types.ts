@@ -174,7 +174,15 @@ export type Task = {
   done: boolean;
   doneAt: string | null;
   blockedBy: Id | null;
+  /** Where an open task is: absent is To do. Done is `done`, never a state. */
+  state?: TaskState;
+  /** Why it is blocked, in the words of whoever said so. */
+  stateNote?: string;
 };
+
+export const TASK_STATES = ["todo", "doing", "review", "blocked"] as const;
+export type TaskState = (typeof TASK_STATES)[number];
+export const TASK_STATE_WORDS: Record<TaskState, string> = { todo: "To do", doing: "In progress", review: "In review", blocked: "Blocked" };
 
 /**
  * A written update, and who is allowed to read it.

@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { Check, CheckCircle2, Clock, FolderKanban, Hourglass, Inbox, MessageSquare } from "lucide-react";
 import { getClient, getDeliverablesFor, getProjects, getTasks, getTickets } from "@/lib/admin/store";
-import { taskIsWaiting, type Task } from "@/lib/admin/types";
+import { TASK_STATE_WORDS, taskIsWaiting, type Task } from "@/lib/admin/types";
+import { BulkBar, PickAll, RowPick } from "@/components/admin/bulk";
+import { TaskRowMenu } from "@/components/admin/task-row";
 import { buildProjectRows } from "@/lib/admin/project-signals";
 import { acceptHandoverNow, completeTeamTaskNow, markTaskDone, nudgeClientNow } from "@/lib/admin/staff-day-actions";
 import { db } from "@/lib/db/pool";
@@ -48,7 +50,7 @@ export async function StaffDay({ me, params, firstName }: { me: { id: string; na
   const late = open.filter((t) => day(t) && day(t) < stamp.date);
   const today = open.filter((t) => day(t) === stamp.date);
   const tomorrow = open.filter((t) => day(t) === studioStamp(now + DAY).date);
-  const waiting = open.filter((t) => taskIsWaiting(t, allTasks));
+  const waiting = open.filter((t) => taskIsWaiting(t, allTasks) || t.state === "blocked");
   const doneWeek = mine.filter((t) => t.done && t.doneAt && Date.parse(t.doneAt) >= now - 7 * DAY);
   const doneBefore = mine.filter((t) => t.done && t.doneAt && Date.parse(t.doneAt) >= now - 14 * DAY && Date.parse(t.doneAt) < now - 7 * DAY).length;
 
@@ -197,28 +199,37 @@ export async function StaffDay({ me, params, firstName }: { me: { id: string; na
           <Tabs label="Task views" items={tabItems} current={tab} />
           {shown.length ? (
             <>
-              <div className="ad__scroll" tabIndex={0} role="region" aria-label="Tasks table, scrolls sideways" data-lenis-prevent>
+              <BulkBar target="myday-tasks" noun="tasks" actions={[
+                { kind: "tasks:doing", label: "Start", icon: "reopen" },
+                { kind: "tasks:review", label: "Send for review", icon: "publish" },
+                { kind: "tasks:done", label: "Mark done", icon: "check" },
+              ]} />
+              <div className="ad__scroll" id="myday-tasks" tabIndex={0} role="region" aria-label="Tasks table, scrolls sideways" data-lenis-prevent>
                 <table className="ad__t">
-                  <thead><tr><th>Task</th><th>Due</th><th>Project</th><th>Payment</th></tr></thead>
+                  <thead><tr><th>{tab === "done" ? "Task" : <span className="ad__pickRow"><PickAll label="Select every task" />Task</span>}</th><th>Status</th><th>Due</th><th>Project</th><th>Payment</th><th className="ad__rmH"><span className="ad__sr">Actions</span></th></tr></thead>
                   <tbody>
                     {shown.map((t) => {
                       const p = projectOf.get(t.projectId);
                       const r = rows.find((x) => x.project.id === t.projectId);
                       const overdue = !t.done && day(t) && day(t) < stamp.date;
+                      const state = t.state ?? "todo";
                       return (
                         <tr key={t.id}>
                           <td>
                             <span className="ad__who">
+                              {t.done ? null : <RowPick id={t.id} label={t.title} />}
                               <Form action={toggleTask}>
                                 <Hidden name="id" value={t.id} /><Hidden name="expectedDone" value={String(t.done)} />
                                 <button type="submit" className={`ad__tick${t.done ? " is-on" : ""}`} aria-label={t.done ? `Reopen ${t.title}` : `Tick off ${t.title}`}><Check aria-hidden="true" /></button>
                               </Form>
-                              <span><b>{t.title}</b><small>{getClient(p?.clientId ?? "")?.company ?? "Unknown client"}{p ? ` · ${p.title}` : ""}</small></span>
+                              <span><b>{t.title}</b><small>{state === "blocked" && t.stateNote ? `Waiting on: ${t.stateNote}` : `${getClient(p?.clientId ?? "")?.company ?? "Unknown client"}${p ? ` · ${p.title}` : ""}`}</small></span>
                             </span>
                           </td>
+                          <td><span className={`ad__pill ad__pill--${t.done ? "good" : state === "blocked" ? "bad" : state === "review" ? "brand" : "flat"}`}>{t.done ? "Done" : TASK_STATE_WORDS[state]}</span></td>
                           <td className={`num${overdue ? " adPl__late" : ""}`}>{t.done ? (t.doneAt ? dateWords(t.doneAt, now, false) : "Done") : t.due ? dateWords(t.due, now) : <span className="ad__dim">Not set</span>}</td>
                           <td>{p ? <Link href={`/admin/projects/${p.id}`}>{p.title}</Link> : "Unknown"}</td>
                           <td>{r ? <span className="ad__pill ad__pill--flat">{r.payment.text}</span> : null}</td>
+                          <td className="ad__rmC"><TaskRowMenu id={t.id} title={t.title} state={state} done={t.done} projectId={t.projectId} /></td>
                         </tr>
                       );
                     })}

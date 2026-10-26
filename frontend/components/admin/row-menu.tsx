@@ -87,7 +87,9 @@ export function RowMenu({
   const items = allItems.filter((item) => item.kind !== "dialog" || !item.area || can(role, item.area));
   const [open, setOpen] = useState(false);
   const [at, setAt] = useState<{ top: number; left: number } | null>(null);
-  const [dialog, setDialog] = useState<number | null>(null);
+  /* Held by label, not position: a save can change which items a row offers,
+     and a position would then open whatever moved into that slot. */
+  const [dialog, setDialog] = useState<string | null>(null);
   /* WHERE THE MENU IS PORTALLED TO, AND IT IS NOT THE BODY.
 
      Every colour, the type and the box-sizing reset on these screens are
@@ -219,7 +221,7 @@ export function RowMenu({
     hadDialog.current = showing;
   }, [dialog]);
 
-  const chosen = dialog !== null ? items[dialog] : null;
+  const chosen = dialog !== null ? items.find((it) => it.label === dialog) ?? null : null;
 
   return (
     <>
@@ -273,7 +275,7 @@ export function RowMenu({
                 visibility: at ? "visible" : "hidden",
               }}
             >
-              {items.map((it, i) => {
+              {items.map((it) => {
                 const Icon = it.icon;
                 if (it.kind === "link") {
                   return (
@@ -301,7 +303,7 @@ export function RowMenu({
                     className={`ad__rmItem${it.tone === "danger" ? " is-danger" : ""}`}
                     onClick={() => {
                       setOpen(false);
-                      setDialog(i);
+                      setDialog(it.label);
                     }}
                   >
                     {Icon ? <Icon aria-hidden="true" /> : <span className="ad__rmGap" />}

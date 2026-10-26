@@ -68,6 +68,8 @@ Meetings implementation uses `Panel`, `Pick`, `DateInput`, `DateTimeInput`, `Dia
 
 Users under Settings reuses `Panel`, `ad__t`, `RowMenu`, `BulkBar`, `PickAll`, `RowPick` and `Pager`. Reviewed bulk outcomes appear in the shared dialog; the Person column stays pinned, and filters/page size remain in the URL. Recipient-owned account-change email preferences use the shared Settings save bar.
 
+My Day (staff) uses `Deck`, `StatTiles`, `ad__t`, `RowMenu` (`TaskRowMenu` in `components/admin/task-row.tsx`), `BulkBar`, `PickAll`, `RowPick` and `Pager`. Task states are To do, In progress, In review and Blocked; the Status chip is flat for routine states, brand for review, red for blocked and green for done. A successful deck action raises a toast with the action's own message.
+
 Newly invited clients get one optional `/portal/welcome` profile screen after secure sign-in. It reuses `Panel`, `Form`, `Field`, `Radios`, `Submit` and portal chrome; later edits use `SettingsForm` and its save bar in portal Settings. Continue saves the display name, optional normalized private photo and System/Light/Dark preference; Skip preserves current choices. Existing clients are not enrolled. Migration 0038 is applied by the owner from Settings › System before activating new invitations. Profile controls and uploads deny capture and read-only support sessions; the public default remains dark.
 
 Onboarding service explanations reuse the existing press-to-open Tip and field hints. Keep stored keys and option values stable; historical Client dashboard and Your client portal answers map to Client portal on draft load. Specialist explanations remain optional unless needed to answer safely.

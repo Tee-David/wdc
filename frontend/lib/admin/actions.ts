@@ -8,7 +8,7 @@ import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { redirect } from "next/navigation";
 import * as db from "./store";
-import { invoiceTotals, STAGES, type InvoiceLine, type Method, type Payment } from "./types";
+import { invoiceTotals, STAGES, TASK_STATES, TASK_STATE_WORDS, type InvoiceLine, type Method, type Payment } from "./types";
 import { advanceAmount, invoiceMailVerdict, paymentReference, totalOfLines } from "./money-rules";
 import type { Staged } from "@/lib/money-mail";
 import { selectedPaystackMode } from "@/lib/paystack-mode";
@@ -903,6 +903,14 @@ export async function createTask(_prev:ActionState,fd:FormData):Promise<ActionSt
 export async function toggleTask(_prev:ActionState,fd:FormData):Promise<ActionState>{
  const refused=await allow("projects");if(refused)return refused;
  try{const expected=str(fd,"expectedDone");if(expected&&!['true','false'].includes(expected))return FAIL({},"Refresh the task before updating it.");const result=await changeLegacyTask({kind:'toggle',id:str(fd,"id"),expectedDone:expected?expected==='true':undefined});after(()=>dispatchWorkspaceEvents({eventIds:result.eventIds}));refreshProject(result.task.projectId);return OK(result.task.done?`Ticked off "${result.task.title}".`:`"${result.task.title}" is open again.`);}catch(error){return FAIL({},error instanceof Error?error.message:"Task could not be updated.");}
+}
+
+/** Move an open task between To do, In progress, In review and Blocked (with what it waits on). Review tells the project's leads. */
+export async function setTaskState(_prev:ActionState,fd:FormData):Promise<ActionState>{
+ const refused=await allow("projects");if(refused)return refused;
+ const state=TASK_STATES.find((x)=>x===str(fd,"state"));if(!state)return FAIL({},"Choose where the task is.");
+ const note=str(fd,"note");if(state==="blocked"&&!note)return FAIL({note:"Say what it is waiting on."});
+ try{const result=await changeLegacyTask({kind:'state',id:str(fd,"id"),state,note});after(()=>dispatchWorkspaceEvents({eventIds:result.eventIds}));refreshProject(result.task.projectId);return OK(`Updated. "${result.task.title}" is ${TASK_STATE_WORDS[state].toLowerCase()}.`);}catch(error){return FAIL({},error instanceof Error?error.message:"Task could not be updated.");}
 }
 
 export async function removeTask(_prev:ActionState,fd:FormData):Promise<ActionState>{
