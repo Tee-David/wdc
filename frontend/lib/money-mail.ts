@@ -94,11 +94,15 @@ async function stage(out: Outgoing): Promise<Staged> {
     by: out.by, clientId: out.clientId, about: out.about,
   };
   const held = out.hold;
-  const notify=()=>out.dedupeKey.startsWith("receipt-copy:")?Promise.resolve():stageLegacyMoneyNotification({key:out.dedupeKey,clientId:out.clientId,about:out.about,title:out.subject,summary:out.summary||"Open the financial record for its current details.",by:out.by,existingAddress:out.to});
+  const notify=()=>out.dedupeKey.startsWith("receipt-copy:")?Promise.resolve(null):stageLegacyMoneyNotification({key:out.dedupeKey,clientId:out.clientId,about:out.about,title:out.subject,summary:out.summary||"Open the financial record for its current details.",by:out.by,existingAddress:out.to});
   const entry = held ? { ...row, summary: `Not sent: ${held.say}`, state: "Skipped" as const } : { ...row, summary: out.summary };
 
+  /* The studio's copy of the same event (lib/workspace/legacy-notifications.ts).
+     Sent with the email, behind the response, rather than left for the
+     heartbeat: on GitHub's schedule that heartbeat ran every six hours. */
+  let noticeId: string | null = null;
   let queued = await queueLogged(entry,true);
-  if(queued.ok)await notify();
+  if(queued.ok)noticeId=await notify();
   let retired: LoggedMessage | null = null;
   if (!queued.ok) {
     const was = queued.message;
@@ -115,7 +119,7 @@ async function stage(out: Outgoing): Promise<Staged> {
       };
     }
     retired = await retryLogged(was.id, out.by);
-    if (retired){queued = await queueLogged(entry,true);if(queued.ok)await notify();}
+    if (retired){queued = await queueLogged(entry,true);if(queued.ok)noticeId=await notify();}
     if (!queued.ok) return { state: "already", say: "That is already on its way." };
   } else if (held) {
     return { state: "skipped", ...held };
@@ -144,6 +148,8 @@ async function stage(out: Outgoing): Promise<Staged> {
         await settleLogged(id,"Failed",error instanceof Error?error.message.slice(0,200):"Receipt delivery failed.");
         if (retired) await recordResend(retired.id, { at: new Date().toISOString(), to: out.to, by: out.by, sent: false, error: error instanceof Error ? error.message.slice(0, 200) : undefined });
         return { sent: false, reason: configured ? "send failed" : "mail not configured" };
+      } finally {
+        if(noticeId)await import("@/lib/workspace/events").then(({dispatchWorkspaceEvents})=>dispatchWorkspaceEvents({eventIds:[noticeId!]})).catch(()=>console.error("[money-mail] Studio notice left for the heartbeat."));
       }
     },
   };
@@ -212,6 +218,7 @@ function planReceipt(input: ReceiptInput, key = mailKey.receipt(input.payment.id
       line,
       "",
       `Your receipt: ${url}`,
+      `The receipt as a PDF: ${url}/pdf`,
       `Your invoice: ${invoiceUrl}`,
       "",
       `Receipt number ${payment.receiptNo}. Received ${received}, by ${payment.method}, reference ${payment.reference}.`,

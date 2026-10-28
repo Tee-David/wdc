@@ -13,6 +13,8 @@ import AdminNotices from "@/components/admin/notices";
 import SupportBar from "@/components/admin/support-bar";
 import "@/components/admin/admin.css";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
+import { after } from "next/server";
+import { nudgeMail } from "@/lib/mail-heartbeat";
 import { db } from "@/lib/db/pool";
 import { getInvoices, getProjects, getTickets } from "@/lib/admin/store";
 import { messagesWaiting } from "@/lib/messages/store";
@@ -48,6 +50,8 @@ export const dynamic = "force-dynamic";
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   await syncStore();
   persistSoon();
+  /* Waiting mail goes out behind this page; see lib/mail-heartbeat.ts for why the dashboards nudge it. */
+  after(nudgeMail);
   const { session, support, supportUnavailable } = await getAdminRequest();
   /* A SUPPORT COOKIE THAT CANNOT BE VERIFIED (ended, expired, the owner signed
      out, the person was deactivated) gets the Exit screen, never the login

@@ -2,7 +2,7 @@ import "server-only";
 
 import { db } from "@/lib/db/pool";
 import { syncStore } from "@/lib/admin/persist";
-import { dueAttempt } from "@/lib/mail-retry-rule";
+import { dueAttempt, refusedOutright } from "@/lib/mail-retry-rule";
 
 /**
  * FAILED MAIL IS TRIED AGAIN WITHOUT ANYBODY PRESSING A BUTTON.
@@ -68,5 +68,35 @@ export async function retryFailedMail(by = "Automatic retry"): Promise<{ tried: 
       console.error("[mail-retry]", row.dedupe_key.split(":")[0], error instanceof Error ? error.message.slice(0, 160) : error);
     }
   }
-  return { tried: due.length, sent };
+  return { tried: due.length, sent: sent + await retryWorkspaceNotices() };
+}
+
+type NoticeRow = { id: string; event_id: string; message_id: string; attempt: string | number; settled_at: Date; error: string | null };
+
+/**
+ * Workspace notices (lib/workspace/events.ts) the host refused outright, put
+ * back in the queue on the same spacing. They were the one kind left Failed
+ * for good. The dispatcher checks access, preferences and staleness again
+ * before it sends, exactly as for the first try.
+ */
+async function retryWorkspaceNotices(): Promise<number> {
+  const r = await db.query<NoticeRow>(`
+    SELECT i.id, i.event_id, i.message_id, i.attempt, i.settled_at, m.error
+    FROM workspace_email_intents i JOIN message_log m ON m.id = i.message_id
+    WHERE i.state = 'failed' AND i.mode = 'immediate' AND i.settled_at >= now() - INTERVAL '2 days'
+    ORDER BY i.settled_at LIMIT 50
+  `).catch(() => ({ rows: [] as NoticeRow[] }));
+  const now = Date.now();
+  const due = r.rows.filter((row) => refusedOutright(row.error) && dueAttempt({
+    error: row.error, createdAt: new Date(row.settled_at).getTime(), tries: [], earlier: Math.max(0, Number(row.attempt) - 1),
+  }, now) > 0).slice(0, PER_TICK);
+  if (!due.length) return 0;
+  const requeued = await db.query<{ event_id: string }>(
+    `UPDATE workspace_email_intents SET state = 'pending', available_at = now(), error = NULL WHERE id = ANY($1::UUID[]) AND state = 'failed' RETURNING event_id`,
+    [due.map((row) => row.id)],
+  );
+  await db.query(`UPDATE message_log SET state = 'Queued', settled_at = NULL, error = NULL WHERE id = ANY($1::UUID[]) AND state = 'Failed'`, [due.map((row) => row.message_id)]);
+  if (!requeued.rows.length) return 0;
+  const { dispatchWorkspaceEvents } = await import("@/lib/workspace/events");
+  return (await dispatchWorkspaceEvents({ eventIds: requeued.rows.map((row) => row.event_id) })).accepted;
 }

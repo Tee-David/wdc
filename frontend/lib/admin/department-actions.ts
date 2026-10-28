@@ -79,7 +79,7 @@ export async function saveClientDepartments(_p: ActionState, fd: FormData): Prom
   const ids = fd.getAll("departments").map(String).filter((x) => known.has(x));
   try {
     const result=await commitClientDepartments({clientId:id,departmentIds:ids});
-    if(result.eventIds.length)after(()=>dispatchWorkspaceEvents({eventIds:result.eventIds,limit:1}));
+    if(result.eventIds.length)after(()=>dispatchWorkspaceEvents({eventIds:result.eventIds}));
   }catch(error){return FAIL({},error instanceof Error?error.message:"Departments could not be updated.");}
   revalidatePath(`/admin/clients/${id}`); done();
   return OK("Updated.");

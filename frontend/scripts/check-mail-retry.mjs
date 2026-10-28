@@ -1,6 +1,6 @@
 // The automatic mail retry rule: what is retried, how far apart, how many times.
 import assert from "node:assert/strict";
-import { AUTO_RETRY_MINUTES, dueAttempt, retryable } from "../lib/mail-retry-rule.ts";
+import { AUTO_RETRY_MINUTES, dueAttempt, refusedOutright, retryable } from "../lib/mail-retry-rule.ts";
 
 const min = 60_000, t0 = Date.parse("2026-10-26T09:00:00Z");
 const spam = "Message failed: 550 5.7.1 Message discarded as high-probability spam";
@@ -21,4 +21,9 @@ assert.equal(dueAttempt(row({ earlier: 1, createdAt: t0 + 10 * min }), t0 + 70 *
 assert.equal(dueAttempt(row({ earlier: 2, createdAt: t0 }), t0 + 360 * min), 3);
 assert.equal(dueAttempt(row({ earlier: AUTO_RETRY_MINUTES.length }), t0 + 9999 * min), 0, "stops after its tries");
 assert.equal(dueAttempt(row({ error: "550 5.1.1 User unknown" }), t0 + 9999 * min), 0);
+assert.equal(refusedOutright(spam), true, "a spam verdict delivered nothing");
+assert.equal(refusedOutright("421 Service not available, try again later"), true);
+assert.equal(refusedOutright("Connection timeout"), false, "a timeout may have delivered it");
+assert.equal(refusedOutright("Greeting never received"), false);
+assert.equal(refusedOutright("550 5.1.1 User unknown"), false);
 console.log("mail retry rule: ok");

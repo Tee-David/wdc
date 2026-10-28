@@ -11,6 +11,14 @@ const RETRYABLE = /high-probability spam|timeout|timed out|ETIMEDOUT|ECONNRESET|
 
 export const retryable = (error: string | null | undefined) => RETRYABLE.test(error ?? "");
 
+/* The host answered and said no, so nothing reached the mailbox. A timeout or
+   a dropped connection might have delivered it, which is why a workspace
+   notice (one send per person, never two) is only retried on these. */
+const REFUSED = /high-probability spam|\b4[25]\d\b/i;
+const UNCERTAIN = /timeout|timed out|ETIMEDOUT|ECONNRESET|ESOCKET|Connection closed|Greeting never received/i;
+
+export const refusedOutright = (error: string | null | undefined) => REFUSED.test(error ?? "") && !UNCERTAIN.test(error ?? "");
+
 /** The attempt number to make now, or 0 when it is not due or has had its tries. */
 export function dueAttempt(row: { error: string | null; createdAt: number; tries: number[]; earlier: number }, now: number): number {
   if (!retryable(row.error)) return 0;

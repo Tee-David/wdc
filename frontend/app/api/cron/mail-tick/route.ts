@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { after,NextResponse, type NextRequest } from "next/server";
 import { runBatch } from "@/lib/campaigns";
 import { runAutomations } from "@/lib/automations";
+import { runMailWork } from "@/lib/mail-heartbeat";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -21,18 +22,8 @@ async function handle(request: NextRequest) {
   const campaigns = await runBatch();
   /* Automations ride the same heartbeat; a failure there must not hide the campaign result. */
   const automations = await runAutomations().catch(() => null);
-  // Intent already exists in the database. One workspace SMTP attempt runs after this response.
-  after(async()=>{
-    try { const {dispatchFlutterwaveReceipts,reconcileFlutterwaveCheckout}=await import('@/lib/flutterwave');await reconcileFlutterwaveCheckout();await dispatchFlutterwaveReceipts(); } catch { console.error('[flutterwave] Pending receipt delivery will retry.'); }
-    try { const {dispatchWorkspaceEvents}=await import('@/lib/workspace/events');await dispatchWorkspaceEvents({limit:1}); }
-    catch { console.error('[workspace-mail] Dispatch interrupted. Pending or unconfirmed attempts remain in the durable notification log.'); }
-    /* Messages Admin scheduled for now or earlier (migration 0062). */
-    try { const {sendDueMessages}=await import('@/lib/messages/marks');await sendDueMessages(); }
-    catch { console.error('[messages] Scheduled sends interrupted. Unsent rows stay for the next tick.'); }
-    /* Mail the host refused for now (a spam verdict, a timeout), tried again on a spaced schedule. */
-    try { const {retryFailedMail}=await import('@/lib/mail-retry');await retryFailedMail(); }
-    catch { console.error('[mail-retry] Interrupted. Failed messages stay in the log for the next tick.'); }
-  });
+  // Intent already exists in the database. The sends run after this response, on one pooled SMTP connection.
+  after(runMailWork);
   return NextResponse.json({ ...campaigns, automations,workspace:{scheduled:true,acceptance:'Check the message log after the provider answers.'} });
 }
 export const GET = handle;

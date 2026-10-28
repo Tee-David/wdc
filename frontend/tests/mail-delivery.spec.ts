@@ -9,7 +9,7 @@ test("SMTP greets with the sender domain rather than an ephemeral machine", () =
   expect(smtpHostname("info@wedigcreativity.com.ng")).toBe("wedigcreativity.com.ng");
 });
 
-test("an explicit spam rejection retries the written text with real attachments once", async () => {
+test("an explicit spam rejection retries the written text once, without attachments, saying what was left off", async () => {
   const attempts: typeof message[] = [];
   const result = await deliverMail(message, async value => {
     attempts.push(value);
@@ -18,9 +18,21 @@ test("an explicit spam rejection retries the written text with real attachments 
   });
   expect(result).toBe("accepted");
   expect(attempts).toHaveLength(2);
-  expect(attempts[1].text).toBe(message.text);
   expect(attempts[1].html).toBeUndefined();
-  expect(attempts[1].attachments).toEqual([{ filename: "invoice.pdf" }]);
+  expect(attempts[1].attachments).toBeUndefined();
+  expect(attempts[1].text.startsWith(message.text)).toBe(true);
+  expect(attempts[1].text).toContain("(invoice.pdf)");
+});
+
+test("a text message with a file is retried without the file", async () => {
+  const attempts: { text: string; attachments?: unknown[] }[] = [];
+  await deliverMail({ text: "Your receipt: https://example.com/r/x", attachments: [{ filename: "receipt.pdf" }] }, async value => {
+    attempts.push(value);
+    if (attempts.length === 1) throw rejection;
+    return "accepted";
+  });
+  expect(attempts).toHaveLength(2);
+  expect(attempts[1].attachments).toBeUndefined();
 });
 
 test("timeouts, auth failures and other refusals never trigger a second send", async () => {
@@ -35,6 +47,6 @@ test("a second refusal propagates and plain messages are not retried", async () 
   for (const value of [message, { ...message, html: undefined }, { ...message, text: "" }]) {
     let calls = 0;
     await expect(deliverMail(value, async () => { calls++; throw rejection; })).rejects.toEqual(rejection);
-    expect(calls).toBe(value.html && value.text ? 2 : 1);
+    expect(calls).toBe(value.text && (value.html || value.attachments.some(file => !file.cid)) ? 2 : 1);
   }
 });

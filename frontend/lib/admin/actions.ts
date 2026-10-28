@@ -994,7 +994,7 @@ export async function addDeliverableVersion(_prev: ActionState, fd: FormData): P
   let result;
   try {result=await addLegacyDeliverableVersion({projectId:current.projectId,id:current.id,version:str(fd,"version"),note,url:link??undefined,files:files.length?files:undefined});}catch(error){return FAIL({},error instanceof Error?error.message:"The version could not be saved.");}
   const d=result.deliverable;
-  if(result.eventIds.length)after(()=>dispatchWorkspaceEvents({eventIds:result.eventIds,limit:1}));
+  if(result.eventIds.length)after(()=>dispatchWorkspaceEvents({eventIds:result.eventIds}));
   refreshProject(d.projectId);
   const v = d.versions[d.versions.length - 1].v;
   return OK(`${d.name} v${v} added. It needs sending again before it can be approved.`);
@@ -1018,7 +1018,7 @@ export async function moveApproval(_prev: ActionState, fd: FormData): Promise<Ac
   let result;
   try{result=await moveLegacyDeliverableApproval({projectId:current.projectId,id:current.id,version:str(fd,"version"),approval:a,note});}catch(error){return FAIL({},error instanceof Error?error.message:"The response could not be saved.");}
   const d=result.deliverable;
-  if(result.eventIds.length)after(()=>dispatchWorkspaceEvents({eventIds:result.eventIds,limit:1}));
+  if(result.eventIds.length)after(()=>dispatchWorkspaceEvents({eventIds:result.eventIds}));
   refreshProject(d.projectId);
   return OK(`${d.name} is now "${a.toLowerCase()}".`);
 }

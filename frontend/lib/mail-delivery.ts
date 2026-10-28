@@ -9,23 +9,32 @@ export function spamRejected(error: unknown): boolean {
 type Message = {
   text: string;
   html?: string;
-  attachments?: { cid?: string }[];
+  attachments?: { filename?: string; cid?: string }[];
 };
 
 /**
- * The server rejected the HTML before accepting it. Try the written text once,
- * keeping document links and actual files; inline pictures belong to the HTML.
- * Timeouts and uncertain outcomes are never retried here.
+ * The server rejected the message before accepting it. Try the written text
+ * once, with NO attachments: measured against the host on 28 October 2026, a
+ * receipt's text with its PDF was refused and the same text alone accepted in
+ * the same minute, so keeping the files made the fallback fail the same way.
+ * Every message that carries a file also links to the record it came from
+ * (a receipt links its PDF), and the text says what was left off. Timeouts and uncertain outcomes are
+ * never retried here.
  */
 export async function deliverMail<T extends Message, R>(message: T, send: (message: T) => Promise<R>): Promise<R> {
   try {
     return await send(message);
   } catch (error) {
-    if (!spamRejected(error) || !message.html || !message.text.trim()) throw error;
+    const files = (message.attachments ?? []).filter(attachment => !attachment.cid);
+    if (!spamRejected(error) || !message.text.trim() || (!message.html && !files.length)) throw error;
+    const names = files.map(file => file.filename).filter(Boolean);
     return send({
       ...message,
       html: undefined,
-      attachments: message.attachments?.filter(attachment => !attachment.cid),
+      attachments: undefined,
+      text: names.length
+        ? `${message.text.trimEnd()}\n\nThe mail server would not take the attached ${names.length === 1 ? "file" : "files"} (${names.join(", ")}), so ${names.length === 1 ? "it was" : "they were"} left off. The link in this email opens the record ${names.length === 1 ? "it belongs" : "they belong"} to.\n`
+        : message.text,
     });
   }
 }

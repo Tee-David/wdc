@@ -15,6 +15,8 @@ import "@/components/admin/admin.css";
 import "@/components/admin/dashboard.css";
 import "@/components/client/portal.css";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
+import { after } from "next/server";
+import { nudgeMail } from "@/lib/mail-heartbeat";
 import { readClientProfile,requireProfileClient } from "@/lib/client-profile";
 import { ProfileTheme } from "@/components/client/profile-setup";
 
@@ -40,6 +42,8 @@ export const dynamic = "force-dynamic";
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
   await syncStore();
   persistSoon();
+  /* Waiting mail goes out behind this page; see lib/mail-heartbeat.ts for why the dashboards nudge it. */
+  after(nudgeMail);
   const { session, client, support, supportUnavailable, capture,isPrimaryContact,billingProjectIds } = await getPortalRequest();
   if (supportUnavailable) return <div className="ad"><main className="ad__main"><SupportBanner /></main></div>;
 

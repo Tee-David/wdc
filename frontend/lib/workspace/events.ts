@@ -56,14 +56,16 @@ export async function cancelWorkspaceEvents(projectId:string, staleKey:string,tx
  await tx.query(`UPDATE workspace_notifications SET actioned_at=now() WHERE event_id IN(SELECT id FROM workspace_events WHERE project_id=$1 AND stale_key=$2 AND cancelled_at IS NOT NULL)`,[projectId,staleKey]);
 }
 type SendRow=QueryResultRow&{id:string;message_id:string;event_id:string;user_id:string;project_id:string;client_id:string|null;title:string;summary:string;href:string;actor_name:string;email:string;kind:string;recipient_purpose:"review"|"billing"|"updates";category:NotificationCategory;visibility:'client'|'internal';due_at:Date|null;mode:string;stale_key:string|null;modes:unknown;digest_days:number};
+const WORKSPACE_PER_RUN=5;
 /** Bounded worker: claim once. A vanished/ambiguous SMTP attempt never becomes an automatic second send. */
 export async function dispatchWorkspaceEvents(options:{eventIds?:readonly string[];limit?:number}={}) {
  await (await import("@/lib/admin/persist")).syncStore(); // Cold cron instances must honour persisted legacy client opt-outs.
  const result={accepted:0,failed:0,skipped:0};
- // ponytail: one SMTP attempt per tick (~23s authentication, up to ~46s with the safe spam fallback).
- // Pending recipients survive until later ticks; increase concurrency only after measured provider latency improves.
- if(!options.eventIds?.length&&await dispatchWorkspaceDigests())return result;
- const pending=await db.query<{id:string}>(`SELECT i.id FROM workspace_email_intents i WHERE i.state='pending' AND i.mode='immediate' AND i.available_at<=now() AND ($1::UUID[] IS NULL OR i.event_id=ANY($1::UUID[])) ORDER BY i.available_at LIMIT $2`,[options.eventIds?.length?options.eventIds:null,Math.min(options.limit??1,1)]);
+ // Sequential on one pooled connection: the host's ~17s wait is paid once per run (p50 17s, p90 23s in the
+ // message log, October 2026) and each further send took about a second. One per run left an event's second
+ // recipient for the next heartbeat, hours later. ponytail: five per run fits the 60s tick; raise with a measurement.
+ if(!options.eventIds?.length)await dispatchWorkspaceDigests();
+ const pending=await db.query<{id:string}>(`SELECT i.id FROM workspace_email_intents i WHERE i.state='pending' AND i.mode='immediate' AND i.available_at<=now() AND ($1::UUID[] IS NULL OR i.event_id=ANY($1::UUID[])) ORDER BY i.available_at LIMIT $2`,[options.eventIds?.length?options.eventIds:null,Math.min(options.limit??WORKSPACE_PER_RUN,WORKSPACE_PER_RUN)]);
  for(const row of pending.rows) {
   const claim=await db.query(`UPDATE workspace_email_intents SET state='sending',claimed_at=now(),attempt=attempt+1 WHERE id=$1 AND state='pending' RETURNING id`,[row.id]);if(!claim.rowCount)continue;
   const read=await db.query<SendRow>(`SELECT i.*,e.project_id,e.client_id,e.title,e.summary,e.actor_name,e.category,e.kind,e.stale_key,e.recipient_purpose,e.visibility,e.due_at,coalesce(u.email,i.recipient_email) AS email,p.modes,p.digest_days FROM workspace_email_intents i JOIN workspace_events e ON e.id=i.event_id LEFT JOIN "user" u ON u.id=i.user_id LEFT JOIN workspace_notification_preferences p ON p.user_id=i.user_id WHERE i.id=$1 AND e.cancelled_at IS NULL AND (u."deactivatedAt" IS NULL)`,[row.id]);
