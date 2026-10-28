@@ -1,3 +1,8 @@
+## Zip deliverables, 28 October 2026
+
+- A deliverable version takes zips now, with PDF, images, video, design files (AI, EPS, PSD, Figma, InDesign), office documents and fonts, up to 250MB each and 10 per version (owner asked, 2026-10-28). Uploads go to the private bucket under the project (`deliverables/<projectId>/`), not the public media library, and are read through the same short-lived signed Open and Download links. Older versions keep their media-library files. Rules: `lib/deliverable-upload-rules.ts`, checked by `npm run check:deliverable-upload`; the action asks the bucket that each file arrived, under the same project, before recording it.
+- Not verified: a real upload signed in on the live site (the local environment has no R2 access key). The service workspace's "Upload a preview" field still uses the public media library, so zips go through Deliverables.
+
 ## Mail delivery: late and refused messages, 28 October 2026
 
 - Measured on the live message log (30 days): a send takes 17s at the median and 23s at p90, almost all of it the Truehost server's wait before it greets (15.6s before TLS from here; sign-in and sending then take under a second). Nothing on our side shortens that, so sends stay behind the response and reuse one connection.

@@ -16,8 +16,8 @@ import { useAdminRole } from "./shell";
 import { can } from "@/lib/admin/permissions";
 import { DialogButton } from "./dialog";
 import { ApprovalPill, Empty, HealthPill, Panel, when } from "./bits";
-import { uploadToMedia } from "./media-upload";
-import { MEDIA_ACCEPT } from "@/lib/media-validate";
+import { signDeliverableUpload } from "@/lib/admin/deliverable-upload-actions";
+import { checkDeliverableFile, DELIVERABLE_ACCEPT, DELIVERABLE_MAX_BYTES } from "@/lib/deliverable-upload-rules";
 import { FileDrop } from "./file-drop";
 import { OwnerField } from "./owner-field";
 
@@ -288,7 +288,7 @@ export function Deliverables({
 
               <div className="ad__row">
                 <DialogButton label="New version" title={`New version of ${d.name}`} icon={Plus} tone="plain">
-                  {(close) => <DeliverableForm id={d.id} onDone={close} previousVersion={d.versions[d.versions.length - 1]?.v} />}
+                  {(close) => <DeliverableForm id={d.id} deliverableProjectId={d.projectId} onDone={close} previousVersion={d.versions[d.versions.length - 1]?.v} />}
                 </DialogButton>
 
                 <DialogButton label="Record a response" title={`${d.name}: what happened`} tone="plain">
@@ -323,7 +323,7 @@ export function Deliverables({
 
 const deliverableFileId = (deliverableId: string, version: number, key: string) => `${deliverableId}:${version}:${key}`;
 
-function DeliverableForm({ projectId, id, onDone, previousVersion }: { projectId?: string; id?: string; onDone: () => void; previousVersion?: number }) {
+function DeliverableForm({ projectId, id, deliverableProjectId, onDone, previousVersion }: { projectId?: string; id?: string; deliverableProjectId?: string; onDone: () => void; previousVersion?: number }) {
   const [uploading, setUploading] = useState(false);
   const fresh = Boolean(projectId);
   return (
@@ -335,7 +335,7 @@ function DeliverableForm({ projectId, id, onDone, previousVersion }: { projectId
         {fresh ? <Field name="name" label="What it is" required placeholder="Identity routes" /> : null}
         <Area name="note" label={fresh ? "What this first version is" : "What changed"} required rows={2}
               placeholder={fresh ? "Three routes, each with rationale." : undefined} />
-        <DeliverableUpload onBusyChange={setUploading} />
+        <DeliverableUpload projectId={projectId ?? deliverableProjectId ?? ""} onBusyChange={setUploading} />
         <Field name="url" label="Add a link" placeholder="https://…"
                hint="Optional. Upload files, add a link, or do both." />
       </Fields>
@@ -347,7 +347,22 @@ function DeliverableForm({ projectId, id, onDone, previousVersion }: { projectId
   );
 }
 
-function DeliverableUpload({ onBusyChange }: { onBusyChange: (busy: boolean) => void }) {
+/**
+ * One file into the private bucket under its project: checked here, signed by
+ * the server, put straight into the bucket. The deliverable action asks the
+ * bucket that it arrived before recording it.
+ */
+async function uploadDeliverable(projectId: string, f: File): Promise<{ ok: true; key: string; name: string } | { ok: false; error: string }> {
+  const local = checkDeliverableFile(f.name, f.size);
+  if (!local.ok) return local;
+  const grant = await signDeliverableUpload({ projectId, filename: f.name, size: f.size }).catch(() => null);
+  if (!grant?.ok) return { ok: false, error: grant?.error ?? "The upload could not be started. Check your connection and try again." };
+  const put = await fetch(grant.url, { method: "PUT", headers: { "Content-Type": grant.contentType }, body: f }).then((r) => r.ok).catch(() => false);
+  if (!put) return { ok: false, error: `${f.name} did not finish uploading. Check your connection and try again.` };
+  return { ok: true, key: grant.key, name: f.name.trim().slice(0, 200) };
+}
+
+function DeliverableUpload({ projectId, onBusyChange }: { projectId: string; onBusyChange: (busy: boolean) => void }) {
   const [files, setFiles] = useState<{ name: string; key: string }[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -360,7 +375,7 @@ function DeliverableUpload({ onBusyChange }: { onBusyChange: (busy: boolean) => 
     setBusy(true); onBusyChange(true); setError("");
     const added: { name: string; key: string }[] = [];
     for (const file of incoming) {
-      const done = await uploadToMedia(file);
+      const done = await uploadDeliverable(projectId, file);
       if (!done.ok) { setError(done.error); break; }
       added.push({ name: done.name, key: done.key });
     }
@@ -374,8 +389,8 @@ function DeliverableUpload({ onBusyChange }: { onBusyChange: (busy: boolean) => 
       <FileDrop
         id="deliverable-files"
         label="Upload files (optional)"
-        hint="Up to 10 files. PNG, JPEG, WebP, AVIF, GIF, PDF, MP4 or WebM."
-        accept={MEDIA_ACCEPT}
+        hint={`Up to 10 files, ${DELIVERABLE_MAX_BYTES / 1024 / 1024}MB each. Zip, PDF, images, video, design files, documents and fonts.`}
+        accept={DELIVERABLE_ACCEPT}
         multiple
         busy={busy}
         disabled={files.length >= 10}

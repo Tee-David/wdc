@@ -8,7 +8,8 @@ import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { redirect } from "next/navigation";
 import * as db from "./store";
-import { invoiceTotals, STAGES, TASK_STATES, TASK_STATE_WORDS, type InvoiceLine, type Method, type Payment } from "./types";
+import { invoiceTotals, STAGES, TASK_STATES, TASK_STATE_WORDS, type DeliverableFile, type InvoiceLine, type Method, type Payment } from "./types";
+import { headObject, r2Config } from "@/lib/r2";
 import { advanceAmount, invoiceMailVerdict, paymentReference, totalOfLines } from "./money-rules";
 import type { Staged } from "@/lib/money-mail";
 import { selectedPaystackMode } from "@/lib/paystack-mode";
@@ -29,6 +30,7 @@ import { changeProjectRecord, changeLegacyTask, createProjectRecord } from "@/li
 import { persistSoon, syncStore, saveStore } from "@/lib/admin/persist";
 import { isIconColor, isProjectIcon, randomProjectIcon } from "@/lib/project-icons";
 import { mediaByKey } from "@/lib/media";
+import { deliverableKeyProject } from "@/lib/deliverable-upload-rules";
 import { confirmUploads, readUploads, saveAttachments } from "@/lib/messages/attachments";
 
 /**
@@ -935,6 +937,27 @@ export async function postUpdate(_prev:ActionState,fd:FormData):Promise<ActionSt
 
 /* ------------------------------------------------ delivery: deliverables */
 
+/**
+ * Each uploaded file is confirmed before it is recorded: an older upload by
+ * its media-library row, a deliverable upload by asking the bucket, and only
+ * under the project it is being added to.
+ */
+async function uploadedFilesProblem(files: DeliverableFile[], projectId: string): Promise<string | null> {
+  try {
+    for (const file of files) {
+      const owner = deliverableKeyProject(file.key);
+      if (owner !== null) {
+        const r2 = r2Config();
+        if (owner !== projectId || !r2.ok || !(await headObject({ config: r2.config, key: file.key })).ok) return "One uploaded file did not arrive. Remove it and add it again.";
+        continue;
+      }
+      const asset = await mediaByKey(file.key);
+      if (!asset || asset.archivedAt) return "One uploaded file is no longer in the media library. Remove it and add it again.";
+    }
+  } catch { return "The uploaded files could not be checked. Try again."; }
+  return null;
+}
+
 export async function createDeliverable(_prev: ActionState, fd: FormData): Promise<ActionState> {
   await syncStore();
   persistSoon();
@@ -951,12 +974,8 @@ export async function createDeliverable(_prev: ActionState, fd: FormData): Promi
   const link = url(fd, "url");
   if (rawUrl && !link) errors.url = "That is not a link. Paste the full address, starting with https://";
   if (files.length && !errors.files) {
-    try {
-      for (const file of files) {
-        const asset = await mediaByKey(file.key);
-        if (!asset || asset.archivedAt) { errors.files = "One uploaded file is no longer in the media library. Remove it and add it again."; break; }
-      }
-    } catch { errors.files = "The media library could not be checked. Try again."; }
+    const problem = await uploadedFilesProblem(files, projectId);
+    if (problem) errors.files = problem;
   }
   if (Object.keys(errors).length) return FAIL(errors);
 
@@ -980,12 +999,8 @@ export async function addDeliverableVersion(_prev: ActionState, fd: FormData): P
   const link = url(fd, "url");
   if (rawUrl && !link) errors.url = "That is not a link. Paste the full address, starting with https://";
   if (files.length && !errors.files) {
-    try {
-      for (const file of files) {
-        const asset = await mediaByKey(file.key);
-        if (!asset || asset.archivedAt) { errors.files = "One uploaded file is no longer in the media library. Remove it and add it again."; break; }
-      }
-    } catch { errors.files = "The media library could not be checked. Try again."; }
+    const problem = await uploadedFilesProblem(files, db.getDeliverable(str(fd, "id"))?.projectId ?? "");
+    if (problem) errors.files = problem;
   }
   if (Object.keys(errors).length) return FAIL(errors);
 

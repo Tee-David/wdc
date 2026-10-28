@@ -23,6 +23,7 @@
     "check:broken-links": "node --experimental-strip-types scripts/check-broken-links.mjs",
     "check:brand-kit": "node --experimental-strip-types scripts/check-brand-kit.mjs",
     "check:mail-retry": "node --experimental-strip-types scripts/check-mail-retry.mjs",
+    "check:deliverable-upload": "node --experimental-strip-types scripts/check-deliverable-upload.mjs",
     "check:retainer": "node --experimental-strip-types scripts/check-retainer.mjs"
   },
   "dependencies": {

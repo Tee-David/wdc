@@ -4,6 +4,7 @@ import {
   type DeliverableFile, type Stage,
 } from "./types";
 import { isMediaKey } from "@/lib/media-validate";
+import { deliverableKeyProject } from "@/lib/deliverable-upload-rules";
 
 /**
  * Reading a form, safely.
@@ -177,8 +178,9 @@ export function url(fd: FormData, k: string): string | null {
 /**
  * Files arrive from the deliverable picker as JSON because one version can
  * carry several uploads. They are still hostile form input: only a small,
- * uniquely-keyed list from the media-library namespace is allowed through.
- * The action separately confirms each key has a live library row.
+ * uniquely-keyed list from the media-library or deliverables namespace is
+ * allowed through. The action separately confirms each key: a live library
+ * row, or an object in the bucket under the same project.
  */
 export function deliverableFiles(fd: FormData, errors: Errors): DeliverableFile[] {
   const raw = str(fd, "files");
@@ -198,7 +200,7 @@ export function deliverableFiles(fd: FormData, errors: Errors): DeliverableFile[
       return [];
     }
     const name = candidate.name.trim().replace(/\s+/g, " ");
-    if (!name || name.length > 200 || !isMediaKey(candidate.key) || seen.has(candidate.key)) {
+    if (!name || name.length > 200 || !(isMediaKey(candidate.key) || deliverableKeyProject(candidate.key)) || seen.has(candidate.key)) {
       errors.files = "One uploaded file is not available any more. Remove it and add it again.";
       return [];
     }
