@@ -13,6 +13,7 @@ import {stageSupportNotice,stageSupportReceipt} from "@/lib/support-mail";
 import {requireWorkspaceUser} from "@/lib/workspace/access";
 import {dispatchWorkspaceEvents} from "@/lib/workspace/events";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
+import { confirmUploads, readUploads, saveAttachments } from "@/lib/messages/attachments";
 
 /**
  * THE PORTAL'S OWN WRITE ENDPOINTS -- a separate module from
@@ -126,10 +127,15 @@ export async function replyToTicket(_prev: ActionState, fd: FormData): Promise<A
   if (!client) return FAIL({}, await whyNoClient());
   const ticketId = str(fd, "ticketId");
   const body = str(fd, "body");
-  if (!body) return FAIL({ body: "Type a reply first." });
+  const uploads = readUploads(str(fd, "attachments"), `t-${ticketId}`);
+  if (!uploads) return FAIL({}, "Those files could not be read. Remove them and attach them again.");
+  if (!body && !uploads.length) return FAIL({ body: "Type a reply or attach a file first." });
   const t = db.getTicket(ticketId);
   if (!t || t.clientId !== client.id) return FAIL({}, "That conversation is no longer there.");
+  const files = await confirmUploads(uploads);
+  if (!files.ok) return FAIL({}, files.error);
   const m = db.addTicketMessage({ ticketId: t.id, from: "client", author: client.name, body });
+  if (m && files.files.length) await saveAttachments(`t-${t.id}`, m.id, client.name, files.files);
   if(m){const run=await stageSupportNotice({ticket:t,body,opened:false,messageId:m.id});if(typeof run==='function')after(run);}
   revalidatePath("/admin/clients/support");
   revalidatePath(`/portal/support/${t.id}`);

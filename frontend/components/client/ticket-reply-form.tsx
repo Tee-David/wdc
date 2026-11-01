@@ -3,14 +3,21 @@
 import { CheckCircle2, Send } from "lucide-react";
 import { closeMyTicket, replyToTicket } from "@/lib/portal/actions";
 import { Area, Form, Hidden, Submit } from "@/components/admin/form";
+import { ChatAttach, ThreadProvider, useSent, useUploading } from "@/components/admin/thread";
 
 export function TicketReplyForm({ ticketId, closed }: { ticketId: string; closed?: boolean }) {
+  return <ThreadProvider><Composer ticketId={ticketId} closed={closed} /></ThreadProvider>;
+}
+
+function Composer({ ticketId, closed }: { ticketId: string; closed?: boolean }) {
+  const sent = useSent(), uploading = useUploading();
   return (
-    <Form className="adCmp" action={replyToTicket} resetOnDone>
+    <Form className="adCmp" action={replyToTicket} resetOnDone onDone={(st) => { if (st.ok) sent(); }}>
       <Hidden name="ticketId" value={ticketId} />
-      <Area name="body" label="Reply" required rows={1}
+      <ChatAttach threadKey={`t-${ticketId}`} />
+      <Area name="body" label="Reply" rows={1}
         placeholder={closed ? "Write to reopen this conversation" : "Type your reply"} />
-      <Submit tone="primary" icon={Send}><span className="ad__btnTxt">{closed ? "Reopen and send" : "Send reply"}</span></Submit>
+      <Submit tone="primary" icon={Send} disabled={uploading}><span className="ad__btnTxt">{closed ? "Reopen and send" : "Send reply"}</span></Submit>
     </Form>
   );
 }

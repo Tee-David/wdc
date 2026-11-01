@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
-import { ArrowDown, Camera, Check, ChevronLeft, ChevronRight, Copy, CornerUpLeft, Download, Eye, FileText, Heart, Image as ImageIcon, ListPlus, Loader2, Paperclip, PartyPopper, SmilePlus, Tag, ThumbsUp, X } from "lucide-react";
+import { ArrowDown, Camera, Check, ChevronLeft, ChevronRight, Copy, CornerUpLeft, Download, Eye, FileText, Heart, Image as ImageIcon, ListPlus, Loader2, Plus, PartyPopper, SmilePlus, Tag, ThumbsUp, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Dialog } from "./dialog";
 import { Actions, Checks, Field, Fields, Form, Hidden, Submit } from "./form";
@@ -372,7 +372,7 @@ export function ChatAttach({ threadKey }: { threadKey: string }) {
       ) : null}
       <div className="adTh__attach" ref={wrap}>
         <button type="button" className="adTh__clip" onClick={() => setMenu((m) => !m)} aria-label="Attach pictures or files" aria-haspopup="menu" aria-expanded={menu}>
-          <Paperclip aria-hidden="true" />
+          <Plus aria-hidden="true" />
         </button>
         {menu ? (
           <div className="adTh__attMenu" role="menu" aria-label="Attach">

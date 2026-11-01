@@ -118,16 +118,21 @@ export async function postTeamMessage(_prev: ActionState, fd: FormData): Promise
  */
 export async function postClientProjectMessage(_prev: ActionState, fd: FormData): Promise<ActionState> {
   const projectId = value(fd, "projectId"), body = value(fd, "body");
-  if (!body || body.length > 5000) return FAIL({ body: "Write a message first." });
+  const uploads = readUploads(value(fd, "attachments"), `p-${projectId}`);
+  if (!uploads) return FAIL({}, "Those files could not be read. Remove them and attach them again.");
+  if ((!body && !uploads.length) || body.length > 5000) return FAIL({ body: "Write a message or attach a file first." });
   try {
     const actor = await requireProjectActor(projectId, "comment");
     if (actor.kind !== "client") return FAIL({}, "This box is for clients. Use the studio Messages page.");
+    const files = await confirmUploads(uploads);
+    if (!files.ok) return FAIL({}, files.error);
     const recipients = await projectRecipients(projectId, "internal");
     const id = randomUUID(), eventId = randomUUID();
     await workspaceTransaction(async (tx) => {
       await tx.query("INSERT INTO workspace_team_notes(id,project_id,author_id,author_name,visibility,body) VALUES($1,$2,$3,$4,'client',$5)", [id, projectId, actor.id, actor.name, body]);
+      if (files.files.length) await saveAttachments(`p-${projectId}`, id, actor.id, files.files);
       await emitWorkspaceEvent({ id: eventId, projectId, clientId: actor.clientId, kind: "client.message", category: "actions", actorId: actor.id, actorName: actor.name,
-        title: `${actor.name} wrote in ${actor.project.title}`, summary: body.slice(0, 3000), href: `/admin/messages?c=p-${projectId}`, visibility: "internal", recipients }, tx);
+        title: `${actor.name} wrote in ${actor.project.title}`, summary: (body || `Sent ${files.files.length === 1 ? "a file" : `${files.files.length} files`}`).slice(0, 3000), href: `/admin/messages?c=p-${projectId}`, visibility: "internal", recipients }, tx);
     });
     after(() => dispatchWorkspaceEvents({ eventIds: [eventId] }));
   } catch (e) { return FAIL({}, said(e, "The message could not be sent. Reload and try again.")); }

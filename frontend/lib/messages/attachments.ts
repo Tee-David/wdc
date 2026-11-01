@@ -8,6 +8,7 @@ import { getAdminRequest } from "@/lib/admin/session";
 import { getTicket } from "@/lib/admin/store";
 import { inScope, staffScope } from "@/lib/admin/staff-scope";
 import { requireProjectActor } from "@/lib/workspace/access";
+import { getPortalRequest } from "@/lib/portal/session";
 
 /**
  * PICTURES AND FILES IN A CONVERSATION. They live in the private bucket under
@@ -36,11 +37,35 @@ export type ChatFile = { key: string; name: string; type: string; bytes: number;
 const kindOf = (type: string): ChatFile["kind"] =>
   /^image\/(jpeg|png|webp|gif)$/.test(type) ? "image" : type.startsWith("video/") ? "video" : type.startsWith("audio/") ? "audio" : "file";
 
-/** Can the signed-in studio person write in this conversation? Fails closed. */
+/**
+ * A CLIENT ATTACHES TOO (owner, 2026-11-01), but only in their own project's
+ * channel (the same comment right that lets them write there) or, as the
+ * client's main contact, in their own question. Never in a read-only support
+ * view, never in a team chat. Fails closed.
+ */
+async function clientCanWrite(kind: string, id: string): Promise<{ ok: true; userId: string; name: string } | { ok: false; error: string }> {
+  const no = { ok: false as const, error: "You cannot send files in this conversation." };
+  try {
+    if (kind === "p") {
+      const actor = await requireProjectActor(id, "comment");
+      return actor.kind === "client" && !actor.readOnly ? { ok: true, userId: actor.id, name: actor.name } : no;
+    }
+    if (kind === "t") {
+      const { client, session, isPrimaryContact, capture, support } = await getPortalRequest();
+      const t = getTicket(id);
+      if (!client || !isPrimaryContact || capture || support || !t || t.clientId !== client.id) return no;
+      return { ok: true, userId: (session?.user as { id?: string } | undefined)?.id ?? client.id, name: client.name };
+    }
+  } catch { /* fall through: refused */ }
+  return no;
+}
+
+/** Can the signed-in person write in this conversation? Studio first, then a client in their own. Fails closed. */
 export async function canWriteThread(threadKey: string): Promise<{ ok: true; userId: string; name: string } | { ok: false; error: string }> {
   const m = /^([tpd])-(.{1,120})$/.exec(threadKey);
   if (!m) return { ok: false, error: "That conversation could not be found." };
   const role = await adminRole();
+  if (!role) return clientCanWrite(m[1], m[2]);
   const { session } = await getAdminRequest();
   const userId = session?.user?.id ?? "", name = session?.user?.name ?? "";
   if (!role || !userId) return { ok: false, error: "Sign in again with your studio account." };
