@@ -45,7 +45,7 @@ export default function SupportBar({ name, actorName }: { name?: string; actorNa
         </>}
       </div>
       <form action={SUPPORT_EXIT} method="post" data-support-exit="">
-        <button className="adSupport__exit" type="submit">Back to my account</button>
+        <button className="adSupport__exit" type="submit" aria-label="Back to my account">Back</button>
       </form>
     </aside>
   );

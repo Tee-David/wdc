@@ -2075,9 +2075,11 @@ td:has(.adRowPick) , .ad__pickCell { white-space: nowrap; }
 .adSupport__exit:hover { background: transparent; color: var(--ad-on-fill); }
 .adSupport__exit:focus-visible { outline: 3px solid var(--ad-on-fill); outline-offset: 3px; }
 @media (max-width: 640px) {
-  .adSupport { grid-template-columns: 1.25rem minmax(0, 1fr); gap: .5rem .75rem; }
-  .adSupport form { grid-column: 1 / -1; }
-  .adSupport__exit { width: 100%; }
+  /* One line on a phone (owner, 2026-11-01): the name and Back, the explanation dropped. */
+  .adSupport { gap: .5rem; padding-block: .35rem; }
+  .adSupport__text span { display: none; }
+  .adSupport__text strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .adSupport__exit { min-height: 40px; padding: 0 .8rem; font-size: .8rem; }
 }
 @media (prefers-reduced-motion: no-preference) { .adSupport__exit { transition: background .14s ease, color .14s ease; } }
 

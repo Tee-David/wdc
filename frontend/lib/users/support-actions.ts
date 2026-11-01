@@ -19,9 +19,9 @@ export async function startClientSupport(_previous: ActionState, fd: FormData): 
   if (!rateLimit(`support-start:${session.user.id}`, 5, 15 * 60_000).ok) return FAIL({}, "Too many support views. Wait a few minutes and retry.");
   const targetId = String(fd.get("targetId") ?? "");
   const clientId = String(fd.get("clientId") ?? "");
-  const reason = String(fd.get("reason") ?? "").trim();
+  /* No reason asked (owner, 2026-11-01): the audit already records who viewed which account and when. */
+  const reason = "Owner support view";
   if (!targetId || targetId.length > 128 || !clientId || clientId.length > 128) return FAIL({}, "Choose an active linked client account.");
-  if (!reason || reason.length > 500) return FAIL({ reason: "Add a support reason of up to 500 characters." });
   try { await createSupportView(session, targetId, clientId, reason); } catch (error) {
     if (error instanceof Error && error.message === "Sign in again before starting a support view.") return { ...FAIL({}, "Sign in again, then retry."), signIn: true };
     return FAIL({}, "That support view is not available. Check the account is active and linked, and migration 0034 is applied.");
