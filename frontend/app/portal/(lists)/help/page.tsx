@@ -6,6 +6,7 @@ import { RailCard, Workbench } from "@/components/admin/workbench";
 import { RailRows } from "@/components/admin/rail-list";
 import { UrlSearch } from "@/components/admin/url-search";
 import { Pager, readPer } from "@/components/admin/pager";
+import { SortMenu } from "@/components/admin/sort-menu";
 import { getPortalRequest } from "@/lib/portal/session";
 import { getProjectsFor, getTicketsFor } from "@/lib/admin/store";
 import { Empty } from "@/components/admin/bits";
@@ -14,7 +15,9 @@ import "@/components/client/portal.css";
 
 export const metadata = { title: "Support" };
 
-type Query = { q?: string; page?: string; per?: string };
+type Query = { q?: string; page?: string; per?: string; sort?: string };
+/* An article carries no date, so there is no "newest": the studio's own order (Settings, Help centre) is the default. */
+const SORTS = [["order", "Suggested order"], ["az", "Question A to Z"]] as const;
 
 /**
  * SUPPORT, as C-Support draws it: the help articles first (most questions
@@ -33,16 +36,19 @@ export default async function PortalHelp({ searchParams }: { searchParams: Promi
   const mine = new Set(getProjectsFor(client.id).map((p) => p.service));
   const { faqs } = await siteFaqs();
   const articles = faqs.filter((f) => !f.services?.length || f.services.some((x) => mine.has(x)));
+  const sort = SORTS.find(([k]) => k === sp.sort)?.[0] ?? "order";
   const found = articles.filter((f) => !needle || `${f.q} ${f.a}`.toLocaleLowerCase().includes(needle));
-  const per = readPer(sp.per, 10);
+  if (sort === "az") found.sort((a, b) => a.q.localeCompare(b.q));
+  const per = readPer(sp.per);
   const pageCount = Math.max(1, Math.ceil(found.length / per));
   const page = Math.min(pageCount, Math.max(1, Number.parseInt(sp.page ?? "1", 10) || 1));
   const href = (patch: Partial<Query>) => {
     const n = new URLSearchParams();
-    for (const [k, v] of Object.entries({ q: sp.q, per: sp.per, ...patch })) if (v) n.set(k, v);
+    for (const [k, v] of Object.entries({ q: sp.q, per: sp.per, sort: sp.sort, ...patch })) if (v) n.set(k, v);
     const s = n.toString();
     return `/portal/help${s ? `?${s}` : ""}#articles`;
   };
+  const sortOptions = SORTS.map(([key, label]) => ({ label, on: key === sort, href: href({ sort: key === "order" ? undefined : key, page: undefined }) }));
   const open = isPrimaryContact ? getTicketsFor(client.id).filter((t) => t.status !== "Closed").length : 0;
   const ask = isPrimaryContact ? "/portal/support?new=1#ask" : "/portal/projects";
 
@@ -75,6 +81,7 @@ export default async function PortalHelp({ searchParams }: { searchParams: Promi
           </div>
           {found.length ? (
             <>
+              <div className="adList__tools"><SortMenu options={sortOptions} /><span className="adSp" /></div>
               <ul className="pSup__faq">
                 {found.slice((page - 1) * per, page * per).map((f) => (
                   <li key={f.q}><details><summary>{f.q}</summary><p>{f.a}</p></details></li>

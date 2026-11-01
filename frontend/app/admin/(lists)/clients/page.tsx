@@ -26,6 +26,8 @@ import { ClickRow } from "@/components/admin/click-row";
 import { Pager, readPer } from "@/components/admin/pager";
 import { PickAll, RowPick } from "@/components/admin/bulk";
 import { DateRange } from "@/components/admin/date-range";
+import { ExportLink } from "@/components/admin/export-link";
+import { SortMenu } from "@/components/admin/sort-menu";
 import { ClientMenu } from "@/components/admin/row-actions";
 import { AddClient } from "@/components/admin/client-form";
 import { ClientFilters, ClientsBulk, ClientsChores } from "@/components/admin/clients-parts";
@@ -135,6 +137,14 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
     const s = p.toString();
     return `/admin/clients${s ? `?${s}` : ""}`;
   };
+  /* The visible "Sort by" maps onto the same sort+dir the column headers write; newest ("since" desc) is the default and leaves the URL. */
+  const sortOptions = ([
+    ["Newest first", "since", "desc"], ["Oldest first", "since", "asc"], ["Client A to Z", "company", "asc"], ["Client Z to A", "company", "desc"],
+    ["Most live projects", "projects", "desc"], ...(money ? [["Most owed", "owed", "desc"]] as const : []),
+  ] as const).map(([label, col, d]) => ({
+    label, on: sort === col && direction === d,
+    href: href({ sort: col === "since" && d === "desc" ? undefined : col, dir: col === "since" && d === "desc" ? undefined : d, page: undefined }),
+  }));
   const sortHref = (col: Sort) => href({ sort: col, dir: sort === col ? (direction === "asc" ? "desc" : "asc") : col === "company" ? "asc" : "desc", page: undefined });
   const exportParams = new URLSearchParams();
   if (tab === "archived") exportParams.set("status", "archived");
@@ -289,9 +299,10 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
               keep={{ q: query.q, tab: query.tab, dept: query.dept, service: query.service, money: query.money, portal: query.portal, sort: query.sort, dir: query.dir, per: query.per }}
               action="/admin/clients"
             />
+            <SortMenu options={sortOptions} />
             <span className="adSp" />
             {hasFilters ? <Link className="ad__btn" href="/admin/clients">Clear filters</Link> : null}
-            {exportable ? <a className="ad__btn" href={exportHref}>Export</a> : null}
+            {exportable ? <ExportLink href={exportHref} /> : null}
           </div>
           {destructive ? (
             <ClientsBulk actions={[

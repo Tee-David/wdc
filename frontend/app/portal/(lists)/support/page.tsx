@@ -10,6 +10,7 @@ import { Tabs } from "@/components/admin/tabs";
 import { Chips } from "@/components/admin/chips";
 import { UrlSearch } from "@/components/admin/url-search";
 import { Pager, readPer } from "@/components/admin/pager";
+import { SortMenu } from "@/components/admin/sort-menu";
 import { getPortalRequest } from "@/lib/portal/session";
 import { getProjectsFor, getTicketMessages, getTicketsFor } from "@/lib/admin/store";
 import { Empty } from "@/components/admin/bits";
@@ -19,7 +20,9 @@ import "@/components/client/portal.css";
 
 export const metadata = { title: "Support" };
 
-type Query = { new?: string; subject?: string; project?: string; show?: string; tab?: string; q?: string; page?: string; per?: string };
+type Query = { new?: string; subject?: string; project?: string; show?: string; tab?: string; q?: string; page?: string; per?: string; sort?: string };
+/* Newest question first unless the reader picks otherwise (owner, 2026-11-01). */
+const SORTS = [["newest", "Newest first"], ["oldest", "Oldest first"], ["activity", "Latest reply"]] as const;
 
 /**
  * SUPPORT, as PSupport.dc.html draws it: open and closed conversations on
@@ -38,7 +41,9 @@ export default async function PortalSupport({ searchParams }: { searchParams: Pr
   const asking = sp.new === "1";
   const now = nowMs();
 
-  const tickets = getTicketsFor(client.id).slice().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  const sort = SORTS.find(([k]) => k === sp.sort)?.[0] ?? "newest";
+  const tickets = getTicketsFor(client.id).slice().sort((a, b) =>
+    sort === "oldest" ? a.createdAt.localeCompare(b.createdAt) : sort === "activity" ? b.updatedAt.localeCompare(a.updatedAt) : b.createdAt.localeCompare(a.createdAt));
   const open = tickets.filter((t) => t.status !== "Closed");
   const closed = tickets.filter((t) => t.status === "Closed");
   const tab = sp.tab === "articles" ? "articles" : "conversations";
@@ -57,10 +62,11 @@ export default async function PortalSupport({ searchParams }: { searchParams: Pr
   const page = Math.min(pageCount, Math.max(1, Number.parseInt(sp.page ?? "1", 10) || 1));
   const href = (patch: Partial<Query>) => {
     const n = new URLSearchParams();
-    for (const [k, v] of Object.entries({ tab: tab === "articles" ? "articles" : "", show: show === "closed" ? "closed" : "", q: sp.q, per: sp.per, ...patch })) if (v) n.set(k, v);
+    for (const [k, v] of Object.entries({ tab: tab === "articles" ? "articles" : "", show: show === "closed" ? "closed" : "", q: sp.q, per: sp.per, sort: sp.sort, ...patch })) if (v) n.set(k, v);
     const q = n.toString();
     return `/portal/support${q ? `?${q}` : ""}`;
   };
+  const sortOptions = SORTS.map(([key, label]) => ({ label, on: key === sort, href: href({ sort: key === "newest" ? undefined : key, page: undefined }) }));
   const fresh = open.filter((t) => t.status === "Answered").length;
   const channels = getProjectsFor(client.id).filter((p) => !p.archived).slice(0, 5);
 
@@ -107,6 +113,7 @@ export default async function PortalSupport({ searchParams }: { searchParams: Pr
                   { key: "closed", label: "Closed", count: closed.length, href: href({ show: "closed", page: undefined }) },
                 ]} />
               </div>
+              {rows.length ? <div className="adList__tools"><SortMenu options={sortOptions} /><span className="adSp" /></div> : null}
               {rows.length ? (
                 <>
                   <ul className="pSup__list" id="portal-tickets">

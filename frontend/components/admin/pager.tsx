@@ -13,15 +13,16 @@ import { DismissDetails } from "./dismiss-details";
  *
  * `href` builds the address for a change; the page owns its own query.
  */
-export const PER_PAGE_OPTIONS = [5, 10, 20] as const;
+/** Every table: 50 by default, never fewer (the owner's standing call). */
+export const PER_PAGE_OPTIONS = [50, 100, 200] as const;
 /** "View all": a page size no list reaches, so the whole list shows on one page. */
 export const VIEW_ALL = 1000;
 
-export function readPer(value: string | string[] | undefined, fallback = 5) {
+export function readPer(value: string | string[] | undefined, fallback = 50, options: readonly number[] = PER_PAGE_OPTIONS) {
   const raw = Array.isArray(value) ? value[0] : value;
   if (raw === "all") return VIEW_ALL;
   const n = Number(raw);
-  return n === VIEW_ALL || (PER_PAGE_OPTIONS as readonly number[]).includes(n) ? n : fallback;
+  return n === VIEW_ALL || options.includes(n) ? n : fallback;
 }
 
 export function Pager({

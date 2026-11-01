@@ -10,6 +10,7 @@ import { persistSoon, syncStore } from "@/lib/admin/persist";
 import { Empty } from "@/components/admin/bits";
 import { AdminState } from "@/components/admin/admin-state";
 import { Pager, readPer } from "@/components/admin/pager";
+import { SortMenu } from "@/components/admin/sort-menu";
 import { dateWords, nowMs, whenWords } from "@/lib/admin/when";
 import { PageHead } from "@/components/admin/page-head";
 import { RailCard, RailHead, StatTiles, Workbench } from "@/components/admin/workbench";
@@ -22,11 +23,14 @@ import { ChoresMenu } from "@/components/admin/chores-menu";
 
 export const metadata = { title: "Support" };
 
-type Query = { q?: string; status?: string; page?: string; per?: string; aq?: string; ap?: string };
+type Query = { q?: string; status?: string; page?: string; per?: string; aq?: string; ap?: string; sort?: string };
 const STATUS = ["Open", "Answered", "Closed"] as const;
 const PILL: Record<string, string> = { Open: "ad__pill--warn", Answered: "ad__pill--good", Closed: "ad__pill--flat" };
 /* "Open" is how the table stores it; to the studio it means the next move is theirs. */
 const LABEL: Record<string, string> = { Open: "Waiting on us", Answered: "Answered", Closed: "Closed" };
+/* Newest question first unless the reader picks otherwise (owner, 2026-11-01). */
+const SORTS = [["newest", "Newest first"], ["oldest", "Oldest first"], ["activity", "Latest activity"], ["waiting", "Waiting on us first"], ["subject", "Subject A to Z"]] as const;
+type SortKey = (typeof SORTS)[number][0];
 
 function queryHref(query: Query, changes: Partial<Query>) {
   const params = new URLSearchParams();
@@ -59,12 +63,18 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
     const client = getClient(t.clientId);
     return { t, client, last, count: messages.length, project: t.projectId ? getProject(t.projectId) : null };
   });
-  /* Waiting on the studio first, then newest activity. */
   const order = { Open: 0, Answered: 1, Closed: 2 } as const;
+  const sort: SortKey = SORTS.find(([k]) => k === query.sort)?.[0] ?? "newest";
   const rows = all
     .filter((r) => !status || r.t.status === status)
     .filter((r) => !search || [r.t.subject, r.client?.company ?? "", r.client?.name ?? ""].some((v) => v.toLocaleLowerCase().includes(search)))
-    .sort((a, b) => order[a.t.status] - order[b.t.status] || b.t.updatedAt.localeCompare(a.t.updatedAt));
+    .sort((a, b) => {
+      if (sort === "oldest") return a.t.createdAt.localeCompare(b.t.createdAt);
+      if (sort === "activity") return b.t.updatedAt.localeCompare(a.t.updatedAt);
+      if (sort === "waiting") return order[a.t.status] - order[b.t.status] || b.t.updatedAt.localeCompare(a.t.updatedAt);
+      if (sort === "subject") return a.t.subject.localeCompare(b.t.subject);
+      return b.t.createdAt.localeCompare(a.t.createdAt);
+    });
   const pageCount = Math.max(1, Math.ceil(rows.length / per));
   const page = Math.min(Math.max(1, Number.parseInt(query.page ?? "1", 10) || 1), pageCount);
   const shown = rows.slice((page - 1) * per, page * per);
@@ -83,6 +93,7 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
   const waiting = all.filter((r) => r.t.status === "Open").sort((a, b) => a.t.updatedAt.localeCompare(b.t.updatedAt));
   const closedWeek = all.filter((r) => r.t.status === "Closed" && Date.parse(r.t.updatedAt) >= now - 7 * 86_400_000).length;
   const href = (patch: Partial<Query>) => queryHref({ ...query, ...patch, page: undefined }, {}).replace("#tickets", "");
+  const sortOptions = SORTS.map(([key, label]) => ({ label, on: key === sort, href: queryHref(query, { sort: key === "newest" ? undefined : key, page: undefined }) }));
 
   /* THE ARTICLES CLIENTS READ in their Support page: the help centre's questions, edited in one place with history. */
   const { faqs } = await siteFaqs();
@@ -136,6 +147,7 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
         <section className="adList" aria-label="Tickets" id="tickets" data-tour="support-filters">
           <div className="adList__hd"><h2>Questions</h2><span className="adList__n">{all.length}</span><span className="adList__sp" /><UrlSearch label="Search questions" placeholder="Subject, company or person" /></div>
           <div className="adList__pad"><Chips label="Status" current={status ?? ""} items={chips} /></div>
+          <div className="adList__tools"><SortMenu options={sortOptions} /><span className="adSp" /></div>
           {rows.length ? (
             <>
               <BulkBar target="tickets-table" noun="questions" actions={[

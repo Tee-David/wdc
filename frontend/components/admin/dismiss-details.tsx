@@ -17,11 +17,21 @@ export function DismissDetails({ children, className }: { children: ReactNode; c
         details.querySelector("summary")?.focus();
       }
     };
+    /* A choice made inside closes it: a link navigates client-side, so React
+       keeps this same element mounted and it would stay open over the list. */
+    const details = ref.current;
+    const chosen = (event: Event) => {
+      if (event.type === "submit" || (event.target instanceof Element && event.target.closest("a[href]"))) details!.open = false;
+    };
     document.addEventListener("pointerdown", away);
     document.addEventListener("keydown", escape);
+    details?.addEventListener("click", chosen);
+    details?.addEventListener("submit", chosen);
     return () => {
       document.removeEventListener("pointerdown", away);
       document.removeEventListener("keydown", escape);
+      details?.removeEventListener("click", chosen);
+      details?.removeEventListener("submit", chosen);
     };
   }, []);
   return <details ref={ref} className={className}>{children}</details>;

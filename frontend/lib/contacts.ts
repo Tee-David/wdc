@@ -87,7 +87,13 @@ export async function syncContacts(): Promise<{ ok: boolean }> {
   } catch { return { ok: false }; }
 }
 
-export type Filters = { q: string; tag: string; type: string; status: string; marketing: string; page: number; per: number };
+export type Filters = { q: string; tag: string; type: string; status: string; marketing: string; page: number; per: number; sort?: string };
+/* The list's "Sort by", whitelisted here so nothing from the address reaches the SQL. Newest first is the default. */
+const ORDER: Record<string, string> = {
+  oldest: "c.created_at ASC, c.id",
+  name: "lower(COALESCE(NULLIF(c.name, ''), c.email)), c.id",
+  active: "c.last_activity DESC NULLS LAST, c.created_at DESC, c.id",
+};
 
 function where(f: Filters) {
   const parts: string[] = []; const args: unknown[] = [];
@@ -108,7 +114,7 @@ export async function listContacts(f: Filters, all = false): Promise<{ rows: Con
     const w = where(f);
     const total = Number((await db.query<{ n: string }>(`SELECT count(*) AS n FROM contacts c ${w.sql}`, w.args)).rows[0].n);
     const lim = all ? 20_000 : f.per, off = all ? 0 : (f.page - 1) * f.per;
-    const r = await db.query<Row>(`${SELECT} ${w.sql} ORDER BY c.created_at DESC, c.id LIMIT ${lim} OFFSET ${off}`, w.args);
+    const r = await db.query<Row>(`${SELECT} ${w.sql} ORDER BY ${ORDER[f.sort ?? ""] ?? "c.created_at DESC, c.id"} LIMIT ${lim} OFFSET ${off}`, w.args);
     return { rows: r.rows.map(shape), total };
   } catch { return null; }
 }

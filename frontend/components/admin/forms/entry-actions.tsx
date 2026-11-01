@@ -48,16 +48,17 @@ export function AddNote({ formKey, id }: { formKey: string; id: string }) {
 export function ResendEmail({ formKey, id, notifications }: { formKey: string; id: string; notifications: { key: string; name: string }[] }) {
   return (
     <Form action={resendFormEmailAction} className="adForms__noPrint">
-      <div style={{ padding: ".8rem 1rem 0" }}>
+      {/* The address field only shows once "Another address" is picked: pure CSS on the radio, so it works before hydration. */}
+      <div className="adResend">
         <Hidden name="form" value={formKey} />
         <Hidden name="id" value={id} />
         <Fields>
           <Select name="notification" label="Email" defaultValue={notifications[0]?.key} options={notifications.map((n) => ({ value: n.key, label: n.name }))} />
-          <Radios name="target" label="Send to" defaultValue="original" options={[
-            { value: "original", label: "Whoever it went to first", note: "With the form's saved copies." },
-            { value: "other", label: "Another address", note: "Copies are left off." },
+          <Radios segmented name="target" label="Send to" defaultValue="original" options={[
+            { value: "original", label: "Original recipient" },
+            { value: "other", label: "Another address" },
           ]} />
-          <Field name="to" label="Other address" type="email" placeholder="name@example.com" />
+          <div className="adResend__to"><Field name="to" label="Other address" type="email" placeholder="name@example.com" hint="Sent to this address only, without the form's copies." /></div>
         </Fields>
         <Actions><Submit icon={Send}>Resend</Submit></Actions>
       </div>

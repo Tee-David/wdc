@@ -15,6 +15,7 @@ import { ChoresMenu } from "@/components/admin/chores-menu";
 import { Chips } from "@/components/admin/chips";
 import { UrlSearch } from "@/components/admin/url-search";
 import { Pager, readPer } from "@/components/admin/pager";
+import { SortMenu } from "@/components/admin/sort-menu";
 import { Empty } from "@/components/admin/bits";
 import { AdminState } from "@/components/admin/admin-state";
 import { StudioReply, TicketStatusButtons } from "@/components/admin/ticket-controls";
@@ -32,7 +33,9 @@ import "@/components/admin/messages.css";
 
 export const metadata = { title: "Messages" };
 
-type Query = { q?: string; kind?: string; box?: string; c?: string; page?: string; per?: string };
+type Query = { q?: string; kind?: string; box?: string; c?: string; page?: string; per?: string; sort?: string };
+/* A conversation is as new as its last message: newest first (pinned on top) unless the reader picks otherwise (owner, 2026-11-01). */
+const SORTS = [["newest", "Newest first"], ["oldest", "Oldest first"], ["waiting", "Waiting on us first"], ["name", "Name A to Z"]] as const;
 type Conv = {
   key: string; kind: "client" | "project" | "team"; name: string; sub: string; mark: string;
   /** The short context on the row's second line: the question, the client, or Team. */
@@ -86,7 +89,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
   const kind = KINDS.some(([k]) => k === query.kind) ? query.kind ?? "" : "";
   const box = BOXES.some(([k]) => k === query.box) ? query.box ?? "" : "";
   /* A chat list is read as one column, so it shows 20 before it pages (owner, 2026-10-25). */
-  const per = readPer(query.per, 20);
+  const per = readPer(query.per);
 
   /* The owner reads every live project; staff read the projects in their scope (lib/admin/staff-scope.ts). */
   const scope = await staffScope(role);
@@ -191,10 +194,15 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
       team.length ? db.query<{ k: string }>("SELECT DISTINCT 'd-'||thread_id::STRING AS k FROM team_messages WHERE thread_id=ANY($1::UUID[]) AND body ILIKE $2 LIMIT 200", [team.map((t) => t.id), like]).then((r) => r.rows.forEach((x) => inText.add(x.k)), () => {}) : null,
     ]);
   }
+  const sort = SORTS.find(([k]) => k === query.sort)?.[0] ?? "newest";
+  const sortOptions = SORTS.map(([key, label]) => ({ label, on: key === sort, href: hrefFor(query, { sort: key === "newest" ? undefined : key, page: undefined, c: undefined }) }));
   const rows = convs
     .filter((c) => inBox(c, box))
     .filter((c) => !kind || (kind === "waiting" ? c.waiting : c.kind === kind))
     .filter((c) => !search || inText.has(c.key) || `${c.name} ${c.sub} ${c.last ?? ""}`.toLocaleLowerCase().includes(search));
+  if (sort === "oldest") rows.sort((a, b) => (a.lastAt ?? "").localeCompare(b.lastAt ?? ""));
+  else if (sort === "waiting") rows.sort((a, b) => Number(b.waiting) - Number(a.waiting) || (b.lastAt ?? "").localeCompare(a.lastAt ?? ""));
+  else if (sort === "name") rows.sort((a, b) => a.name.localeCompare(b.name));
   const pageCount = Math.max(1, Math.ceil(rows.length / per));
   const page = Math.min(Math.max(1, Number.parseInt(query.page ?? "1", 10) || 1), pageCount);
   const shown = rows.slice((page - 1) * per, page * per);
@@ -266,6 +274,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
           <section className="adMx__list" aria-label="Conversations" data-tour="messages-list">
             <div className="adMx__tools"><UrlSearch label="Search messages" placeholder="Search names and messages" />{ready && boxN.unread ? <MarkAllRead keys={convs.filter((c) => c.unread).map((c) => c.key)} /> : null}</div>
             <div className="adMx__kinds"><Chips label="Show" current={filter} items={filters} /></div>
+            <div className="adMx__kinds"><SortMenu options={sortOptions} /></div>
             {ready && box !== "archived" && boxN.archived ? (
               <Link className="adMx__arch" href={hrefFor(query, { box: "archived", kind: undefined, page: undefined, c: undefined })}>
                 <Archive aria-hidden="true" /><span>Archived</span><b>{boxN.archived}</b>

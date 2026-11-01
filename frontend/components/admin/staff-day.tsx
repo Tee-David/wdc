@@ -17,6 +17,7 @@ import { Deck, type DeckItem } from "@/components/admin/deck";
 import { Tabs } from "@/components/admin/tabs";
 import { UrlSearch } from "@/components/admin/url-search";
 import { Pager, readPer } from "@/components/admin/pager";
+import { SortMenu } from "@/components/admin/sort-menu";
 import { Empty } from "@/components/admin/bits";
 import { Form, Hidden } from "@/components/admin/form";
 import { FirstWeek } from "@/components/admin/first-week";
@@ -34,6 +35,9 @@ type Q = Record<string, string | string[] | undefined>;
 const DAY = 86_400_000;
 const TABS = [["open", "To do"], ["late", "Overdue"], ["waiting", "Waiting"], ["done", "Done"]] as const;
 type Tab = (typeof TABS)[number][0];
+/* Newest first unless the reader picks otherwise (owner, 2026-11-01). A task carries no creation date; the store
+   appends each new one, so its place in the store is the order it was added. */
+const SORTS = [["newest", "Newest first"], ["oldest", "Oldest first"], ["due", "Due soonest"], ["finished", "Recently finished"], ["title", "Task A to Z"], ["project", "Project A to Z"]] as const;
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
 
 export async function StaffDay({ me, params, firstName }: { me: { id: string; name: string }; params: Q; firstName?: string }) {
@@ -162,17 +166,28 @@ export async function StaffDay({ me, params, firstName }: { me: { id: string; na
   const lists: Record<Tab, Task[]> = { open, late, waiting, done: mine.filter((t) => t.done).sort((a, b) => (b.doneAt ?? "").localeCompare(a.doneAt ?? "")) };
   const needle = one(params.q).trim().slice(0, 80).toLowerCase();
   const find = (t: Task) => !needle || `${t.title} ${projectOf.get(t.projectId)?.title ?? ""} ${getClient(projectOf.get(t.projectId)?.clientId ?? "")?.company ?? ""}`.toLowerCase().includes(needle);
-  const list = lists[tab].filter(find);
+  const sorts = SORTS.filter(([k]) => k !== "finished" || tab === "done");
+  const sort = sorts.find(([k]) => k === one(params.sort))?.[0] ?? "newest";
+  const added = new Map(allTasks.map((t, i) => [t.id, i]));
+  const projectTitle = (t: Task) => projectOf.get(t.projectId)?.title ?? "";
+  const list = lists[tab].filter(find).sort((a, b) =>
+    sort === "oldest" ? added.get(a.id)! - added.get(b.id)!
+      : sort === "due" ? (a.due ?? "9999").localeCompare(b.due ?? "9999")
+        : sort === "finished" ? (b.doneAt ?? "").localeCompare(a.doneAt ?? "")
+          : sort === "title" ? a.title.localeCompare(b.title)
+            : sort === "project" ? projectTitle(a).localeCompare(projectTitle(b)) || a.title.localeCompare(b.title)
+              : added.get(b.id)! - added.get(a.id)!);
   const per = readPer(one(params.per));
   const pages = Math.max(1, Math.ceil(list.length / per));
   const page = Math.min(pages, Math.max(1, Number.parseInt(one(params.page) || "1", 10) || 1));
   const shown = list.slice((page - 1) * per, page * per);
   const href = (patch: Record<string, string | undefined>) => {
     const n = new URLSearchParams();
-    for (const [k, v] of Object.entries({ t: tab === "open" ? "" : tab, q: one(params.q), per: one(params.per), wk: one(params.wk), ...patch })) if (v) n.set(k, v);
+    for (const [k, v] of Object.entries({ t: tab === "open" ? "" : tab, q: one(params.q), per: one(params.per), wk: one(params.wk), sort: sort === "newest" ? "" : sort, ...patch })) if (v) n.set(k, v);
     const s = n.toString();
     return `/admin${s ? `?${s}` : ""}`;
   };
+  const sortOptions = sorts.map(([key, label]) => ({ label, on: key === sort, href: href({ sort: key === "newest" ? undefined : key, page: undefined }) }));
   const tabItems = TABS.map(([key, label]) => ({
     key, label, href: href({ t: key === "open" ? undefined : key, page: undefined }), count: lists[key].filter(find).length,
     tone: key === "late" && late.length ? ("bad" as const) : undefined,
@@ -231,6 +246,7 @@ export async function StaffDay({ me, params, firstName }: { me: { id: string; na
         <section className="adList" aria-label="All my tasks" data-tour="dash-mywork">
           <div className="adList__hd"><h2>All my tasks</h2><span className="adList__n">{mine.length}</span><span className="adList__sp" /><UrlSearch label="Search tasks" placeholder="Task or client" /></div>
           <Tabs label="Task views" items={tabItems} current={tab} />
+          <div className="adList__tools"><SortMenu options={sortOptions} /><span className="adSp" /></div>
           {shown.length ? (
             <>
               <BulkBar target="myday-tasks" noun="tasks" actions={[

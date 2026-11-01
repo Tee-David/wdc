@@ -35,6 +35,8 @@ import { Deck, type DeckItem } from "@/components/admin/deck";
 import { Tabs } from "@/components/admin/tabs";
 import { Chips } from "@/components/admin/chips";
 import { DateRange } from "@/components/admin/date-range";
+import { ExportLink } from "@/components/admin/export-link";
+import { SortMenu } from "@/components/admin/sort-menu";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 export const metadata = { title: "Money" };
@@ -43,8 +45,20 @@ export const metadata = { title: "Money" };
 type MoneyQuery = { tab?: string; q?: string; status?: string; sort?: string; dir?: string; page?: string; per?: string; from?: string; to?: string };
 
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
-const INVOICE_SORTS = ["number", "client", "due", "total", "owed"] as const;
+const INVOICE_SORTS = ["issued", "number", "client", "due", "total", "owed"] as const;
 type InvoiceSort = (typeof INVOICE_SORTS)[number];
+/* Every tab opens newest first (owner, 2026-11-01). The invoice options map onto the sort+dir its column headers write;
+   the other tabs share the one `sort` param, because a tab link starts from a clean address. */
+const INVOICE_ORDERS = [
+  ["Newest first", "issued", "desc"], ["Oldest first", "issued", "asc"], ["Due soonest", "due", "asc"],
+  ["Owed, most first", "owed", "desc"], ["Total, high to low", "total", "desc"], ["Client A to Z", "client", "asc"],
+] as const;
+const TAB_SORTS = {
+  quotes: [["newest", "Newest first"], ["oldest", "Oldest first"], ["expires", "Expiring soonest"], ["total", "Total, high to low"], ["client", "Client A to Z"]],
+  payments: [["newest", "Newest first"], ["oldest", "Oldest first"], ["amount", "Amount, high to low"]],
+  payouts: [["newest", "Newest first"], ["oldest", "Oldest first"], ["due", "Pay day soonest"], ["amount", "Amount, high to low"], ["who", "Freelancer A to Z"]],
+  expenses: [["newest", "Newest first"], ["oldest", "Oldest first"], ["amount", "Amount, high to low"], ["category", "Category A to Z"]],
+} as const;
 
 function queryHref(query: MoneyQuery, changes: Partial<MoneyQuery>) {
   const params = new URLSearchParams();
@@ -86,10 +100,22 @@ export default async function MoneyPage({
      off this list -- a payment against an invoice the Invoices filter is
      currently hiding must still show which invoice it was. */
   const allInvoices = getInvoices();
-  const payments = getPayments().slice().sort((a, b) => b.at.localeCompare(a.at));
-  const expenses = getExpenses();
+  const tab = ["invoices", "quotes", "payments", "payouts", "expenses"].includes(String(query.tab)) ? String(query.tab) : "invoices";
+  const tabSorts: readonly (readonly [string, string])[] = tab in TAB_SORTS ? TAB_SORTS[tab as keyof typeof TAB_SORTS] : TAB_SORTS.payments;
+  const tabSort = tabSorts.find(([k]) => k === query.sort)?.[0] ?? "newest";
+  const tabSortOptions = tabSorts.map(([key, label]) => ({ label, on: key === tabSort, href: queryHref(query, { sort: key === "newest" ? undefined : key, page: undefined }) }));
+  const payments = getPayments().slice().sort((a, b) =>
+    tabSort === "oldest" ? a.at.localeCompare(b.at) : tabSort === "amount" ? b.amount - a.amount : b.at.localeCompare(a.at));
+  const expenses = getExpenses().slice().sort((a, b) =>
+    tabSort === "oldest" ? a.at.localeCompare(b.at) : tabSort === "amount" ? b.amount - a.amount
+      : tabSort === "category" ? a.category.localeCompare(b.category) || b.at.localeCompare(a.at) : b.at.localeCompare(a.at));
   const projects = getProjects();
   const estimates = getEstimates();
+  const shownEstimates = estimates.slice().sort((a, b) =>
+    tabSort === "oldest" ? a.issued.localeCompare(b.issued) : tabSort === "expires" ? a.expires.localeCompare(b.expires)
+      : tabSort === "total" ? estimateTotals(b).total - estimateTotals(a).total
+        : tabSort === "client" ? (getClient(a.clientId)?.company ?? "").localeCompare(getClient(b.clientId)?.company ?? "")
+          : b.issued.localeCompare(a.issued));
   /* The two small facts the invoice and payment forms need about a client,
      computed once: who holds stored credit (to offer "use their credit"), and
      who cannot be emailed and why (the ticks disable with the reason). Only the
@@ -110,7 +136,6 @@ export default async function MoneyPage({
   const owedPayouts = payouts.filter((p) => p.state === "Ready" || p.state === "Approved");
   const nextPayDay = owedPayouts.map((p) => p.due).sort()[0];
   const nextPayTotal = owedPayouts.filter((p) => p.due === nextPayDay).reduce((n, p) => n + p.amount, 0);
-  const tab = ["invoices", "quotes", "payments", "payouts", "expenses"].includes(String(query.tab)) ? String(query.tab) : "invoices";
   /* THE DECK: late invoices, money the bank holds that no invoice claims, mail that did not go, and quotes waiting on an answer. */
   const moneyDeck: DeckItem[] = [
     ...onBooks.filter((i) => invoiceStatus(i) === "Overdue").map((i) => ({
@@ -143,7 +168,7 @@ export default async function MoneyPage({
   const per = readPer(query.per);
   const from = query.from && DAY_RE.test(query.from) ? query.from : undefined;
   const to = query.to && DAY_RE.test(query.to) ? query.to : undefined;
-  const sort: InvoiceSort = INVOICE_SORTS.includes(query.sort as InvoiceSort) ? query.sort as InvoiceSort : "due";
+  const sort: InvoiceSort = INVOICE_SORTS.includes(query.sort as InvoiceSort) ? query.sort as InvoiceSort : "issued";
   const direction = query.dir === "asc" || query.dir === "desc"
     ? query.dir
     : sort === "number" || sort === "client" ? "asc" : "desc";
@@ -160,7 +185,8 @@ export default async function MoneyPage({
       if (sort === "client") return order * (a.client?.company ?? "").localeCompare(b.client?.company ?? "");
       if (sort === "total") return order * (a.totals.total - b.totals.total);
       if (sort === "owed") return order * (a.totals.due - b.totals.due);
-      return order * a.invoice.due.localeCompare(b.invoice.due);
+      if (sort === "due") return order * a.invoice.due.localeCompare(b.invoice.due);
+      return order * a.invoice.issued.localeCompare(b.invoice.issued);
     });
   const statusCounts = allInvoices.reduce((m, i) => m.set(invoiceStatus(i), (m.get(invoiceStatus(i)) ?? 0) + 1), new Map<string, number>());
   const hasInvoiceFilters = Boolean(search || statusFilter || from || to);
@@ -173,6 +199,10 @@ export default async function MoneyPage({
     dir: sort === column ? direction === "asc" ? "desc" : "asc" : column === "number" || column === "client" ? "asc" : "desc",
     page: undefined,
   });
+  const invoiceSortOptions = INVOICE_ORDERS.map(([label, col, d]) => ({
+    label, on: sort === col && direction === d,
+    href: queryHref(query, { sort: col === "issued" && d === "desc" ? undefined : col, dir: col === "issued" && d === "desc" ? undefined : d, page: undefined }),
+  }));
   const invoiceExportParams = new URLSearchParams();
   for (const key of ["q", "status", "sort", "dir", "from", "to"] as const) {
     if (query[key]) invoiceExportParams.set(key, query[key]);
@@ -334,6 +364,8 @@ export default async function MoneyPage({
             {from ? <input type="hidden" name="from" value={from} /> : null}
             {to ? <input type="hidden" name="to" value={to} /> : null}
             {query.per ? <input type="hidden" name="per" value={per} /> : null}
+            {query.sort ? <input type="hidden" name="sort" value={query.sort} /> : null}
+            {query.dir ? <input type="hidden" name="dir" value={query.dir} /> : null}
             <button className="ad__sr" type="submit">Search</button>
           </form>
             {/* THE STATUSES AS TABS, one press each, as the mockup draws them;
@@ -348,8 +380,9 @@ export default async function MoneyPage({
               keep={{ q: query.q, status: query.status, sort: query.sort, dir: query.dir, per: query.per }}
               action="/admin/money#invoice-list"
             />
+            <SortMenu options={invoiceSortOptions} />
             {hasInvoiceFilters ? <Link className="ad__btn" href="/admin/money#invoice-list">Clear</Link> : null}
-            <a className="ad__btn" href={invoiceExportHref}>Export CSV</a>
+            <ExportLink href={invoiceExportHref} />
           </div>
           <div className="ad__listMeta" id="invoice-list" aria-live="polite">
             <span>{invoiceRows.length} {invoiceRows.length === 1 ? "invoice" : "invoices"}</span>
@@ -461,6 +494,8 @@ export default async function MoneyPage({
           </Part>
           <Part title="Expenses">
             {expenses.length ? (
+              <>
+              <div className="adList__tools"><SortMenu options={tabSortOptions} /><span className="adSp" /></div>
               <div className="ad__scroll">
                 <table className="ad__t">
                   <thead><tr><th>When</th><th>What</th><th>Who was paid</th><th>Against</th><th className="num">Amount</th><th className="ad__rmH"><span className="ad__sr">Actions</span></th></tr></thead>
@@ -501,6 +536,7 @@ export default async function MoneyPage({
                   </tbody>
                 </table>
               </div>
+              </>
             ) : (
               <Empty title="No expenses recorded" action={<AddExpense />}>
                 Add the first one with who was paid, what it was for, and the
@@ -523,6 +559,8 @@ export default async function MoneyPage({
               {nairaShort(pipeline.open)} out for quote · {pipeline.winRate === null ? "nothing answered yet" : `${Math.round(pipeline.winRate * 100)}% of answered quotes won`}
             </p>
             {estimates.length ? (
+              <>
+              <div className="adList__tools"><SortMenu options={tabSortOptions} /><span className="adSp" /></div>
               <div className="ad__scroll">
                 <table className="ad__t">
                   <thead>
@@ -533,7 +571,7 @@ export default async function MoneyPage({
                     </tr>
                   </thead>
                   <tbody>
-                    {estimates.map((e) => {
+                    {shownEstimates.map((e) => {
                       const st = estimateState(e);
                       const c = getClient(e.clientId);
                       return (
@@ -576,6 +614,7 @@ export default async function MoneyPage({
                   </tbody>
                 </table>
               </div>
+              </>
             ) : (
               <Empty
                 title="Nothing out for quote"
@@ -590,7 +629,9 @@ export default async function MoneyPage({
             ) : null}
             {tab === "payouts" ? (() => {
               const st = ["Ready", "Approved", "Paid", "Cancelled"].includes(statusFilter) ? statusFilter : "";
-              const rows = payouts.filter((p) => !st || p.state === st).filter((p) => !search || `${p.who} ${p.work}`.toLocaleLowerCase().includes(search));
+              const rows = payouts.filter((p) => !st || p.state === st).filter((p) => !search || `${p.who} ${p.work}`.toLocaleLowerCase().includes(search))
+                .sort((a, b) => tabSort === "oldest" ? a.createdAt.localeCompare(b.createdAt) : tabSort === "due" ? a.due.localeCompare(b.due)
+                  : tabSort === "amount" ? b.amount - a.amount : tabSort === "who" ? a.who.localeCompare(b.who) : b.createdAt.localeCompare(a.createdAt));
               const pages = Math.max(1, Math.ceil(rows.length / per));
               const pg = Math.min(requestedPage, pages);
               const TONE: Record<string, string> = { Ready: "ad__pill--live", Approved: "ad__pill--flat", Paid: "ad__pill--good", Cancelled: "ad__pill--flat" };
@@ -604,6 +645,7 @@ export default async function MoneyPage({
                     ...(["Ready", "Approved", "Paid", "Cancelled"] as const).filter((k) => k !== "Cancelled" || payouts.some((p) => p.state === k)).map((k) => ({ key: k, label: k, count: payouts.filter((p) => p.state === k).length, href: queryHref(query, { status: k, page: undefined }) })),
                   ]} />
                 </div>
+                <div className="adList__tools"><SortMenu options={tabSortOptions} /><span className="adSp" /></div>
                 {rows.length ? (
                   <>
                     <div className="ad__scroll" tabIndex={0} role="region" aria-label="Payouts, scrolls sideways" data-lenis-prevent>
@@ -641,6 +683,8 @@ export default async function MoneyPage({
             {tab === "payments" ? (
           <Part title="Payments received">
             {payments.length ? (
+              <>
+              <div className="adList__tools"><SortMenu options={tabSortOptions} /><span className="adSp" /></div>
               <div className="ad__scroll">
                 <table className="ad__t">
                   <thead><tr><th>When</th><th>Invoice</th><th>Method</th><th className="num">Amount</th><th className="ad__rmH"><span className="ad__sr">Actions</span></th></tr></thead>
@@ -665,6 +709,7 @@ export default async function MoneyPage({
                   </tbody>
                 </table>
               </div>
+              </>
             ) : (
               <Empty title="No payments received yet">
                 Payments will appear here after they are recorded against an invoice.

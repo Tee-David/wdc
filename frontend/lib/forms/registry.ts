@@ -151,4 +151,4 @@ export function chosenColumns(form: FormDef, saved: string | undefined): string[
 }
 
 export const columnCookie = (form: FormDef) => `wdc_cols_${form.key}`;
-export const PER_PAGE = [25, 50, 100] as const;
+export const PER_PAGE = [50, 100, 200] as const;

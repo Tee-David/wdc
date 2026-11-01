@@ -43,6 +43,7 @@ import { AssignEntry } from "@/components/admin/forms/assign-entry";
 import { linkFor } from "@/lib/forms/links";
 import { getClient, getProject } from "@/lib/admin/store";
 import "@/components/admin/forms/forms.css";
+import { mailReason } from "@/lib/mail-reason";
 
 type Props = {
   params: Promise<{ form: string; entry: string }>;
@@ -372,15 +373,13 @@ export default async function EntryPage({ params, searchParams }: Props) {
             <RailCard title="Emails about this entry"><div data-tour="entry-emails">
               {mayResend ? <ResendEmail formKey={form.key} id={entry.id} notifications={NOTIFICATIONS[form.source].map((n) => ({ key: n.key, name: n.name }))} /> : null}
               {messages.length ? (
-                <ol className="adForms__timeline">
+                <ol className="adMailLog">
                   {messages.map((m) => (
                     <li key={m.id}>
-                      <span><b>{m.subject}</b></span>
-                      <small>
-                        To {m.to} · <span className={`ad__pill ${m.state === "Sent" ? "ad__pill--good" : m.state === "Failed" ? "ad__pill--bad" : "ad__pill--warn"}`}>{m.state}</span>
-                        {m.ms ? ` · ${(m.ms / 1000).toFixed(1)} s` : ""} · {time(m.at)}
-                      </small>
-                      {m.error ? <small>{m.error}</small> : null}
+                      <b className="adMailLog__subject">{m.subject}</b>
+                      <span className={`ad__pill ${m.state === "Sent" ? "ad__pill--good" : m.state === "Failed" ? "ad__pill--bad" : "ad__pill--warn"}`}>{m.state}</span>
+                      <small className="adMailLog__meta"><span>To {m.to}</span><span>{time(m.at)}</span></small>
+                      {m.error ? <small className="adMailLog__why">{mailReason(m.error)}</small> : null}
                     </li>
                   ))}
                 </ol>

@@ -30,7 +30,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
   /* The same filters, as a query, for the pager and the export. */
   const keep = (patch: Record<string, string | number | undefined> = {}) => {
     const u = new URLSearchParams();
-    const all = { kind: filters.kind, actor: filters.actor, q: filters.q, verb: filters.verb, range: filters.range !== "30d" ? filters.range : undefined, per: filters.limit !== 25 ? filters.limit : undefined, page: undefined, ...patch };
+    const all = { kind: filters.kind, actor: filters.actor, q: filters.q, verb: filters.verb, range: filters.range !== "30d" ? filters.range : undefined, per: filters.limit !== 50 ? filters.limit : undefined, page: undefined, ...patch };
     for (const [k, v] of Object.entries(all)) if (v !== undefined && v !== "" && !(k === "page" && v === 1)) u.set(k, String(v));
     return u.toString();
   };
@@ -52,14 +52,14 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
                       options={AUDIT_KINDS.map((k) => ({ value: k, label: KIND_LABEL[k] }))} />
           <FilterPick label="When" hideLabel name="range" defaultValue={filters.range}
                       options={AUDIT_RANGES.map((r) => ({ value: r.key, label: r.label }))} />
-          {filters.limit !== 25 ? <input type="hidden" name="per" value={filters.limit} /> : null}
+          {filters.limit !== 50 ? <input type="hidden" name="per" value={filters.limit} /> : null}
           <button className="ad__btn ad__btn--primary" type="submit">Show</button>
           {filtered ? <Link className="ad__btn" href="/admin/settings/audit">Clear</Link> : null}
         </form>
       </section>
       <AuditLog filters={filters} filtered={filtered} clearHref="/admin/settings/audit"
         title={filtered ? "Matching changes" : "The last 30 days"}
-        pager={(p) => `/admin/settings/audit?${keep({ page: p.page, per: p.per ?? (filters.limit !== 25 ? filters.limit : undefined) })}`} />
+        pager={(p) => `/admin/settings/audit?${keep({ page: p.page, per: p.per ?? (filters.limit !== 50 ? filters.limit : undefined) })}`} />
     </>
   );
 }

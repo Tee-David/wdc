@@ -13,11 +13,14 @@ import { Chips } from "@/components/admin/chips";
 import { UrlSearch } from "@/components/admin/url-search";
 import { ClickRow } from "@/components/admin/click-row";
 import { Pager, readPer } from "@/components/admin/pager";
+import { SortMenu } from "@/components/admin/sort-menu";
 import { Empty, Panel } from "@/components/admin/bits";
 import { CATEGORY_LABEL, MarkAllRead, NoticeChores, NoticeSheet } from "./notice-parts";
 
 const MODE: Record<string, string> = { immediate: "Email when it happens", digest: "In my summary", off: "In the app only" };
-type SP = { q?: string; kind?: string; page?: string; per?: string; open?: string };
+type SP = { q?: string; kind?: string; page?: string; per?: string; open?: string; sort?: string };
+/* Newest first unless the reader picks otherwise (owner, 2026-11-01). */
+const SORTS = [["newest", "Newest first"], ["oldest", "Oldest first"], ["unread", "Unread first"], ["due", "Due soonest"]] as const;
 
 /**
  * THE NOTIFICATIONS PAGE for the studio, staff and clients alike: what needs you first (a deck), the rest as a list
@@ -48,7 +51,12 @@ export async function PersonalInbox({ base, sp }: { base: string; sp: SP }) {
   const unread = all.filter((n) => !n.readAt && !n.cancelledAt);
   const needing = all.filter(needs);
   const match = (n: (typeof all)[number], k: string) => !k || (k === "unread" ? !n.readAt && !n.cancelledAt : k === "summaries" ? n.kind === "communication.summary" : n.category === k);
-  const rows = all.filter((n) => match(n, kind) && (!needle || `${n.title} ${n.summary} ${n.actorName}`.toLocaleLowerCase().includes(needle)));
+  const sort = SORTS.find(([k]) => k === sp.sort)?.[0] ?? "newest";
+  const rows = all.filter((n) => match(n, kind) && (!needle || `${n.title} ${n.summary} ${n.actorName}`.toLocaleLowerCase().includes(needle)))
+    .sort((a, b) => sort === "oldest" ? a.createdAt.localeCompare(b.createdAt)
+      : sort === "unread" ? Number(!b.readAt && !b.cancelledAt) - Number(!a.readAt && !a.cancelledAt) || b.createdAt.localeCompare(a.createdAt)
+        : sort === "due" ? (a.dueAt ?? "9999").localeCompare(b.dueAt ?? "9999") || b.createdAt.localeCompare(a.createdAt)
+          : b.createdAt.localeCompare(a.createdAt));
   const pageCount = Math.max(1, Math.ceil(rows.length / per));
   const page = Math.min(pageCount, Math.max(1, Number.parseInt(sp.page ?? "1", 10) || 1));
   const shown = rows.slice((page - 1) * per, page * per);
@@ -58,6 +66,7 @@ export async function PersonalInbox({ base, sp }: { base: string; sp: SP }) {
     const s = n.toString();
     return `${base}${s ? `?${s}` : ""}`;
   };
+  const sortOptions = SORTS.map(([key, label]) => ({ label, on: key === sort, href: href({ sort: key === "newest" ? undefined : key, page: undefined, open: undefined }) }));
 
   const deck: DeckItem[] = needing.slice(0, 8).map((n) => ({
     id: `n-${n.id}`, kind: CATEGORY_LABEL[n.category] ?? "Update",
@@ -102,6 +111,7 @@ export async function PersonalInbox({ base, sp }: { base: string; sp: SP }) {
         <section className="adList" aria-label="All notifications" data-tour="workspace-notifications">
           <div className="adList__hd"><h2>Inbox</h2><span className="adList__n">{all.length}</span><span className="adList__sp" /><UrlSearch label="Search notifications" placeholder="Title or sender" /></div>
           <div className="adList__pad"><Chips label="Kind" current={kind} items={chipItems} /></div>
+          <div className="adList__tools"><SortMenu options={sortOptions} /><span className="adSp" /></div>
           {shown.length ? (
             <>
               <div className="ad__scroll" tabIndex={0} role="region" aria-label="Notifications table, scrolls sideways" data-lenis-prevent>

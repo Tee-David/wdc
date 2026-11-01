@@ -18,6 +18,7 @@ import { Tabs } from "@/components/admin/tabs";
 import { UrlSearch } from "@/components/admin/url-search";
 import { ClickRow } from "@/components/admin/click-row";
 import { Pager, readPer } from "@/components/admin/pager";
+import { SortMenu } from "@/components/admin/sort-menu";
 import { PickAll, RowPick } from "@/components/admin/bulk";
 import { Empty } from "@/components/admin/bits";
 import { BookForClient, MeetingSheet, MeetingsBulk, MeetingsChores } from "@/components/meetings/meetings-parts";
@@ -31,7 +32,11 @@ export const metadata = { title: "Meetings" };
  * in a sheet where it can be approved, declined, rescheduled or cancelled. Admin only, as before: staff are told
  * to ask Admin until scoped access exists.
  */
-type Q = { tab?: string; q?: string; page?: string; per?: string; open?: string };
+type Q = { tab?: string; q?: string; page?: string; per?: string; open?: string; sort?: string };
+/* A booking carries no date of its own creation, only its time, so the orders are by when it happens. Past opens on the
+   latest (newest) first; Coming up and Requests open on the soonest, which is the next thing to happen. */
+const SORTS = [["soonest", "Soonest first"], ["latest", "Latest first"], ["who", "Attendee A to Z"], ["title", "Title A to Z"]] as const;
+type SortKey = (typeof SORTS)[number][0];
 const TABS = [["coming", "Coming up"], ["requests", "Requests"], ["past", "Past"], ["calendar", "Calendar"]] as const;
 type Tab = (typeof TABS)[number][0];
 const DAY = 86_400_000;
@@ -65,7 +70,13 @@ export default async function MeetingsPage({ searchParams }: { searchParams: Pro
   const requests = upcoming.filter((b) => st(b) === "pending");
   const past = searched.filter((b) => dead(b) || Date.parse(b.end) < now).sort((a, b) => Date.parse(b.start) - Date.parse(a.start));
   const lists: Record<Tab, Booking[]> = { coming: upcoming, requests, past, calendar: [] };
-  const list = lists[tab];
+  const sortDefault: SortKey = tab === "past" ? "latest" : "soonest";
+  const sort: SortKey = SORTS.find(([k]) => k === q.sort)?.[0] ?? sortDefault;
+  const list = [...lists[tab]].sort((a, b) =>
+    sort === "latest" ? Date.parse(b.start) - Date.parse(a.start)
+      : sort === "who" ? who(a).localeCompare(who(b))
+        : sort === "title" ? a.title.localeCompare(b.title)
+          : Date.parse(a.start) - Date.parse(b.start));
 
   const allUpcoming = all.filter((b) => !dead(b) && Date.parse(b.end) >= now).sort((a, b) => Date.parse(a.start) - Date.parse(b.start));
   const allPending = allUpcoming.filter((b) => st(b) === "pending");
@@ -113,7 +124,7 @@ export default async function MeetingsPage({ searchParams }: { searchParams: Pro
     : <>{allUpcoming.length} coming up, {allPending.length} waiting for an answer. <strong>{next ? `Next is ${dateTimeWords(next.start, now)}.` : "Nothing is booked."}</strong></>;
 
   const tabItems = TABS.map(([key, label]) => ({
-    key, label, href: href({ tab: key === "coming" ? undefined : key, page: undefined, open: undefined }),
+    key, label, href: href({ tab: key === "coming" ? undefined : key, page: undefined, open: undefined, sort: undefined }),
     count: key === "calendar" ? undefined : lists[key as Tab].length,
     tone: key === "requests" && requests.length ? ("warn" as const) : undefined,
   }));
@@ -132,6 +143,7 @@ export default async function MeetingsPage({ searchParams }: { searchParams: Pro
   const page = Math.min(pageCount, Math.max(1, Number.parseInt(q.page ?? "1", 10) || 1));
   const rows = list.slice((page - 1) * per, page * per);
   const stamp = studioStamp(now);
+  const sortOptions = SORTS.map(([key, label]) => ({ label, on: key === sort, href: href({ sort: key === sortDefault ? undefined : key, page: undefined, open: undefined }) }));
 
   return (
     <>
@@ -189,6 +201,7 @@ export default async function MeetingsPage({ searchParams }: { searchParams: Pro
               ) : <Empty title={`No meeting matches “${q.q?.trim()}”`} action={<Link className="ad__btn" href={href({ q: undefined })}>Clear search</Link>}>Search by attendee name, email or meeting title.</Empty>
             ) : rows.length ? (
               <>
+                <div className="adList__tools"><SortMenu options={sortOptions} /><span className="adSp" /></div>
                 <MeetingsBulk target="meetings-table" labels={Object.fromEntries(all.map((b) => [b.uid, b.title]))} />
                 <div className="ad__scroll" id="meetings-table" tabIndex={0} role="region" aria-label="Meetings table, scrolls sideways" data-lenis-prevent>
                   <table className="ad__t">

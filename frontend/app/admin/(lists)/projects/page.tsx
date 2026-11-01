@@ -23,6 +23,8 @@ import { Tabs } from "@/components/admin/tabs";
 import { UrlSearch } from "@/components/admin/url-search";
 import { ClickRow } from "@/components/admin/click-row";
 import { Pager, readPer } from "@/components/admin/pager";
+import { ExportLink } from "@/components/admin/export-link";
+import { SortMenu } from "@/components/admin/sort-menu";
 import { BulkBar, PickAll, RowPick } from "@/components/admin/bulk";
 import { AddProject } from "@/components/admin/project-forms";
 import { ProjectMenu } from "@/components/admin/row-actions";
@@ -45,7 +47,7 @@ export const metadata = { title: "Projects" };
  */
 type Q = {
   view?: string; group?: string; tab?: string; service?: string; q?: string; stage?: string; health?: string; owner?: string;
-  page?: string; per?: string;
+  page?: string; per?: string; sort?: string;
 };
 
 const VIEWS = [["list", "List", ListIcon], ["board", "Board", KanbanSquare], ["timeline", "Timeline", GanttChart], ["calendar", "Calendar", CalendarDays]] as const;
@@ -55,6 +57,10 @@ type Group = (typeof GROUPS)[number][0];
 const TABS = [["live", "Live"], ["waiting", "Waiting on client"], ["done", "Done"]] as const;
 type Tab = (typeof TABS)[number][0];
 const DAY = 86_400_000;
+/* Newest first unless the reader picks otherwise (owner, 2026-11-01). A project's history starts when it was opened. */
+const SORTS = [["newest", "Newest first"], ["oldest", "Oldest first"], ["due", "Due soonest"], ["title", "Project A to Z"], ["client", "Client A to Z"], ["stage", "Stage"]] as const;
+type SortKey = (typeof SORTS)[number][0];
+const opened = (r: ProjectRow) => r.project.events[0]?.at ?? "";
 
 export default async function ProjectsPage({ searchParams }: { searchParams: Promise<Q> }) {
   await syncStore();
@@ -98,7 +104,17 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
     if (owner && p.owner !== owner) return false;
     return true;
   };
-  const shown = all.filter((r) => matches(r, null));
+  const sort: SortKey = SORTS.find(([k]) => k === q.sort)?.[0] ?? "newest";
+  const shown = all.filter((r) => matches(r, null)).sort((a, b) => {
+    const t = a.project.title.localeCompare(b.project.title);
+    if (sort === "oldest") return opened(a).localeCompare(opened(b)) || t;
+    if (sort === "due") return (a.project.due || "9").localeCompare(b.project.due || "9") || t;
+    if (sort === "title") return t;
+    if (sort === "client") return (a.client?.company ?? "").localeCompare(b.client?.company ?? "") || t;
+    if (sort === "stage") return STAGES.indexOf(a.project.stage) - STAGES.indexOf(b.project.stage) || t;
+    return opened(b).localeCompare(opened(a)) || t;
+  });
+  const sortOptions = SORTS.map(([key, label]) => ({ label, on: key === sort, href: href({ sort: key === "newest" ? undefined : key, page: undefined }) }));
   const facetN = [stage, health, owner].filter(Boolean).length;
   const filtered = !!(needle || service || facetN || (view === "list" && tab !== "live"));
 
@@ -203,13 +219,14 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
         <Tabs label="Project status" items={tabItems} current={tab} />
         <div className="adList__tools">
           <ProjectFilters
-            keep={{ view: undefined, tab: tab === "live" ? undefined : tab, service, q: q.q, per: q.per }}
+            keep={{ view: undefined, tab: tab === "live" ? undefined : tab, service, q: q.q, per: q.per, sort: q.sort }}
             stage={stage ?? ""} health={health ?? ""} owner={owner ?? ""} active={facetN}
             stages={STAGES.map((s) => ({ value: s, label: s }))} healths={HEALTH.map((h) => ({ value: h, label: h }))} owners={owners.map((o) => ({ value: o, label: o }))}
           />
+          <SortMenu options={sortOptions} />
           <span className="adSp" />
           {filtered ? <Link className="ad__btn" href={href({ q: undefined, service: undefined, stage: undefined, health: undefined, owner: undefined, tab: undefined, page: undefined })}>Clear filters</Link> : null}
-          {exportHref ? <a className="ad__btn" href={exportHref}>Export</a> : null}
+          {exportHref ? <ExportLink href={exportHref} /> : null}
         </div>
         {shown.length ? (
           <>

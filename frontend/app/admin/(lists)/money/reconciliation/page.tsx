@@ -19,6 +19,7 @@ import { Tabs } from "@/components/admin/tabs";
 import { Chips } from "@/components/admin/chips";
 import { Pager, readPer } from "@/components/admin/pager";
 import { UrlSearch } from "@/components/admin/url-search";
+import { SortMenu } from "@/components/admin/sort-menu";
 import { dateWords, nowMs, whenWords } from "@/lib/admin/when";
 
 export const metadata = { title: "Reconciliation" };
@@ -41,7 +42,13 @@ export const metadata = { title: "Reconciliation" };
  * invoice it paid, which records the payment, or set aside with a reason.
  */
 
-type Query = { tab?: string; show?: string; q?: string; page?: string; per?: string; import?: string };
+type Query = { tab?: string; show?: string; q?: string; page?: string; per?: string; import?: string; sort?: string };
+/* Newest first on every tab unless the reader picks otherwise (owner, 2026-11-01). A tab link drops the sort, so each tab reads its own. */
+const SORTS = {
+  provider: [["newest", "Newest first"], ["oldest", "Oldest first"], ["amount", "Amount, high to low"]],
+  statement: [["newest", "Newest first"], ["oldest", "Oldest first"], ["amount", "Amount, high to low"]],
+  emails: [["newest", "Newest first"], ["oldest", "Oldest first"], ["to", "Recipient A to Z"]],
+} as const;
 const LINE: Record<string, { cls: string; word: string }> = {
   new: { cls: "ad__pill--live", word: "To match" }, matched: { cls: "ad__pill--good", word: "Matched" }, ignored: { cls: "ad__pill--flat", word: "Set aside" },
 };
@@ -118,16 +125,23 @@ export default async function ReconciliationPage({ searchParams }: { searchParam
     })),
   ];
 
+  const sorts: readonly (readonly [string, string])[] = SORTS[tab];
+  const sort = sorts.find(([k]) => k === query.sort)?.[0] ?? "newest";
+  const sortOptions = sorts.map(([key, label]) => ({ label, on: key === sort, href: hrefFor(query, { sort: key === "newest" ? undefined : key, page: undefined }) }));
+  const byWhen = (a: string, b: string) => sort === "oldest" ? a.localeCompare(b) : b.localeCompare(a);
   const showAttention = query.show === "attention";
   const events = everything
     .filter((e) => !showAttention || providerNeedsAttention(e))
-    .filter((e) => !search || `${e.reference} ${e.event} ${e.amount ?? ""} ${e.note ?? ""}`.toLocaleLowerCase().includes(search));
+    .filter((e) => !search || `${e.reference} ${e.event} ${e.amount ?? ""} ${e.note ?? ""}`.toLocaleLowerCase().includes(search))
+    .sort((a, b) => sort === "amount" ? (b.amount ?? 0) - (a.amount ?? 0) : byWhen(a.at, b.at));
   const showLines = query.show === "matched" || query.show === "ignored" ? query.show : query.show === "all" ? "all" : "new";
   const stmt = (lines ?? [])
     .filter((l) => showLines === "all" || l.state === showLines)
-    .filter((l) => !search || `${l.narration} ${l.reference} ${l.amount / 100} ${l.account}`.toLocaleLowerCase().includes(search));
+    .filter((l) => !search || `${l.narration} ${l.reference} ${l.amount / 100} ${l.account}`.toLocaleLowerCase().includes(search))
+    .sort((a, b) => sort === "amount" ? b.amount - a.amount : byWhen(a.postedOn, b.postedOn));
   const lineIn = (lines ?? []).filter((l) => l.state === "matched").reduce((n, l) => n + (l.currency === "NGN" ? l.amount : 0), 0);
-  const mails = failedMail.filter((m) => !search || `${m.to} ${m.subject}`.toLocaleLowerCase().includes(search));
+  const mails = failedMail.filter((m) => !search || `${m.to} ${m.subject}`.toLocaleLowerCase().includes(search))
+    .sort((a, b) => sort === "to" ? a.to.localeCompare(b.to) : byWhen(a.at, b.at));
   const rows = tab === "emails" ? mails.length : tab === "statement" ? stmt.length : events.length;
   const pageCount = Math.max(1, Math.ceil(rows / per));
   const page = Math.min(Math.max(1, Number.parseInt(query.page ?? "1", 10) || 1), pageCount);
@@ -161,9 +175,9 @@ export default async function ReconciliationPage({ searchParams }: { searchParam
         <section className="adList" id="recon-list" aria-label="Payments and emails" data-tour="recon-log">
           <div className="adList__hd"><span className="adList__sp" /><UrlSearch label="Search reconciliation" placeholder="Reference, amount or email" /></div>
           <Tabs label="Reconciliation" current={tab} items={[
-            { key: "provider", label: "Payments", count: everything.length, tone: outstanding ? "warn" : undefined, href: hrefFor(query, { tab: undefined, page: undefined, show: undefined }) },
-            { key: "statement", label: "Bank statement", count: unmatched.length, tone: unmatched.length ? "warn" : undefined, href: hrefFor(query, { tab: "statement", page: undefined, show: undefined }) },
-            { key: "emails", label: "Emails that failed", count: failedMail.length, tone: failedMail.length ? "warn" : undefined, href: hrefFor(query, { tab: "emails", page: undefined, show: undefined }) },
+            { key: "provider", label: "Payments", count: everything.length, tone: outstanding ? "warn" : undefined, href: hrefFor(query, { tab: undefined, page: undefined, show: undefined, sort: undefined }) },
+            { key: "statement", label: "Bank statement", count: unmatched.length, tone: unmatched.length ? "warn" : undefined, href: hrefFor(query, { tab: "statement", page: undefined, show: undefined, sort: undefined }) },
+            { key: "emails", label: "Emails that failed", count: failedMail.length, tone: failedMail.length ? "warn" : undefined, href: hrefFor(query, { tab: "emails", page: undefined, show: undefined, sort: undefined }) },
           ]} />
           {tab === "provider" ? (
             <div className="adList__pad" style={{ paddingTop: ".75rem" }} data-tour="recon-attention">
@@ -183,6 +197,7 @@ export default async function ReconciliationPage({ searchParams }: { searchParam
               ]} />
             </div>
           ) : null}
+          <div className="adList__tools"><SortMenu options={sortOptions} /><span className="adSp" /></div>
           {tab === "statement" ? (lines === null ? (
             <Empty title="Statement import is not switched on yet" icon={Banknote} action={<Link className="ad__btn" href="/admin/settings/system">Open Settings, System</Link>}>It needs migration 0055. Apply it in Settings, System, then come back to import.</Empty>
           ) : stmt.length ? (

@@ -157,7 +157,7 @@ export async function saveEmailSettings(_prev: ActionState, fd: FormData): Promi
     const held = reply.value !== currentReply && reply.value !== "" && reply.value !== shippedReply;
     if (held && refusedEmail(reply.value)) return FAIL({ "mail.replyTo": REFUSED_EMAIL_MESSAGE }, "Nothing was saved. Fix the marked fields.");
 
-    const r = await writeKeys({ "mail.fromName": str(fd, "mail.fromName"), ...(held ? {} : { "mail.replyTo": reply.value }) }, by);
+    const r = await writeKeys({ "mail.fromName": str(fd, "mail.fromName"), "forms.notifyTo": str(fd, "forms.notifyTo"), ...(held ? {} : { "mail.replyTo": reply.value }) }, by);
     if (Object.keys(r.errors).length) return FAIL(r.errors, "Nothing was saved. Fix the marked fields.");
     let changed = r.changed;
     if (held) {

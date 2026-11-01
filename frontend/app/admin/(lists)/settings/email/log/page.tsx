@@ -10,6 +10,7 @@ import { AdminState } from "@/components/admin/admin-state";
 import { Empty, Panel } from "@/components/admin/bits";
 import { Pager } from "@/components/admin/pager";
 import { DateRange } from "@/components/admin/date-range";
+import { SortMenu } from "@/components/admin/sort-menu";
 import { ResendMessage } from "@/components/admin/reconcile-forms";
 import { LogMore, RetryFailed } from "@/components/admin/email-settings";
 import "@/components/admin/forms/forms.css";
@@ -25,6 +26,8 @@ type Props = { searchParams: Promise<Record<string, string | string[] | undefine
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
 const STATES: ("" | MessageState)[] = ["", "Failed", "Queued", "Sent", "Skipped"];
 const PER = [25, 50, 100];
+/* Newest first unless the reader picks otherwise (owner, 2026-11-01); lib/message-log.ts orders in SQL. */
+const SORTS = [["newest", "Newest first"], ["oldest", "Oldest first"], ["to", "Recipient A to Z"], ["subject", "Subject A to Z"]] as const;
 /* "26 Sept, 00:06": the year only when it is not this one, so the column
    stays one line wide instead of wrapping to four. */
 const time = (iso: string) => {
@@ -47,7 +50,8 @@ export default async function MessageLogPage({ searchParams }: Props) {
   const per = PER.includes(Number(one(sp.per))) ? Number(one(sp.per)) : 25;
   const page = Math.max(1, Math.floor(Number(one(sp.page)) || 1));
   const dayOf = (v: string) => (/^\d{4}-\d{2}-\d{2}$/.test(v) ? v : undefined);
-  const query: LogQuery = { q: one(sp.q).trim().slice(0, 120), state, page, per, from: dayOf(one(sp.from)), to: dayOf(one(sp.to)) };
+  const sort = SORTS.find(([k]) => k === one(sp.sort))?.[0] ?? "newest";
+  const query: LogQuery = { q: one(sp.q).trim().slice(0, 120), state, page, per, from: dayOf(one(sp.from)), to: dayOf(one(sp.to)), sort };
   const days = await getAppSetting(LOG_RETENTION_KEY, DEFAULT_LOG_RETENTION);
 
   let log: Awaited<ReturnType<typeof searchLogged>> | null = null;
@@ -58,10 +62,11 @@ export default async function MessageLogPage({ searchParams }: Props) {
   const failed = counts.Failed ?? 0;
   const qs = (patch: Record<string, string | number>) => {
     const v = new URLSearchParams();
-    const all = { q: query.q, state: query.state, per: query.per, page: query.page, from: query.from ?? "", to: query.to ?? "", ...patch };
-    for (const [k, x] of Object.entries(all)) if (String(x) && !(k === "page" && String(x) === "1") && !(k === "per" && String(x) === "25")) v.set(k, String(x));
+    const all = { q: query.q, state: query.state, per: query.per, page: query.page, from: query.from ?? "", to: query.to ?? "", sort, ...patch };
+    for (const [k, x] of Object.entries(all)) if (String(x) && !(k === "page" && String(x) === "1") && !(k === "per" && String(x) === "25") && !(k === "sort" && x === "newest")) v.set(k, String(x));
     return v.toString();
   };
+  const sortOptions = SORTS.map(([key, label]) => ({ label, on: key === sort, href: `?${qs({ sort: key, page: 1 })}` }));
 
   return (
     <>
@@ -104,6 +109,7 @@ export default async function MessageLogPage({ searchParams }: Props) {
             {per !== 25 ? <input type="hidden" name="per" value={per} /> : null}
             {query.from ? <input type="hidden" name="from" value={query.from} /> : null}
             {query.to ? <input type="hidden" name="to" value={query.to} /> : null}
+            {sort !== "newest" ? <input type="hidden" name="sort" value={sort} /> : null}
             <button className="ad__btn ad__btn--primary" type="submit">Search</button>
             {query.q || query.from || query.to ? <Link className="ad__btn" href={`?${qs({ q: "", from: "", to: "", page: 1 })}`}>Clear</Link> : null}
           </form>
@@ -112,8 +118,9 @@ export default async function MessageLogPage({ searchParams }: Props) {
               label="Sent"
               value={{ from: query.from, to: query.to }}
               href={(r) => `?${qs({ from: r.from ?? "", to: r.to ?? "", page: 1 })}`}
-              keep={{ q: query.q, state, per: per === 25 ? undefined : per }}
+              keep={{ q: query.q, state, per: per === 25 ? undefined : per, sort: sort === "newest" ? undefined : sort }}
             />
+            <SortMenu options={sortOptions} />
           </div>
           {!log ? (
             <AdminState kind="error" title="The message log could not be read" description="The database did not answer, or it is not connected." />

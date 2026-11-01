@@ -327,11 +327,13 @@ export function Select({
  * something.
  */
 export function Radios({
-  name, label, hint, options, defaultValue,
+  name, label, hint, options, defaultValue, segmented = false,
 }: {
   name: string; label: string; hint?: string;
   options: { value: string; label: string; note?: string }[];
   defaultValue?: string;
+  /** Two short options on one line (the house rule for a two-way choice). Notes are dropped. */
+  segmented?: boolean;
 }) {
   const { errors, values, gen } = useContext(Ctx);
   const err = errors[name];
@@ -346,7 +348,16 @@ export function Radios({
         <HintTip hint={hint} label={label} />
       </span>
       {hint ? <Hint hint={hint} /> : null}
-      <div className="ad__checks ad__checks--long">
+      {segmented ? (
+        <div className="ad__seg">
+          {options.map((o) => (
+            <label key={`${o.value}-${gen}`}>
+              <input type="radio" name={name} value={o.value} defaultChecked={kept === o.value} />
+              <span>{o.label}</span>
+            </label>
+          ))}
+        </div>
+      ) : <div className="ad__checks ad__checks--long">
         {options.map((o) => (
           <label key={`${o.value}-${gen}`} className="ad__check ad__check--long">
             <input type="radio" name={name} value={o.value} defaultChecked={kept === o.value} />
@@ -356,7 +367,7 @@ export function Radios({
             </span>
           </label>
         ))}
-      </div>
+      </div>}
       {err ? <small className="ad__fe" id={`${id}-e`}>{err}</small> : null}
     </div>
   );

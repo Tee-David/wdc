@@ -75,6 +75,18 @@ const email = (raw: string) => {
   if (t.length > 254 || !/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(t)) return { ok: false as const, error: "Enter an email like name@example.com." };
   return { ok: true as const, value: t };
 };
+/** Up to ten addresses, comma separated, each checked; stored as "a, b". */
+const emails = (raw: string) => {
+  const list = [...new Set(raw.split(/[,;\s]+/).map((t) => t.trim().toLowerCase()).filter(Boolean))];
+  if (!list.length) return { ok: false as const, error: "Add at least one address." };
+  if (list.length > 10) return { ok: false as const, error: "Up to ten addresses." };
+  const bad = list.find((t) => t.length > 254 || !/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(t));
+  if (bad) return { ok: false as const, error: `${bad} is not an email address.` };
+  return { ok: true as const, value: list.join(", ") };
+};
+
+/** Where a new form entry's studio notice goes unless that form names its own (owner, 2026-11-01). */
+export const FORM_NOTICE_DEFAULT = "info@wedigcreativity.com.ng, wedigcreativity@gmail.com";
 
 export const SETTINGS: SettingDef[] = [
   {key:"finance.currencies",label:"Document currencies",note:"NGN and USD start enabled; amounts are never converted automatically.",shipped:()=>'["NGN","USD"]',parse:raw=>{try{return {ok:true,value:JSON.stringify(parseCurrencies(raw))}}catch(error){return {ok:false,error:error instanceof Error?error.message:"Choose supported currencies."}}},revalidate:["/admin/settings/general","/admin/money"]},
@@ -211,6 +223,11 @@ export const SETTINGS: SettingDef[] = [
     key: "mail.replyTo", label: "Replies go to", shipped: () => process.env.SMTP_REPLY_TO?.trim() || "",
     note: "Where a reply to one of our emails lands, and where studio notices go.",
     parse: email, revalidate: [],
+  },
+  {
+    key: "forms.notifyTo", label: "New form entries go to", shipped: () => FORM_NOTICE_DEFAULT,
+    note: "Every form's studio notice goes here, unless the form's own settings name other addresses.",
+    parse: emails, revalidate: [],
   },
   {
     key: "notify.signups", label: "Client sign-ups", shipped: () => "1",

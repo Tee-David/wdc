@@ -141,6 +141,10 @@ body:has(.ad) .embedded-agent-container {
   pointer-events: none !important;
   visibility: hidden !important;
 }
+/* THE DASHBOARDS HAVE NO USERWAY CORNER (site-chrome.tsx), so the stack's
+   room for it only lifted the button off the corner (owner, 2026-11-01: move it
+   down). Bars that need room (bulk selection) still raise it in admin.css. */
+body:has(.ad) { --fab-stack: 0rem; }
 @media (prefers-reduced-motion: no-preference) {
   .uw--corner, .st { transition: opacity .2s ease; }
 }

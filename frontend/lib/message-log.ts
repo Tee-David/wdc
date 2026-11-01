@@ -224,10 +224,16 @@ export async function listForRecord(id: string, limit = 30): Promise<LoggedMessa
 /* ------------------------------------------------ the email log screen */
 
 /** `from` and `to` are Lagos calendar days (YYYY-MM-DD); `to` includes the whole day. */
-export type LogQuery = { q: string; state: "" | MessageState; page: number; per: number; from?: string; to?: string };
+export type LogQuery = { q: string; state: "" | MessageState; page: number; per: number; from?: string; to?: string; sort?: string };
+/* The log's "Sort by", whitelisted so nothing from the address reaches the SQL. */
+const LOG_ORDER: Record<string, string> = {
+  oldest: "created_at ASC, id ASC",
+  to: "lower(to_addr), created_at DESC, id DESC",
+  subject: "lower(subject), created_at DESC, id DESC",
+};
 
 /**
- * One page of the log, newest first, with the total that matched.
+ * One page of the log, newest first unless `sort` says otherwise, with the total that matched.
  *
  * `to:` and `subject:` narrow to those columns (FluentSMTP's search syntax);
  * anything else is matched against the address, the subject and the summary.
@@ -256,7 +262,7 @@ export async function searchLogged(query: LogQuery): Promise<{ rows: LoggedMessa
   if (query.to && DAY.test(query.to)) { args.push(`${query.to}T00:00:00+01:00`); where.push(`created_at < $${args.length}::TIMESTAMPTZ + INTERVAL '1 day'`); }
   const clause = where.length ? `WHERE ${where.join(" AND ")}` : "";
   const rows = await db.query<Row>(
-    `SELECT * FROM message_log ${clause} ORDER BY created_at DESC, id DESC LIMIT ${query.per} OFFSET ${(query.page - 1) * query.per}`, args,
+    `SELECT * FROM message_log ${clause} ORDER BY ${LOG_ORDER[query.sort ?? ""] ?? "created_at DESC, id DESC"} LIMIT ${query.per} OFFSET ${(query.page - 1) * query.per}`, args,
   );
   const total = await db.query<{ n: string }>(`SELECT count(*) AS n FROM message_log ${clause}`, args);
   return { rows: rows.rows.map(toMessage), total: Number(total.rows[0]?.n ?? 0) };

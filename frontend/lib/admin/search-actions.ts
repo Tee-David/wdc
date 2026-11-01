@@ -40,7 +40,7 @@ import { QUERY_MAX, SEARCH_LIMIT, cleanQuery, likeOf, rankRows, type SearchRow }
  * instances and a cold start forgives everything.
  */
 
-export type SearchKind = "clients" | "projects" | "staff" | "contacts" | "tags" | "invoices";
+export type SearchKind = "clients" | "projects" | "staff" | "accounts" | "contacts" | "tags" | "invoices";
 /** Narrowing a kind: a client's projects, or which invoices count (open = something still owed). */
 export type SearchScope = { clientId?: string; invoices?: "open" | "issued"; /** A record to leave out (the client being kept in a merge). */ exclude?: string };
 export type SearchResult = {
@@ -56,6 +56,7 @@ const AREA: Record<SearchKind, Area> = {
   clients: "clients",
   projects: "projects",
   staff: "projects", // the same rule staffPeople() always had: anyone who runs projects may name an owner
+  accounts: "settings", // project access is the owner's (components/workspace/project-members.tsx)
   contacts: "settings", // /admin/email is the owner's (permissions.ts NAV_AREA)
   tags: "settings",
   invoices: "money",
@@ -92,6 +93,7 @@ export async function searchOptions(kind: SearchKind, q: string, selectedIds?: s
       case "projects": return await projects(text, ids, narrow, await staffScope(role));
       case "invoices": return await invoices(text, ids, narrow);
       case "staff": return await staff(text, ids);
+      case "accounts": return await accounts(text, ids);
       case "contacts": return await contacts(text, ids);
       case "tags": return await tags(text, ids);
     }
@@ -180,6 +182,22 @@ async function staff(q: string, ids: string[]): Promise<SearchResult> {
     ? (await db.query<R>(`SELECT "id","name","email","role",("deactivatedAt" IS NOT NULL) AS gone FROM "user" WHERE "id" = ANY($1::TEXT[]) AND "role" IN ('owner','staff')`, [ids])).rows
     : [];
   return { rows: rows.map(row), selected: ids.map((id) => sel.find((s) => s.id === id)).filter((s): s is R => Boolean(s)).map(row), more: total > SEARCH_LIMIT || found.rows.length >= POOL };
+}
+
+/** Every active sign-in, staff and client, for project access. The value is the email, which is what that action takes. */
+async function accounts(q: string, ids: string[]): Promise<SearchResult> {
+  type R = { name: string; email: string; role: string };
+  const ROLE: Record<string, string> = { owner: "Owner", staff: "Staff", client: "Client" };
+  const row = (r: R): SearchRow => ({ value: r.email, label: r.name || r.email, hint: `${ROLE[r.role] ?? r.role} · ${r.email}` });
+  const found = await db.query<R>(
+    `SELECT "name","email","role" FROM "user"
+     WHERE "role" IN ('owner','staff','client') AND "deactivatedAt" IS NULL
+       AND ($1 = '' OR "name" ILIKE $2 OR "email" ILIKE $2)
+     ORDER BY (CASE WHEN "name" ILIKE $3 OR "email" ILIKE $3 THEN 0 ELSE 1 END), lower("name") LIMIT ${POOL}`,
+    [q, likeOf(q, "contains"), likeOf(q, "prefix")]);
+  const { rows, total } = rankRows(found.rows, q, (r) => ({ primary: r.name || r.email, others: [r.email] }), { tie: "label" });
+  const sel = found.rows.filter((r) => ids.includes(r.email));
+  return { rows: rows.map(row), selected: sel.map(row), more: total > SEARCH_LIMIT || found.rows.length >= POOL };
 }
 
 async function contacts(q: string, ids: string[]): Promise<SearchResult> {

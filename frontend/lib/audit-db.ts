@@ -63,7 +63,7 @@ export type AuditFilters = {
   page?: number;
 };
 
-export const AUDIT_PER = [10, 25, 50] as const;
+export const AUDIT_PER = [50, 100, 200] as const;
 
 /** Read from a URL's query, keeping only what is valid. */
 export function readAuditFilters(sp: Record<string, string | string[] | undefined>): AuditFilters {
@@ -75,7 +75,7 @@ export function readAuditFilters(sp: Record<string, string | string[] | undefine
   return {
     verb: AUDIT_VERBS.some((v) => v.key === verb) ? (verb as AuditVerb) : undefined,
     page: Math.max(1, Number.parseInt(one("page"), 10) || 1),
-    limit: (AUDIT_PER as readonly number[]).includes(per) ? per : 25,
+    limit: (AUDIT_PER as readonly number[]).includes(per) ? per : 50,
     kind: (AUDIT_KINDS as readonly string[]).includes(kind) ? (kind as AuditKind) : undefined,
     actor: one("actor").slice(0, 200) || undefined,
     q: one("q").slice(0, 200) || undefined,

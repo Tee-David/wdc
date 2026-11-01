@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { listAudit, type AuditFilters } from "@/lib/audit-db";
+import { AUDIT_PER, listAudit, type AuditFilters } from "@/lib/audit-db";
 import type { AuditKind, Id } from "@/lib/admin/types";
 import { toEvents } from "@/lib/audit-events";
 import { Empty, Panel } from "./bits";
@@ -44,7 +44,7 @@ export default async function AuditLog({
         <>
           <AuditTable events={events} compact={!pager} />
           {pager ? (
-            <Pager label="Pages of the audit log" total={total} page={filters?.page ?? 1} per={per} noun="changes" perOptions={[10, 25, 50]} href={pager} />
+            <Pager label="Pages of the audit log" total={total} page={filters?.page ?? 1} per={per} noun="changes" perOptions={AUDIT_PER} href={pager} />
           ) : total > entries.length && more ? (
             <p style={{ padding: ".8rem 1.25rem 1rem", margin: 0, display: "flex", gap: ".75rem", alignItems: "center", flexWrap: "wrap" }}>
               <Link className="ad__btn" href={more} scroll={false}>Show more</Link>

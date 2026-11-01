@@ -166,10 +166,12 @@ export type AdminPost = BlogPost & {
   /** The owner's note when they sent it back; cleared when it is submitted again. */
   reviewNote: string | null;
   reviewBy: string | null;
+  /** When the row appeared: what the admin list's "Newest first" orders by. */
+  createdAt: string;
 };
 
 type AdminRow = Row & {
-  id: string; status: string; saved_by: string | null; saved_at: Date | null;
+  id: string; status: string; saved_by: string | null; saved_at: Date | null; created_at: Date;
   trashed_at: Date | null; trashed_by: string | null;
   submitted_by: string | null; submitted_at: Date | null; review_note: string | null; review_by: string | null;
 };
@@ -188,9 +190,10 @@ const toAdmin = (r: AdminRow): AdminPost => ({
   submittedAt: r.submitted_at ? new Date(r.submitted_at).toISOString() : null,
   reviewNote: r.review_note,
   reviewBy: r.review_by,
+  createdAt: new Date(r.created_at).toISOString(),
 });
 
-const ADMIN_COLUMNS = `id, status, saved_by, saved_at, trashed_at, trashed_by, submitted_by, submitted_at, review_note, review_by, ${COLUMNS}`;
+const ADMIN_COLUMNS = `id, status, created_at, saved_by, saved_at, trashed_at, trashed_by, submitted_by, submitted_at, review_note, review_by, ${COLUMNS}`;
 
 /** Every post not in the Trash, any state. Drafts first, then newest. Bounded. */
 export async function postsForAdmin(limit = 200): Promise<AdminPost[]> {

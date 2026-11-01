@@ -8,6 +8,7 @@ import { Empty, when } from "@/components/admin/bits";
 import { Pager } from "@/components/admin/pager";
 import { DateRange } from "@/components/admin/date-range";
 import { FilterPick } from "@/components/admin/pick";
+import { SortMenu } from "@/components/admin/sort-menu";
 import "@/components/admin/forms/forms.css";
 
 export const metadata = { title: "All entries" };
@@ -33,6 +34,8 @@ export default async function AllEntries({ searchParams }: { searchParams: Promi
     return `/admin/forms/all${s ? `?${s}` : ""}`;
   };
   const exportQs = new URLSearchParams(href({ page: undefined }).split("?")[1] ?? "").toString();
+  const sortOptions = ([["newest", "Newest first"], ["oldest", "Oldest first"], ["name", "Name A to Z"]] as const)
+    .map(([key, label]) => ({ label, on: key === f.sort, href: href({ sort: key === "newest" ? undefined : key, page: undefined }) }));
 
   return (
     <>
@@ -55,8 +58,7 @@ export default async function AllEntries({ searchParams }: { searchParams: Promi
           </label>
           <FilterPick label="Form" name="form" defaultValue={form} placeholder="Every form"
                       options={forms.map((x) => ({ value: x.key, label: x.title }))} />
-          <FilterPick label="Order" name="sort" defaultValue={f.sort} placeholder="Newest first"
-                      options={[{ value: "newest", label: "Newest first" }, { value: "oldest", label: "Oldest first" }, { value: "name", label: "Name A to Z" }]} />
+          {f.sort !== "newest" ? <input type="hidden" name="sort" value={f.sort} /> : null}
           <details className="ad__range">
             <summary aria-label="Choose columns"><Columns3 aria-hidden="true" /><span>Columns ({cols.length})</span></summary>
             <div className="ad__rangeMenu" style={{ padding: ".6rem .8rem", display: "grid", gap: ".5rem" }}>
@@ -75,9 +77,10 @@ export default async function AllEntries({ searchParams }: { searchParams: Promi
             {f.q || form || f.from || f.to ? <Link className="ad__btn ad__btn--plain" href="/admin/forms/all">Clear</Link> : null}
           </span>
         </form>
-        <div style={{ padding: "0 1.25rem 1rem" }}>
+        <div className="ad__row" style={{ padding: "0 1.25rem 1rem", flexWrap: "wrap" }}>
           <DateRange value={{ from: f.from, to: f.to }} keep={keep}
             action="/admin/forms/all" href={(r) => href({ from: r.from, to: r.to, page: undefined })} />
+          <SortMenu options={sortOptions} />
         </div>
         </div>
           {rows.length ? (

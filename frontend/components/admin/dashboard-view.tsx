@@ -452,29 +452,6 @@ export async function AdminDashboardView({ firstName, money = true, me, params }
               <RecentLeads />
             </Suspense>
           )}
-        </div>
-
-        <aside className="adFlow__rail" aria-label="Studio pulse">
-          <div className="adFlow__railHead"><h2>Studio pulse</h2><CustomiseHint hasMe={!!me} /></div>
-          <dl className="adFlow__tiles" data-tour="dash-kpis">
-            {money ? <>
-            <Tile label="Collected" href="/admin/money?status=Paid" value={nairaShort(summary.collected)} tone="good" icon={Wallet} iconTone="good" badge={weekBadge} note={`${collectionRate}% of everything billed`} />
-            <Tile label="Outstanding" href="/admin/money?status=Sent" value={nairaShort(summary.outstanding)} icon={Clock} iconTone="live"
-              badge={overdueCount ? { label: `${overdueCount} overdue`, tone: "bad" } : undefined}
-              note={`Across ${openInvoices} open invoice${openInvoices === 1 ? "" : "s"}`} />
-            </> : <>
-            <Tile label="Clients" href="/admin/clients" value={String(clients.length)} icon={Users} note="Active records" />
-            <Tile label="Open tickets" href="/admin/clients/support?status=Open" value={String(getTickets().filter((t) => t.status === "Open").length)} icon={LifeBuoy} iconTone="live" note="Waiting for a reply" />
-            </>}
-            <Tile label="Live projects" href="/admin/projects" value={String(summary.liveProjects)} icon={FolderKanban}
-              badge={summary.needsUs ? { label: `${summary.needsUs} need attention`, tone: "warn" } : undefined}
-              note={`${board.get("Review")?.length ?? 0} in review · ${board.get("Revisions")?.length ?? 0} in revisions`} />
-            {money ? (
-              <Tile label="Cash position" href="/admin/money" value={nairaShort(summary.profit)} tone={summary.profit >= 0 ? "good" : "bad"} icon={TrendingUp} iconTone={summary.profit >= 0 ? "good" : "bad"} note={`Collected less ${nairaShort(summary.spend)} recorded spend`} />
-            ) : (
-              <Tile label="Open forms" value={String(getSubmissions().filter((x) => x.status === "In progress").length)} icon={ClipboardList} note="Onboarding not finished" />
-            )}
-          </dl>
 
           {money ? (
             <Panel title="Cash in" dataTour="dash-cashflow" action={<Link href="/admin/money?tab=reports">Full report <ArrowRight aria-hidden="true" /></Link>}>
@@ -489,30 +466,6 @@ export async function AdminDashboardView({ firstName, money = true, me, params }
                   The chart draws once a payment or an expense is recorded.
                 </Empty>
               )}
-            </Panel>
-          ) : null}
-
-          {money ? (
-            <dl className="adFlow__tiles" data-tour="dash-forecast">
-              <Tile label="Due in 30 days" href="/admin/money?status=Sent" value={nairaShort(dueSoon)} icon={CalendarClock} iconTone="live" note="Owed, falling due or already late" />
-              <Tile label="Typical month's spend" href="/admin/money" value={nairaShort(typicalSpend)} icon={CircleDollarSign} iconTone="warn" note="Average of the last three months" />
-              <Tile label="Covers spend by" value={nairaShort(dueSoon - typicalSpend)} tone={dueSoon - typicalSpend >= 0 ? "good" : "bad"} icon={TrendingUp} iconTone={dueSoon - typicalSpend >= 0 ? "good" : "bad"} note="If it is all paid on time" />
-            </dl>
-          ) : null}
-
-          {money && summary.invoiced ? (
-            <Panel title="Collected of billed">
-              <div className="adDash__gauge">
-                <Gauge percent={collectionRate} />
-                <div className="adDash__gaugeText">
-                  <b><CountUp value={`${collectionRate}%`} /></b>
-                  <small>{nairaShort(summary.collected)} of {nairaShort(summary.invoiced)} billed</small>
-                </div>
-              </div>
-              <dl className="adDash__facts">
-                <div><dt>Paid on time</dt><dd>{settled.length ? `${onTime} of ${settled.length}` : "None paid yet"}</dd></div>
-                <div><dt>Average days to pay</dt><dd>{avgDays === null ? "Not yet" : `${avgDays} day${avgDays === 1 ? "" : "s"}`}</dd></div>
-              </dl>
             </Panel>
           ) : null}
 
@@ -564,6 +517,35 @@ export async function AdminDashboardView({ firstName, money = true, me, params }
             )}
           </Panel>
 
+          {money ? (
+            <Suspense fallback={<RecentLeadsSkeleton />}>
+              <RecentLeads />
+            </Suspense>
+          ) : null}
+        </div>
+
+        <aside className="adFlow__rail" aria-label="Studio pulse">
+          <div className="adFlow__railHead"><h2>Studio pulse</h2><CustomiseHint hasMe={!!me} /></div>
+          <dl className="adFlow__tiles" data-tour="dash-kpis">
+            {money ? <>
+            <Tile label="Collected" href="/admin/money?status=Paid" value={nairaShort(summary.collected)} tone="good" icon={Wallet} iconTone="good" badge={weekBadge} note={`${collectionRate}% of everything billed`} />
+            <Tile label="Outstanding" href="/admin/money?status=Sent" value={nairaShort(summary.outstanding)} icon={Clock} iconTone="live"
+              badge={overdueCount ? { label: `${overdueCount} overdue`, tone: "bad" } : undefined}
+              note={`Across ${openInvoices} open invoice${openInvoices === 1 ? "" : "s"}`} />
+            </> : <>
+            <Tile label="Clients" href="/admin/clients" value={String(clients.length)} icon={Users} note="Active records" />
+            <Tile label="Open tickets" href="/admin/clients/support?status=Open" value={String(getTickets().filter((t) => t.status === "Open").length)} icon={LifeBuoy} iconTone="live" note="Waiting for a reply" />
+            </>}
+            <Tile label="Live projects" href="/admin/projects" value={String(summary.liveProjects)} icon={FolderKanban}
+              badge={summary.needsUs ? { label: `${summary.needsUs} need attention`, tone: "warn" } : undefined}
+              note={`${board.get("Review")?.length ?? 0} in review · ${board.get("Revisions")?.length ?? 0} in revisions`} />
+            {money ? (
+              <Tile label="Cash position" href="/admin/money" value={nairaShort(summary.profit)} tone={summary.profit >= 0 ? "good" : "bad"} icon={TrendingUp} iconTone={summary.profit >= 0 ? "good" : "bad"} note={`Collected less ${nairaShort(summary.spend)} recorded spend`} />
+            ) : (
+              <Tile label="Open forms" value={String(getSubmissions().filter((x) => x.status === "In progress").length)} icon={ClipboardList} note="Onboarding not finished" />
+            )}
+          </dl>
+
           <Panel title="Quick actions" dataTour="dash-quick-actions">
             <div className="adDash__actions">
               <AddClient />
@@ -578,10 +560,29 @@ export async function AdminDashboardView({ firstName, money = true, me, params }
               <a className="ad__btn" href="/onboarding" target="_blank" rel="noopener"><Send aria-hidden="true" /> Onboarding form</a>
             </div>
           </Panel>
+
           {money ? (
-            <Suspense fallback={<RecentLeadsSkeleton />}>
-              <RecentLeads />
-            </Suspense>
+            <dl className="adFlow__tiles" data-tour="dash-forecast">
+              <Tile label="Due in 30 days" href="/admin/money?status=Sent" value={nairaShort(dueSoon)} icon={CalendarClock} iconTone="live" note="Owed, falling due or already late" />
+              <Tile label="Typical month's spend" href="/admin/money" value={nairaShort(typicalSpend)} icon={CircleDollarSign} iconTone="warn" note="Average of the last three months" />
+              <Tile label="Covers spend by" value={nairaShort(dueSoon - typicalSpend)} tone={dueSoon - typicalSpend >= 0 ? "good" : "bad"} icon={TrendingUp} iconTone={dueSoon - typicalSpend >= 0 ? "good" : "bad"} note="If it is all paid on time" />
+            </dl>
+          ) : null}
+
+          {money && summary.invoiced ? (
+            <Panel title="Collected of billed">
+              <div className="adDash__gauge">
+                <Gauge percent={collectionRate} />
+                <div className="adDash__gaugeText">
+                  <b><CountUp value={`${collectionRate}%`} /></b>
+                  <small>{nairaShort(summary.collected)} of {nairaShort(summary.invoiced)} billed</small>
+                </div>
+              </div>
+              <dl className="adDash__facts">
+                <div><dt>Paid on time</dt><dd>{settled.length ? `${onTime} of ${settled.length}` : "None paid yet"}</dd></div>
+                <div><dt>Average days to pay</dt><dd>{avgDays === null ? "Not yet" : `${avgDays} day${avgDays === 1 ? "" : "s"}`}</dd></div>
+              </dl>
+            </Panel>
           ) : null}
         </aside>
       </div>

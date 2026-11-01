@@ -3,6 +3,7 @@ import { Ban, Mail, Send } from "lucide-react";
 import { Empty, when } from "../bits";
 import { FilterPick } from "../pick";
 import { Pager, readPer } from "../pager";
+import { SortMenu } from "../sort-menu";
 import { NewCampaign } from "./campaign-ui";
 import { listCampaigns, ratesFor, type Campaign, type Rates } from "@/lib/campaigns";
 import "./campaigns.css";
@@ -18,7 +19,9 @@ export const CAMPAIGN_STATE: Record<string, { label: string; tone: string }> = {
 };
 const FILTERS = ["draft", "scheduled", "sending", "paused", "sent", "cancelled"] as const;
 
-type SP = { q?: string; status?: string; page?: string; per?: string };
+type SP = { q?: string; status?: string; page?: string; per?: string; sort?: string };
+/* Newest campaign first unless the reader picks otherwise (owner, 2026-11-01). */
+const SORTS = [["newest", "Newest first"], ["oldest", "Oldest first"], ["sent", "Recently sent"], ["people", "Most people"], ["title", "Title A to Z"]] as const;
 
 function Rate({ n, of, label }: { n: number; of: number; label: string }) {
   if (!of) return <span className="ad__dim" aria-label={`${label}: not measured`}>–</span>;
@@ -65,20 +68,31 @@ export function CampaignsView({ list, rates, sp, unavailable }: { list: Campaign
   const per = readPer(sp.per);
   const q = (sp.q ?? "").trim().toLowerCase().slice(0, 120);
   const status = (FILTERS as readonly string[]).includes(sp.status ?? "") ? (sp.status as string) : "";
-  const shown = list.filter((c) => (!status || c.status === status) && (!q || `${c.title} ${c.design.subject}`.toLowerCase().includes(q)));
+  const sort = SORTS.find(([k]) => k === sp.sort)?.[0] ?? "newest";
+  const shown = list.filter((c) => (!status || c.status === status) && (!q || `${c.title} ${c.design.subject}`.toLowerCase().includes(q)))
+    .sort((a, b) => {
+      if (sort === "oldest") return a.createdAt.localeCompare(b.createdAt);
+      if (sort === "sent") return (b.startedAt ?? "").localeCompare(a.startedAt ?? "");
+      if (sort === "people") return (b.recipients ?? 0) - (a.recipients ?? 0);
+      if (sort === "title") return a.title.localeCompare(b.title);
+      return b.createdAt.localeCompare(a.createdAt);
+    });
   const page = Math.min(Math.max(1, Number(sp.page) || 1), Math.max(1, Math.ceil(shown.length / per)));
   const rows = shown.slice((page - 1) * per, page * per);
   const filtered = Boolean(q || status);
 
-  const href = (patch: { page?: number; per?: number }) => {
+  const href = (patch: { page?: number; per?: number; sort?: string }) => {
     const u = new URLSearchParams({ tab: "campaigns" });
     if (q) u.set("q", q);
     if (status) u.set("status", status);
+    const s = "sort" in patch ? patch.sort : sort;
+    if (s && s !== "newest") u.set("sort", s);
     const p = patch.per ?? per;
     if (p !== 25) u.set("per", String(p));
     if (patch.page && patch.page > 1) u.set("page", String(patch.page));
     return `/admin/email?${u}`;
   };
+  const sortOptions = SORTS.map(([key, label]) => ({ label, on: key === sort, href: href({ sort: key }) }));
 
   return (
     <div className="ad__stack" data-tour="email-campaigns">
@@ -86,9 +100,11 @@ export function CampaignsView({ list, rates, sp, unavailable }: { list: Campaign
         <section className="ad__panel" aria-label="All campaigns">
           <form method="get" action="/admin/email" className="ad__filters" style={{ padding: ".9rem 1rem" }}>
             <input type="hidden" name="tab" value="campaigns" />
+            {sort !== "newest" ? <input type="hidden" name="sort" value={sort} /> : null}
             <label className="ad__filterSearch">Search<input type="search" name="q" defaultValue={q} placeholder="A title or subject line" /></label>
             <FilterPick label="Status" name="status" defaultValue={status} placeholder="Any" options={FILTERS.map((value) => ({ value, label: CAMPAIGN_STATE[value].label }))} />
             <span className="ad__row"><button type="submit" className="ad__btn">Apply</button>{filtered ? <Link className="ad__btn" href="/admin/email?tab=campaigns">Clear</Link> : null}</span>
+            <SortMenu options={sortOptions} />
           </form>
           {rows.length ? (
             <div className="ad__scroll" data-lenis-prevent>

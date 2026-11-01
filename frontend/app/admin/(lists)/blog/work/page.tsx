@@ -10,6 +10,7 @@ import { Deck, type DeckItem } from "@/components/admin/deck";
 import { Chips } from "@/components/admin/chips";
 import { UrlSearch } from "@/components/admin/url-search";
 import { Pager, readPer } from "@/components/admin/pager";
+import { SortMenu } from "@/components/admin/sort-menu";
 import { RailCard, RailHead, StatTiles, Workbench } from "@/components/admin/workbench";
 import { RailRows } from "@/components/admin/rail-list";
 import { getClient, getProjects } from "@/lib/admin/store";
@@ -35,7 +36,11 @@ const KIND_TONE = { build: "ad__pill--brand", identity: "ad__pill--live", campai
  * editor is one click away; taking one off the site is the owner's and keeps
  * everything that was written.
  */
-type CQ = { q?: string; state?: string; page?: string; per?: string };
+type CQ = { q?: string; state?: string; page?: string; per?: string; sort?: string };
+/* Newest first by default (owner, 2026-11-01). adminCaseList already returns the ones added here newest first, then
+   the ones written in code, which carry no date of their own; that order is "newest" and its reverse is "oldest". */
+const SORTS = [["newest", "Newest first"], ["oldest", "Oldest first"], ["saved", "Last saved"], ["client", "Client A to Z"]] as const;
+type SortKey = (typeof SORTS)[number][0];
 
 export default async function CaseStudiesPage({ searchParams }: { searchParams: Promise<CQ> }) {
   const role = await adminRole();
@@ -54,9 +59,13 @@ export default async function CaseStudiesPage({ searchParams }: { searchParams: 
   const wanted = (["live", "draft", "changed", "hidden"] as const).find((x) => x === query.state);
   const search = query.q?.trim().toLocaleLowerCase() ?? "";
   const count = (st: string) => rows.filter((r) => r.state === st).length;
+  const sort: SortKey = SORTS.find(([k]) => k === query.sort)?.[0] ?? "newest";
   const shown = rows
     .filter((r) => !wanted || r.state === wanted)
     .filter((r) => !search || `${r.data.client} ${r.data.title} ${label(r.data.category)}`.toLocaleLowerCase().includes(search));
+  if (sort === "oldest") shown.reverse();
+  else if (sort === "saved") shown.sort((a, b) => (b.updatedAt ?? "").localeCompare(a.updatedAt ?? ""));
+  else if (sort === "client") shown.sort((a, b) => (a.data.client || a.data.title).localeCompare(b.data.client || b.data.title));
   const pageCount = Math.max(1, Math.ceil(shown.length / per));
   const page = Math.min(Math.max(1, Number.parseInt(query.page ?? "1", 10) || 1), pageCount);
   const pageRows = shown.slice((page - 1) * per, page * per);
@@ -66,6 +75,7 @@ export default async function CaseStudiesPage({ searchParams }: { searchParams: 
     const q = p.toString();
     return `/admin/blog/work${q ? `?${q}` : ""}`;
   };
+  const sortOptions = SORTS.map(([key, text]) => ({ label: text, on: key === sort, href: href({ sort: key === "newest" ? undefined : key, page: undefined }) }));
 
   /* READY TO WRITE: a delivered project whose client has no case study yet,
      matched by the client's name, which is the only link the data has. */
@@ -150,6 +160,7 @@ export default async function CaseStudiesPage({ searchParams }: { searchParams: 
               <UrlSearch label="Search case studies" placeholder="Client, title or service" />
             </div>
             <div className="adList__pad"><Chips label="State" items={chips} current={wanted ?? ""} /></div>
+            <div className="adList__tools"><SortMenu options={sortOptions} /><span className="adSp" /></div>
             {pageRows.length ? (
               <>
                 <div className="ad__scroll" id="case-list" tabIndex={0} role="region" aria-label="Case studies table, scrolls sideways" data-lenis-prevent>

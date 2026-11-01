@@ -18,6 +18,7 @@ import { RailRows } from "@/components/admin/rail-list";
 import { Pager, readPer } from "@/components/admin/pager";
 import { DateRange } from "@/components/admin/date-range";
 import { FilterPick } from "@/components/admin/pick";
+import { SortMenu } from "@/components/admin/sort-menu";
 
 export const metadata = { title: "Blog" };
 
@@ -30,8 +31,11 @@ const PILL: Record<State, { label: string; tone: string }> = {
   published: { label: "Published", tone: "ad__pill--good" },
 };
 
-type BlogQuery = { q?: string; state?: string; service?: string; from?: string; to?: string; page?: string; per?: string };
+type BlogQuery = { q?: string; state?: string; service?: string; from?: string; to?: string; page?: string; per?: string; sort?: string };
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+/* Newest post first (when it was started) unless the reader picks otherwise (owner, 2026-11-01). */
+const SORTS = [["newest", "Newest first"], ["oldest", "Oldest first"], ["shown", "Date shown, latest first"], ["saved", "Last saved"], ["title", "Title A to Z"]] as const;
+type SortKey = (typeof SORTS)[number][0];
 
 function queryHref(query: BlogQuery, changes: Partial<BlogQuery>) {
   const params = new URLSearchParams();
@@ -66,6 +70,7 @@ export default async function BlogPostsPage({ searchParams }: { searchParams: Pr
   const search = query.q?.trim().toLocaleLowerCase() ?? "";
   const wanted = (["draft", "review", "scheduled", "published"] as const).find((s) => s === query.state);
   const inTrash = query.state === "trash";
+  const sort: SortKey = SORTS.find(([k]) => k === query.sort)?.[0] ?? "newest";
   const configured = Boolean(process.env.DATABASE_URL || process.env.COCKROACHDB_URL);
   let posts: AdminPost[] | null = null;
   let trash: AdminPost[] = [];
@@ -83,7 +88,15 @@ export default async function BlogPostsPage({ searchParams }: { searchParams: Pr
     .filter((p) => !wanted || stateOf(p) === wanted)
     .filter((p) => !service || p.topic === service)
     .filter((p) => (!from || (p.publishedAt ?? "").slice(0, 10) >= from) && (!to || (p.publishedAt ?? "9999").slice(0, 10) <= to))
-    .filter((p) => !search || [p.title, p.slug, p.excerpt, ...p.tags].some((v) => v.toLocaleLowerCase().includes(search)));
+    .filter((p) => !search || [p.title, p.slug, p.excerpt, ...p.tags].some((v) => v.toLocaleLowerCase().includes(search)))
+    .sort((a, b) => {
+      if (sort === "oldest") return a.createdAt.localeCompare(b.createdAt);
+      if (sort === "shown") return (b.publishedAt ?? "").localeCompare(a.publishedAt ?? "");
+      if (sort === "saved") return (b.savedAt ?? "").localeCompare(a.savedAt ?? "");
+      if (sort === "title") return a.title.localeCompare(b.title);
+      return b.createdAt.localeCompare(a.createdAt);
+    });
+  const sortOptions = SORTS.map(([key, label]) => ({ label, on: key === sort, href: queryHref(query, { sort: key === "newest" ? undefined : key, page: undefined }) }));
   const filtered = Boolean(search || wanted || service || from || to);
   const pageCount = Math.max(1, Math.ceil(rows.length / per));
   const page = Math.min(Math.max(1, Number.parseInt(query.page ?? "1", 10) || 1), pageCount);
@@ -225,6 +238,7 @@ export default async function BlogPostsPage({ searchParams }: { searchParams: Pr
                 {from ? <input type="hidden" name="from" value={from} /> : null}
                 {to ? <input type="hidden" name="to" value={to} /> : null}
                 {query.per ? <input type="hidden" name="per" value={per} /> : null}
+                {query.sort ? <input type="hidden" name="sort" value={query.sort} /> : null}
                 <FilterPick label="Service" hideLabel name="service" defaultValue={service ?? ""} placeholder="Every service"
                             options={SERVICES.map((s) => ({ value: s.slug, label: s.short }))} />
                 <button type="submit" className="ad__btn">Apply</button>
@@ -233,9 +247,10 @@ export default async function BlogPostsPage({ searchParams }: { searchParams: Pr
                 label="Date shown"
                 value={{ from, to }}
                 href={(r) => queryHref(query, { from: r.from, to: r.to, page: undefined })}
-                keep={{ q: query.q, state: query.state, service: query.service, per: query.per }}
+                keep={{ q: query.q, state: query.state, service: query.service, per: query.per, sort: query.sort }}
                 action="/admin/blog#post-list"
               />
+              <SortMenu options={sortOptions} />
               <span className="adSp" />
               {filtered ? <Link className="ad__btn" href="/admin/blog">Clear filters</Link> : null}
             </div>

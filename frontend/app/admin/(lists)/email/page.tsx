@@ -20,6 +20,7 @@ import { contactStats, listContacts, openRate, opensFor, type Filters } from "@/
 import { Empty, Tile } from "@/components/admin/bits";
 import { AdminState } from "@/components/admin/admin-state";
 import { Pager, readPer } from "@/components/admin/pager";
+import { SortMenu } from "@/components/admin/sort-menu";
 import { ContactsView } from "@/components/admin/email/contacts-view";
 import type { ContactRow } from "@/components/admin/email/contacts-sheets";
 import { listCampaigns, ratesFor, reportFor } from "@/lib/campaigns";
@@ -38,7 +39,9 @@ const TABS = [["campaigns", "Campaigns"], ["calendar", "Calendar"], ["automation
  * from the campaigns, contacts and automations tables; where a table is not
  * set up yet the tab says so and the rest still draws. Owner only.
  */
-type SP = { tab?: string; q?: string; tag?: string; type?: string; status?: string; marketing?: string; page?: string; per?: string; kind?: string };
+type SP = { tab?: string; q?: string; tag?: string; type?: string; status?: string; marketing?: string; page?: string; per?: string; kind?: string; sort?: string };
+/* Contacts, newest first unless the reader picks otherwise (owner, 2026-11-01); lib/contacts.ts orders them in SQL. */
+const CONTACT_SORTS = [["newest", "Newest first"], ["oldest", "Oldest first"], ["name", "Name A to Z"], ["active", "Latest activity"]] as const;
 
 export default async function EmailPage({ searchParams }: { searchParams: Promise<SP> }) {
   const sp = await searchParams;
@@ -171,7 +174,8 @@ export default async function EmailPage({ searchParams }: { searchParams: Promis
 
 async function ContactsTab({ sp }: { sp: SP }) {
   const per = readPer(sp.per);
-  const f: Filters = { q: (sp.q ?? "").trim().slice(0, 120), tag: sp.tag ?? "", type: sp.type ?? "", status: sp.status ?? "", marketing: sp.marketing ?? "", page: Math.max(1, Number(sp.page) || 1), per };
+  const sort = CONTACT_SORTS.find(([k]) => k === sp.sort)?.[0] ?? "newest";
+  const f: Filters = { q: (sp.q ?? "").trim().slice(0, 120), tag: sp.tag ?? "", type: sp.type ?? "", status: sp.status ?? "", marketing: sp.marketing ?? "", page: Math.max(1, Number(sp.page) || 1), per, sort };
   const [res, stats] = await Promise.all([listContacts(f), contactStats()]);
   if (!res) {
     return <AdminState kind="error" title="Contacts are not set up yet" description="Apply migration 0045 in Settings › System, then reload." />;
@@ -183,15 +187,17 @@ async function ContactsTab({ sp }: { sp: SP }) {
   }));
   const href = (patch: Record<string, string | number | undefined>) => {
     const u = new URLSearchParams();
-    for (const [k, v] of Object.entries({ tab: "contacts", q: f.q, tag: f.tag, type: f.type, status: f.status, marketing: f.marketing, per, ...patch })) if (v !== undefined && v !== "") u.set(k, String(v));
+    for (const [k, v] of Object.entries({ tab: "contacts", q: f.q, tag: f.tag, type: f.type, status: f.status, marketing: f.marketing, per, sort: sort === "newest" ? undefined : sort, ...patch })) if (v !== undefined && v !== "") u.set(k, String(v));
     return `/admin/email?${u}`;
   };
+  const sortOptions = CONTACT_SORTS.map(([key, label]) => ({ label, on: key === sort, href: href({ sort: key === "newest" ? undefined : key, page: undefined }) }));
   const filtered = Boolean(f.q || f.tag || f.type || f.status || f.marketing);
   const share = stats.total ? Math.round((stats.canEmail / stats.total) * 100) : 0;
   return (
     <ContactsView
       rows={rows} total={res.total} stats={{ total: stats.total }} per={per} filtered={filtered}
-      filters={{ q: f.q, type: f.type, status: f.status, tag: f.tag, marketing: f.marketing }}
+      filters={{ q: f.q, type: f.type, status: f.status, tag: f.tag, marketing: f.marketing, sort: sort === "newest" ? "" : sort }}
+      sort={<SortMenu options={sortOptions} />}
       kpis={
         <dl className="ad__tiles ctTiles">
           <Tile label="Total contacts" value={String(stats.total)} note={`${stats.fresh} new this month`} icon={Users} />

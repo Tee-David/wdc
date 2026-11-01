@@ -88,6 +88,6 @@ export function UsersTable({ filter: f, users, invites, total, page, me }: { fil
         {!total ? <tr><td colSpan={invitation ? 6 : 5}><b>{f.search || f.role || f.status ? "No matching results" : "Nobody here yet"}</b><small>{f.search || f.role || f.status ? "Clear or change your filters." : "Invite a studio member, or connect a client through their client record."}</small></td></tr> : null}
       </tbody></table>
     </div>
-    <Pager label="Users pages" total={total} page={page} per={f.size} noun={invitation ? "invitations" : "accounts"} perOptions={[10,25,50,100]} href={patch => url(current, { ...(patch.page ? {page:String(patch.page)}:{}), ...(patch.per ? {size:String(patch.per)}:{}) })} />
+    <Pager label="Users pages" total={total} page={page} per={f.size} noun={invitation ? "invitations" : "accounts"} perOptions={[50,100,200]} href={patch => url(current, { ...(patch.page ? {page:String(patch.page)}:{}), ...(patch.per ? {size:String(patch.per)}:{}) })} />
   </>;
 }

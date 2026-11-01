@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CalendarDays, ChevronDown } from "lucide-react";
 import { DateInput } from "./pick";
+import { DismissDetails } from "./dismiss-details";
 
 /**
  * THE DATE RANGE every admin list filters by (the mockups' date picker).
@@ -82,7 +83,7 @@ export function DateRange({
   const presets = rangePresets();
   const all = !value.from && !value.to;
   return (
-    <details className="ad__range">
+    <DismissDetails className="ad__range">
       <summary aria-label={`${label}: ${describeRange(value)}`}>
         <CalendarDays aria-hidden="true" />
         <span>{describeRange(value)}</span>
@@ -105,11 +106,13 @@ export function DateRange({
           {/* The admin's own calendar, not the browser's (pick.tsx). Named by
               aria-label: a server component has no id to point a <label> at
               that is unique across the routes Next keeps mounted. */}
-          <div className="ad__rangeField"><span aria-hidden="true">From</span><DateInput name="from" defaultValue={value.from} label="From" /></div>
-          <div className="ad__rangeField"><span aria-hidden="true">To</span><DateInput name="to" defaultValue={value.to} label="To" /></div>
-          <button type="submit" className="ad__btn ad__btn--primary">Apply</button>
+          <div className="ad__rangeRow">
+            <div className="ad__rangeField"><span aria-hidden="true">From</span><DateInput name="from" defaultValue={value.from} label="From" /></div>
+            <div className="ad__rangeField"><span aria-hidden="true">To</span><DateInput name="to" defaultValue={value.to} label="To" /></div>
+            <button type="submit" className="ad__btn ad__btn--primary">Apply</button>
+          </div>
         </form>
       </div>
-    </details>
+    </DismissDetails>
   );
 }

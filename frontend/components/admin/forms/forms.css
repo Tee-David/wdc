@@ -204,3 +204,24 @@
   .adPh__lead:has(.adEntry__state) { align-items: flex-start; }
   .adPh__lead .adEntry__state { margin-left: -4rem; }
 }
+
+/* EMAILS ABOUT THIS ENTRY (owner, 2026-11-01: polish it). The resend form,
+   its address field only when "Another address" is chosen, then each email as
+   one tidy row: subject and state on the first line, recipient and time under. */
+.adResend { padding: .75rem 1rem 1rem; border-bottom: 1px solid var(--ad-line); }
+.adResend .ad__formActions { margin-top: .25rem; }
+.adResend .ad__formActions .ad__btn { width: 100%; justify-content: center; }
+.adResend__to { display: none; }
+.adResend:has(input[name="target"][value="other"]:checked) .adResend__to { display: block; }
+.adMailLog { margin: 0; padding: .25rem 1rem 1rem; list-style: none; display: grid; }
+.adMailLog li {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: .2rem .75rem;
+  padding: .75rem 0; border-bottom: 1px solid var(--ad-line);
+}
+.adMailLog li:last-child { border-bottom: 0; }
+.adMailLog__subject { min-width: 0; font-weight: 600; font-size: .9rem; line-height: 1.35; overflow-wrap: anywhere; }
+.adMailLog .ad__pill { justify-self: end; }
+.adMailLog__meta { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: .1rem .75rem; min-width: 0; color: var(--ad-dim); font-size: .8rem; }
+.adMailLog__meta span { min-width: 0; overflow-wrap: anywhere; }
+.adMailLog__why { grid-column: 1 / -1; color: var(--ad-bad-ink, var(--ad-dim)); font-size: .8rem; line-height: 1.4; }
+.adResend__to .ad__f, .adResend__to input { width: 100%; }

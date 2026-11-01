@@ -12,6 +12,7 @@ import { remainingParts, termEnd } from "@/lib/admin/retainer-rules";
 import { estimateState, estimateTotals, invoiceStatus, invoiceTotals, refundedTotal } from "@/lib/admin/types";
 import { Empty, InvoicePill, when } from "@/components/admin/bits";
 import { Pager, readPer } from "@/components/admin/pager";
+import { SortMenu } from "@/components/admin/sort-menu";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 import { PageHead } from "@/components/admin/page-head";
 import { RailCard, Workbench } from "@/components/admin/workbench";
@@ -25,7 +26,13 @@ import "@/components/admin/dashboard.css";
 export const metadata = { title: "Billing" };
 
 type Show = "all" | "due" | "paid";
-type Query = { tab?: string; show?: string; page?: string; per?: string };
+type Query = { tab?: string; show?: string; page?: string; per?: string; sort?: string };
+/* Every tab opens newest first (owner, 2026-11-01); a tab link drops the sort, so each tab reads its own. */
+const SORTS = {
+  invoices: [["newest", "Newest first"], ["oldest", "Oldest first"], ["due", "Due soonest"], ["left", "Left to pay, most first"]],
+  receipts: [["newest", "Newest first"], ["oldest", "Oldest first"], ["amount", "Amount, high to low"]],
+  quotes: [["newest", "Newest first"], ["oldest", "Oldest first"], ["expires", "Valid until, soonest"]],
+} as const;
 
 function href(q: Query, patch: Query) {
   const p = new URLSearchParams();
@@ -81,14 +88,24 @@ export default async function PortalBilling({ searchParams }: { searchParams: Pr
 
   const tab = query.tab === "receipts" || query.tab === "quotes" ? query.tab : "invoices";
   const show: Show = query.show === "due" || query.show === "paid" ? query.show : "all";
+  const sorts: readonly (readonly [string, string])[] = SORTS[tab];
+  const sort = sorts.find(([k]) => k === query.sort)?.[0] ?? "newest";
+  const sortOptions = sorts.map(([key, label]) => ({ label, on: key === sort, href: href(query, { sort: key === "newest" ? undefined : key, page: undefined }) }));
+  const byWhen = (a: string, b: string) => (sort === "oldest" ? a.localeCompare(b) : b.localeCompare(a));
   const rows = invoices.filter((inv) => {
     const due = invoiceTotals(inv).due;
     if (show === "due") return !inv.voided && due > 0;
     if (show === "paid") return !inv.voided && due <= 0;
     return true;
-  });
+  }).sort((a, b) => sort === "due" ? a.due.localeCompare(b.due)
+    : sort === "left" ? (b.voided ? 0 : invoiceTotals(b).due) - (a.voided ? 0 : invoiceTotals(a).due)
+      : byWhen(a.issued, b.issued));
+  const receipts = tab !== "receipts" || sort === "newest" ? payments
+    : [...payments].sort((a, b) => sort === "amount" ? b.p.amount - a.p.amount : byWhen(a.p.at, b.p.at));
+  const quoteRows = tab !== "quotes" || sort === "newest" ? quotes
+    : [...quotes].sort((a, b) => sort === "expires" ? a.expires.localeCompare(b.expires) : byWhen(a.issued, b.issued));
   const listLength = tab === "receipts" ? payments.length : tab === "quotes" ? quotes.length : rows.length;
-  const per = readPer(query.per, 5);
+  const per = readPer(query.per);
   const pages = Math.max(1, Math.ceil(listLength / per));
   const page = Math.min(pages, Math.max(1, Number.parseInt(query.page ?? "1", 10) || 1));
   const slice = <T,>(list: T[]) => list.slice((page - 1) * per, page * per);
@@ -190,10 +207,11 @@ export default async function PortalBilling({ searchParams }: { searchParams: Pr
         <section className="adList" id="invoices" aria-label="Invoices, receipts and quotes" data-tour="portal-billing">
           <div className="adList__hd"><h2>{tab === "receipts" ? "Receipts" : tab === "quotes" ? "Quotes" : "Invoices"}</h2><span className="adList__n">{listLength}</span><span className="adList__sp" />{tab === "invoices" && invoices.length ? <ListSearch target="portal-invoices" placeholder="Number or project" noun="invoices" /> : null}</div>
           <Tabs label="Billing" current={tab} items={[
-            { key: "invoices", label: "Invoices", count: invoices.length, tone: owing.some((i) => invoiceStatus(i) === "Overdue") ? "bad" : undefined, href: href(query, { tab: undefined, show: undefined, page: undefined }) },
-            { key: "receipts", label: "Receipts", count: payments.length, href: href(query, { tab: "receipts", show: undefined, page: undefined }) },
-            ...(isPrimaryContact ? [{ key: "quotes", label: "Quotes", count: quotes.length, tone: quotes.some((q) => estimateState(q) === "Sent") ? "warn" as const : undefined, href: href(query, { tab: "quotes", show: undefined, page: undefined }) }] : []),
+            { key: "invoices", label: "Invoices", count: invoices.length, tone: owing.some((i) => invoiceStatus(i) === "Overdue") ? "bad" : undefined, href: href(query, { tab: undefined, show: undefined, page: undefined, sort: undefined }) },
+            { key: "receipts", label: "Receipts", count: payments.length, href: href(query, { tab: "receipts", show: undefined, page: undefined, sort: undefined }) },
+            ...(isPrimaryContact ? [{ key: "quotes", label: "Quotes", count: quotes.length, tone: quotes.some((q) => estimateState(q) === "Sent") ? "warn" as const : undefined, href: href(query, { tab: "quotes", show: undefined, page: undefined, sort: undefined }) }] : []),
           ]} />
+          {listLength ? <div className="adList__tools"><SortMenu options={sortOptions} /><span className="adSp" /></div> : null}
 
           {tab === "invoices" ? (
             <>
@@ -248,7 +266,7 @@ export default async function PortalBilling({ searchParams }: { searchParams: Pr
               <table className="ad__t">
                 <thead><tr><th>Receipt</th><th>For invoice</th><th>How</th><th>When</th><th className="num">Amount</th><th><span className="ad__sr">Open</span></th></tr></thead>
                 <tbody>
-                  {slice(payments).map(({ p, inv }) => (
+                  {slice(receipts).map(({ p, inv }) => (
                     <tr key={p.id}>
                       <td><a href={`/r/${p.token}`} target="_blank" rel="noopener noreferrer"><b className="ad__docNo">{p.receiptNo}</b></a></td>
                       <td className="ad__docNo">{inv.number}</td>
@@ -268,7 +286,7 @@ export default async function PortalBilling({ searchParams }: { searchParams: Pr
               <table className="ad__t">
                 <thead><tr><th>Quote</th><th>Status</th><th>Sent</th><th>Valid until</th><th className="num">Total</th><th><span className="ad__sr">Open</span></th></tr></thead>
                 <tbody>
-                  {slice(quotes).map((q) => {
+                  {slice(quoteRows).map((q) => {
                     const st = estimateState(q);
                     return (
                       <tr key={q.id}>

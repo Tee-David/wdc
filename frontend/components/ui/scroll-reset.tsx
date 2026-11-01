@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
 /**
@@ -105,6 +105,63 @@ export function reveal(el: Element, opts: { top?: number; bottom?: number; room?
 }
 
 const KEY = "wdc:scroll";
+const KEEP = "wdc:keep";
+
+/**
+ * A LIST CONTROL KEEPS THE READER WHERE THEY ARE.
+ *
+ * Rows per page, a sort, a tab, a date range or a page number is the same
+ * path with a different query, and the reader is looking at the table they
+ * just asked to change. Sending them to the top of the page is the opposite
+ * of what they wanted. The position is put back once the address has changed,
+ * for a few frames so the router's own scroll cannot win, and never against a
+ * reader who has started scrolling themselves.
+ */
+function keepPlace() {
+  const y = window.scrollY, from = window.location.href;
+  let moved = false;
+  const stop = () => { moved = true; };
+  const intents = ["wheel", "touchstart", "keydown"] as const;
+  for (const type of intents) window.addEventListener(type, stop, { passive: true, once: true });
+  const waitUntil = Date.now() + 5000;
+  let holdUntil = 0;
+  const tick = () => {
+    if (moved) return done();
+    if (!holdUntil) {
+      if (window.location.href === from) return Date.now() > waitUntil ? done() : requestAnimationFrame(tick);
+      holdUntil = Date.now() + 700;
+    }
+    const limit = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    if (Math.abs(window.scrollY - Math.min(y, limit)) > 1) toY(Math.min(y, limit));
+    if (Date.now() < holdUntil) requestAnimationFrame(tick); else done();
+  };
+  const done = () => { for (const type of intents) window.removeEventListener(type, stop); };
+  requestAnimationFrame(tick);
+}
+
+/* A GET form (a filter sheet, a custom date range) reloads the document, so
+   the place is carried across the load in session storage. */
+function keepAcrossLoad(event: SubmitEvent) {
+  const form = event.target as HTMLFormElement | null;
+  if (!form || (form.method || "get").toLowerCase() !== "get") return;
+  try {
+    const url = new URL(form.action || window.location.href, window.location.href);
+    if (url.origin !== window.location.origin || url.pathname !== window.location.pathname) return;
+    sessionStorage.setItem(KEEP, JSON.stringify({ path: url.pathname, y: window.scrollY }));
+  } catch { /* storage refused: the page simply starts at the top */ }
+}
+
+function kept(): number | null {
+  try {
+    const raw = sessionStorage.getItem(KEEP);
+    if (!raw) return null;
+    sessionStorage.removeItem(KEEP);
+    const saved = JSON.parse(raw) as { path?: string; y?: number };
+    return saved?.path === window.location.pathname && typeof saved.y === "number" && saved.y > 0 ? saved.y : null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Where the reader was, saved ONCE as the page goes away.
@@ -165,6 +222,7 @@ function isReload(): boolean {
 
 export default function ScrollReset() {
   const path = usePathname();
+  const router = useRouter();
   const first = useRef(true);
 
   /* Take scroll restoration away from the browser, once, before it can act.
@@ -189,7 +247,8 @@ export default function ScrollReset() {
        down. The saved offset is read (and cleared) either way, so a position
        left behind by one visit cannot reappear on a later link click. */
     const saved = recall();
-    const restoreTo = isReload() ? saved : null;
+    const carried = kept();
+    const restoreTo = isReload() ? saved : carried;
 
     /* Two passes. The first covers a normal load; the second runs after
        `load`, by which point the pinned sections have measured themselves and
@@ -267,13 +326,27 @@ export default function ScrollReset() {
       if (url.hash) return;
       /* A real route change is the effect above's job. */
       if (url.pathname !== window.location.pathname) return;
+      /* Same page, different query: a list control (rows per page, sort, a
+         tab, a date range, a page number). Navigate without the router's own
+         scroll, which would pull the page up to the section's top; this runs in
+         the capture phase, so Link sees the default prevented and stands down. */
+      if (url.search !== window.location.search) {
+        event.preventDefault();
+        router.push(url.pathname + url.search, { scroll: false });
+        keepPlace();
+        return;
+      }
 
       toTop(false);
     };
 
     document.addEventListener("click", onClick, true);
-    return () => document.removeEventListener("click", onClick, true);
-  }, []);
+    document.addEventListener("submit", keepAcrossLoad, true);
+    return () => {
+      document.removeEventListener("click", onClick, true);
+      document.removeEventListener("submit", keepAcrossLoad, true);
+    };
+  }, [router]);
 
   return null;
 }

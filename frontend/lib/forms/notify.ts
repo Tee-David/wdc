@@ -6,6 +6,9 @@ import { SITE_URL } from "@/lib/site";
 import type { FormDef } from "./registry";
 import { fillTokens, NOTIFICATIONS, type FormSettings } from "./settings";
 import { entryMailParts, withEntryParts } from "./entry-mail";
+import { getSetting } from "@/lib/admin/store";
+import { hydrateSettings } from "@/lib/settings/store";
+import { FORM_NOTICE_DEFAULT } from "@/lib/settings/registry";
 
 type Mail = Parameters<typeof sendLogged>[0];
 
@@ -39,7 +42,10 @@ export async function sendFormEmail(
   if (!def || !n) return sendLogged(mail, log);
 
   const subject = n.subject ? fillTokens(n.subject, tokens) : mail.subject;
-  const to = def.audience === "studio" && n.to.length ? n.to.join(", ") : mail.to;
+  /* A studio notice goes to the form's own addresses, else the studio-wide list
+     (Settings, Email: "New form entries go to"). */
+  if (def.audience === "studio" && !n.to.length) await hydrateSettings();
+  const to = def.audience !== "studio" ? mail.to : n.to.length ? n.to.join(", ") : getSetting("forms.notifyTo") || FORM_NOTICE_DEFAULT;
   if (!n.enabled) {
     await queueLogged({
       channel: "Email", to, subject,

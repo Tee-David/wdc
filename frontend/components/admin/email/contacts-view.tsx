@@ -14,7 +14,7 @@ import { AddSheet, Avatar, ContactSheet, ExportSheet, ImportSheet, TagSheet, Typ
 import type { ExportScope } from "@/lib/contacts-export";
 import "./contacts.css";
 
-type Filters = { q: string; type: string; status: string; tag: string; marketing: string };
+type Filters = { q: string; type: string; status: string; tag: string; marketing: string; sort?: string };
 type Picked = { id: string; name: string; email: string; status: ContactRow["status"] };
 
 const TYPE_OPTIONS = [{ value: "client", label: "Client" }, { value: "lead", label: "Lead" }, { value: "subscriber", label: "Subscriber" }];
@@ -38,10 +38,10 @@ const people = (n: number) => `${n.toLocaleString("en-GB")} ${n === 1 ? "person"
  * pinned. While a new page is coming the rows hold their place and dim; no
  * invented data is drawn.
  */
-export function ContactsView({ rows, total, stats, filters, per, filtered, kpis, pager }: {
+export function ContactsView({ rows, total, stats, filters, per, filtered, kpis, pager, sort }: {
   rows: ContactRow[]; total: number; stats: { total: number }; per: number;
   filters: Filters; filtered: boolean;
-  kpis: React.ReactNode; pager: React.ReactNode;
+  kpis: React.ReactNode; pager: React.ReactNode; sort?: React.ReactNode;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -157,6 +157,7 @@ export function ContactsView({ rows, total, stats, filters, per, filtered, kpis,
               <div className="ctPick"><Pick label="Type" value={filters.type} placeholder="Any type" options={TYPE_OPTIONS} onChange={(v) => go({ type: v })} /></div>
               <div className="ctPick"><Pick label="Status" value={filters.status} placeholder="Any status" options={STATUS_OPTIONS} onChange={(v) => go({ status: v })} /></div>
               <div className="ctPick"><RemotePick kind="tags" label="Tag" value={filters.tag} placeholder="Any tag" onChange={(v) => go({ tag: v })} /></div>
+              {sort}
               <label className="ctSearch">
                 <Search aria-hidden="true" />
                 <span className="ad__sr">Search contacts</span>

@@ -32,7 +32,7 @@ import { getFormSettings } from "@/lib/forms/settings-db";
 import "@/components/admin/forms/forms.css";
 import "@/components/admin/forms/form-page.css";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
-import { FilterPick } from "@/components/admin/pick";
+import { SortMenu } from "@/components/admin/sort-menu";
 
 /* NO generateStaticParams: an entry that arrives after the build still opens. */
 
@@ -204,6 +204,8 @@ export default async function FormPage({ params, searchParams }: Props) {
     }),
   }));
   const exportQuery = query(f, { page: "", per: "" });
+  const sortOptions = ([["newest", "Newest first"], ["oldest", "Oldest first"], ["name", form.source === "newsletter" ? "Address A to Z" : "Name A to Z"]] as const)
+    .map(([key, label]) => ({ label, on: key === f.sort, href: `/admin/forms/${form.key}?${query(f, { sort: key, page: 1 })}` }));
   const canExport = can(role, "exports");
   const first = tabs[0];
   const rail = (
@@ -246,9 +248,7 @@ export default async function FormPage({ params, searchParams }: Props) {
           {f.from ? <input type="hidden" name="from" value={f.from} /> : null}
           {f.to ? <input type="hidden" name="to" value={f.to} /> : null}
           {f.per !== 25 ? <input type="hidden" name="per" value={f.per} /> : null}
-          <FilterPick label="Sort" name="sort" defaultValue={f.sort}
-                      options={[{ value: "newest", label: "Newest first" }, { value: "oldest", label: "Oldest first" },
-                                { value: "name", label: form.source === "newsletter" ? "Address" : "Name" }]} />
+          {f.sort !== "newest" ? <input type="hidden" name="sort" value={f.sort} /> : null}
           <button className="ad__btn ad__btn--primary" type="submit">Apply</button>
           {filtered ? <Link className="ad__btn" href={`/admin/forms/${form.key}?tab=${f.tab}`}>Clear</Link> : null}
         </form>
@@ -260,6 +260,7 @@ export default async function FormPage({ params, searchParams }: Props) {
             keep={{ tab: f.tab, q: f.q, sort: f.sort === "newest" ? undefined : f.sort, per: f.per }}
             action={`/admin/forms/${form.key}`}
           />
+          <SortMenu options={sortOptions} />
           <span className="ad__row">
             <ColumnPicker formKey={form.key} columns={form.columns} chosen={chosen} />
             {canExport ? (

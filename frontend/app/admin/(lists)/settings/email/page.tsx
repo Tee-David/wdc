@@ -16,6 +16,7 @@ import { EmailForm, PendingNotice } from "@/components/admin/settings/email-form
 import { pendingNotice } from "@/lib/notice-address";
 import { when } from "@/components/admin/bits";
 import "@/components/admin/forms/forms.css";
+import { FORM_NOTICE_DEFAULT } from "@/lib/settings/registry";
 
 export const metadata = { title: "Email" };
 
@@ -80,7 +81,7 @@ export default async function EmailSettingsPage() {
         ) : null}
         <EmailForm fromName={getSetting("mail.fromName") || process.env.SMTP_FROM_NAME?.trim() || DEFAULT_MAIL_FROM_NAME}
           replyTo={getSetting("mail.replyTo") || ""} shippedReplyTo={shippedReply} days={days} options={LOG_RETENTION_DAYS}
-          fromAddress={process.env.SMTP_FROM_EMAIL?.trim() || ""} />
+          fromAddress={process.env.SMTP_FROM_EMAIL?.trim() || ""} formNotice={getSetting("forms.notifyTo") || FORM_NOTICE_DEFAULT} />
       </div>
     </>
   );

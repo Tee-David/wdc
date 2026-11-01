@@ -143,8 +143,15 @@
 
 /* --------------------------------------------------------------- shared */
 
-.adDash__actions { padding: .25rem 1.25rem 1.25rem; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
-.adDash__actions .ad__btn { width: 100%; min-width: 0; min-height: 3.25rem; justify-content: flex-start; white-space: normal; text-align: left; overflow-wrap: anywhere; }
+/* One action per row (owner, 2026-11-01): two across in the rail broke
+   "Onboarding form" mid-word. Each row is icon, label, then a quiet chevron. */
+.adDash__actions { padding: .25rem 1rem 1rem; display: grid; grid-template-columns: minmax(0, 1fr); gap: .45rem; }
+.adDash__actions .ad__btn { width: 100%; min-width: 0; min-height: 3rem; justify-content: flex-start; white-space: nowrap; text-align: left; }
+.adDash__actions .ad__btn::after {
+  content: ""; flex: none; margin-left: auto; width: .45rem; height: .45rem;
+  border-top: 2px solid currentColor; border-right: 2px solid currentColor; transform: rotate(45deg); opacity: .45;
+}
+.adDash__actions .ad__btn:hover::after { opacity: .8; }
 /* ONE LOOK FOR EVERY QUICK ACTION: a calm panel button with a solid navy icon chip. The coloured fill is kept for the
    one primary action on a page, and a list of six actions has none. */
 .adDash__actions .ad__btn, .adDash__actions .ad__btn--primary, .adDash__actions .ad__btn--plain {
@@ -294,8 +301,9 @@ button.adDash__chartMonth:focus-visible { outline: 2px solid var(--ad-focus); ou
 .adFlow__railHead h2 { flex: 1; font-size: 1rem; font-weight: 700; }
 .adFlow__more { display: inline-flex; align-items: center; gap: .3rem; min-height: 2.75rem; color: var(--ad-accent-ink); font-weight: 600; font-size: .85rem; }
 .adFlow__more svg { width: .95rem; height: .95rem; }
-.adFlow__tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; margin: 0; }
-.adFlow__tiles > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+/* ONE FIGURE PER ROW (owner, 2026-11-01): two across in a 356px rail squeezed
+   "Cash position" onto two lines and the figures with it. */
+.adFlow__tiles { display: grid; grid-template-columns: minmax(0, 1fr); gap: .75rem; margin: 0; }
 .adFlow__sub { display: block; color: var(--ad-dim); font-size: .78rem; font-weight: 400; }
 .adFlow__later { list-style: none; margin: 0; padding: 0 .5rem .25rem; }
 .adFlow__later a { display: flex; align-items: center; gap: 1rem; min-height: 3.5rem; padding: .5rem .75rem; border-radius: 12px; }
@@ -308,7 +316,7 @@ button.adDash__chartMonth:focus-visible { outline: 2px solid var(--ad-focus); ou
 @media (max-width: 1180px) {
   .adFlow__grid { grid-template-columns: 1fr; }
   .adFlow__rail { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
-  .adFlow__rail > .adFlow__railHead, .adFlow__rail > .adFlow__tiles:first-of-type { grid-column: 1 / -1; }
+  .adFlow__rail > .adFlow__railHead { grid-column: 1 / -1; }
 }
 @media (max-width: 760px) {
   .adFlow__rail { grid-template-columns: 1fr; }
