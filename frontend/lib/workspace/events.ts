@@ -37,7 +37,9 @@ export async function emitWorkspaceEvent(input:WorkspaceEvent, tx?:Queryable):Pr
   if(input.kind.startsWith('invitation.')&&!await invitationEventCurrent(input.kind,input.staleKey,input.kind==='invitation.expiring_client'?user.email:null,tx))continue;
   if(!user.id.startsWith("client:")&&!await eventRecipientAllowed(input,user.id,tx))continue;
   if(input.visibility==='internal'&&user.role!=='owner'&&user.role!=='staff')continue;
-  const target=workspaceHref(recipient.href??(user.role==='client'?href.replace(/^\/admin\/projects\//,'/portal/projects/'):href));
+  /* A message to the client opens its conversation, not the project's Activity tab (owner, 2026-11-01). */
+  const toChannel=user.role==='client'&&input.visibility==='client'&&(input.kind==='project.update_published'||input.kind==='team.note_replied');
+  const target=workspaceHref(recipient.href??(toChannel?`/portal/support/project/${input.projectId}`:user.role==='client'?href.replace(/^\/admin\/projects\//,'/portal/projects/'):href));
   if(!user.id.startsWith('client:'))await tx.query('INSERT INTO workspace_notifications(event_id,user_id,href) VALUES($1,$2,$3) ON CONFLICT(event_id,user_id) DO NOTHING',[input.id,user.id,target]);
   const prefs=effectiveWorkspacePreferences(user.email,user.modes,user.digest_days),mode=recipient.suppressEmailReason?"off":prefs.modes[input.category];
   const key=`workspace:${input.id}:${user.id}`;

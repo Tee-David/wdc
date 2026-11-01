@@ -6,8 +6,10 @@ import { Area, Form, Hidden, Submit } from "./form";
 import { ChatAttach, ReplyingTo, useReply, useSent, useUploading } from "./thread";
 
 /**
- * A NOTE IN A PROJECT CHANNEL. Team only by default; the project lead can
- * choose Client sees it, which publishes it to the client's portal and email.
+ * A NOTE IN A PROJECT CHANNEL. To the client by default (owner, 2026-11-01:
+ * a message typed here and sent was landing as Team only, so the client never
+ * saw it); Team only is one tap away. The server checks the same rule again
+ * (addWorkspaceTeamNote).
  * The server checks the same rule again (addWorkspaceTeamNote).
  */
 export function ProjectReply({ projectId, canPublish }: { projectId: string; canPublish: boolean }) {
@@ -28,8 +30,8 @@ export function ProjectReply({ projectId, canPublish }: { projectId: string; can
       ) : canPublish ? (
         <fieldset className="adMx__seg">
           <legend>Who sees it</legend>
-          <label><input type="radio" name="visibility" value="internal" defaultChecked /><span>Team only</span></label>
-          <label><input type="radio" name="visibility" value="client" /><span>Client sees it</span></label>
+          <label><input type="radio" name="visibility" value="client" defaultChecked /><span>To the client</span></label>
+          <label><input type="radio" name="visibility" value="internal" /><span>Team only</span></label>
         </fieldset>
       ) : (
         <>
@@ -37,7 +39,7 @@ export function ProjectReply({ projectId, canPublish }: { projectId: string; can
           <p className="adMx__hint">Stays with the team. Only the project lead can publish to the client.</p>
         </>
       )}
-      <Area name="body" label="Your message" rows={1} placeholder="Message the channel" />
+      <Area name="body" label="Your message" rows={1} placeholder={canPublish && !fixed ? "Write to the client" : "Message the team"} />
       <Submit tone="primary" icon={Send} disabled={uploading}><span className="ad__btnTxt">Send message</span></Submit>
     </Form>
   );

@@ -958,6 +958,23 @@ async function uploadedFilesProblem(files: DeliverableFile[], projectId: string)
   return null;
 }
 
+/**
+ * "Send it to the client for review now" (on by default): the file goes to the
+ * client in the same step it is added. Saved first, because the share reads
+ * the record back from the database under a lock. Only someone who may share
+ * the project's work can; anyone else keeps it with the team and is told why.
+ */
+async function shareDeliverableNow(projectId: string, id: string, version: number): Promise<string> {
+  try {
+    await saveStore();
+    const r = await moveLegacyDeliverableApproval({ projectId, id, version: String(version), approval: "Awaiting client" });
+    if (r.eventIds.length) after(() => dispatchWorkspaceEvents({ eventIds: r.eventIds }));
+    return " The client can see it now and has been emailed.";
+  } catch (error) {
+    return ` It is saved but not sent: ${error instanceof Error ? error.message : "sharing failed"}`;
+  }
+}
+
 export async function createDeliverable(_prev: ActionState, fd: FormData): Promise<ActionState> {
   await syncStore();
   persistSoon();
@@ -981,8 +998,9 @@ export async function createDeliverable(_prev: ActionState, fd: FormData): Promi
 
   const d = db.addDeliverable({ projectId, name, note, url: link ?? undefined, files: files.length ? files : undefined });
   if (!d) return FAIL({}, "That project is no longer there.");
+  const shared = str(fd, "share") === "1" ? await shareDeliverableNow(projectId, d.id, d.versions.at(-1)?.v ?? 1) : " It stays with the team until you send it.";
   refreshProject(projectId);
-  return OK(`${d.name} v1 is on the project.`);
+  return OK(`${d.name} v1 is on the project.${shared}`);
 }
 
 export async function addDeliverableVersion(_prev: ActionState, fd: FormData): Promise<ActionState> {
@@ -1012,7 +1030,9 @@ export async function addDeliverableVersion(_prev: ActionState, fd: FormData): P
   if(result.eventIds.length)after(()=>dispatchWorkspaceEvents({eventIds:result.eventIds}));
   refreshProject(d.projectId);
   const v = d.versions[d.versions.length - 1].v;
-  return OK(`${d.name} v${v} added. It needs sending again before it can be approved.`);
+  const shared = str(fd, "share") === "1" ? await shareDeliverableNow(d.projectId, d.id, v) : " It stays with the team until you send it.";
+  refreshProject(d.projectId);
+  return OK(`${d.name} v${v} added.${shared}`);
 }
 
 export async function moveApproval(_prev: ActionState, fd: FormData): Promise<ActionState> {

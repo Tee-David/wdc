@@ -11,7 +11,7 @@ import {
   addDeliverableVersion, createDeliverable, createTask, moveApproval,
   postUpdate, removeTask, saveProjectDetails, toggleTask,
 } from "@/lib/admin/actions";
-import { Actions, Area, Field, Fields, Form, Hidden, Select, Submit, useFieldError } from "./form";
+import { Actions, Area, Checks, Field, Fields, Form, Hidden, Select, Submit, useFieldError } from "./form";
 import { useAdminRole } from "./shell";
 import { can } from "@/lib/admin/permissions";
 import { DialogButton } from "./dialog";
@@ -291,7 +291,16 @@ export function Deliverables({
                   {(close) => <DeliverableForm id={d.id} deliverableProjectId={d.projectId} onDone={close} previousVersion={d.versions[d.versions.length - 1]?.v} />}
                 </DialogButton>
 
-                <DialogButton label="Record a response" title={`${d.name}: what happened`} tone="plain">
+                {d.approval === "Not sent" && d.versions.length ? (
+                  <Form action={moveApproval}>
+                    <Hidden name="id" value={d.id} />
+                    <Hidden name="version" value={String(d.versions.at(-1)?.v ?? "")} />
+                    <Hidden name="approval" value="Awaiting client" />
+                    <Submit icon={Send}>Send to client</Submit>
+                  </Form>
+                ) : null}
+
+                <DialogButton label="Record the client's answer" title={`${d.name}: what the client said`} tone="plain">
                   {(close) => (
                     <Form action={moveApproval} onDone={close}>
                       <Hidden name="id" value={d.id} />
@@ -338,9 +347,14 @@ function DeliverableForm({ projectId, id, deliverableProjectId, onDone, previous
         <DeliverableUpload projectId={projectId ?? deliverableProjectId ?? ""} onBusyChange={setUploading} />
         <Field name="url" label="Add a link" placeholder="https://…"
                hint="Optional. Upload files, add a link, or do both." />
+        {/* ON BY DEFAULT (owner, 2026-11-01): a file added for the client reached
+            nobody until a separate "Record a response" step marked it sent. */}
+        <Checks name="share" label="The client" long defaultValue={["1"]}
+                options={[{ value: "1", label: "Send it to the client for review now" }]}
+                hint="They see it in their portal and get an email. Untick to keep it with the team for now." />
       </Fields>
       {!fresh ? <p className="ad__dim" style={{ fontSize: ".86rem" }}>
-        A new version supersedes whatever the last one was told: an approval given for v{previousVersion} is not an approval of the next one, so this resets to &ldquo;not sent&rdquo;.
+        This is round v{(previousVersion ?? 0) + 1}. An approval given for v{previousVersion} does not carry over: the client reviews the new one.
       </p> : null}
       <Actions><Submit disabled={uploading}>{uploading ? "Uploading files…" : fresh ? "Add it" : "Add the version"}</Submit></Actions>
     </Form>

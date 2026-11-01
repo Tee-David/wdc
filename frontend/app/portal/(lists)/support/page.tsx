@@ -12,7 +12,9 @@ import { UrlSearch } from "@/components/admin/url-search";
 import { Pager, readPer } from "@/components/admin/pager";
 import { SortMenu } from "@/components/admin/sort-menu";
 import { getPortalRequest } from "@/lib/portal/session";
-import { getProjectsFor, getTicketMessages, getTicketsFor } from "@/lib/admin/store";
+import { getProject, getProjectsFor, getTicketMessages, getTicketsFor } from "@/lib/admin/store";
+import { db } from "@/lib/db/pool";
+import { PortalThread } from "@/components/client/portal-thread";
 import { Empty } from "@/components/admin/bits";
 import { NewTicketForm } from "@/components/client/new-ticket-form";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
@@ -32,13 +34,34 @@ const SORTS = [["newest", "Newest first"], ["oldest", "Oldest first"], ["activit
 export default async function PortalSupport({ searchParams }: { searchParams: Promise<Query> }) {
   await syncStore();
   persistSoon();
-  const { client, isPrimaryContact } = await getPortalRequest();
+  const { client, session, isPrimaryContact, allowedProjectIds } = await getPortalRequest();
   if (!client) return null;
-  if (!isPrimaryContact) return <div className="adDash"><header className="adDash__head"><h1>Messages</h1></header><Empty title="Ask in your project" icon={MessageSquare} action={<Link className="ad__btn" href="/portal/projects">Open your projects</Link>}>Your invitation gives you access to specific projects. Use their shared conversations to speak with the team.</Empty></div>;
   const sp = await searchParams;
   /* Help articles moved to their own Support page (C-Support). */
   if (sp.tab === "articles") redirect(`/portal/help${sp.q ? `?q=${encodeURIComponent(sp.q)}` : ""}`);
   const asking = sp.new === "1";
+
+  /* MESSAGES OPENS ON THE NEWEST CONVERSATION (owner, 2026-11-01: it felt blank
+     and disconnected). Project channels and questions sit in one list, the way
+     a chat app reads, instead of a tickets-only list with the channels tucked
+     into a side card. Invited project contacts get their channels too. */
+  if (!asking) {
+    const projectIds = allowedProjectIds.filter((id) => { const p = getProject(id); return p && !p.archived; });
+    let note: { project_id: string; at: string } | null = null;
+    if (projectIds.length) {
+      try {
+        const r = await db.query<{ project_id: string; created_at: Date }>("SELECT project_id, created_at FROM workspace_team_notes WHERE project_id=ANY($1::STRING[]) AND visibility='client' ORDER BY created_at DESC LIMIT 1", [projectIds]);
+        if (r.rows[0]) note = { project_id: r.rows[0].project_id, at: new Date(r.rows[0].created_at).toISOString() };
+      } catch { /* the newest ticket, or the first channel, opens instead */ }
+    }
+    const ticket = isPrimaryContact ? getTicketsFor(client.id).filter((t) => t.status !== "Closed").sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0] : undefined;
+    const open = ticket && (!note || ticket.updatedAt >= note.at) ? { kind: "ticket" as const, ticket }
+      : note ? { kind: "project" as const, projectId: note.project_id }
+      : projectIds[0] ? { kind: "project" as const, projectId: projectIds[0] } : null;
+    if (open) return <PortalThread client={client} userId={(session?.user as { id?: string } | undefined)?.id ?? ""} primary={isPrimaryContact} allowedProjectIds={allowedProjectIds} open={open} show={sp.show} />;
+  }
+  /* Questions (tickets) belong to the client's main contact; an invited contact never sees that list. */
+  if (!isPrimaryContact) return <div className="adDash"><header className="adDash__head"><h1>Messages</h1></header><Empty title="No conversations yet" icon={MessageSquare} action={<Link className="ad__btn" href="/portal/projects">Open your projects</Link>}>Once you are added to a project, its conversation with the team appears here.</Empty></div>;
   const now = nowMs();
 
   const sort = SORTS.find(([k]) => k === sp.sort)?.[0] ?? "newest";
