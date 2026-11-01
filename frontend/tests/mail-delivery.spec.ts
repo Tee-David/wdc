@@ -1,13 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { deliverMail } from "../lib/mail-delivery";
-import { smtpHostname } from "../lib/mail-sender";
 
 const rejection = { responseCode: 550, command: "DATA", response: "550 Message discarded as high-probability spam" };
 const message = { text: "Read your invoice: https://example.com/invoice", html: "<p>Your invoice</p>", attachments: [{ filename: "invoice.pdf" }, { filename: "qr.svg", cid: "qr" }] };
-
-test("SMTP greets with the sender domain rather than an ephemeral machine", () => {
-  expect(smtpHostname("info@wedigcreativity.com.ng")).toBe("wedigcreativity.com.ng");
-});
 
 test("an explicit spam rejection retries the written text once, without attachments, saying what was left off", async () => {
   const attempts: typeof message[] = [];

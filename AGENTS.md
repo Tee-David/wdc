@@ -64,7 +64,7 @@ Before finishing meaningful work, re-read section versions and update only relev
 
 ## Systems design
 
-- Nothing whose latency we do not own runs before the response. Truehost SMTP needs about 23 seconds just to authenticate, which is why the contact receipt sends from `after()`. Any third party added later inherits that rule: answer the user first, do the slow work behind the response.
+- Nothing whose latency we do not own runs before the response. Mail goes through Truehost das131 (moved from rbx107 on 2026-11-01, which was slow and refused plain mail as spam); sends still go from `after()` so a slow host never holds a visitor. Any third party added later inherits that rule: answer the user first, do the slow work behind the response.
 - Work moved behind the response has no one left to tell when it fails, so persist the intent first and make the retry safe to run twice. Every outbound message gets a row and a dedupe key before the provider is called.
 - Rate limits belong to the action, not the route. The expensive or abusable path gets the tight limit; a chatty path the same handler serves gets a loose one. `lib/rate-limit.ts` is a sliding window in one instance's memory, so on Vercel the real ceiling is the limit times the number of warm instances and a cold start forgives everything: it is abuse control, not a quota. Say so at the call site rather than trusting the number.
 - Earn infrastructure with an estimate. Queues, caches, workers and background runners each add a failure mode; add one when a written-down number says the simple version will not hold, not because the shape looks more serious.

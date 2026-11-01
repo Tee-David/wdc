@@ -6,7 +6,7 @@ import { socialLinks } from "@/lib/social";
 import { getSetting } from "@/lib/admin/store";
 import { hydrateSettings } from "@/lib/settings/store";
 import { CONTACT_EMAIL } from "@/lib/site";
-import { DEFAULT_MAIL_FROM_NAME, mailFrom, smtpHostname } from "@/lib/mail-sender";
+import { DEFAULT_MAIL_FROM_NAME, mailFrom } from "@/lib/mail-sender";
 import { sendThrough, type Outgoing } from "@/lib/mail-connections";
 import { alertMailFailure } from "@/lib/mail-webhook-alert";
 import { deliverMail } from "@/lib/mail-delivery";
@@ -38,45 +38,31 @@ export const missingMailVariables = () => MAIL_VARIABLES.filter((k) => !process.
 function transport() {
   if (globalMail.__wdcTransport) return globalMail.__wdcTransport;
   const port = Number(process.env.SMTP_PORT || 465);
+  /* PLAIN SMTP, a connection per message, the way the Meridian site sends.
+
+     The slowness and the "high-probability spam" refusals were the old host
+     (rbx107), not this code: on 1 November 2026 it refused a one-line plain
+     message from info@ to itself after 28s, while das131 sent the same line
+     in 3.4s and took HTML and a PDF in under 6s. The mailbox moved to das131.
+
+     No pool: a socket held open across serverless invocations goes stale while
+     the instance is frozen. No custom greeting name: a Vercel IP introducing
+     itself as our domain only adds to a spam score. */
   const client = nodemailer.createTransport({
-    name: smtpHostname(required("SMTP_FROM_EMAIL")),
     host: required("SMTP_HOST"),
     port,
     secure: process.env.SMTP_SECURE === "true" || port === 465,
     auth: { user: required("SMTP_USER"), pass: required("SMTP_PASSWORD") },
-    /* THESE NUMBERS KILLED THE CONTACT FORM, so they are measured now.
-
-       They were 12s/12s/20s, and the live form answered 502. Timed against
-       this server from here: a COLD connection failed at 12.18s with
-       ETIMEDOUT, and the very next attempt -- with DNS and the route warm --
-       verified in 6.87s and sent in 11.70s. So the server was never the
-       problem and neither were the credentials. The first connection of an
-       instance's life is simply slower than the ceiling we had set on it, and
-       `sendMail` throwing is what the route turns into a 502.
-
-       Set well clear of the slowest cold connect observed rather than close to
-       it. A visitor never waits on this anyway: the studio notification is the
-       only inline send and the receipt goes out behind the response. */
-    connectionTimeout: 30_000,
-    greetingTimeout: 30_000,
-    socketTimeout: 45_000,
-    /* ONE CONNECTION, REUSED. Without a pool every `sendMail` opens its own
-       connection, so the enquiry and the receipt each paid that cold handshake
-       separately -- the second one for no reason, microseconds after the first
-       had finished proving the route was warm. */
-    pool: true,
-    maxConnections: 1,
+    connectionTimeout: 20_000,
+    greetingTimeout: 20_000,
+    socketTimeout: 30_000,
   });
-  /* CACHED IN PRODUCTION TOO, and that was the other half of it. The cache was
-     skipped in production, so every request on a warm instance built a new
-     transport and paid a cold handshake that the instance had already paid.
-     Holding it is what makes the pool above mean anything. */
   globalMail.__wdcTransport = client;
   return client;
 }
 
 /**
- * Connect and authenticate, send nothing. About 23 seconds against Truehost,
+ * Connect and authenticate, send nothing. A few seconds against das131,
  * so it is only ever called behind a response (Settings > System).
  */
 export async function verifyMail(): Promise<void> {
