@@ -6,11 +6,11 @@ import { Area, Form, Hidden, Submit } from "@/components/admin/form";
 
 export function TicketReplyForm({ ticketId, closed }: { ticketId: string; closed?: boolean }) {
   return (
-    <Form action={replyToTicket} resetOnDone>
+    <Form className="adCmp" action={replyToTicket} resetOnDone>
       <Hidden name="ticketId" value={ticketId} />
-      <Area name="body" label="Reply" required rows={3}
-        placeholder={closed ? "Write here to reopen this conversation..." : "Type your reply..."} />
-      <Submit tone="primary" icon={Send}>{closed ? "Reopen and send" : "Send reply"}</Submit>
+      <Area name="body" label="Reply" required rows={1}
+        placeholder={closed ? "Write to reopen this conversation" : "Type your reply"} />
+      <Submit tone="primary" icon={Send}><span className="ad__btnTxt">{closed ? "Reopen and send" : "Send reply"}</span></Submit>
     </Form>
   );
 }

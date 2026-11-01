@@ -323,3 +323,12 @@
 .adTh__reactPick button { min-width: 44px; min-height: 44px; justify-content: center; }
 @media (hover: hover) { .adTh__reacts button:hover, .adTh__reactPick button:hover { background: var(--ad-hover); } .adTh__reacts button.is-on:hover { background: var(--ad-fill); } }
 .adTh__reacts button:focus-visible, .adTh__reactPick button:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
+
+/* THE ONE-LINE COMPOSER EVERYWHERE (owner, 2026-11-01: the client's box was
+   chunky). Without an attach button (the portal) the text takes the first
+   column; the send button is round wherever the composer is, not only inside
+   the admin's Messages page. Enter still makes a new line; the button sends. */
+.adCmp:not(:has(> .adTh__attach)) { grid-template-columns: minmax(0, 1fr) 3rem; }
+.adCmp:not(:has(> .adTh__attach)) > .ad__f { grid-column: 1; }
+.adCmp:not(:has(> .adTh__attach)) > button[type="submit"] { grid-column: 2; }
+.adCmp > button.ad__btn[type="submit"] { flex: none; min-width: 3rem; width: 3rem; height: 3rem; min-height: 3rem; padding: 0; border-radius: 50%; justify-content: center; align-self: end; }
