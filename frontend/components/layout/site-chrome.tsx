@@ -5,6 +5,7 @@ import SmoothScrollLoader from "@/components/ui/smooth-scroll-loader";
 import SmoothCursorLoader from "@/components/ui/smooth-cursor-loader";
 import JotformAgent from "@/components/agent/jotform-agent";
 import UserWay from "@/components/ui/userway";
+import GradualBlur from "@/components/ui/gradual-blur";
 
 /**
  * Everything the public site wears and the admin does not.
@@ -37,6 +38,8 @@ export default function SiteChrome() {
       <JotformAgent />
       {/* Bottom left on desktop, on the same baseline as back-to-top. */}
       <UserWay className="uw--corner" />
+      {/* Content dissolves into a frosted edge at the bottom of the screen. */}
+      <GradualBlur />
     </>
   );
 }
