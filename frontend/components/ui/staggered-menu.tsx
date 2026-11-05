@@ -359,7 +359,7 @@ export default function StaggeredMenu({
         />
       ) : null}
 
-      <div ref={preLayersRef} className="sm-prelayers" aria-hidden="true">
+      <div ref={preLayersRef} className="sm-prelayers" data-open={open && !filmActive} aria-hidden="true">
         <div className="sm-prelayer" style={{ background: "#FF6500" }} />
         <div className="sm-prelayer" style={{ background: "#000065" }} />
       </div>

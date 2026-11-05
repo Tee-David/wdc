@@ -165,6 +165,18 @@
   width: clamp(280px, 42vw, 440px);
   pointer-events: none;
   z-index: 44;
+  /* HIDDEN WHILE THE MENU IS CLOSED. The layers live inside the header bar, and once the bar
+     turns to glass its backdrop-filter makes it the containing block for fixed children: the
+     parked layers were measured against the pill instead of the screen and showed as a navy
+     block just past its right edge. Hiding waits out the close animation (the delay), so the
+     layers still slide away before they disappear. */
+  visibility: hidden;
+  transition: visibility 0s linear 0.7s;
+}
+
+.sm-prelayers[data-open="true"] {
+  visibility: visible;
+  transition-delay: 0s;
 }
 
 .sm-prelayer {

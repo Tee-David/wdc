@@ -45,7 +45,7 @@ export default function GradualBlur() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-[35] h-12 transition-opacity duration-500 sm:h-16"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-[35] h-16 transition-opacity duration-500 sm:h-24"
       style={{ opacity: off ? 0 : 1 }}
     >
       {LAYERS.map(([blur, from, to]) => {
