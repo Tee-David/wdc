@@ -1,0 +1,23 @@
+[Unit]
+Description=We Dig Creativity website (wedigcreativity.com.ng)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=wdc
+Group=wdc
+WorkingDirectory=/srv/projects/wdc/current
+EnvironmentFile=/etc/wdc/env
+Environment=NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HOME=/srv/projects/wdc
+ExecStart=/srv/projects/wdc/current/node_modules/.bin/next start -H 127.0.0.1 -p 3410
+Restart=always
+RestartSec=5
+MemoryHigh=1200M
+MemoryMax=1500M
+CPUQuota=100%
+NoNewPrivileges=true
+ProtectSystem=full
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
