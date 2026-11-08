@@ -522,13 +522,22 @@ export async function recordPayment(_prev: ActionState, fd: FormData): Promise<A
   if (refused) return refused;
   const targetInvoice=db.getInvoice(str(fd,"invoiceId"));
   if(targetInvoice && str(fd,"method")==="Paystack" && currencyOf(targetInvoice)!=="NGN")return FAIL({method:"This currency uses a manual payment method."});
+
+  const actor = await actorName();
+  const how = method(fd, "method");
+  const paystackMode = how === "Paystack" ? await selectedPaystackMode() : undefined;
   const invoiceId = str(fd, "invoiceId");
-  const amount = kobo(fd, "amount");
+  const settling = str(fd, "settleRemaining") === "1";
+  const invoice = settling ? db.getInvoice(invoiceId) : null;
+  if (settling && (!invoice || invoice.status === "Draft" || invoice.voided)) {
+    return FAIL({}, "Choose an issued invoice that has not been voided.");
+  }
+  const amount = settling ? invoiceTotals(invoice!).due : kobo(fd, "amount");
+  if (settling && (amount ?? 0) <= 0) return FAIL({}, "This invoice is already settled. No payment was added.");
   const typedReference = str(fd, "reference");
   /* The list used to be re-typed here, so adding POS and Other to the union in
      types.ts would silently have kept rejecting them and filed both as
      "Transfer". One reader, one list. */
-  const how = method(fd, "method");
 
   const errors: Record<string, string> = {};
   if (!amount) errors.amount = "How much came in?";
@@ -568,15 +577,12 @@ export async function recordPayment(_prev: ActionState, fd: FormData): Promise<A
   const res = db.applyPayment({
     invoiceId, amount: amount!, method: how!, reference,
     at: isoDate(fd, "at") ?? undefined,
-    /* WHO TOOK THE MONEY. A manual "mark paid" with no name against it is the
-       entry nobody can question three months later, which is the entry most
-       worth questioning. Free text for now; it becomes the signed-in admin the
-       moment there is one. */
-    by: str(fd, "by"),
+    /* The authenticated owner is the actor, never a browser-supplied name. */
+    by: actor,
     note,
     /* Only a Paystack row is test-or-live at all -- cash in an envelope has no
        mode. See the note on `Payment.mode`. */
-    mode: how === "Paystack" ? await selectedPaystackMode() : how === "Flutterwave" ? flutterwaveConfig()?.mode : undefined,
+    mode: how === "Flutterwave" ? flutterwaveConfig()?.mode : paystackMode,
   });
 
   if (!res.ok) {
@@ -592,7 +598,8 @@ export async function recordPayment(_prev: ActionState, fd: FormData): Promise<A
     return FAIL({ reference: res.reason === "duplicate" ? message : "" }, message);
   }
 
-  refresh("/admin/money", `/admin/money/${invoiceId}`, `/admin/clients/${res.invoice.clientId}`);
+  refresh("/admin/money", `/admin/money/${invoiceId}`, `/admin/clients/${res.invoice.clientId}`, "/admin/projects",
+    ...(res.invoice.projectId ? [`/admin/projects/${res.invoice.projectId}`] : []));
 
   const t = invoiceTotals(res.invoice);
   /* THE RECEIPT, if the person ticked it. Staged here (the row is written

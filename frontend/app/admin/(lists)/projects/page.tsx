@@ -3,7 +3,7 @@ import { BulkBar, PickAll, RowPick } from "@/components/admin/bulk";
 import { adminRole } from "@/lib/admin/guard";
 import { SERVICES } from "@/lib/services";
 import {
-  getBoard, getClient, getClients, getProjects, getTasks,
+  getBoard, getClient, getClients, getOpenProjectInvoices, getProjects, getTasks,
 } from "@/lib/admin/store";
 import { HEALTH, STAGES, projectAttention, type Project } from "@/lib/admin/types";
 import {
@@ -197,6 +197,7 @@ export default async function ProjectsPage({
             const client = getClient(p.clientId);
             return [p.id, {
               project: isOwner ? p : { ...p, budget: null }, /* the budget is money: it must not reach a staff browser */ clientName: client?.company, clientInitials: client ? initialsOf(client.company) : undefined,
+              openInvoices: isOwner ? getOpenProjectInvoices(p.id) : undefined,
               service: SERVICES.find((x) => x.slug === p.service)?.short, attention: projectAttention(p, tasks),
               due: p.due ? when(p.due) : "No date yet", ownerInitials: p.owner ? initialsOf(p.owner) : undefined,
             } satisfies BoardCard];
@@ -236,7 +237,7 @@ export default async function ProjectsPage({
                         <td><HealthPill health={p.health} /></td>
                         <td className="num">{when(p.due)}</td>
                         <td className="ad__rmC">
-                          <ProjectMenu project={p} clientName={getClient(p.clientId)?.company} />
+                          <ProjectMenu project={p} clientName={getClient(p.clientId)?.company} openInvoices={isOwner ? getOpenProjectInvoices(p.id) : undefined} />
                         </td>
                       </tr>
                     ))}

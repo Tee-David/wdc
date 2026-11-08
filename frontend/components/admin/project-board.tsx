@@ -8,11 +8,12 @@ import type { Attention, Health, Project, Stage } from "@/lib/admin/types";
 import { moveOnBoard } from "@/lib/admin/actions";
 import { ask } from "./confirm";
 import { AttentionPills, HealthPill } from "./bits";
-import { ProjectMenu } from "./row-actions";
+import { ProjectMenu, type ProjectPaymentInvoice } from "./row-actions";
 import { toast } from "./toast";
 
 export type BoardCard = {
   project: Project; clientName?: string; clientInitials?: string; service?: string;
+  openInvoices?: ProjectPaymentInvoice[];
   attention: Attention[]; due: string; ownerInitials?: string;
 };
 export type BoardColumn = { stage: Stage; dot: number; ids: string[] };
@@ -326,7 +327,7 @@ function Card({ card, grip }: { card: BoardCard; grip?: React.ReactNode }) {
         {grip}
         {card.service ? <span className="ad__pill ad__pill--flat">{card.service}</span> : null}
         <HealthPill health={p.health as Health} />
-        {grip ? <span className="ad__kcardMenu"><ProjectMenu project={p} clientName={card.clientName} /></span> : null}
+        {grip ? <span className="ad__kcardMenu"><ProjectMenu project={p} clientName={card.clientName} openInvoices={card.openInvoices} /></span> : null}
       </div>
       <Link href={`/admin/projects/${p.id}`} className="ad__kcardTitle" draggable={false}><b>{p.title}</b></Link>
       {card.clientName ? (

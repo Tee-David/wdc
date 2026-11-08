@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { AlertTriangle, ArrowRight, FileClock, CalendarClock, CircleDollarSign, ClipboardList, Clock, FolderClock, FolderKanban, LifeBuoy, MailWarning, MessageSquareWarning, Send, TrendingUp, Users, Wallet } from "lucide-react";
 import { SERVICES } from "@/lib/services";
-import { creditBalances, getBoard, getClient, getClients, getDeliverablesFor, getInvoices, getMonthly, getPayments, getProjects, getSubmissions, getSummary, getTasks, getTickets, providerAttentionCount } from "@/lib/admin/store";
+import { creditBalances, getBoard, getClient, getClients, getDeliverablesFor, getInvoices, getOpenProjectInvoices, getMonthly, getPayments, getProjects, getSubmissions, getSummary, getTasks, getTickets, providerAttentionCount } from "@/lib/admin/store";
 import { failedLoggedCount } from "@/lib/message-log";
 import { noticeBlock, noticeBlocks } from "@/lib/admin/money-rules";
 import { reviewCount } from "@/lib/blog-db";
@@ -98,7 +98,7 @@ export async function AdminDashboardView({ firstName, money = true, me }: { firs
         meta: project.due ? `Due ${when(project.due)}` : "Date not set",
         icon: FolderClock,
         tone: why[0].tone === "bad" ? "bad" : why[0].tone === "warn" ? "warn" : "neutral",
-        menu: <ProjectMenu project={project} clientName={getClient(project.clientId)?.company} />,
+        menu: <ProjectMenu project={project} clientName={getClient(project.clientId)?.company} openInvoices={money ? getOpenProjectInvoices(project.id) : undefined} />,
       })),
     /* WHAT THE BANK AND THE MAIL SERVER DID NOT DO CLEANLY. Money that
        matched no invoice, and messages that did not go, are an absence on

@@ -7,7 +7,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SERVICES } from "@/lib/services";
 import {
-  creditBalance, financeDefaults, findDuplicateClient, getClient, getClients, getCreditsFor, getDeliverablesFor, getInvoicesFor, getPaymentsFor, getProjects, getProjectsFor, getSubmissions,
+  creditBalance, financeDefaults, findDuplicateClient, getClient, getClients, getCreditsFor, getDeliverablesFor, getInvoicesFor, getOpenProjectInvoices, getPaymentsFor, getProjects, getProjectsFor, getSubmissions,
 } from "@/lib/admin/store";
 import { noticeBlock, reconcileClient } from "@/lib/admin/money-rules";
 import ClientReconciliation from "@/components/admin/reconciliation";
@@ -190,7 +190,7 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
                         <td><StagePill stage={p.stage} /></td>
                         <td className="num">{when(p.due)}</td>
                         <td className="ad__rmC">
-                          <ProjectMenu project={p} clientName={c.company} />
+                          <ProjectMenu project={p} clientName={c.company} openInvoices={money ? getOpenProjectInvoices(p.id) : undefined} />
                         </td>
                       </tr>
                     ))}

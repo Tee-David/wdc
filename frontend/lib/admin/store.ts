@@ -81,6 +81,11 @@ export function getProject(id: Id) {
 export function getInvoices() {
   return INVOICES.slice().sort(byNewest);
 }
+/** Only the invoice identity and current balance needed for project settlement. */
+export function getOpenProjectInvoices(projectId: Id) {
+  return INVOICES.filter((i) => i.projectId === projectId && i.status !== "Draft" && !i.voided && invoiceTotals(i).due > 0)
+    .sort(byNewest).map((i) => ({ id: i.id, number: i.number, owed: invoiceTotals(i).due }));
+}
 export function getInvoice(id: Id) {
   return INVOICES.find((i) => i.id === id) ?? null;
 }

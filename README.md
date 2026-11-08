@@ -34,6 +34,8 @@ Tour tooltips use fixed positioning and shift on both axes to remain inside the 
 
 `DialogButton` mounts its content only while open. Browser-dependent controls and modal data requests wait for the reader to open the dialog; closed dialogs must not read the document during server rendering.
 
+Project row menus share an owner-only **Manually settle payment** dialog across the list, board, dashboard and client page. It settles one issued, non-void invoice balance through the existing payment ledger, capturing method, reference, date and note. Projects without an outstanding invoice link to their project for invoice review. Staff receive no invoice choices or balances.
+
 Onboarding service choice reuses `SelectField` through `ServicePicker`: a closed trigger, compact icon/name/description rows, disabled-service reasons and explicit Next.
 
 **Onboarding forms (redesign, October 2026).** Every question is data in `lib/onboarding-services/<service>.ts` (one file per service) and the shared screens in `lib/onboarding.ts` (`CORE_STEPS`, `CLOSING_STEPS`). Each service opens with a Size first question and `showIf` conditions that combine (`{ key, equals?, filled? }`, `{ any: [...] }`, `{ tier: 2 | 3 }`) so a later pick can raise the tier; `isVisible` is the only visibility rule and a screen with no visible question is skipped. Decisions are in `plans/onboarding-decisions.md`, the research behind the numbers in `plans/onboarding-ux-research.md`, the words in `plans/onboarding-voice-guide.md`. `tests/onboarding-guardrails.spec.ts` holds every form to its question, required and free text ceilings.

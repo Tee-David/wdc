@@ -1,5 +1,8 @@
 "use client";
 
+import Link from "next/link";
+import { useState } from "react";
+
 import { PermanentDelete } from "./permanent-delete";
 import { useAdminRole } from "./shell";
 import { can } from "@/lib/admin/permissions";
@@ -91,11 +94,13 @@ function Sure({
 /* --------------------------------------------------------------- projects */
 
 export function ProjectMenu({
-  project, clientName,
+  project, clientName, openInvoices = [],
 }: {
   project: Pick<Project, "id" | "title" | "stage" | "due" | "clientId" | "archived">;
   clientName?: string;
+  openInvoices?: ProjectPaymentInvoice[];
 }) {
+  const role = useAdminRole();
   const items: RowMenuItem[] = [
     { kind: "link", label: "Open the project", href: `/admin/projects/${project.id}`, icon: ArrowRight },
     {
@@ -189,7 +194,38 @@ export function ProjectMenu({
     }] : []),
   ];
 
+  if (can(role, "money")) items.splice(1, 0, {
+    kind: "dialog", label: "Manually settle payment", icon: CheckCircle2,
+    title: `Settle payment for ${project.title}`,
+    render: (close) => openInvoices.length
+      ? <ProjectPayment invoices={openInvoices} close={close} />
+      : <p>No issued invoice has an outstanding balance for this project. <Link className="ad__btn" href={`/admin/projects/${project.id}`}>Open the project</Link> to review or create its invoice.</p>,
+  });
+
   return <RowMenu items={items} label={project.title} />;
+}
+
+export type ProjectPaymentInvoice = { id: string; number: string; owed: number };
+
+function ProjectPayment({ invoices, close }: { invoices: ProjectPaymentInvoice[]; close: () => void }) {
+  const [invoiceId, setInvoiceId] = useState(invoices[0].id);
+  const invoice = invoices.find((i) => i.id === invoiceId)!;
+  return (
+    <Form action={recordPayment} onDone={() => close()}>
+      <Fields>
+        <Select name="invoiceId" label="Invoice to settle" required defaultValue={invoiceId}
+                onChange={setInvoiceId} options={invoices.map((i) => ({ value: i.id, label: `${i.number} · ${naira(i.owed)} owed` }))} />
+        <Hidden name="settleRemaining" value="1" />
+        <p style={{ margin: 0 }}>Records the full {naira(invoice.owed)} still owed on {invoice.number} as received, with a receipt. Only settle money you have received.</p>
+        <Select name="method" label="How was it paid" defaultValue="Transfer"
+                options={ENTERABLE_METHODS.map((m) => ({ value: m, label: m === "Transfer" ? "Bank transfer" : m }))} />
+        <Field name="reference" label="Reference" hint="Needed for a transfer. For cash, card or POS, a slip number if there is one." />
+        <Field name="at" label="When" type="date" defaultValue={new Date().toISOString().slice(0, 10)} />
+        <Field name="note" label="Note" hint="Needed when the method is Other." />
+      </Fields>
+      <Actions><Submit icon={CheckCircle2}>Settle payment</Submit></Actions>
+    </Form>
+  );
 }
 
 /* ---------------------------------------------------------------- clients */
@@ -362,7 +398,7 @@ export function InvoiceMenu({
         <Form action={recordPayment} onDone={() => close()}>
           <Fields>
             <Hidden name="invoiceId" value={invoice.id} />
-            <Hidden name="amount" value={String(owed / 100)} />
+            <Hidden name="settleRemaining" value="1" />
             <p style={{ margin: 0 }}>Records the full {naira(owed)} still owed as received, with a receipt. For part of it, use Record a payment.</p>
             <Select name="method" label="How was it paid" defaultValue="Transfer"
                     options={ENTERABLE_METHODS.map((m) => ({ value: m, label: m === "Transfer" ? "Bank transfer" : m }))} />
