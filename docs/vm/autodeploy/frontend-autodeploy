@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+# Pull-based deploy for one Next.js frontend. Runs as root from a systemd timer.
+# Usage: frontend-autodeploy /etc/frontend-autodeploy/<name>.conf
+#
+# The config file sets: NAME REPO KEY RUN_AS HOMEDIR MIRROR SUBDIR BASE
+# RELROOT RELPREFIX UNIT PORT HOSTHDR, and defines build() { <sha>; }.
+#
+# Flow: fetch main -> skip if SUBDIR did not change since the running release
+# -> unpack the release -> build (the build script switches `current`)
+# -> restart -> health check -> roll back on failure.
+# A failed SHA is recorded and not retried; the next commit is tried at once.
+set -euo pipefail
+CONF="$1"; . "$CONF"
+
+exec 8>"/run/frontend-autodeploy-$NAME.lock"; flock -n 8 || exit 0
+
+R() { runuser -u "$RUN_AS" -- env HOME="$HOMEDIR" \
+  GIT_SSH_COMMAND="ssh -i $KEY -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new" "$@"; }
+log() { echo "[$NAME] $*"; }
+
+if [ ! -d "$MIRROR" ]; then R git clone -q --bare "$REPO" "$MIRROR"; fi
+R git -C "$MIRROR" fetch -q origin '+refs/heads/main:refs/heads/main'
+SHA=$(R git -C "$MIRROR" rev-parse main)
+
+CURDIR=$(readlink -f "$BASE/current")
+CUR=$(basename "$CURDIR"); CUR=${CUR#"$RELPREFIX"}
+[ "$SHA" = "$CUR" ] && exit 0
+[ -e "$BASE/.failed-$SHA" ] && exit 0
+if [ -e "$BASE/.seen-$SHA" ]; then exit 0; fi
+
+if R git -C "$MIRROR" cat-file -e "$CUR^{commit}" 2>/dev/null \
+   && R git -C "$MIRROR" diff --quiet "$CUR" "$SHA" -- "$SUBDIR"; then
+  touch "$BASE/.seen-$SHA"; exit 0   # no change in the app folder
+fi
+
+log "deploying $SHA (running $CUR)"
+REL="$RELROOT/$RELPREFIX$SHA"
+rm -rf "$REL"; R mkdir -p "$REL"
+R git -C "$MIRROR" archive "$SHA" "$SUBDIR" | R tar -x -C "$REL" --strip-components=1
+
+# One build at a time per host: builds are heavy.
+exec 9>/run/frontend-autodeploy-build.lock; flock 9
+if ! build "$SHA"; then
+  log "BUILD FAILED for $SHA; old release keeps serving"
+  touch "$BASE/.failed-$SHA"; rm -rf "$REL"; exit 1
+fi
+flock -u 9
+
+systemctl restart "$UNIT"
+ok=0
+for _ in $(seq 1 20); do
+  sleep 3
+  code=$(curl -s -o /dev/null -m 10 -w '%{http_code}' -H "Host: $HOSTHDR" "http://127.0.0.1:$PORT/" || true)
+  case "$code" in 2*|3*) ok=1; break;; esac
+done
+if [ "$ok" != 1 ]; then
+  log "HEALTH CHECK FAILED for $SHA; rolling back to $CUR"
+  ln -sfn "$CURDIR" "$BASE/current.new" && mv -T "$BASE/current.new" "$BASE/current"
+  systemctl restart "$UNIT"; touch "$BASE/.failed-$SHA"; exit 1
+fi
+log "live: $SHA"
+
+# Keep the running release and the two before it.
+ls -1dt "$RELROOT/$RELPREFIX"* 2>/dev/null | grep -v -x "$(readlink -f "$BASE/current")" | tail -n +3 | xargs -r rm -rf
+find "$BASE" -maxdepth 1 -name '.seen-*' -mtime +7 -delete

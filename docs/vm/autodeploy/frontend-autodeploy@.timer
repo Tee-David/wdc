@@ -1,0 +1,10 @@
+[Unit]
+Description=Check GitHub main for %i every 5 minutes
+
+[Timer]
+OnCalendar=*:0/5
+RandomizedDelaySec=60s
+Persistent=false
+
+[Install]
+WantedBy=timers.target

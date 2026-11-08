@@ -1,0 +1,10 @@
+[Unit]
+Description=Pull-based frontend deploy (%i)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/frontend-autodeploy /etc/frontend-autodeploy/%i.conf
+Nice=10
+TimeoutStartSec=40min
