@@ -49,12 +49,20 @@ export type CaseStudy = {
   /** One line, on the card. */
   summary: string;
   about: string;
-  /** What the engagement covered. Deliberately "the brief" and not "the
-      problem": we can evidence what we were asked to build, and we are not
-      going to narrate a client's internal difficulties on their behalf. */
+  /** THE PROBLEM the client brought (shown as "The problem"). Written from
+      what the client told us or what the work itself shows, never invented,
+      and never blaming the client. The field keeps its old name, "brief", so
+      the case studies saved in the admin still read. */
   brief: string;
+  /** "What we decided": the two or three calls we made, each with its reason. */
   approach: string;
+  /** "What we delivered". A line ending in a colon ("Experience:") starts a
+      group, so deliverables read by the service's own domains. Lists with no
+      group lines show as one list, as before. */
   did: string[];
+  /** "What changed": what the client can do now that they could not before.
+      Figures only when the client gave them or we measured them ourselves. */
+  outcome?: string;
   stack: string[];
   /** Heading over `stack`. Engineering work is "Built with"; a brand system is
       not built with anything, so it says what it actually is. */
@@ -133,28 +141,35 @@ export const CASE_STUDIES: CaseStudy[] = [
     slug: "traxstaff",
     category: "web",
     categories: ["web", "apps", "software"],
-    title: "One time-tracking product across web, desktop and mobile",
+    title: "Time tracking that tells one story on the web, the desktop and a phone",
     client: "TraxStaff",
     sector: "Time tracking for teams",
     location: "Nigeria",
     url: "https://traxstaff.com/",
     cover: "/work/traxstaff.jpg",
-    summary: "A dashboard, a desktop client and a mobile app on one API.",
+    summary: "Three apps, one set of rules, one timesheet a whole team trusts.",
     about:
       "TraxStaff is a time-tracking product for teams. Time is recorded against a project and a task as the work happens, and the record is organised by day, week and project rather than dropped into one long list.",
     brief:
-      "Build the product on every surface a team actually works on (a browser, a desktop machine and a phone) without three separate codebases drifting apart, and with roles and permissions that hold the same in all three.",
+      "A timesheet is only useful if everyone believes it. TraxStaff's teams work in a browser, on a desktop machine and on a phone, and three separate apps would mean three sets of rules: time approved on one screen that a member cannot see on another, and roles that hold in one app but not in the next.",
     approach:
-      "One API behind three clients. The dashboard is a Next.js application, the desktop client is Tauri so it ships as a native binary rather than a bundled browser, and the mobile client is Expo. The server is Fastify over Prisma and Postgres, so every client reads the same data through the same rules.",
+      "One API holds every rule. Roles and approvals are checked there once, for all three apps, so the web dashboard, the desktop tracker and the phone can never disagree.\n\nThe desktop tracker is a native app built with Tauri, not a website in a box, so it stays light while it runs all day beside the work.\n\nManual entries are kept apart from tracked time and go to a manager for approval, because a hand-typed hour is where trust in a timesheet usually breaks.",
     did: [
-      "Next.js dashboard with day, week and project views",
-      "Fastify and Prisma API over Postgres",
-      "Tauri desktop client for tracking while you work",
-      "Expo mobile client for iOS and Android",
-      "Owner, admin and member roles, enforced at the API",
-      "Manual entries flagged for review and approval",
-      "Insights across people, projects and categories",
+      "Product:",
+      "A web dashboard with day, week and project views",
+      "A native desktop tracker that starts in one tap",
+      "iOS and Android apps built with Expo",
+      "Projects and tasks as small boards",
+      "Rules and data:",
+      "Owner, admin and member roles, checked once at the API",
+      "Manual time kept apart and sent for approval",
+      "One PostgreSQL database behind all three apps",
+      "Insight:",
+      "Reports by person, project and category",
+      "Activity by the hour, for teams that switch monitoring on",
     ],
+    outcome:
+      "A team tracks time wherever it works, and a manager approves one timesheet that reads the same on every device. A fourth app later means building screens, not a second set of rules.",
     stack: ["Next.js", "TypeScript", "Fastify", "Prisma", "PostgreSQL", "Tauri", "Expo"],
     gallery: [
       "/work/long/trax-desktop.jpg",
@@ -186,26 +201,38 @@ export const CASE_STUDIES: CaseStudy[] = [
     slug: "realtors-practice",
     category: "apps",
     categories: ["apps", "web", "software", "branding"],
-    title: "A property platform with listings, agents and a CRM behind one login",
+    title: "A property firm whose listings collect themselves",
     client: "Realtors' Practice",
     sector: "Property data and listings",
     location: "Nigeria",
     url: "https://realtorspractice.ng/",
     cover: "/work/realtorspractice.jpg",
-    summary: "Listings, agent records and a CRM in a single signed-in product.",
+    summary: "A scraper gathers the listings. Agents review and sell from a phone.",
     about:
       "Realtors' Practice is a property data and listings platform. Agents work inside it daily, so the product is a signed-in workspace rather than a catalogue with a contact form bolted on.",
     brief:
-      "Put listings, the agents who manage them and the client pipeline into one product, with the same views usable on a phone in the field as at a desk.",
+      "A property business lives on fresh listings, and fresh listings are spread across many other property sites. Collecting them by hand is slow and repetitive, and an agent spends the day at viewings, not at a desk, so a tool that only works on a desktop does not get used.",
     approach:
-      "A multi-tenant application: accounts, roles and a dashboard that opens on what the signed-in user is responsible for. The layout is built mobile-first, because an agent standing in a property is the primary reader, not an afterthought.",
+      "Collection is automatic. A scraper learns each property site, then gathers its listings on a schedule, so agents start each day from data, not from copy and paste. Every listing keeps its source, a quality score and a review status, so nothing reaches a client unchecked.\n\nThe workspace is built for a phone first, because an agent standing in a property is the main user. The same screens open at a desk.\n\nListings, agents and the client pipeline share one login and one record, and a plain-words assistant answers market questions with tables drawn from the listings.",
     did: [
-      "Dashboard opening on the signed-in agent's own work",
-      "Listings management with media and status",
+      "Data collection:",
+      "A scheduled scraper that learns each source site",
+      "Source settings that show which sites need attention",
+      "A quality score and review status on every listing",
+      "Workspace:",
+      "Listings in table, grid, map and board views",
+      "Saved searches beside a live map",
+      "A market assistant that answers in plain words",
+      "People and pipeline:",
       "Agent records and verification",
-      "CRM for the client pipeline",
-      "Responsive throughout, phone to desktop",
+      "A CRM for the client pipeline",
+      "Team roles and last-active times",
+      "Public site:",
+      "Search across the listings",
+      "Book a consultation",
     ],
+    outcome:
+      "Listings arrive by themselves, already sorted and scored, and agents work them from wherever they are. Clients search the same data on the public site and book a consultation in one step.",
     stack: ["Next.js", "TypeScript", "PostgreSQL", "Tailwind CSS"],
     gallery: ["/work/app/realtors-dashboard.jpg", "/work/app/realtors-mobile.jpg"],
     motion: ["realtors-story", "realtors-post"],
@@ -233,25 +260,32 @@ export const CASE_STUDIES: CaseStudy[] = [
     slug: "litch-consulting",
     category: "software",
     categories: ["software", "web", "branding"],
-    title: "Operations, requests and reporting on one source of truth",
+    title: "A consultancy that stopped re-typing its own numbers",
     client: "Litch Consulting",
     sector: "Modelling and data analytics",
     location: "Nigeria",
     url: "https://litchconsulting.com/",
     cover: "/work/litchconsulting.jpg",
-    summary: "An internal console for requests, invoices and reporting.",
+    summary: "Requests, invoices and reports now come from one record.",
     about:
       "Litch Consulting works in modelling and data analytics. The engagement covered both the public site and the console the team runs on internally.",
     brief:
-      "Replace work tracked across separate documents with one console: requests raised, invoices against them, and reporting drawn from the same records rather than re-keyed.",
+      "Litch tracked its work in separate documents: requests in one, invoices in another, and reports made by copying figures between them. Every copy was a chance for a number to drift, and a modelling and analytics firm cannot have its own figures disagree.",
     approach:
-      "A single data model underneath the whole console, so a request, the invoice raised against it and the figure that appears in a report are the same record read three ways. The interface is laid out around that rather than around a set of unrelated screens.",
+      "One data model under the whole console. A service request, the invoice raised against it and the figure in a report are the same record read three ways, so a number is typed once and is right everywhere.\n\nThe console opens on what needs action: open requests, invoiced against paid, and what is still outstanding. Lists stay real tables at every width, so the team can work from a tablet or a phone without losing the columns that matter.",
     did: [
-      "Public site build",
-      "Internal dashboard with requests and invoices",
-      "Reporting drawn from live records",
-      "Responsive layouts at desktop, tablet and phone widths",
+      "Public site:",
+      "A site for prospective clients, built on the Litch identity",
+      "Console:",
+      "A request pipeline with client, service, amount and status",
+      "Invoices with paid and outstanding, filtered by time and status, with export",
+      "A dashboard of billed against collected",
+      "Data:",
+      "One record behind requests, invoices and reports",
+      "Tables that stay usable at desktop, tablet and phone widths",
     ],
+    outcome:
+      "A figure is entered once and appears correctly in the request, the invoice and the report. The team sees what is owed and what needs action the moment they sign in.",
     stack: ["Next.js", "TypeScript", "PostgreSQL", "Tailwind CSS"],
     gallery: [
       "/work/app/litch-dashboard.jpg",
@@ -282,26 +316,34 @@ export const CASE_STUDIES: CaseStudy[] = [
     slug: "nomarc-projects",
     category: "software",
     categories: ["software", "web"],
-    title: "A two-sided hiring platform for construction",
+    title: "A construction hiring platform where both sides can trust each other",
     client: "Nomarc Projects",
     sector: "Construction hiring platform",
     location: "Nigeria",
     url: "https://nomarcprojects.com/",
     cover: "/work/nomarcprojects.jpg",
-    summary: "Professionals on one side, exhibitors on the other, verification in between.",
+    summary: "Professionals and employers meet only after a person checks them.",
     about:
       "Nomarc Projects connects construction professionals with the companies hiring them. Two sides of a marketplace, each needing to trust the other before anything useful happens.",
     brief:
-      "Build both sides of the platform and the verification that sits between them, with a console the operator can actually run the marketplace from.",
+      "In construction hiring, a bad match is expensive on both sides. A company needs to know a professional is qualified, and a professional needs to know the company is real. Nomarc needed a marketplace for both, with an operator able to vouch for every account before it does business.",
     approach:
-      "Professionals and exhibitors get their own flows rather than one shared form with fields hidden by role, because the two are doing genuinely different things. Verification is an operator step in the console, not an automatic pass.",
+      "Each side gets its own flow. Professionals and hiring companies do different things, so they register and work through different screens, not one form with fields hidden by role.\n\nVerification is a person, not a checkbox. New accounts wait in a queue in the operator console until someone reviews them, because automatic approval is exactly what a fake account relies on.\n\nThe operator runs the whole marketplace from one console: sign-ups, verifications, disputes and campaigns.",
     did: [
-      "Professional profiles and registration",
-      "Exhibitor accounts and listings",
-      "Job board across both sides",
-      "Verification queue in the operator console",
-      "Responsive layouts, phone to desktop",
+      "For professionals:",
+      "Profiles and registration",
+      "A job board",
+      "Projects with tasks by discipline",
+      "For hiring companies:",
+      "Company accounts and listings",
+      "Posting work to the job board",
+      "For the operator:",
+      "A verification queue",
+      "Sign-ups, disputes and campaigns in one console",
+      "Layouts that work from phone to desktop",
     ],
+    outcome:
+      "Every account on Nomarc has been seen by a person before it can hire or be hired, and the operator runs the marketplace from one screen.",
     stack: ["Next.js", "TypeScript", "PostgreSQL", "Tailwind CSS"],
     gallery: [
       "/work/app/nomarc-admin.jpg",
@@ -336,23 +378,31 @@ export const CASE_STUDIES: CaseStudy[] = [
     location: "Nigeria, Ghana, Rwanda, Qatar, the UK and the US",
     url: "https://www.meridianglobaltrainings.com/",
     cover: "/work/meridianglobaltrainings.jpg",
-    summary: "Every visitor sees their own country's fee, and the team runs enquiries, sessions, invoices and certificates from one dashboard.",
+    summary: "Each country sees its own fee. One dashboard runs the business.",
     about:
       "Meridian Global Trainings runs practical courses for professionals and their teams, in class, online or at the client's office, across six countries. The catalogue is large and every course runs on many dates, so the website and the work behind it are one product.",
     brief:
-      "Put the whole catalogue online with the right price for where the visitor is, make an enquiry quick from any course, and give the team one place to answer enquiries, plan sessions, send quotes and invoices, and issue certificates.",
+      "Meridian sells hundreds of courses in six countries, and the fee depends on where the training happens. A visitor in the UK and a visitor in Nigeria must each see their own price, and the team behind the site has to answer registrations, schedule sessions, invoice and certify across all of it without losing track.",
     approach:
-      "Every course carries a price for each country. The site works out where the visitor is and shows that price: naira only to people in Nigeria, dollars set per country everywhere else, and the syllabus and calendar downloads print only the prices for the place they choose. Behind it, the admin is built around the daily jobs, so creating a course, replying to an enquiry or raising an invoice stays quick and calm rather than buried in settings.",
+      "The visitor's own country sets the fee, worked out from their connection, and the server works the fee out again, so nobody can change a price in the browser. Naira shows only to people in Nigeria.\n\nThe course synopsis is printed for the visitor's country and arrives attached to their registration email, so the fee they read and the fee they are invoiced always match.\n\nThe back office is built around the team's daily jobs (reply, schedule, invoice, certify) rather than around settings, so the daily work stays a few clicks away.",
     did: [
-      "The full course catalogue, with search and filters",
-      "Prices by location for six countries, in naira and dollars",
-      "Syllabus and calendar PDFs for the visitor's location",
-      "Step-by-step enquiry and registration forms",
-      "Admin web app: enquiries, courses, calendars and people",
-      "Quotes, invoices, payments and receipts",
-      "Certificates: who gets one, a name check, then send",
-      "Admin and Staff roles, guided tours, light and dark",
+      "Experience:",
+      "Course search with filters by category, dates and language",
+      "Registration in three steps: in class, online or in-house",
+      "Prices that follow the visitor's country",
+      "Course and calendar PDFs printed for one country",
+      "Operations:",
+      "One dashboard for enquiries, courses and a year planner",
+      "Proforma invoices, payments and receipts in naira and dollars",
+      "Certificates with a public check page",
+      "Admin and Staff roles with guided tours",
+      "Data and security:",
+      "Courses, categories and sessions in one database",
+      "An activity log of every change",
+      "Security headers and fees checked on the server",
     ],
+    outcome:
+      "A registration now arrives with the right fee, the right dates and the synopsis attached, and the team replies, invoices and later certifies from that same record. Categories, prices and dates change in the dashboard and reach the website without a developer.",
     stack: ["Next.js", "TypeScript", "CockroachDB", "Tailwind CSS"],
     gallery: [
       "/work/app/mgt-dashboard.jpg",
@@ -400,18 +450,23 @@ export const CASE_STUDIES: CaseStudy[] = [
     about:
       "Harize Global builds ventures and business systems for companies, governments and founders across Nigeria, West Africa and the UK, with data analytics and AI at the centre. It works in two models, business to business and business to business to consumer, and the brand had to say all of that without a paragraph.",
     brief:
-      "Design a mark and a brand guide the company can grow into, then build the website on that identity, with a clear path for each of the three audiences and one way to book a consultation.",
+      "Harize Global works with companies, governments and founders, in two business models, with data and AI at the centre. That is a lot to say, and a new company has seconds to say it. It needed a mark that carries the idea without a paragraph, and a website that gives each of the three audiences its own way in.",
     approach:
       "The mark is a globe crossed by two orbits that weave over and under it and each other: the globe for reach across markets, the two orbits for the two business models, and the weave for ventures built from parts that interlock. The brand guide sets the lockups, clear space, minimum sizes, colour with measured contrast and type, and the site is built on exactly those rules, with solid purple sections, Space Grotesk headings and the globe and its orbits carried into the hero.",
     did: [
-      "Logo: the Woven Globe mark, with a simplified mark for small sizes",
+      "Identity:",
+      "The Woven Globe mark, with a simplified version for small sizes",
       "Stacked and horizontal lockups, app icons and a social card",
-      "Brand guide: lockups, clear space, colour with contrast and type",
-      "Website built on the new identity",
+      "Guidelines:",
+      "Clear space, minimum sizes, colour with measured contrast, and type",
+      "Website:",
+      "Built on the new identity",
       "A path for businesses, governments and founders",
       "Book a consultation from the header and the hero",
-      "Responsive layouts, phone to desktop, light and dark",
+      "Light and dark, phone to desktop",
     ],
+    outcome:
+      "Harize launched with one identity across its mark, its guide and its website, and each of its three audiences has its own path to a consultation.",
     stack: ["Next.js", "TypeScript", "Tailwind CSS"],
     palette: [
       { hex: "#271942", name: "Harize Purple" },
@@ -439,25 +494,30 @@ export const CASE_STUDIES: CaseStudy[] = [
     slug: "speak-up-for-a-change",
     category: "social",
     categories: ["social", "web", "branding"],
-    title: "A non-profit's site and the campaign artwork that feeds it",
+    title: "One look for a non-profit's posts and the site they lead to",
     client: "Speak Up For A Change",
     sector: "Non-profit",
     location: "Nigeria",
     url: "https://speakupforachange.org/",
     cover: "/work/speakupforachange.jpg",
-    summary: "One identity across the site and the social campaigns.",
+    summary: "Every campaign post leads to a page that clearly belongs to it.",
     about:
       "Speak Up For A Change is a non-profit whose reach depends on being shared. The site and the social artwork are the same piece of work, because a campaign post that looks nothing like the site it links to loses the visitor at the click.",
     brief:
-      "Build the site and design the campaign artwork as one system, so a post, a flyer and the page they lead to read as the same organisation.",
+      "A non-profit's reach depends on being shared. When a campaign post looks nothing like the site it links to, the person who clicked doubts they are in the right place and leaves before they read why the cause matters.",
     approach:
-      "The identity is set once and applied across both: the same type, the same colour and the same layout rules on the site and on every campaign piece, so nothing has to be redesigned from scratch each time a campaign runs.",
+      "The identity is set once and applied to both: the same type, colour and layout rules on the site and on every campaign piece. The click from a post to the page then feels like one step inside the same organisation.\n\nRecurring posts are templates, so a new campaign starts from a finished frame, not from a blank canvas.",
     did: [
-      "Site build",
+      "Website:",
+      "A site built on the shared identity",
+      "Campaigns:",
       "Campaign and outreach artwork",
-      "Social templates for recurring posts",
-      "Identity applied consistently across both",
+      "Templates for recurring posts",
+      "System:",
+      "One set of type, colour and layout rules for the site and the posts",
     ],
+    outcome:
+      "A campaign can go out without a designer starting from scratch, and every post leads to a page that clearly belongs to the same organisation.",
     stack: ["Next.js", "TypeScript", "Tailwind CSS"],
   },
   {
@@ -474,15 +534,19 @@ export const CASE_STUDIES: CaseStudy[] = [
     about:
       "Exambeta Travels & Tours works across education and mobility, the kind of service someone commits to well before they can see a result, which puts the burden on the site to be clear about what is actually offered.",
     brief:
-      "Set out the services plainly, make the enquiry route obvious from any page, and carry the brand consistently across the whole site.",
+      "Exambeta helps people with education and travel, a decision they commit to long before they can see a result. People only enquire about a service like that when they understand exactly what is offered and trust who is offering it.",
     approach:
-      "Structure before decoration: each service gets a page that says what it is and what it involves, with one enquiry route repeated rather than a different call to action per section.",
+      "Structure before decoration. Each service gets its own page that says what it is and what it involves, so a reader never has to guess.\n\nThere is one enquiry route, repeated on every page, rather than a different call to action in each section, so the next step is always the same and always in reach.",
     did: [
-      "Site build with a page per service",
-      "One enquiry route, repeated throughout",
-      "Brand applied across the site",
-      "Responsive layouts, phone to desktop",
+      "Structure:",
+      "A page per service that says what it is and what it involves",
+      "One enquiry route, repeated on every page",
+      "Brand and build:",
+      "The brand applied across the whole site",
+      "Layouts that work from phone to desktop",
     ],
+    outcome:
+      "Every service is explained on its own page, and an enquiry is one tap away from anywhere on the site.",
     stack: ["Next.js", "TypeScript", "Tailwind CSS"],
   },
 
@@ -507,17 +571,22 @@ export const CASE_STUDIES: CaseStudy[] = [
     approach:
       "The mark is two triangles set nose to nose. Read one way it is a play arrow pointing forward; read the other it is a bowtie, which is the object a menswear house is most identified by. Neither reading is decorative. The shape is a single geometric form with no fine detail, which is exactly what survives being stitched into a cap at thumbnail size and blown up onto a shopfront.\n\nColour does the separating. Navy carries the garments, the packaging and the storefront; gold picks out the second triangle and nothing else, so the mark keeps one accent instead of two competing ones. A triangle pattern derived from the same form gives the system a fill for linings, tissue and backgrounds without introducing a new element to learn.",
     did: [
+      "Identity:",
       "Primary lockup, horizontal lockup and standalone symbol",
       "Black and reversed white versions for single-colour printing",
       "Written usage rules covering placement over photography and on neutral grounds",
+      "Colour and pattern:",
       "Primary and secondary colour system with CMYK, RGB and HEX for every swatch",
       "Triangle pattern derived from the mark, for linings and packaging fills",
+      "Applications:",
       "Stationery: business cards, letterhead, compliment slips",
       "Woven garment labels and swing tags",
       "Apparel: t-shirts, polos, caps, beanies, socks, long sleeves",
       "Retail: shopping bags, tissue, boxes",
       "Illuminated shopfront signage and window treatment",
     ],
+    outcome:
+      "One mark now carries Moore Designs from a 12mm embroidered cap to an illuminated shopfront, with no version redrawn for its size.",
     stackLabel: "The system includes",
     stack: [
       "Logo suite", "Usage rules", "Colour system", "Pattern",
@@ -562,17 +631,22 @@ export const CASE_STUDIES: CaseStudy[] = [
     approach:
       "The mark carries three things at once: a hibiscus flower for natural elegance, a regal motif for sophistication, and a droplet for purity. One shape, three readings, and none of them needs explaining before it works.\n\nMost of the effort went into the document rather than the mark, because the mark was never going to be the thing that broke. A brand like this fails one caption at a time: a buzzword here, an exaggerated promise there. So the guide states the voice as three pairs a writer can actually check against: warmth not flair, clarity not cleverness, care not control. The photography rules do the same job in pictures: natural light, no over-retouching, diverse skin tones and textures, props kept organic. They are written as instructions to a photographer, not as adjectives.",
     did: [
+      "Identity:",
       "Logo system with horizontal and vertical lockups, icon-only and wordmark-only variants",
       "Clear space and minimum size rules, specified for print and for screen",
       "Approved background set, with the four grounds the mark is allowed on",
       "A don'ts page showing the specific misuses to refuse",
+      "Colour and type:",
       "Colour system: a primary, two secondaries and two supporting neutrals, with HEX and RGB",
       "Typography: Bricolage Grotesque for headlines, Outfit for everything else",
+      "Voice and direction:",
       "Brand voice, personality traits, audience profile and positioning statement",
       "Photography direction covering light, retouching, casting and props",
       "Packaging guidance: recyclable or refillable containers, matte or paper-based labels",
       "Social, email, website and retail display guidance",
     ],
+    outcome:
+      "Anyone writing a caption or briefing a photographer can now check the work against written rules, so the brand reads as calm on the tenth post as on the first.",
     stackLabel: "The system includes",
     stack: [
       "Logo suite", "Clear space rules", "Colour system", "Typography",
@@ -618,15 +692,20 @@ export const CASE_STUDIES: CaseStudy[] = [
     approach:
       "The mark is a microphone drawn as a diary, a capsule mic whose body reads as a bound notebook, so the two things the show is about are one object rather than a symbol beside a word.\n\nBecause it lives on dark photography, the guide leads with the reversed version rather than treating it as an afterthought. There is a black version for single-colour work, a white version for dark grounds, and a page of correct placements over images beside a page of incorrect ones, because on a podcast the person laying out an episode tile at midnight is usually not a designer.\n\nThe palette is deliberately narrow: a near-black, a muted brown and a platinum, which is the range a studio photograph already contains. A secondary set of purple, silver and goldenrod exists for promotional material, where the core three would be too quiet.",
     did: [
+      "Identity:",
       "Primary logo, alternative lockups and a standalone symbol",
       "Black and reversed white versions for single-colour and dark-ground use",
       "Correct and incorrect usage pages, worked over real photography",
+      "Colour and type:",
       "Core palette and a secondary palette, with CMYK, RGB and HEX for every swatch",
       "Typography: Bigbesty as the primary face, Poppins as the secondary",
+      "Voice and applications:",
       "Brand voice, positioning and personality",
       "Episode artwork, social and merchandise application",
       "Studio backdrop and set signage",
     ],
+    outcome:
+      "The mark holds on dark studio photography, and whoever lays out an episode tile has a page of right and wrong placements to follow.",
     stackLabel: "The system includes",
     stack: [
       "Logo suite", "Reversed versions", "Usage rules", "Core palette",
@@ -670,14 +749,19 @@ export const CASE_STUDIES: CaseStudy[] = [
     approach:
       "The symbol is a winged figure held inside a globe. It carries the tagline literally, wings against a boundary, and it is drawn as one weight of line with no gradients and no fills that depend on a light ground, so the same artwork embroiders, prints and etches without a second version being drawn for each.\n\nDeep saffron is the only chromatic colour in the system. Against black it clears contrast comfortably; against platinum it still holds. Everything else is neutral, which means the orange is never competing with a second brand colour for attention on a garment that already has its own texture and drape. The wordmark pairs a high-contrast display serif with a script for Authentic, so the two words are told apart by shape rather than by size.",
     did: [
+      "Identity:",
       "Symbol, full lockup and wordmark-only variants",
       "Black and reversed white versions",
       "Usage grid marking approved combinations on light, dark and neutral grounds",
+      "Colour:",
       "Core palette with CMYK, RGB and HEX",
+      "Applications:",
       "Woven labels and sewn-in garment tags",
       "Apparel application across knitwear, outerwear and footwear",
       "Retail packaging: bags and boxes",
     ],
+    outcome:
+      "One drawing of the mark embroiders, prints and etches on dark fabric, with no second version needed.",
     stackLabel: "The system includes",
     stack: [
       "Logo suite", "Usage grid", "Colour system",
@@ -715,16 +799,21 @@ export const CASE_STUDIES: CaseStudy[] = [
     approach:
       "The architecture does the work. Every division keeps the identical monogram and the identical lockup geometry, and changes exactly two things: the division word beneath the name, and the colour it is set in. Tech Hub and Stores hold the blues; Consult takes green because compliance work sits beside government marks and needs to read as its own discipline. Nothing else moves. The mark is never redrawn per division, so five lockups cost one drawing.\n\nThe guide is not only visual. It fixes a written voice in five words (reliable, connected, premium yet accessible, innovative, comfortable) and a positioning statement the divisions all write from, so a caption produced by whoever is at the desk that morning still sounds like the same company.\n\nThe part that proves it is the run of campaign artwork underneath. February, April, May, August, November; new week, weekend, website launch, registration drive. Every one is a different photograph, a different product and a different headline treatment, and every one is unmistakably Dhiol: the same monogram, the same contact strip locked to the base of the frame, the same QR placement. That is what a system is for: not the guide, the eleven months of posts that came after it.",
     did: [
+      "Brand architecture:",
       "Parent brand identity and 2024 brand guideline",
       "Positioning statement and a five-word written voice",
       "Division lockups for Tech Hub, Stores, Consult and Pay",
       "Colour assignment separating the divisions within one family",
+      "Content system:",
       "Contact and social strip locked as a reusable frame element",
       "Monthly campaign artwork across the calendar year",
       "Recurring formats: new month, new week, weekend, launches",
+      "Campaigns:",
       "Website launch campaign for dhiolstores.ng",
       "Service artwork for Consult: trademark, SCUML, TIN, CAC registration",
     ],
+    outcome:
+      "Four divisions read as one company, and a year of monthly posts stayed on brand because the frame, not the designer of the day, holds them together.",
     stackLabel: "The system includes",
     stack: [
       "Brand architecture", "Brand guideline", "Written voice",
@@ -769,13 +858,17 @@ export const CASE_STUDIES: CaseStudy[] = [
     approach:
       "The mark is the name written as a signature, with the ascender of the b drawn out into a needle trailing thread. It is one continuous gesture, which is the point: a signature is what a maker puts on finished work, and the tailoring reference is carried inside the letterform instead of parked next to it as a separate icon.\n\nBecause a script that fine falls apart at small sizes, the system ships three lockups with written rules for when each applies: the primary for maximum recognition, the symbol alone for avatars and small placements, and a wordmark-only version for layouts where the flourish would be too detailed to survive. The brand personality is fixed in four written cards, so the tone that goes with the mark is documented rather than left to whoever writes the next caption.",
     did: [
+      "Identity:",
       "Signature mark with integrated needle-and-thread flourish",
       "Three lockups: primary, symbol only, wordmark only",
       "Written rules governing which lockup applies where",
       "Black and reversed white versions",
+      "Personality and colour:",
       "Brand personality documented across four written pillars",
       "Colour system and type pairing",
     ],
+    outcome:
+      "The signature works on a garment label, a storefront and a social avatar, and written rules say which version goes where.",
     stackLabel: "The system includes",
     stack: ["Logo suite", "Lockup rules", "Brand personality", "Colour system", "Type pairing"],
     palette: [
@@ -811,12 +904,16 @@ export const CASE_STUDIES: CaseStudy[] = [
     approach:
       "Every service is a numbered band with a single-line benefit statement above the detail, so a reader who only skims the numbers still leaves knowing what the firm does. The bands are separated by shape and number rather than by colour alone, which is what keeps the page legible when it comes out of a black-and-white printer.\n\nThe partners page is the one that does the persuading, so it gets the space: a clean grid of affiliate marks at a consistent optical size rather than at their native ones, which is the difference between a wall of logos that reads as credentials and one that reads as clutter. The green gradient and leaf mark carry through every page as the only decorative element, so nothing competes with the content for a reader who is comparing three bids at once.",
     did: [
+      "Document system:",
       "Cover and section system for a multi-page profile",
       "Numbered service bands with a benefit line on each",
       "Partners and affiliates grid, optically sized",
+      "Print and screen:",
       "Greyscale-safe hierarchy for office printing",
       "Print and screen PDF masters",
     ],
+    outcome:
+      "The profile reads the same on screen, out of an office printer in greyscale, and stapled into a bid.",
     stackLabel: "The document includes",
     stack: ["Cover system", "Service bands", "Partner grid", "Print master", "Screen PDF"],
     palette: [
@@ -856,14 +953,18 @@ export const CASE_STUDIES: CaseStudy[] = [
     approach:
       "The events are genuinely different in tone, so the system holds them together with structure rather than with a template. Every piece keeps the association crest and administration line in the same place at the top, and a fixed information strip at the base carrying handle, phone and QR. Between those two anchors, each event is free to look like itself: the business summit is corporate and grid-led with speaker portraits in colour blocks, the games fair is a sports poster with the athletes shot on campus, the health seminar is clinical and blue with the guest clinicians framed like a lecture bill.\n\nThe logistics are the hard part and they get treated as content, not as small print. Field events, track events and indoor events are set as three labelled columns rather than one run-on list, so a student can find the one they want to enter without reading the whole thing. Entry tiers, account details and the QR sit together in a single block at the base, which is the part someone screenshots.",
     did: [
+      "Campaigns:",
       "Business Summit campaign: key art, speaker cards, programme layout",
       "Inter-faculty games and trade fair: poster and event schedule",
       "Health seminar: campaign artwork and activity breakdown",
       "Live audio series artwork with host cards",
+      "Recurring posts and system:",
       "Recurring community and new-month posts",
       "A fixed crest, administration line and contact strip across the set",
       "Logistics blocks: entry tiers, payment details and QR codes",
     ],
+    outcome:
+      "A whole term of events reads as one association, and the details students need (dates, fees, accounts and a QR code) sit in the same place on every piece.",
     stackLabel: "The season included",
     stack: [
       "Campaign key art", "Speaker cards", "Event schedules",
@@ -895,12 +996,17 @@ export const CASE_STUDIES: CaseStudy[] = [
     approach:
       "The offices are separated by genre, not by badge. Sports gets the visual language of a tournament: the esports pieces are built like game key art, dark and high-contrast with the title set heavy across the middle and the entry fee and date pinned into corner tabs the way a fixture card does it. Social gets the language of a night out: the movie night is a lit cinema interior with the price on a ticket stub, the hangout is neon-lit portraiture with the door time and cover charge on chips.\n\nWhat holds them together is a shared frame: the association crest and the originating office line sit in the same position on every piece, and the administration credit runs along the base in the same weight. So the set reads as one association with two very different jobs, rather than as two associations.",
     did: [
+      "Sports directorate:",
       "Esports tournament artwork for two competitions",
+      "Social directorate:",
       "Movie night campaign with ticketing detail",
       "Social hangout artwork with venue, door time and cover",
+      "Shared frame:",
       "Recurring new-week and anticipation posts",
       "A shared crest, office line and administration credit across both directorates",
     ],
+    outcome:
+      "Students can tell at a glance which office is speaking, and still see one association behind both.",
     stackLabel: "The season included",
     stack: [
       "Tournament key art", "Event campaigns", "Ticketing artwork",
@@ -931,13 +1037,18 @@ export const CASE_STUDIES: CaseStudy[] = [
     approach:
       "SPAN FEST is treated as a festival brand in its own right, sitting inside the association rather than replacing it: hazard-tape diagonals, a booked artist shot as the headline act, and the full activity list (charades, bottle flip, raffle, arm-wrestling, pageants, trade fair, table tennis, VR, PS4, dance, pick-up line battle) set as three tight columns at the base so a fourteen-item programme still fits above the fold in a feed. The ticket piece is a separate artwork with its own job: price, what it admits, and three named sellers with numbers, because a ticket graphic that does not tell you who to call has failed.\n\nThe health work turns the volume down deliberately. The outreach piece leads with a photograph of the screening itself and states the community and the date plainly; Health Week takes a single verb, RE-ACTIVATE, and lets last year's photographs carry the rest. Same crest, same administration credit, completely different register, which is the honest way to move between a party and a blood pressure check.",
     did: [
+      "SPAN FEST:",
       "SPAN FEST key art with headline artist treatment",
       "Festival ticket artwork with pricing and named sellers",
       "Full activity programme laid out as scannable columns",
+      "Health:",
       "Medical outreach campaign artwork",
       "Health Week identity and photographic recap",
+      "Handover:",
       "Excos and welcome-back templates for the incoming administration",
     ],
+    outcome:
+      "The association moves from a ticketed festival to a community health check without looking like two different bodies, and the next administration inherits templates rather than a blank page.",
     stackLabel: "The season included",
     stack: [
       "Festival key art", "Ticket artwork", "Programme layout",
@@ -953,6 +1064,18 @@ export const CASE_STUDIES: CaseStudy[] = [
     ],
   },
 ];
+
+/** Splits "What we delivered" into its groups. A line ending in a colon is a group heading;
+    a list with no headings comes back as one unnamed group. */
+export function groupDid(did: string[]): { domain?: string; items: string[] }[] {
+  const out: { domain?: string; items: string[] }[] = [];
+  for (const line of did) {
+    if (line.trim().endsWith(":")) out.push({ domain: line.trim().slice(0, -1), items: [] });
+    else if (out.length) out[out.length - 1].items.push(line);
+    else out.push({ items: [line] });
+  }
+  return out.filter((g) => g.items.length);
+}
 
 /* --------------------------------------------------------------- galleries */
 

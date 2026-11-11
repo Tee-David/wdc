@@ -425,6 +425,9 @@
 
 /* Bulleted lists, with the same accent tick the "what you get" rails use. */
 .wk-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+/* "What we delivered", grouped by the service's own domains. */
+.wk-group + .wk-group { margin-top: 22px; }
+.wk-group__h { font-family: var(--font-display, inherit); font-size: 1rem; font-weight: 600; margin: 0 0 10px; color: var(--foreground, inherit); }
 .wk-list li { position: relative; padding-left: 26px; color: var(--muted); line-height: 1.55; }
 .wk-list li::before {
   content: ""; position: absolute; left: 0; top: .42em; width: 14px; height: 14px;

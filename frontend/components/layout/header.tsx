@@ -179,7 +179,7 @@ export function Header({
           margins around the pill never swallow a tap meant for the page. */}
       <div className={`hd-bar pointer-events-auto relative isolate mx-auto flex items-center justify-between ${solid ? "is-glass" : ""} ${solid && lens ? "has-lens" : ""} ${menuOpen ? "is-menu-open" : ""}`}>
         {/* The glass is its own layer, never the bar, so the phone menu's fixed panel still measures against the screen. Desktop only. */}
-        {lens ? <GlassBackdrop className="hd-lens absolute inset-0 -z-10" radius={999} edge={12} strength={-28} rim={false} tint="var(--lens-tint)" off={!solid || menuOpen} style={{ opacity: solid && !menuOpen ? 1 : 0, transition: "opacity .3s ease" }} /> : null}
+        {lens ? <GlassBackdrop className="hd-lens absolute inset-0 -z-10" radius={999} edge={10} strength={-40} rim={false} tint="var(--lens-tint)" off={!solid || menuOpen} style={{ opacity: solid && !menuOpen ? 1 : 0, transition: "opacity .3s ease" }} /> : null}
         {logoSwap}
 
         <div className="flex items-center gap-2 md:gap-3">

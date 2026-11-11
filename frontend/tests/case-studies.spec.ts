@@ -30,11 +30,11 @@ test("a new build is written in five steps, refused until complete, then publish
   await page.getByLabel("Title").fill("An ordering site and a kitchen screen on one menu");
   await page.getByLabel("Summary for the card").fill("Web ordering and a kitchen screen sharing one menu.");
   await page.getByLabel("About the client").fill("A test client made by the case-studies spec.");
-  await page.getByLabel("The brief").fill("Take orders online without re-typing them.");
-  await page.getByLabel("The approach").fill("One menu and one order record, read by both screens.");
+  await page.getByLabel("The problem").fill("Take orders online without re-typing them.");
+  await page.getByLabel("What we decided").fill("One menu and one order record, read by both screens.");
 
   await step(page, "Next");
-  await page.getByLabel("What we did").fill("Ordering site\nKitchen screen\nMenu editor");
+  await page.getByLabel("What we delivered").fill("Ordering site\nKitchen screen\nMenu editor");
   for (const t of ["Next.js", "PostgreSQL"]) { await page.getByLabel("Built with").fill(t); await page.keyboard.press("Enter"); }
   await page.getByLabel("Live address").fill("https://example.com");
 

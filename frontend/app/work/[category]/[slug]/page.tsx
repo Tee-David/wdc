@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { WorkFooter } from "@/components/work/work-footer";
-import { CASE_STUDIES, caseBySlug, casesFor, categoryBySlug } from "@/lib/work";
+import { CASE_STUDIES, caseBySlug, casesFor, categoryBySlug, groupDid } from "@/lib/work";
 import { COMPANY_NAME, SITE_NAME, SITE_URL } from "@/lib/site";
 import { testimonialFor } from "@/lib/testimonials";
 import "@/components/preview/preview.css";
@@ -143,13 +143,14 @@ export default async function WorkDetailPage(
      resolves to an element that exists. */
   const outline = [
     { id: "about-the-client", text: "About the client" },
-    { id: "the-brief", text: "The brief" },
+    { id: "the-problem", text: "The problem" },
     ...(app ? [{ id: "the-screens", text: "The screens" }] : []),
     ...(app?.site ? [{ id: "the-public-site", text: "The public site" }] : []),
     ...(motion.length ? [{ id: "in-motion", text: "In motion" }] : []),
-    { id: "the-approach", text: "The approach" },
+    { id: "what-we-decided", text: "What we decided" },
     ...(app ? [{ id: "how-it-fits", text: "How it fits together" }] : []),
-    { id: "what-we-did", text: "What we did" },
+    { id: "what-we-delivered", text: "What we delivered" },
+    ...(cs.outcome ? [{ id: "what-changed", text: "What changed" }] : []),
     ...(cs.palette?.length ? [{ id: "the-palette", text: "The palette" }] : []),
     { id: "the-system", text: cs.stackLabel ?? "Built with" },
   ];
@@ -286,8 +287,8 @@ export default async function WorkDetailPage(
                     <p>{cs.about}</p>
                   </section>
 
-                  <section id="the-brief">
-                    <h2>The brief</h2>
+                  <section id="the-problem">
+                    <h2>The problem</h2>
                     <p>{cs.brief}</p>
                   </section>
 
@@ -330,8 +331,8 @@ export default async function WorkDetailPage(
                     </section>
                   ) : null}
 
-                  <section id="the-approach">
-                    <h2>The approach</h2>
+                  <section id="what-we-decided">
+                    <h2>What we decided</h2>
                     {/* Split on blank lines rather than rendered as one block.
                         The design case studies run to three or four paragraphs
                         and a wall of prose is not read. */}
@@ -380,12 +381,24 @@ export default async function WorkDetailPage(
                     </figure>
                   ) : null}
 
-                  <section id="what-we-did">
-                    <h2>What we did</h2>
-                    <ul className="wk-list">
-                      {cs.did.map((d) => <li key={d}>{d}</li>)}
-                    </ul>
+                  <section id="what-we-delivered">
+                    <h2>What we delivered</h2>
+                    {groupDid(cs.did).map((g, gi) => (
+                      <div key={g.domain ?? gi} className={g.domain ? "wk-group" : undefined}>
+                        {g.domain ? <h3 className="wk-group__h">{g.domain}</h3> : null}
+                        <ul className="wk-list">
+                          {g.items.map((d) => <li key={d}>{d}</li>)}
+                        </ul>
+                      </div>
+                    ))}
                   </section>
+
+                  {cs.outcome ? (
+                    <section id="what-changed">
+                      <h2>What changed</h2>
+                      {cs.outcome.split("\n\n").map((para) => <p key={para.slice(0, 24)}>{para}</p>)}
+                    </section>
+                  ) : null}
 
                   {/* Swatches, not a sentence. A row of the actual colours says
                       more about an identity than a paragraph naming them, and the

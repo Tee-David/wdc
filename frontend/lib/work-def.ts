@@ -37,7 +37,7 @@ export function kindOf(c: Pick<CaseStudy, "palette" | "stackLabel">): CaseKind {
 export const kindForService = (s: ServiceSlug): CaseKind =>
   (Object.entries(CASE_KINDS).find(([, v]) => v.defaultFor.includes(s))?.[0] as CaseKind | undefined) ?? "build";
 
-export const LIMITS = { title: 90, summary: 80, short: 80, long: 1_200, did: 10, list: 12, palette: 8, alt: 160 } as const;
+export const LIMITS = { title: 90, summary: 80, short: 80, long: 1_200, did: 24, list: 12, palette: 8, alt: 160 } as const;
 
 export const slugifyCase = (v: string) =>
   v.toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
@@ -105,10 +105,10 @@ export function cleanCase(raw: CaseInput, opts: { bucket?: string } = {}): { dat
   else if (title.length > LIMITS.title) problems.push(`Shorten the title to ${LIMITS.title} characters.`);
   if (!summary) problems.push("Add the one-line summary for the card.");
   else if (summary.length > LIMITS.summary) problems.push(`Shorten the summary to ${LIMITS.summary} characters.`);
-  for (const [key, label] of [["about", "About the client"], ["brief", "The brief"], ["approach", "The approach"]] as const) {
+  for (const [key, label] of [["about", "About the client"], ["brief", "The problem"], ["approach", "What we decided"]] as const) {
     if (!str(raw[key], LIMITS.long)) problems.push(`Write ${label.toLowerCase()}.`);
   }
-  if (did.length < 3) problems.push("List at least three things under What we did.");
+  if (did.filter((l) => !l.endsWith(":")).length < 3) problems.push("List at least three things under What we delivered.");
   if (stack.length < 2) problems.push(`Add at least two under ${k.listLabel}.`);
   if (kind === "identity" && (palette?.length ?? 0) < 2) problems.push("Add at least two colours to the palette.");
   if (url && !cleanUrl) problems.push("The live address needs to start with https://.");
@@ -124,6 +124,7 @@ export function cleanCase(raw: CaseInput, opts: { bucket?: string } = {}): { dat
       title, client, summary,
       sector: str(raw.sector, LIMITS.short), location: str(raw.location, LIMITS.short),
       about: str(raw.about, LIMITS.long), brief: str(raw.brief, LIMITS.long), approach: str(raw.approach, LIMITS.long),
+      ...(str(raw.outcome, LIMITS.long) ? { outcome: str(raw.outcome, LIMITS.long) } : {}),
       did, stack, stackLabel: kind === "build" ? undefined : k.listLabel,
       ...(cleanUrl && kind !== "identity" ? { url: cleanUrl } : {}),
       ...(cover ? { cover, coverAlt } : {}),

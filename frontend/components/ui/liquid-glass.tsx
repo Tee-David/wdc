@@ -6,7 +6,7 @@ import { Fragment, useEffect, useId, useRef, useState, type CSSProperties } from
   Liquid glass that bends the real page behind it, the way Apple's glass refracts at its edges.
 
   How: an SVG displacement map, made to the element's exact size, is used as a backdrop filter.
-  The map is neutral in the middle and strong at the edges, so the centre stays clear and the
+  The map is fully neutral in the middle and strong at the edges, so the centre stays clear and the
   content bends only near the rim. Red, green and blue are displaced by slightly different
   amounts, which gives the thin prismatic edge of real glass. A soft top highlight and a
   hairline finish the rim. (The technique of React Bits' Glass Surface.)
@@ -42,15 +42,15 @@ function mapFor(w: number, h: number, radius: number, edge: number) {
     `<rect width="${w}" height="${h}" fill="black"/>` +
     `<rect width="${w}" height="${h}" rx="${r}" fill="url(#x)"/>` +
     `<rect width="${w}" height="${h}" rx="${r}" fill="url(#y)" style="mix-blend-mode:difference"/>` +
-    `<rect x="${edge}" y="${edge}" width="${Math.max(0, w - edge * 2)}" height="${Math.max(0, h - edge * 2)}" rx="${Math.max(0, r - edge)}" fill="hsl(0 0% 50% / .93)" style="filter:blur(${Math.max(4, edge * 1.6)}px)"/>` +
+    `<rect x="${edge}" y="${edge}" width="${Math.max(0, w - edge * 2)}" height="${Math.max(0, h - edge * 2)}" rx="${Math.max(0, r - edge)}" fill="hsl(0 0% 50%)" style="filter:blur(${Math.max(3, edge * 0.6)}px)"/>` +
     `</svg>`;
   return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
 }
 
 const CHANNELS: [string, number][] = [
   ["1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0", 0],
-  ["0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0", 10],
-  ["0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0", 20],
+  ["0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0", 3],
+  ["0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0", 6],
 ];
 
 /**
@@ -77,7 +77,7 @@ export function GlassBackdrop({ className = "", radius = 0, strength = -28, edge
     return () => ro.disconnect();
   }, [mode]);
 
-  const filter = off ? "none" : mode === "lens" && size ? `url(#${id}) saturate(1.7) brightness(1.03)` : mode === "frost" ? "blur(20px) saturate(1.8) brightness(1.04)" : "none";
+  const filter = off ? "none" : mode === "lens" && size ? `url(#${id}) blur(6px) saturate(1.6) brightness(1.04)` : mode === "frost" ? "blur(20px) saturate(1.8) brightness(1.04)" : "none";
   const layer: CSSProperties = {
     position: "absolute",
     inset: 0,

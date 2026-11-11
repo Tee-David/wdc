@@ -15,7 +15,7 @@ type Svc = { slug: CaseStudy["category"]; label: string };
 type Draft = {
   kind: CaseKind; category: CaseStudy["category"]; also: CaseStudy["category"][];
   client: string; sector: string; location: string; slug: string;
-  title: string; summary: string; about: string; brief: string; approach: string;
+  title: string; summary: string; about: string; brief: string; approach: string; outcome: string;
   did: string; list: string[]; url: string;
   palette: { hex: string; name: string }[]; quote: string; quoteFrom: string;
   cover: string; coverAlt: string; gallery: { src: string; alt: string }[];
@@ -28,7 +28,7 @@ function toDraft(c: (CaseStudy & { kind?: CaseKind }) | null, kind: CaseKind | u
   return {
     kind: k, category: c?.category ?? "web", also: (c?.categories ?? []).filter((s) => s !== c?.category),
     client: c?.client ?? "", sector: c?.sector ?? "", location: c?.location ?? "Nigeria", slug: c?.slug ?? "",
-    title: c?.title ?? "", summary: c?.summary ?? "", about: c?.about ?? "", brief: c?.brief ?? "", approach: c?.approach ?? "",
+    title: c?.title ?? "", summary: c?.summary ?? "", about: c?.about ?? "", brief: c?.brief ?? "", approach: c?.approach ?? "", outcome: c?.outcome ?? "",
     did: (c?.did ?? []).join("\n"), list: c?.stack ?? [], url: c?.url ?? "",
     palette: c?.palette ?? [], quote: c?.quote?.text ?? "", quoteFrom: c?.quote?.from ?? "",
     cover: c?.cover ?? "", coverAlt: c?.coverAlt ?? (c?.client ? `${c.client}: ${c.title}` : ""),
@@ -40,7 +40,7 @@ function toDraft(c: (CaseStudy & { kind?: CaseKind }) | null, kind: CaseKind | u
 const toInput = (d: Draft) => ({
   kind: d.kind, category: d.category, categories: [d.category, ...d.also], slug: d.slug || d.client,
   client: d.client, sector: d.sector, location: d.location,
-  title: d.title, summary: d.summary, about: d.about, brief: d.brief, approach: d.approach,
+  title: d.title, summary: d.summary, about: d.about, brief: d.brief, approach: d.approach, outcome: d.outcome,
   did: d.did, stack: d.list, url: d.url,
   palette: d.palette, quote: { text: d.quote, from: d.quoteFrom },
   cover: d.cover, coverAlt: d.coverAlt, gallery: d.gallery.map((g) => g.src), galleryAlt: d.gallery.map((g) => g.alt),
@@ -150,14 +150,15 @@ export function CaseEditor({ initial, kind, originalSlug, services, bucket, canP
               <Text id="summary" label="Summary for the card" value={d.summary} onChange={(v) => set("summary", v)} max={LIMITS.summary} count
                 hint="One line." />
               <Area id="about" label="About the client" value={d.about} onChange={(v) => set("about", v)} hint="Two or three sentences on who they are." />
-              <Area id="brief" label="The brief" value={d.brief} onChange={(v) => set("brief", v)} hint="What we were asked to make. We do not narrate a client's problems for them." />
-              <Area id="approach" label="The approach" value={d.approach} onChange={(v) => set("approach", v)} hint="How it was made, and why that way." />
+              <Area id="brief" label="The problem" value={d.brief} onChange={(v) => set("brief", v)} hint="What was not working when they came to us. Only what the client told us or the work shows. Never blame the client." />
+              <Area id="approach" label="What we decided" value={d.approach} onChange={(v) => set("approach", v)} hint="Two or three decisions, each with its reason." />
+              <Area id="outcome" label="What changed (optional)" value={d.outcome} onChange={(v) => set("outcome", v)} hint="What they can do now that they could not before. Figures only if the client gave them or we measured them." />
             </>
           ) : null}
 
           {step === 2 ? (
             <>
-              <Area id="did" label="What we did" value={d.did} onChange={(v) => set("did", v)} hint="One point per line. 3 to 10." rows={6} />
+              <Area id="did" label="What we delivered" value={d.did} onChange={(v) => set("did", v)} hint='One point per line. A line ending in a colon, such as "Experience:", starts a group.' rows={8} />
               <ListField label={k.listLabel} hint={k.listHint} value={d.list} onChange={(v) => set("list", v)} />
               {d.kind !== "identity" ? (
                 <Text id="url" label={d.kind === "build" ? "Live address" : "Live address (only if it had its own page)"} value={d.url}
@@ -251,9 +252,10 @@ export function CaseEditor({ initial, kind, originalSlug, services, bucket, canP
         ) : null}
         <div className="ce__pvB">
           <small>{[d.sector, d.location].filter(Boolean).join(" · ")}{d.url && d.kind !== "identity" ? " · Visit site" : ""}</small>
-          <h4>The brief</h4><p>{d.brief || <i>Not written yet</i>}</p>
-          <h4>What we did</h4>
-          {d.did.trim() ? <ul>{d.did.split("\n").filter((l) => l.trim()).map((l, i) => <li key={i}>{l}</li>)}</ul> : <p><i>Nothing listed yet</i></p>}
+          <h4>The problem</h4><p>{d.brief || <i>Not written yet</i>}</p>
+          <h4>What we delivered</h4>
+          {d.did.trim() ? <ul>{d.did.split("\n").filter((l) => l.trim()).map((l, i) => (l.trim().endsWith(":") ? <li key={i}><b>{l.trim().slice(0, -1)}</b></li> : <li key={i}>{l}</li>))}</ul> : <p><i>Nothing listed yet</i></p>}
+          {d.outcome.trim() ? <><h4>What changed</h4><p>{d.outcome}</p></> : null}
           <h4>{k.listLabel}</h4>
           <div className="ce__chips">{d.list.length ? d.list.map((x) => <span key={x} className="ce__chip">{x}</span>) : <i>None yet</i>}</div>
           {d.kind === "identity" && d.palette.length ? (

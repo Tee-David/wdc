@@ -87,7 +87,7 @@ test("it follows the reader down the page", async ({ page }) => {
      reached yet, and lighting the first one on load would be a guess. */
   await expect(page.locator(".wk-toc__list a.is-on")).toHaveCount(0);
 
-  await page.locator("#what-we-did").scrollIntoViewIfNeeded();
+  await page.locator("#what-we-delivered").scrollIntoViewIfNeeded();
   await page.waitForTimeout(600);
   const lit = page.locator(".wk-toc__list a.is-on");
   await expect(lit).toHaveCount(1);
