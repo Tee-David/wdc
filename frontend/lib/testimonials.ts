@@ -78,12 +78,6 @@ export const TESTIMONIALS: Testimonial[] = [
       "Clients in this space expect numbers to look serious. Soft or overly colourful design makes them doubt the work. The current look matches the seriousness of the data.",
   },
   {
-    slug: "jomo-resource-center",
-    client: "Jomo Resource Center",
-    text:
-      "Parents and students used to find random social media posts before they found the actual courses. The site and search presence now bring them to the right information first.",
-  },
-  {
     slug: "speak-up-for-a-change",
     client: "Speak Up For A Change",
     text:

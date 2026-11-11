@@ -7,7 +7,7 @@ import { kindOf, type CaseKind } from "./work-def";
 /**
  * CASE STUDIES EDITED IN THE ADMIN, kept beside the ones written in code.
  *
- * The seventeen in lib/work.ts stay as they are and remain the starting
+ * The case studies in lib/work.ts stay as they are and remain the starting
  * point. A row here is either a new case study, or the admin's version of one
  * from code (same slug), or a code one that has been hidden. Each row has a
  * DRAFT (what the editor saves) and a LIVE copy (what the site shows); saving
