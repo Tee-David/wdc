@@ -87,7 +87,7 @@ export const PROJECTS: Project[] = [
     sector: "Professional training",
     url: "https://www.meridianglobaltrainings.com/",
     cover: "/work/meridianglobaltrainings.jpg",
-    services: ["web", "software", "seo"],
+    services: ["web", "software"],
   },
   {
     name: "Harize Global",

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Logo, WdcMark } from "@/components/brand/logo";
 import ThemeSwitchButton from "@/components/ui/theme-switch-button";
 import UserWay from "@/components/ui/userway";
+import { GlassBackdrop, useGlassMode } from "@/components/ui/liquid-glass";
 import StaggeredMenu from "@/components/ui/staggered-menu";
 import { MenuAccount, useSiteUser } from "@/components/layout/signed-in";
 
@@ -84,6 +85,8 @@ export function Header({
   /* Solid whenever the bar is not floating over a dark hero, so a page with
      light paper at the top gets its surface from the first pixel. */
   const solid = !filmOpen && (scrolled || !overHero);
+  // Chromium on desktop bends the page at the pill's edge (liquid glass); other browsers keep the frosted pill.
+  const lens = useGlassMode() === "lens";
   /* Phones over the homepage film: the mark, the menu, nothing else. */
   const quiet = markOnlyOnPhones && !solid;
 
@@ -174,7 +177,9 @@ export function Header({
           Nav lives entirely inside the staggered menu; the theme toggler
           rides in the menu footer. The header itself is click-through so the
           margins around the pill never swallow a tap meant for the page. */}
-      <div className={`hd-bar pointer-events-auto mx-auto flex items-center justify-between ${solid ? "is-glass" : ""} ${menuOpen ? "is-menu-open" : ""}`}>
+      <div className={`hd-bar pointer-events-auto relative isolate mx-auto flex items-center justify-between ${solid ? "is-glass" : ""} ${solid && lens ? "has-lens" : ""} ${menuOpen ? "is-menu-open" : ""}`}>
+        {/* The glass is its own layer, never the bar, so the phone menu's fixed panel still measures against the screen. Desktop only. */}
+        {lens ? <GlassBackdrop className="hd-lens absolute inset-0 -z-10" radius={999} edge={12} strength={-28} rim={false} tint="var(--lens-tint)" off={!solid || menuOpen} style={{ opacity: solid && !menuOpen ? 1 : 0, transition: "opacity .3s ease" }} /> : null}
         {logoSwap}
 
         <div className="flex items-center gap-2 md:gap-3">

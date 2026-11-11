@@ -816,6 +816,14 @@ html[data-film-leaving="1"] .hd-bar { opacity: 0; transition-duration: .15s; }
   border-color: rgb(255 255 255 / .1);
   box-shadow: 0 12px 40px -14px rgb(0 0 0 / .7), inset 0 1px 0 rgb(255 255 255 / .06);
 }
+/* LIQUID GLASS on desktop Chromium (components/ui/liquid-glass.tsx). The bar stops
+   blurring and goes clear, and its .hd-lens layer bends the page at the pill's rounded
+   edge and carries the tint (--lens-tint), so the bend is not hidden under the bar's own fill. */
+.hd-lens { --lens-tint: rgb(255 255 255 / .62); }
+.dark .hd-lens { --lens-tint: rgb(10 10 42 / .58); }
+.hd-bar.is-glass.has-lens { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+@media (max-width: 767.98px) { .hd-lens { display: none; } .hd-bar.is-glass.has-lens { background: rgb(255 255 255 / .96); } .dark .hd-bar.is-glass.has-lens { background: rgb(10 10 42 / .96); } }
+@media (prefers-reduced-transparency: reduce) { .hd-lens { display: none; } .hd-bar.is-glass.has-lens { background: #fff; } .dark .hd-bar.is-glass.has-lens { background: #0a0a2a; } }
 html:not(.dark) .hero-cta--film { --btn-fill: #000; --btn-ink: #fff; }
 /* The menu disc over the PALE homepage film (light theme). */
 html:not(.dark) .hd-glass-menu--film .sm-toggle:not([aria-expanded="true"]) {

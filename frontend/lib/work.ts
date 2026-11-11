@@ -329,22 +329,22 @@ export const CASE_STUDIES: CaseStudy[] = [
   {
     slug: "meridian-global-trainings",
     category: "web",
-    categories: ["web", "software", "seo"],
-    title: "A training catalogue of 1,849 courses, and the admin that runs it",
+    categories: ["web", "software"],
+    title: "A training company that sells in six countries, run from one place",
     client: "Meridian Global Trainings",
     sector: "Professional training",
     location: "Nigeria, Ghana, Rwanda, Qatar, the UK and the US",
     url: "https://www.meridianglobaltrainings.com/",
     cover: "/work/meridianglobaltrainings.jpg",
-    summary: "A course site priced for six countries, and a web app for enquiries, calendars, certificates and money.",
+    summary: "Every visitor sees their own country's fee, and the team runs enquiries, sessions, invoices and certificates from one dashboard.",
     about:
       "Meridian Global Trainings runs practical courses for professionals and their teams, in class, online or at the client's office, across six countries. The catalogue is large and every course runs on many dates, so the website and the work behind it are one product.",
     brief:
       "Put the whole catalogue online with the right price for where the visitor is, make an enquiry quick from any course, and give the team one place to answer enquiries, plan sessions, send quotes and invoices, and issue certificates.",
     approach:
-      "Every course carries seven prices: naira and dollars for Nigeria, and dollars for Ghana, Rwanda, Qatar, the UK and the US. The site works out where the visitor is and shows that price, and the syllabus and calendar downloads print only the prices for the place they choose. Behind it, the admin is built around the daily jobs, so creating a course, replying to an enquiry or raising an invoice stays quick and calm rather than buried in settings.",
+      "Every course carries a price for each country. The site works out where the visitor is and shows that price: naira only to people in Nigeria, dollars set per country everywhere else, and the syllabus and calendar downloads print only the prices for the place they choose. Behind it, the admin is built around the daily jobs, so creating a course, replying to an enquiry or raising an invoice stays quick and calm rather than buried in settings.",
     did: [
-      "Course catalogue of 1,849 courses, with search and filters",
+      "The full course catalogue, with search and filters",
       "Prices by location for six countries, in naira and dollars",
       "Syllabus and calendar PDFs for the visitor's location",
       "Step-by-step enquiry and registration forms",
@@ -368,7 +368,7 @@ export const CASE_STUDIES: CaseStudy[] = [
     app: {
       shots: [
         shot("mgt-overview-d.webp", 1600, 1000, "laptop", "Overview", "Enquiries waiting, sessions starting in the next 14 days, certificates to issue and this week's plan."),
-        shot("mgt-courses-d.webp", 1600, 1000, "laptop", "Courses", "All 1,849 courses with status, field, fee and the next session, with filters and bulk changes."),
+        shot("mgt-courses-d.webp", 1600, 1000, "laptop", "Courses", "Every course with its status, field, fee and next session, with filters and bulk changes."),
         shot("mgt-calendars-d.webp", 1600, 1000, "laptop", "Calendars", "The year planner by month and week, with the sessions starting in the chosen week beside it."),
         shot("mgt-certificates-d.webp", 1600, 1000, "laptop", "Certificates", "Pick who completed the course, check the names, choose a design, then send."),
         shot("mgt-money-d.webp", 1600, 1000, "laptop", "Money", "Invoices, quotes and payments in naira and dollars, with what is late and what is still to pay."),
