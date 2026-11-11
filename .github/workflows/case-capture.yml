@@ -1,0 +1,27 @@
+# Captures case-study images on GitHub, run by hand. The owner's PC never runs a browser.
+name: Case study captures
+
+on:
+  workflow_dispatch:
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: mcr.microsoft.com/playwright:v1.48.2-noble
+    env:
+      HOME: /root
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: design/case-study
+      - name: Playwright library
+        run: npm i --no-save --no-audit --no-fund --prefix /tmp/pw playwright@1.48.2
+      - name: Capture
+        run: NODE_PATH=/tmp/pw/node_modules node design/case-study/scripts/ci-capture.js
+      - uses: actions/upload-artifact@v4
+        with:
+          name: captures
+          path: capture/
+          retention-days: 7
