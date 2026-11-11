@@ -359,6 +359,12 @@ export const CASE_STUDIES: CaseStudy[] = [
       "/work/app/mgt-tablet.jpg",
       "/work/app/mgt-mobile.jpg",
     ],
+    coverAlt: "The Meridian Global Trainings home page: the headline \"Build the skills your business needs next\" over a blue and red background, with the six countries it trains in.",
+    galleryAlt: [
+      "The training admin's overview: enquiries waiting, sessions in the next 14 days, certificates to issue and this week's plan.",
+      "The course list on a tablet, with status, field, fee and the next session for each course.",
+      "The training admin's overview on a phone, with the day's figures first.",
+    ],
     app: {
       shots: [
         shot("mgt-overview-d.webp", 1600, 1000, "laptop", "Overview", "Enquiries waiting, sessions starting in the next 14 days, certificates to issue and this week's plan."),
@@ -420,6 +426,13 @@ export const CASE_STUDIES: CaseStudy[] = [
       "/work/harize/site-desktop.jpg",
       "/work/harize/site-phone.jpg",
       "/work/harize/social-card.jpg",
+    ],
+    coverAlt: "The Harize Global home page: the headline \"Scaling and unlocking value with data\" on deep purple, beside a large globe crossed by two orbits.",
+    galleryAlt: [
+      "The Harize Global brand board: the Woven Globe logo with its app icon, versions on dark and silver, an edge detail, the construction grid and a scale test.",
+      "The Harize Global website on a desktop: the hero with the headline, two buttons and the globe.",
+      "The Harize Global website on a phone: the centred headline and buttons above the globe.",
+      "The Harize Global social card with the logo.",
     ],
   },
   {
