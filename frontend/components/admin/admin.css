@@ -149,7 +149,7 @@
 .ad *, .ad *::before, .ad *::after { box-sizing: border-box; }
 .ad h1, .ad h2, .ad h3, .ad__topTitle {
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
-  font-weight: 700; letter-spacing: -.02em; margin: 0;
+  font-weight: 600; letter-spacing: -.02em; margin: 0;
 }
 /* Zero specificity, so a class on a link (a primary button, a pill) sets its
    own colour; as ".ad a" it outranked them and a link-button took the
@@ -199,7 +199,7 @@
   margin-left: auto; min-width: 1.4rem; height: 1.35rem; padding: 0 .4rem;
   display: grid; place-items: center; border-radius: 999px;
   background: var(--ad-tone-live); color: var(--ad-on-live);
-  font-size: .72rem; font-weight: 700; font-variant-numeric: tabular-nums;
+  font-size: .72rem; font-weight: 600; font-variant-numeric: tabular-nums;
 }
 .ad__wrap.is-collapsed .ad__side:not(.is-hoverExpanded) .ad__count { position: absolute; right: -.15rem; top: -.1rem; margin: 0; }
 .ad__srOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
@@ -232,7 +232,7 @@
 /* The hot dog is wider than it is tall (49:36), so it sets its own width. */
 .ad__topMenu svg { width: 1.35rem; height: auto; }
 .ad__topbar .tourLauncher__btn { width: 2.75rem; height: 2.75rem; border-radius: 12px; color: var(--ad-ink); }
-.ad__notificationDot { position: absolute; right: -.3rem; top: -.3rem; min-width: 1.1rem; height: 1.1rem; padding: 0 .25rem; display: grid; place-items: center; border-radius: 999px; background: var(--ad-tone-live); color: var(--ad-on-live); font-size: .62rem; font-weight: 700; box-shadow: 0 0 0 2px var(--ad-panel); }
+.ad__notificationDot { position: absolute; right: -.3rem; top: -.3rem; min-width: 1.1rem; height: 1.1rem; padding: 0 .25rem; display: grid; place-items: center; border-radius: 999px; background: var(--ad-tone-live); color: var(--ad-on-live); font-size: .62rem; font-weight: 600; box-shadow: 0 0 0 2px var(--ad-panel); }
 
 .ad__menuWrap { position: relative; }
 .ad__popover {
@@ -480,7 +480,7 @@ body:has(.adDrawer[open]) .st { display: none; }
 
 .ad__t th {
   text-align: left; padding: .75rem 1rem;
-  font-size: .72rem; font-weight: 600; letter-spacing: .07em; text-transform: uppercase;
+  font-size: .8rem; font-weight: 500;
   color: var(--ad-dim); background: var(--ad-panel-2);
   border-bottom: 1px solid var(--ad-line); white-space: nowrap;
 }
@@ -575,7 +575,7 @@ body:has(.adDrawer[open]) .st { display: none; }
 .ad__btn:hover { background: var(--ad-panel-2); border-color: var(--ad-dim); }
 .ad__btn:active { transform: translateY(1px); }
 .ad__btn svg { width: 1rem; height: 1rem; flex: none; }
-.ad__btn--primary { background: var(--ad-fill); border-color: var(--ad-fill); color: var(--ad-on-fill); box-shadow: 0 6px 14px -6px rgb(0 0 101 / .55); }
+.ad__btn--primary { background: var(--ad-fill); border-color: var(--ad-fill); color: var(--ad-on-fill); }
 /* No coloured glow under the orange: the owner asked for it gone on Pay, and
    the same halo under every dark-mode primary read the same way. */
 .dark .ad__btn--primary { box-shadow: none; }
@@ -628,7 +628,7 @@ body:has(.adDrawer[open]) .st { display: none; }
 }
 .ad__banner a { color: inherit; text-decoration: underline; text-underline-offset: .15em; }
 .ad .ad__banner a:focus-visible { outline-color: #fff; }
-.ad__banner b { font-weight: 700; }
+.ad__banner b { font-weight: 600; }
 
 /* ------------------------------------------------------------------ misc */
 
@@ -919,7 +919,7 @@ body:has(.adDrawer[open]) .st { display: none; }
   align-items: center;
 }
 .ad__lineH {
-  font-size: .7rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+  font-size: .8rem; font-weight: 500;
   color: var(--ad-dim);
 }
 .ad__lineH span:nth-child(n+2) { text-align: right; }
@@ -982,8 +982,7 @@ body:has(.adDrawer[open]) .st { display: none; }
   .ad__lnF > span, .ad__lineT > span {
     position: static; width: auto; height: auto; margin: 0 0 .2rem;
     overflow: visible; clip-path: none; display: block;
-    font-size: .68rem; font-weight: 700; letter-spacing: .05em;
-    text-transform: uppercase; color: var(--ad-dim);
+    font-size: .78rem; font-weight: 500; color: var(--ad-dim);
   }
   .ad__lineT > span { display: inline; margin: 0 .4rem 0 0; }
   .ad__lnF--n input { text-align: left; }
@@ -1007,7 +1006,7 @@ body:has(.adDrawer[open]) .st { display: none; }
 .ad__totals .is-total {
   margin-top: .3rem; padding-top: .3rem; border-top: 1px solid var(--ad-line);
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
-  font-weight: 700; font-size: .98rem;
+  font-weight: 600; font-size: .98rem;
 }
 .ad__totals .is-total dt { color: var(--ad-ink); }
 
@@ -1151,7 +1150,7 @@ body:has(.adDrawer[open]) .st { display: none; }
 .ad__upH time { color: var(--ad-dim); font-size: .8rem; }
 .ad__upB { display: grid; gap: .5rem; }
 .ad__upB > div > b {
-  display: block; font-size: .7rem; letter-spacing: .08em; text-transform: uppercase;
+  display: block; font-size: .8rem; font-weight: 500;
   color: var(--ad-dim); margin-bottom: .1rem;
 }
 .ad__upB > div > span { display: block; }
@@ -1162,7 +1161,7 @@ body:has(.adDrawer[open]) .st { display: none; }
 .ad__dels { list-style: none; margin: 0; padding: .5rem 1rem 1rem; display: grid; gap: .9rem; }
 .ad__del { border: 1px solid var(--ad-line); border-radius: 12px; padding: .75rem .9rem; }
 .ad__delH { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-bottom: .5rem; }
-.ad__delH b { font-weight: 700; }
+.ad__delH b { font-weight: 600; }
 .ad__vers { list-style: none; margin: 0 0 .6rem; padding: 0; display: grid; gap: .3rem; }
 .ad__ver { display: flex; gap: .6rem; align-items: baseline; font-size: .86rem; }
 .ad__ver > b { flex: none; color: var(--ad-dim); font-variant-numeric: tabular-nums; }
@@ -1247,7 +1246,7 @@ body:has(.adDrawer[open]) .st { display: none; }
 }
 .ad__facts > div { padding: .85rem 1rem; background: var(--ad-panel); min-width: 0; }
 .ad__facts dt {
-  font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  font-size: .8rem; font-weight: 500;
   color: var(--ad-dim); margin-bottom: .25rem;
 }
 .ad__facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
@@ -1280,7 +1279,7 @@ body:has(.adDrawer[open]) .st { display: none; }
 .ad__logWhat b { font-weight: 600; }
 .ad__logWhat .ad__kind {
   display: inline-block; margin-right: .4rem;
-  font-size: .66rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+  font-size: .78rem; font-weight: 500;
   color: var(--ad-dim);
 }
 .ad__logMove {
@@ -1468,7 +1467,7 @@ a.ad__pgBtn:active { transform: translateY(1px); }
   content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--ad-accent-fill);
 }
 .ad .ad__tabsNav > button:focus-visible { outline: 2px solid var(--ad-fill); outline-offset: 2px; border-radius: 4px; }
-.ad__tabN { min-width: 1.35rem; padding: .05rem .4rem; border-radius: 999px; background: var(--ad-tone-neutral); color: var(--ad-on-neutral); font-size: .72rem; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
+.ad__tabN { min-width: 1.35rem; padding: .05rem .4rem; border-radius: 999px; background: var(--ad-tone-neutral); color: var(--ad-on-neutral); font-size: .72rem; font-weight: 600; text-align: center; font-variant-numeric: tabular-nums; }
 
 /* A person or company in a table: a solid initials disc, then the name. */
 .ad__who { display: flex; align-items: center; gap: .75rem; min-width: 0; }
@@ -1600,7 +1599,7 @@ html.is-dragging, html.is-dragging * { cursor: grabbing !important; }
 .ad__stageTrack li > span { display: none; }
 .ad__stageTrack li::before {
   content: counter(stg); flex: none; display: grid; place-items: center; width: 1.5rem; height: 1.5rem; border-radius: 50%;
-  background: var(--ad-line); color: var(--ad-ink); font-size: .72rem; font-weight: 700;
+  background: var(--ad-line); color: var(--ad-ink); font-size: .72rem; font-weight: 600;
 }
 .ad__stageTrack li.is-done { background: var(--ad-navy); color: #fff; }
 .ad__stageTrack li.is-done::before { content: "✓"; background: rgb(255 255 255 / .9); color: var(--ad-navy); }
@@ -1609,13 +1608,13 @@ html.is-dragging, html.is-dragging * { cursor: grabbing !important; }
 .dark .ad__stageTrack li.is-done { background: #23239b; }
 .dark .ad__stageTrack li.is-done::before { color: #23239b; }
 .ad__stageTrack small { color: inherit; font-size: .85rem; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
-.ad__stageTrack li.is-now small { font-weight: 700; }
-/* The current step shimmers: a pale band sweeping across (transform only). */
+.ad__stageTrack li.is-now small { font-weight: 600; }
+/* The current step is marked by its colour; nothing loops (unslop pass). */
 .ad__stageTrack li.is-now { position: relative; overflow: hidden; }
 .ad__stageTrack li.is-now::after, .ad__stageTrack.is-complete li:last-child::after {
   content: ""; position: absolute; inset: 0; pointer-events: none;
   background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / .3) 50%, transparent 70%);
-  transform: translateX(-100%); animation: stgShim 2.4s ease-in-out infinite;
+  display: none;
 }
 .ad__stageTrack.is-complete li:last-child { position: relative; overflow: hidden; }
 @keyframes stgShim { to { transform: translateX(100%); } }
@@ -1824,7 +1823,7 @@ html.is-dragging, html.is-dragging * { cursor: grabbing !important; }
 .adIcons__top { display: flex; align-items: center; gap: .75rem; margin-bottom: .6rem; }
 .adIcons__now { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; flex: none; border-radius: 12px; background: var(--ad-tone-brand); color: var(--ad-on-brand); }
 .adIcons__now svg { width: 1.25rem; height: 1.25rem; }
-.adIcons__now.is-empty { background: var(--ad-tone-flat); color: var(--ad-on-flat); font-weight: 700; }
+.adIcons__now.is-empty { background: var(--ad-tone-flat); color: var(--ad-on-flat); font-weight: 600; }
 .adIcons__hint { flex: 1; min-width: 0; font-size: .84rem; }
 .adIcons__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(2.75rem, 1fr)); gap: .35rem; max-height: 13rem; overflow-y: auto; overscroll-behavior: contain; padding: .15rem; }
 .adIcons__search, .adIcons__search input { background-clip: padding-box; }
@@ -1891,7 +1890,7 @@ td:has(.adRowPick) , .ad__pickCell { white-space: nowrap; }
   .ad__grid2--even { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 }
 .ad__switch--wrap { flex-wrap: wrap; max-width: 100%; }
-.ad__lateDue { color: var(--ad-bad-ink); font-weight: 700; }
+.ad__lateDue { color: var(--ad-bad-ink); font-weight: 600; }
 .ad__docNo { white-space: nowrap; }
 .ad__subLine { display: block; margin-top: .15rem; font-size: .76rem; }
 .ad__subPill { display: flex; width: fit-content; margin-top: .3rem; }
@@ -1987,7 +1986,7 @@ td:has(.adRowPick) , .ad__pickCell { white-space: nowrap; }
 /* A toast that offers Undo (components/admin/toast.tsx): a solid white button
    on the green, and the plain toasts stack above it rather than over it. */
 .adToast__acts { display: inline-flex; align-items: center; gap: .25rem; }
-.adToast__act { min-height: 2.25rem; padding: 0 .8rem; border: 1px solid #fff; border-radius: 9px; background: #fff; color: #0e0e2c; font: inherit; font-weight: 700; font-size: .85rem; cursor: pointer; }
+.adToast__act { min-height: 2.25rem; padding: 0 .8rem; border: 1px solid #fff; border-radius: 9px; background: #fff; color: #0e0e2c; font: inherit; font-weight: 600; font-size: .85rem; cursor: pointer; }
 .adToast__act:hover { background: transparent; color: #fff; }
 .adToast__act:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 .adToasts--acting + .adToasts { bottom: calc(5.25rem + env(safe-area-inset-bottom)); }
@@ -2262,7 +2261,7 @@ td:has(.adRowPick) , .ad__pickCell { white-space: nowrap; }
   display: grid; grid-template-columns: 2.5rem minmax(0, 1fr) auto auto; align-items: center; gap: .5rem .9rem;
   padding: .7rem .5rem; border-top: 1px solid var(--ad-line);
 }
-.wsAccess__avatar { width: 2.5rem; height: 2.5rem; border-radius: 50%; display: grid; place-items: center; background: var(--ad-tone-brand); color: var(--ad-on-brand, #fff); font-weight: 700; font-size: .85rem; }
+.wsAccess__avatar { width: 2.5rem; height: 2.5rem; border-radius: 50%; display: grid; place-items: center; background: var(--ad-tone-brand); color: var(--ad-on-brand, #fff); font-weight: 600; font-size: .85rem; }
 .wsAccess__who { min-width: 0; display: grid; }
 .wsAccess__who b, .wsAccess__who small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .wsAccess__who small { color: var(--ad-dim); font-size: .8rem; }

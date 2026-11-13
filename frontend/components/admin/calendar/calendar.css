@@ -25,8 +25,8 @@
 .adCe__miniD.out { color: var(--ad-dim); opacity: .75; }
 .adCe__miniD.is-week { background: var(--ad-hover); }
 .adCe__miniD.wk-s { border-radius: 12px 0 0 12px; } .adCe__miniD.wk-e { border-radius: 0 12px 12px 0; }
-.adCe__miniD.is-today:not(.is-sel) .adCe__miniN { box-shadow: inset 0 0 0 1.5px var(--ad-dim); font-weight: 700; }
-.adCe__miniD.is-sel .adCe__miniN { background: var(--ad-fill); color: var(--ad-on-fill); font-weight: 700; }
+.adCe__miniD.is-today:not(.is-sel) .adCe__miniN { box-shadow: inset 0 0 0 1.5px var(--ad-dim); font-weight: 600; }
+.adCe__miniD.is-sel .adCe__miniN { background: var(--ad-fill); color: var(--ad-on-fill); font-weight: 600; }
 .adCe__miniD:focus-visible, .adCe__miniBtn:focus-visible, .adCe__row:focus-visible, .adCe__ib:focus-visible, .adCe__stripD:focus-visible, .adCe__mNum:focus-visible, .adCe__more:focus-visible, .adCe__seg button:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
 .adCe__miniDot { position: absolute; bottom: 0; left: 50%; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; }
 .adCe__list { display: flex; flex-direction: column; border-top: 1px solid var(--ad-line); padding-top: .75rem; }
@@ -78,7 +78,7 @@
 .adCe__col.can-add { cursor: cell; }
 .adCe__col.is-today { background-color: var(--ad-panel-2); }
 .adCe__ev { position: absolute; z-index: 2; display: flex; flex-direction: column; gap: 2px; padding: 6px 8px; text-align: left; background: var(--ad-panel); border: 1.5px solid var(--c); border-radius: 12px; overflow: hidden; box-shadow: var(--ad-sh-1); cursor: pointer; color: var(--ad-ink); text-decoration: none; transition: transform .18s var(--ad-ease), box-shadow .18s; }
-.adCe__ev:hover { transform: translateY(-1px); box-shadow: var(--ad-sh-2); z-index: 3; }
+.adCe__ev:hover { box-shadow: var(--ad-sh-2); z-index: 3; }
 .adCe__ev:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; z-index: 4; }
 .adCe__tg.is-day .adCe__ev { max-width: 560px; }
 .adCe__evTop { display: flex; align-items: flex-start; gap: 6px; min-width: 0; }
@@ -89,7 +89,7 @@
 .adCe__logo { flex: none; min-width: 1.25rem; height: 1.25rem; padding: 0 3px; border-radius: 6px; display: grid; place-items: center; color: #fff; font: 700 .6rem var(--font-space-grotesk), system-ui, sans-serif; }
 .adCe__people { display: flex; align-items: center; margin-top: auto; padding-left: 6px; }
 .adCe__av { width: 1.5rem; height: 1.5rem; border-radius: 50%; margin-left: -6px; border: 2px solid var(--ad-panel); display: grid; place-items: center; color: #fff; font: 700 .56rem var(--font-space-grotesk), system-ui, sans-serif; }
-.adCe__avMore { margin-left: 2px; height: 1.35rem; padding: 0 .45rem; border-radius: 11px; display: inline-flex; align-items: center; font-size: .68rem; font-weight: 700; background: var(--ad-tone-flat); color: var(--ad-on-flat); }
+.adCe__avMore { margin-left: 2px; height: 1.35rem; padding: 0 .45rem; border-radius: 11px; display: inline-flex; align-items: center; font-size: .68rem; font-weight: 600; background: var(--ad-tone-flat); color: var(--ad-on-flat); }
 .adCe__tag { align-self: flex-start; min-height: 1.25rem; font-size: .68rem; }
 .adCe__now { position: absolute; left: 0; right: 0; height: 2px; background: var(--ad-act); z-index: 6; pointer-events: none; display: flex; justify-content: space-between; align-items: center; }
 .adCe__nowPill { position: sticky; left: 6px; background: var(--ad-act); color: #fff; font: 700 .68rem/1 var(--font-space-grotesk), system-ui, sans-serif; padding: 6px 9px; border-radius: 999px; z-index: 6; }

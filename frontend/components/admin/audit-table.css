@@ -9,7 +9,7 @@
 .adAudit__row.is-compact, .adAudit__head:has(+ .is-compact) { grid-template-columns: minmax(7rem, 1fr) 6.5rem minmax(9rem, 2fr) 7.5rem 1.25rem; }
 .adAudit__head {
   border-bottom: 1px solid var(--ad-line); color: var(--ad-dim);
-  font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  font-size: .8rem; font-weight: 500;
 }
 .adAudit__row {
   width: 100%; min-height: 3.5rem; border: 0; border-bottom: 1px solid var(--ad-line); background: none;
@@ -50,7 +50,7 @@
 
 .adAuditD { display: grid; gap: 1rem; min-width: 0; }
 .adAuditD__facts { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); gap: .75rem; }
-.adAuditD__facts dt { color: var(--ad-dim); font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.adAuditD__facts dt { color: var(--ad-dim); font-size: .8rem; font-weight: 500; }
 .adAuditD__facts dd { margin: .25rem 0 0; font-weight: 600; overflow-wrap: anywhere; }
 .adAuditD__facts code { font-size: .78rem; padding: .05rem .35rem; border-radius: 6px; background: var(--ad-panel-2); border: 1px solid var(--ad-line); font-weight: 500; }
 .adAuditD__diff del { color: var(--ad-bad-ink, #b3261e); }

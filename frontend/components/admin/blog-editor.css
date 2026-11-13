@@ -72,7 +72,7 @@
 .adRte__doc ul { padding-left: 1.35rem; list-style: disc outside; }
 .adRte__doc ol { padding-left: 1.5rem; list-style: decimal outside; }
 .adRte__doc li + li, .adRte__doc li > * + * { margin-top: .35rem; }
-.adRte__doc strong { font-weight: 700; }
+.adRte__doc strong { font-weight: 600; }
 .adRte__doc blockquote { padding-left: 1rem; border-left: 3px solid var(--ad-line); font-size: 1.08rem; }
 .adRte__doc a { color: var(--ad-accent); text-decoration: underline; text-underline-offset: .2em; }
 .adRte__doc img { display: block; max-width: 100%; height: auto; border-radius: 12px; }
