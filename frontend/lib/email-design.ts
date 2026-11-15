@@ -1,6 +1,6 @@
 import {
   composeEmailHtml, emailButton, emailColumns, emailDivider, emailFigure, emailHeading, emailImage, emailP,
-  emailPanel, emailSmall, emailSpace, escapeHtml, type Email,
+  emailPanel, emailSmall, emailSpace, escapeHtml, type Email, type Hero,
 } from "@/lib/email-templates";
 
 /**
@@ -325,7 +325,7 @@ export type System = Record<string, { html: string; text: string }>;
 export function renderDesign(
   design: Design,
   vars: Vars,
-  opts: { system?: System; unsubscribe?: boolean; why?: string; manage?: "client" | "staff" } = {},
+  opts: { system?: System; unsubscribe?: boolean; why?: string; manage?: "client" | "staff"; hero?: Hero } = {},
 ): Email {
   const html: string[] = [];
   const text: string[] = [];
@@ -371,7 +371,7 @@ export function renderDesign(
     text: `${heading}\n\n${text.filter(Boolean).join("\n\n")}\n\nThe WDC team`,
     html: composeEmailHtml({
       title: heading || subject, preheader: fillTags(design.preheader, vars), heading,
-      blocks: html, unsubscribe: opts.unsubscribe, why: opts.why, manage: opts.manage,
+      blocks: html, unsubscribe: opts.unsubscribe, why: opts.why, manage: opts.manage, hero: opts.hero,
     }),
     unsubscribe: opts.unsubscribe,
   };

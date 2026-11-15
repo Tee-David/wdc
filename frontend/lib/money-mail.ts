@@ -5,7 +5,7 @@ import {stageLegacyMoneyNotification} from "@/lib/workspace/legacy-notifications
 import { SITE_URL } from "@/lib/site";
 import { escapeHtml, mailIsConfigured, studioInbox } from "@/lib/email";
 import {
-  composeEmailHtml, emailButton, emailDate, emailFigure, emailP, emailPanel, emailSafeUrl, emailSmall,
+  composeEmailHtml, emailButton, emailDate, emailFigure, emailP, emailPanel, emailSafeUrl, emailSmall, type Hero,
   estimateAnswerNoticeEmail, estimateAnsweredEmail, estimateSentEmail, invoiceVoidedEmail,
   paymentNoticeEmail, paymentRefundedEmail, paymentReversedEmail,
 } from "@/lib/email-templates";
@@ -54,7 +54,7 @@ import { mailKey, noticeVerdict } from "@/lib/admin/money-rules";
  */
 
 /** The shared frame from lib/email-templates.ts: one look for every message we send. */
-function shell(title: string, preheader: string, blocks: string[], unsubscribe = false, footer: { why?: string; manage?: "client" | "staff" } = {}) {
+function shell(title: string, preheader: string, blocks: string[], unsubscribe = false, footer: { why?: string; manage?: "client" | "staff"; hero?: Hero } = {}) {
   return composeEmailHtml({ title, preheader, heading: title, blocks, unsubscribe, ...footer });
 }
 
@@ -226,11 +226,11 @@ function planReceipt(input: ReceiptInput, key = mailKey.receipt(input.payment.id
     html: shell("Thank you, payment received", `${money(payment.amount,currencyOf(invoice))} received against ${invoice.number}.`, [
       emailFigure(money(payment.amount,currencyOf(invoice)), { label: "Received", note: line }),
       emailPanel([["Receipt", payment.receiptNo], ["Invoice", invoice.number], ["Received", received], ["Paid by", payment.method], ["Reference", payment.reference]]),
-      emailButton("Open your receipt", url),
+      emailButton("Open your receipt", url, { icon: "download" }),
       emailSmall(`The invoice, with everything billed and paid against it: <a href="${emailSafeUrl(invoiceUrl)}">${escapeHtml(invoice.number)}</a>.`),
     ], false, (payment.method === "Paystack" || payment.method === "Flutterwave")
-      ? { why: "You get a receipt for every payment you make online. Receipts always arrive." }
-      : { why: "You get this because the studio sent you a receipt for a payment.", manage: "client" }),
+      ? { why: "You get a receipt for every payment you make online. Receipts always arrive.", hero: { icon: "receipt", label: "Receipt", title: `Receipt ${payment.receiptNo}`, sub: `Invoice ${invoice.number}` } }
+      : { why: "You get this because the studio sent you a receipt for a payment.", manage: "client", hero: { icon: "receipt", label: "Receipt", title: `Receipt ${payment.receiptNo}`, sub: `Invoice ${invoice.number}` } }),
   };
 }
 
@@ -354,9 +354,9 @@ function planInvoice(input: { invoice: Invoice; by?: string; retry?: boolean }):
     html: shell(`Invoice ${invoice.number}`, `${money(totals.due,currencyOf(invoice))} due ${due}.`, [
       emailFigure(money(totals.due,currencyOf(invoice)), { label: part ? "Balance due" : "Amount due", note: part ? `${money(invoice.paid,currencyOf(invoice))} already received. Due ${due}` : `Due ${due}` }),
       emailP("The invoice shows everything billed and anything already paid against it. Pay by card or transfer on the same page."),
-      emailButton("Open and pay the invoice", url),
+      emailButton("Open and pay the invoice", url, { icon: "credit-card", pay: true }),
       emailSmall(`Anything that goes wrong, reply to this email quoting ${escapeHtml(invoice.number)} and we will sort it out.`),
-    ], false, { why: "You get this because the studio issued you an invoice.", manage: "client" }),
+    ], false, { why: "You get this because the studio issued you an invoice.", manage: "client", hero: { icon: "file-text", label: "Invoice", title: `Invoice ${invoice.number}`, sub: `Due ${due}` } }),
   };
 }
 
@@ -411,9 +411,9 @@ function planReminder(input: { invoice: Invoice; today?: Date; by?: string; retr
     ].join("\n"),
     html: shell(input.final ? "A final notice about your invoice" : "A reminder about your invoice", `${money(totals.due,currencyOf(invoice))} outstanding on ${invoice.number}.`, [
       emailFigure(money(totals.due,currencyOf(invoice)), { label: "Still to pay", note: `${invoice.number} · due ${due}` }),
-      emailButton("Open and pay the invoice", url),
+      emailButton("Open and pay the invoice", url, { icon: "credit-card", pay: true }),
       emailSmall("Already paid, or something needs sorting out? Reply to this email and we will take a look."),
-    ], true, { why: "You get reminders while an invoice is unpaid.", manage: "client" }),
+    ], true, { why: "You get reminders while an invoice is unpaid.", manage: "client", hero: { icon: "bell", label: "Reminder", title: `Invoice ${invoice.number}`, sub: `Due ${due}` } }),
   };
 }
 

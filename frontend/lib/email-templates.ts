@@ -1,8 +1,11 @@
 import {money} from "@/lib/money/currency";
 import { naira } from "@/lib/admin/types";
 import { qrSvg } from "@/lib/qr";
+import { STAGES } from "@/lib/admin/types";
+import { stageNames } from "@/lib/admin/service-stages";
 import {
-  COMPANY_NAME, CONTACT_EMAIL, LOCATION, REGISTERED_NAME, REGISTRAR, REGISTRATION_NO, SITE_URL,
+  COMPANY_NAME, CONTACT_EMAIL, MOTTO, PHONE_DISPLAY, PHONE_TEL, REGISTERED_NAME, REGISTRAR, REGISTRATION_NO,
+  SITE_URL, STUDIO_ADDRESS, WHATSAPP_URL,
 } from "@/lib/site";
 
 /**
@@ -37,10 +40,16 @@ import {
  * plain reply -- and it is the version a watch, a screen reader and a
  * text-only client actually get.
  *
- * WHY THE BUTTON IS A DEEPER ORANGE THAN THE LOGO. The label is white, and
- * white on #ff6500 measures 2.95:1, which fails AA. #c95000 is the site's own
- * `--accent-ink`, the orange it already uses wherever orange has to be read,
- * and white on it is 4.53:1. Pinned by tests/email-templates.spec.ts.
+ * THE DESIGN (owner-approved, 2026-11-15, the Email Studio artifact): a navy
+ * header with the orange rule, a navy hero with an icon tile that names the
+ * email, the faded WDC mark at its top right and, where a stage applies, the
+ * stage tracker; then a white card with a warm heading, the facts, one button
+ * with an icon in front of its label, and a slim labelled footer.
+ *
+ * BUTTONS ARE BLACK AND WHITE, as on the site: a black fill with a white label
+ * on the light card, a white fill with a black label in a dark client. Bright
+ * orange #ff6500 never carries words; the one exception is the pay button,
+ * white on #b84a00 (5.0:1). Pinned by tests/email-templates.spec.ts.
  *
  * NO `server-only` HERE ON PURPOSE. This module builds strings: it holds no
  * credential, opens no connection and reads no environment beyond the public
@@ -51,25 +60,52 @@ import {
 /* ------------------------------------------------------------------ tokens */
 
 const NAVY = "#000065";
-/** The button's fill: see the note at the top of this file. */
-const ACCENT_INK = "#c95000";
+/** The accent: the rule under the header and the lit stage. Never under words. */
+const ORANGE = "#ff6500";
+/** The one orange that carries words: the pay button (white on it is 5.0:1). */
+const PAY = "#b84a00";
+const BTN = "#0a0a0a";
 const INK = "#0e0e2c";
-const MUTED = "#666680";
-const HAIRLINE = "#e7e7ef";
-const PAGE = "#f4f4f8";
+const MUTED = "#5c5c78";
+const HAIRLINE = "#e3e3ec";
+const PAGE = "#ececf2";
+const SOFT = "#f6f6fa";
 const CARD = "#ffffff";
+/** The hero's second line and the done stages' labels, on navy. */
+const HERO_SUB = "#c9c9ec";
 
-/* The brand faces are named first for the handful of clients that have them
-   installed locally, then the stack every other client will actually use. A
-   webfont is not an option: Gmail strips `@font-face` outright. */
-const DISPLAY = "'Space Grotesk','Segoe UI',Helvetica,Arial,sans-serif";
-const BODY = "'Outfit','Segoe UI',Helvetica,Arial,sans-serif";
+/* Space Grotesk where a client has it, then the stack every other client will
+   actually use. A webfont is not an option: Gmail strips `@font-face`. */
+const DISPLAY = "'Space Grotesk',Arial,Helvetica,sans-serif";
+const BODY = DISPLAY;
 
-/** Where the pictures live: built by scripts/build-email-assets.mjs. */
+/** Where the pictures live: built by scripts/email-icons/ and scripts/build-email-assets.mjs. */
 const ASSETS = `${SITE_URL}/email`;
 
 /** The content column. 600px is the width every client renders without help. */
 const WIDTH = 600;
+
+/** The icon tile in the hero: an animated GIF per name (scripts/email-icons/tiles.mjs). */
+export type TileIcon =
+  | "alert" | "arrow-right" | "bell" | "calendar" | "check" | "check-circle" | "clipboard" | "credit-card" | "download"
+  | "eye" | "file-text" | "flask" | "gauge" | "globe" | "inbox" | "key" | "layers" | "list" | "lock" | "log-in"
+  | "mail-check" | "message" | "phone" | "receipt" | "reply" | "send" | "shield" | "undo" | "user-plus" | "users"
+  | "wrench" | "x-circle";
+/** The icon in front of a button label: a white and a black PNG per name (scripts/email-icons/pngs.mjs). */
+export type ButtonIcon = TileIcon;
+
+/**
+ * The navy band under the header: the tile names the email, `title` and `sub`
+ * say what it is about, and `track` draws the stage tracker where one applies.
+ */
+export type Hero = {
+  icon: TileIcon;
+  /** Top right of the header: what kind of email this is ("Invoice", "Support"). */
+  label?: string;
+  title?: string;
+  sub?: string;
+  track?: { stages: string[]; now: number };
+};
 
 export type EmailAttachment = {
   filename: string;
@@ -151,70 +187,112 @@ function emailDateTime(value: Date) {
 
 /** A paragraph. Its argument is already-escaped markup, not raw user text. */
 function p(html: string) {
-  return `<p class="wdc-ink" style="margin:0 0 16px;font-family:${BODY};font-size:16px;line-height:1.65;color:${INK}">${html}</p>`;
+  return `<p class="wdc-ink" style="margin:0 0 16px;font-family:${BODY};font-size:16px;line-height:1.6;color:${INK}">${html}</p>`;
 }
 
 function small(html: string) {
-  return `<p class="wdc-muted" style="margin:0 0 16px;font-family:${BODY};font-size:13px;line-height:1.6;color:${MUTED}">${html}</p>`;
+  return `<p class="wdc-muted" style="margin:0 0 24px;font-family:${BODY};font-size:14px;line-height:1.6;color:${MUTED}">${html}</p>`;
+}
+
+/** A short subheading inside the card. Already-escaped markup. */
+function subhead(html: string) {
+  return `<h2 class="wdc-ink" style="margin:8px 0 8px;font-family:${DISPLAY};font-size:19px;line-height:1.3;font-weight:700;color:${INK}">${html}</h2>`;
 }
 
 /**
  * THE ONE NUMBER THAT MATTERS, set apart: the amount due, the amount
- * received, the new stage. The sign-in code's panel, carried into every email
- * that has a figure. `label` sits above it, `note` below.
+ * received. `label` sits above it, `note` below.
  */
 function figure(value: string, opts: { label?: string; note?: string } = {}) {
   return (
-    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="wdc-fig" ` +
-    `style="margin:0 0 20px;background:${PAGE};border:1px solid ${HAIRLINE};border-radius:12px"><tr><td align="center" style="padding:18px 20px">` +
-    (opts.label ? `<p class="wdc-muted" style="margin:0 0 6px;font-family:${BODY};font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:${MUTED}">${escapeHtml(opts.label)}</p>` : "") +
-    `<p class="wdc-figv" style="margin:0;font-family:${DISPLAY};font-size:32px;line-height:1.2;font-weight:700;letter-spacing:.01em;color:${NAVY}">${escapeHtml(value)}</p>` +
-    (opts.note ? `<p class="wdc-muted" style="margin:6px 0 0;font-family:${BODY};font-size:13px;line-height:1.5;color:${MUTED}">${escapeHtml(opts.note)}</p>` : "") +
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="wdc-soft" ` +
+    `style="margin:0 0 24px;background:${SOFT};border:1px solid ${HAIRLINE};border-radius:12px"><tr><td style="padding:18px 24px">` +
+    (opts.label ? `<p class="wdc-muted" style="margin:0 0 4px;font-family:${BODY};font-size:14px;line-height:1.4;color:${MUTED}">${escapeHtml(opts.label)}</p>` : "") +
+    `<p class="wdc-ink" style="margin:0;font-family:${DISPLAY};font-size:30px;line-height:1.2;font-weight:700;color:${INK};font-variant-numeric:tabular-nums">${escapeHtml(value)}</p>` +
+    (opts.note ? `<p class="wdc-muted" style="margin:6px 0 0;font-family:${BODY};font-size:14px;line-height:1.5;color:${MUTED}">${escapeHtml(opts.note)}</p>` : "") +
     `</td></tr></table>`
   );
 }
 
 /**
- * The call to action: full width, orange, white label, the site's arrow.
+ * The call to action: one button, an icon in front of its label.
  *
  * A table with a background on the cell rather than a styled anchor, because
- * Outlook ignores padding on an inline element and would render the button as
- * underlined text on a coloured word. The anchor is a block that fills the
- * cell, so the whole bar is the target, and it clears 44px.
+ * Outlook ignores padding on an inline element. The anchor is a block that
+ * fills the cell, so the whole button is the target and it clears 44px. On a
+ * phone it is full width.
  *
- * THE ARROW IS A PICTURE. Gmail strips inline SVG, so it is lucide's
- * arrow-right rendered by scripts/build-email-assets.mjs. With images off it
+ * BLACK ON THE LIGHT CARD, WHITE IN A DARK CLIENT, so it carries two icons and
+ * the dark-mode rules show the black one. `pay` is the one orange button: the
+ * invoice's pay link, white on #b84a00 in both modes.
+ *
+ * THE ICON IS A PICTURE because Gmail strips inline SVG. With images off it
  * has no alt and simply is not there; the label still says everything.
  */
-function action(label: string, href: string) {
+/** Gmail apps force-invert colours in dark mode but leave background images alone, so a same-colour gradient keeps a band its colour. */
+const bandBg = (c: string) => `background:${c};background-image:linear-gradient(${c},${c})`;
+/** Light text on a fixed band, wrapped so Gmail's inversion is undone (the classes only match inside Gmail, via u + .body). */
+const keep = (html: string) => html; // Gmail keeps light text light once the band behind it holds its colour; a blend wrapper only drew stray lines.
+
+function action(label: string, href: string, opts: { icon?: ButtonIcon; pay?: boolean } = {}) {
+  const icon = opts.icon ?? "arrow-right";
+  const img = (tone: "white" | "black", cls: string, shown: boolean) =>
+    `<img class="${cls}" src="${ASSETS}/btn-${icon}-${tone}.png" width="18" height="18" alt="" style="display:${shown ? "inline-block" : "none"};width:18px;height:18px;border:0;vertical-align:middle;margin-right:8px">`;
+  const fill = opts.pay ? PAY : BTN;
   return (
-    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:8px 0 24px">` +
-    `<tr><td bgcolor="${ACCENT_INK}" align="center" style="background:${ACCENT_INK};border-radius:12px">` +
-    `<a href="${safeUrl(href)}" style="display:block;padding:16px 24px;font-family:${BODY};font-size:17px;line-height:22px;` +
-    `font-weight:700;color:#ffffff;text-decoration:none;text-align:center;border-radius:12px">${escapeHtml(label)}` +
-    `&nbsp;&nbsp;<img src="${ASSETS}/arrow-right-white.png" width="18" height="18" alt="" style="display:inline-block;width:18px;height:18px;border:0;vertical-align:-3px"></a>` +
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" class="wdc-btn-t" style="margin:8px 0 24px">` +
+    `<tr><td bgcolor="${fill}" class="${opts.pay ? "" : "wdc-btn"}" style="${bandBg(fill)};border-radius:10px">` +
+    `<a class="${opts.pay ? "" : "wdc-btn-a"}" href="${safeUrl(href)}" style="display:block;padding:14px 24px;font-family:${BODY};font-size:16px;line-height:20px;` +
+    `font-weight:600;color:#ffffff;text-decoration:none;border-radius:10px">` +
+    (opts.pay ? img("white", "", true) : img("white", "wdc-ico-l", true) + img("black", "wdc-ico-d", false)) +
+    `<span style="vertical-align:middle">${keep(escapeHtml(label))}</span></a>` +
     `</td></tr></table>`
   );
 }
 
-/** A label/value panel: the facts of the message, set apart from the prose. */
-function panel(rows: [string, string][]) {
-  const cells = rows.map(([label, value], index) => {
-    const top = index ? "10px" : "0";
-    return (
-      `<tr>` +
-      `<td class="wdc-muted" style="padding:${top} 0 0;font-family:${BODY};font-size:13px;color:${MUTED};width:42%;vertical-align:top">${escapeHtml(label)}</td>` +
-      `<td class="wdc-ink" style="padding:${top} 0 0;font-family:${BODY};font-size:15px;color:${INK};font-weight:600;vertical-align:top">${escapeHtml(value)}</td>` +
-      `</tr>`
-    );
-  }).join("");
+/** The facts of the message: label and value rows between hairlines. A value is text, or `{ html }` for a chip. */
+function panel(rows: [string, string | { html: string }][]) {
+  const cells = rows.map(([label, value]) =>
+    `<tr>` +
+    `<td class="wdc-line wdc-muted" width="140" valign="top" style="padding:12px 16px 12px 0;border-bottom:1px solid ${HAIRLINE};font-family:${BODY};font-size:14px;line-height:1.5;color:${MUTED}">${escapeHtml(label)}</td>` +
+    `<td class="wdc-line wdc-ink" valign="top" style="padding:12px 0;border-bottom:1px solid ${HAIRLINE};font-family:${BODY};font-size:15px;line-height:1.5;font-weight:500;color:${INK};font-variant-numeric:tabular-nums">${typeof value === "string" ? escapeHtml(value) : value.html}</td>` +
+    `</tr>`).join("");
   return (
-    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="wdc-fig" ` +
-    `style="margin:0 0 20px;background:${PAGE};border:1px solid ${HAIRLINE};border-radius:12px">` +
-    `<tr><td style="padding:18px 20px">` +
-    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${cells}</table>` +
-    `</td></tr></table>`
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="wdc-line" ` +
+    `style="margin:0 0 24px;border-top:1px solid ${HAIRLINE}">${cells}</table>`
   );
+}
+
+/**
+ * A message somebody sent, quoted in its own panel with who wrote it and
+ * when, so it reads as a person and not a system. Arguments are raw text.
+ */
+function quote(who: string, when: string, text: string) {
+  const initial = escapeHtml((who.trim()[0] || "?").toUpperCase());
+  const body = text.trim().split(/\n{2,}/).map((part) => p(escapeHtml(part).replace(/\n/g, "<br>"))).join("");
+  return (
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="wdc-soft" style="margin:0 0 24px;background:${SOFT};border:1px solid ${HAIRLINE};border-radius:12px"><tr><td style="padding:20px 24px 4px">` +
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 12px"><tr><td valign="top" width="32">` +
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td bgcolor="${NAVY}" width="32" height="32" align="center" valign="middle" style="width:32px;height:32px;background:${NAVY};border-radius:8px;font-family:${DISPLAY};font-size:14px;font-weight:700;color:#ffffff;line-height:32px">${initial}</td></tr></table></td>` +
+    `<td valign="top" style="padding-left:12px"><p class="wdc-ink" style="margin:0;font-family:${BODY};font-size:15px;line-height:1.3;font-weight:600;color:${INK}">${escapeHtml(who)}</p>` +
+    `<p class="wdc-muted" style="margin:0;font-family:${BODY};font-size:13px;line-height:1.4;color:${MUTED}">${escapeHtml(when)}</p></td></tr></table>` +
+    `${body}</td></tr></table>`
+  );
+}
+
+/** A one-time code, set large and spaced so a reader copying it keeps their place. */
+function code(value: string) {
+  return (
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px"><tr>` +
+    `<td class="wdc-code" align="center" style="padding:20px 16px;background:${SOFT};border:1px solid ${HAIRLINE};border-radius:12px;font-family:${DISPLAY};font-size:36px;line-height:1.1;font-weight:700;letter-spacing:6px;color:${INK};font-variant-numeric:tabular-nums">${escapeHtml(value)}</td>` +
+    `</tr></table>`
+  );
+}
+
+/** A status chip for a facts value. Solid fills only; colour means status. */
+function chip(label: string, kind: "done" | "now" | "next" | "bad") {
+  const [bg, fg, cls] = { done: ["#15803d", "#ffffff", ""], now: [NAVY, "#ffffff", ""], next: ["#e8e8f0", INK, "wdc-chip-next"], bad: ["#c62828", "#ffffff", ""] }[kind];
+  return `<span class="${cls}" style="display:inline-block;padding:2px 8px;border-radius:6px;background:${bg};color:${fg};font-family:${BODY};font-size:12px;line-height:18px;font-weight:600;vertical-align:1px">${escapeHtml(label)}</span>`;
 }
 
 export type MoneyLine = { description: string; qty: number; unit: number };
@@ -230,28 +308,28 @@ export type MoneyTotals = { subtotal: number; vat: number; vatRate: number; tota
  * answer over; this only renders it.
  */
 function moneyTable(lines: MoneyLine[], totals: MoneyTotals) {
-  const th = `padding:0 0 8px;font-family:${BODY};font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:${MUTED};font-weight:600;border-bottom:1px solid ${HAIRLINE}`;
+  const th = `padding:0 0 8px;font-family:${BODY};font-size:13px;color:${MUTED};font-weight:500;border-bottom:1px solid ${HAIRLINE}`;
   const head =
     `<tr>` +
-    `<th align="left" style="${th}">Item</th>` +
-    `<th align="right" style="${th}">Qty</th>` +
-    `<th align="right" style="${th}">Amount</th>` +
+    `<th align="left" class="wdc-muted wdc-line" style="${th}">Item</th>` +
+    `<th align="right" class="wdc-muted wdc-line" style="${th}">Qty</th>` +
+    `<th align="right" class="wdc-muted wdc-line" style="${th}">Amount</th>` +
     `</tr>`;
   const body = lines.map((line) =>
     `<tr>` +
-    `<td align="left" style="padding:12px 0;font-family:${BODY};font-size:15px;color:${INK};border-bottom:1px solid ${HAIRLINE}">${escapeHtml(line.description)}</td>` +
-    `<td align="right" style="padding:12px 0 12px 12px;font-family:${BODY};font-size:15px;color:${MUTED};border-bottom:1px solid ${HAIRLINE}">${line.qty}</td>` +
-    `<td align="right" style="padding:12px 0 12px 12px;font-family:${BODY};font-size:15px;color:${INK};white-space:nowrap;border-bottom:1px solid ${HAIRLINE}">${escapeHtml(naira(line.qty * line.unit))}</td>` +
+    `<td align="left" class="wdc-ink wdc-line" style="padding:12px 0;font-family:${BODY};font-size:15px;color:${INK};border-bottom:1px solid ${HAIRLINE}">${escapeHtml(line.description)}</td>` +
+    `<td align="right" class="wdc-muted wdc-line" style="padding:12px 0 12px 12px;font-family:${BODY};font-size:15px;color:${MUTED};border-bottom:1px solid ${HAIRLINE};font-variant-numeric:tabular-nums">${line.qty}</td>` +
+    `<td align="right" class="wdc-ink wdc-line" style="padding:12px 0 12px 12px;font-family:${BODY};font-size:15px;color:${INK};white-space:nowrap;border-bottom:1px solid ${HAIRLINE};font-variant-numeric:tabular-nums">${escapeHtml(naira(line.qty * line.unit))}</td>` +
     `</tr>`).join("");
   const subtotals: [string, string][] = [["Subtotal", naira(totals.subtotal)]];
   if (totals.vatRate) subtotals.push([`VAT (${totals.vatRate}%)`, naira(totals.vat)]);
   const foot = subtotals.map(([label, value]) =>
-    `<tr><td colspan="2" align="right" style="padding:10px 0 0;font-family:${BODY};font-size:14px;color:${MUTED}">${escapeHtml(label)}</td>` +
-    `<td align="right" style="padding:10px 0 0 12px;font-family:${BODY};font-size:14px;color:${INK};white-space:nowrap">${escapeHtml(value)}</td></tr>`).join("");
+    `<tr><td colspan="2" align="right" class="wdc-muted" style="padding:10px 0 0;font-family:${BODY};font-size:14px;color:${MUTED}">${escapeHtml(label)}</td>` +
+    `<td align="right" class="wdc-ink" style="padding:10px 0 0 12px;font-family:${BODY};font-size:14px;color:${INK};white-space:nowrap;font-variant-numeric:tabular-nums">${escapeHtml(value)}</td></tr>`).join("");
   const grand =
-    `<tr><td colspan="2" align="right" style="padding:12px 0 0;font-family:${DISPLAY};font-size:16px;font-weight:700;color:${INK}">Total</td>` +
-    `<td align="right" style="padding:12px 0 0 12px;font-family:${DISPLAY};font-size:18px;font-weight:700;color:${NAVY};white-space:nowrap">${escapeHtml(naira(totals.total))}</td></tr>`;
-  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 22px">${head}${body}${foot}${grand}</table>`;
+    `<tr><td colspan="2" align="right" class="wdc-ink" style="padding:12px 0 0;font-family:${DISPLAY};font-size:16px;font-weight:700;color:${INK}">Total</td>` +
+    `<td align="right" class="wdc-ink" style="padding:12px 0 0 12px;font-family:${DISPLAY};font-size:18px;font-weight:700;color:${INK};white-space:nowrap;font-variant-numeric:tabular-nums">${escapeHtml(naira(totals.total))}</td></tr>`;
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px">${head}${body}${foot}${grand}</table>`;
 }
 
 /** The same lines, for the text part. */
@@ -293,11 +371,11 @@ async function documentQr(requested: string) {
   const svg = await qrSvg(url, { dark: NAVY, light: CARD, margin: 2, level: "M" });
   const html =
     `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 18px">` +
-    `<tr><td style="padding:12px;background:${CARD};border:1px solid ${HAIRLINE};border-radius:12px">` +
+    `<tr><td class="wdc-line" style="padding:12px;background:${CARD};border:1px solid ${HAIRLINE};border-radius:12px">` +
     `<img src="cid:${QR_CID}" width="132" height="132" alt="QR code linking to this document" style="display:block;width:132px;height:132px">` +
     `</td>` +
     `<td style="padding-left:16px;vertical-align:middle">` +
-    `<p style="margin:0;font-family:${BODY};font-size:13px;line-height:1.6;color:${MUTED}">Scan to open this document on your phone.</p>` +
+    `<p class="wdc-muted" style="margin:0;font-family:${BODY};font-size:13px;line-height:1.6;color:${MUTED}">Scan to open this document on your phone.</p>` +
     `</td></tr></table>`;
   const attachment: EmailAttachment = {
     filename: "document-qr.svg",
@@ -353,11 +431,97 @@ export function withSocials(html: string, links: { network: string; label: strin
   if (!links.length) return html.replace(SOCIAL_SLOT, "");
   const cells = links.map(
     (link, index) =>
-      `<td style="padding:0 ${index === links.length - 1 ? 0 : 20}px 0 0">` +
+      `<td style="padding:0 ${index === links.length - 1 ? 0 : 14}px 0 0">` +
       `<a href="${safeUrl(link.url)}" style="text-decoration:none"><img src="${ASSETS}/social-${link.network}.png" width="22" height="22" alt="${escapeHtml(link.label)}" style="display:block;width:22px;height:22px;border:0"></a></td>`,
   ).join("");
-  return html.replace(SOCIAL_SLOT, `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 20px"><tr>${cells}</tr></table>`);
+  return html.replace(SOCIAL_SLOT, footGroup("Follow us", `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>${cells}</tr></table>`, 0));
 }
+
+/** One labelled group in the footer's contact area: a small label, then the value. */
+function footGroup(label: string, html: string, mb = 16) {
+  return (
+    `<p class="wdc-muted" style="margin:0 0 2px;font-family:${BODY};font-size:12px;line-height:1.5;color:${MUTED}">${escapeHtml(label)}</p>` +
+    `<div class="wdc-ink" style="margin:0 0 ${mb}px;font-family:${BODY};font-size:14px;line-height:1.5;font-weight:500;color:${INK}">${html}</div>`
+  );
+}
+
+/**
+ * The stage a project is at, out of the stages its service uses. The stored
+ * stage is one of the six shared STAGES; each service names them its own way
+ * (lib/admin/service-stages.ts), and an email only gets the names. So the list
+ * is the first one that holds both names, and no tracker is drawn when none does.
+ */
+export function stageTrack(from: string, to: string): Hero["track"] {
+  const lists = [...["web", "branding", "social", "apps", "software", "seo", "ads"].map(stageNames), [...STAGES]];
+  const both = lists.find((list) => list.includes(to) && list.includes(from)) ?? lists.find((list) => list.includes(to));
+  return both ? { stages: both, now: both.indexOf(to) } : undefined;
+}
+
+/** The stage tracker in the hero. On a phone the labels give way to one line. */
+function tracker(track: NonNullable<Hero["track"]>) {
+  const { stages, now } = track;
+  const n = stages.length, w = (100 / n).toFixed(2);
+  const bar = stages.map((_, i) =>
+    `<td width="${w}%" valign="top" style="padding:0 ${i < n - 1 ? 4 : 0}px 0 0"><div style="height:6px;line-height:6px;font-size:0;${bandBg(i < now ? "#ffffff" : i === now ? ORANGE : "#2c2c94")};border-radius:3px">&nbsp;</div></td>`).join("");
+  const labels = stages.map((s, i) =>
+    `<td width="${w}%" valign="top" style="padding:10px ${i < n - 1 ? 4 : 0}px 0 0;font-family:${BODY};font-size:12px;line-height:1.35;font-weight:${i === now ? 700 : 400};color:${i < now ? HERO_SUB : i === now ? "#ffffff" : "#9a9ad2"}">${keep(escapeHtml(s))}</td>`).join("");
+  const done = stages.slice(0, now);
+  const line = `${done.length ? `Done: ${done.join(", ")}. ` : ""}${now < n - 1 ? `Next: ${stages[now + 1]}.` : "That is the last stage."}`;
+  return (
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:20px"><tr>${bar}</tr></table>` +
+    `<div class="wdc-hide-sm"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>${labels}</tr></table></div>` +
+    `<!--[if !mso]><!--><div class="wdc-show-sm" style="display:none"><p style="margin:12px 0 0;font-family:${BODY};font-size:13px;line-height:1.5;color:${HERO_SUB}">${keep(escapeHtml(line))}</p></div><!--<![endif]-->`
+  );
+}
+
+/** The navy band under the header: the icon tile, the faded mark, the title and the tracker. */
+function heroBand(hero: Hero) {
+  return `<tr><td bgcolor="${NAVY}" class="wdc-pad" style="padding:0 0 0 40px;${bandBg(NAVY)}"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+<td valign="top" style="padding:28px 0 ${hero.title ? 0 : 28}px"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td bgcolor="#ffffff" width="52" height="52" align="center" valign="middle" style="width:52px;height:52px;${bandBg("#ffffff")};border-radius:14px;line-height:0"><img src="${ASSETS}/tile-${hero.icon}.gif" width="32" height="32" alt="" style="display:block;width:32px;height:32px;border:0"></td></tr></table></td>
+<td class="wdc-hero-mark" align="right" valign="top" width="150" style="line-height:0;font-size:0"><img src="${ASSETS}/hero-mark.png" width="150" height="96" alt="" style="display:block;width:150px;height:96px;border:0"></td></tr></table></td></tr>
+${hero.title ? `<tr><td bgcolor="${NAVY}" class="wdc-pad" style="padding:12px 40px 32px;${bandBg(NAVY)}">
+<p style="margin:0;font-family:${DISPLAY};font-size:21px;line-height:1.3;font-weight:700;color:#ffffff">${keep(escapeHtml(hero.title))}</p>
+${hero.sub ? `<p style="margin:4px 0 0;font-family:${BODY};font-size:14px;line-height:1.5;color:${HERO_SUB}">${keep(escapeHtml(hero.sub))}</p>` : ""}
+${hero.track ? tracker(hero.track) : ""}
+</td></tr>` : ""}`;
+}
+
+/* The email's own dark steps and phone layout. Every value is set inline too;
+   these rules only override it, so a client that drops the block loses the
+   dark design and the narrow layout and nothing else. */
+const DARK: Record<string, string> = {
+  ".wdc-page": "background:#05051e", ".wdc-card": "background:#0c0c34;border-color:#22225a",
+  ".wdc-ink": "color:#f2f2fa", ".wdc-muted": "color:#b0b0cc", ".wdc-line": "border-color:#26265e",
+  ".wdc-soft": "background:#121246;border-color:#26265e", ".wdc-btn": "background:#ffffff", ".wdc-btn-a": "color:#0a0a0a",
+  ".wdc-chip-next": "background:#26265e;color:#f2f2fa", ".wdc-code": "background:#121246;color:#ffffff;border-color:#26265e",
+  ".wdc-ico-l": "display:none", ".wdc-ico-d": "display:inline-block",
+};
+const PHONE: Record<string, string> = {
+  ".wdc-outer": "padding:8px 0", ".wdc-wrap": "width:100%", ".wdc-pad": "padding-left:24px;padding-right:24px",
+  ".wdc-h1": "font-size:26px", ".wdc-col": "display:block;width:100%;padding:0 0 4px 0",
+  ".wdc-hide-sm": "display:none", ".wdc-show-sm": "display:block", ".wdc-hero-mark": "display:none",
+  ".wdc-btn-t": "width:100%", ".wdc-btn-a": "display:block;text-align:center", ".wdc-code": "font-size:30px;letter-spacing:4px",
+};
+const important = (map: Record<string, string>) =>
+  Object.entries(map).map(([sel, decl]) => `${sel}{${decl.split(";").map((d) => `${d} !important`).join(";")}}`).join("\n    ");
+const EMAIL_CSS = `
+  .wdc-show-sm{display:none}
+  .wdc-ico-d{display:none}
+  /* A 600px table becomes a full-width one on a phone; no inline style can express a breakpoint. */
+  @media only screen and (max-width:620px){
+    ${important(PHONE)}
+  }
+  /* DARK MODE, for the clients that ask (Apple Mail, iOS Mail, Outlook for Mac and iOS): the
+     design's own dark steps, not an inversion. The navy bands stay navy. */
+  @media (prefers-color-scheme: dark){
+    ${important(DARK)}
+  }
+  /* Outlook.com and the Outlook apps mark their dark mode with these attributes. */
+  ${Object.entries(DARK).filter(([, d]) => /^color:/.test(d) && !d.includes(";")).map(([s, d]) => `[data-ogsc] ${s}{${d} !important}`).join("\n  ")}
+  ${Object.entries(DARK).filter(([, d]) => /^background/.test(d)).map(([s, d]) => `[data-ogsb] ${s}{${d.split(";")[0]} !important}`).join("\n  ")}
+  [data-ogsc] .wdc-btn-a{color:#0a0a0a !important}
+  [data-ogsc] .wdc-ico-l{display:none !important}
+  [data-ogsc] .wdc-ico-d{display:inline-block !important}`;
 
 /**
  * The frame every message in this file shares.
@@ -368,37 +532,37 @@ export function withSocials(html: string, links: { network: string; label: strin
  * zero-width spaces after it is the standard trick that stops Gmail appending
  * the body text to it.
  *
- * LIGHT BY DEFAULT, WITH ITS OWN DARK STEPS for the clients that ask (the
- * `prefers-color-scheme` block below), and safe when one darkens it without
- * asking: the Gmail and Outlook apps darken light mail whatever it says. So nothing here depends on the card staying white: the
- * header logo is white on a navy cell, which those apps leave dark; the
- * social marks are mid-grey, which reads on white and on near-black alike;
- * and every colour of type is left for the client to invert.
+ * LIGHT BY DEFAULT, WITH ITS OWN DARK STEPS for the clients that ask, and safe
+ * when one darkens it without asking (the Gmail apps): the header, hero and
+ * their marks sit on solid navy, which those apps leave dark, and the social
+ * marks are mid-grey, which reads on white and near-black alike.
  *
- * THE FOOTER'S NAVY LOGO IS THE ONE WEAK SPOT. Navy on a darkened card is
- * hard to see. Outlook marks its dark mode with `[data-ogsc]`, so there the
- * white lockup is swapped in; the Gmail apps darken without saying so, and
- * nothing in an email can respond to that.
+ * `hero` names the email in the navy band. Mail composed elsewhere (the money
+ * mail, form notices, designed campaigns) may leave it out and gets the tile
+ * alone.
  */
 function shell(input: {
   title: string;
   preheader: string;
   heading: string;
   blocks: string[];
+  hero?: Hero;
   unsubscribe?: boolean;
   /** One sentence on why this arrived, and where to switch it off (the design's footer rule). */
   why?: string;
   manage?: "client" | "staff";
 }) {
   const year = new Date().getFullYear();
+  const hero: Hero = input.hero ?? { icon: "message" };
   const manageUrl = input.manage === "client" ? `${SITE_URL}/portal/settings` : input.manage === "staff" ? `${SITE_URL}/admin/settings/notifications` : "";
-  const why = input.why
-    ? `<p class="wdc-muted" style="margin:0 0 16px;font-family:${BODY};font-size:13px;line-height:1.6;color:${MUTED}">${escapeHtml(input.why)}` +
-      (manageUrl ? ` <a class="wdc-link" href="${manageUrl}" style="color:${ACCENT_INK};text-decoration:underline">Manage what we email you</a>.` : "") + `</p>`
-    : "";
-  const unsubscribe = input.unsubscribe
-    ? ` <a href="${UNSUBSCRIBE_MAILTO}" style="color:${MUTED};text-decoration:underline">Unsubscribe</a>.`
-    : "";
+  const link = (href: string, text: string, underline = false) =>
+    `<a class="wdc-ink" href="${href}" style="color:${INK};text-decoration:${underline ? "underline" : "none"}">${text}</a>`;
+  const why = [
+    input.why ? escapeHtml(input.why) : "",
+    `Sent to ${RECIPIENT_SLOT}.`,
+    manageUrl ? link(manageUrl, "Manage what we email you", true) + "." : "",
+    input.unsubscribe ? `<a class="wdc-ink" href="${UNSUBSCRIBE_MAILTO}" style="color:${INK};text-decoration:underline">Unsubscribe</a>.` : "",
+  ].filter(Boolean).join(" ");
 
   return `<!doctype html>
 <html lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
@@ -412,62 +576,44 @@ function shell(input: {
 <title>${escapeHtml(input.title)}</title>
 <!--[if mso]><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml><![endif]-->
 <style>
-  /* The one rule that needs a stylesheet: a 600px table has to become a
-     full-width one on a phone, and no inline style can express a breakpoint.
-     Everything else is inline, so a client that drops this block loses
-     nothing but the narrow layout. */
-  @media only screen and (max-width:620px){
-    .wdc-wrap{width:100% !important}
-    .wdc-pad{padding-left:22px !important;padding-right:22px !important}
-    .wdc-col{display:block !important;width:100% !important;padding:0 0 12px 0 !important}
-  }
-  /* DARK MODE, for the clients that ask (Apple Mail, iOS Mail): the email
-     design's own dark steps, not an automatic inversion. The navy header
-     stays navy; the card, the type, the figure panels and the footer logo
-     swap. Clients that darken without asking (Gmail's apps) ignore this and
-     nothing important depends on them. */
-  @media (prefers-color-scheme: dark){
-    .wdc-page{background:#0a0a1a !important}
-    .wdc-card{background:#15152b !important;border-color:#2c2c48 !important}
-    .wdc-ink{color:#f1f1f7 !important}
-    .wdc-muted{color:#a9a9c2 !important}
-    .wdc-fig{background:#0d0d22 !important;border-color:#2c2c48 !important}
-    .wdc-figv{color:#ffffff !important}
-    .wdc-hair{border-color:#2c2c48 !important}
-    .wdc-link{color:#ff8a3d !important}
-    .wdc-logo-light{display:none !important}
-    .wdc-logo-dark{display:block !important}
-  }
-  /* Outlook's dark mode: the navy footer logo would vanish, so show the white one. */
-  [data-ogsc] .wdc-logo-light{display:none !important}
-  [data-ogsc] .wdc-logo-dark{display:block !important}
+  :root{color-scheme:light dark;supported-color-schemes:light dark}${EMAIL_CSS}
 </style>
 </head>
-<body class="wdc-page" style="margin:0;padding:0;background:${PAGE};-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%">
+<body class="wdc-page body" style="margin:0;padding:0;background:${PAGE};-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all">${escapeHtml(input.preheader)}&#8203;&#8203;&#8203;&#8203;&#8203;&#8203;&#8203;&#8203;</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="wdc-page" style="background:${PAGE}">
-<tr><td align="center" style="padding:28px 12px">
-<table role="presentation" class="wdc-wrap wdc-card" width="${WIDTH}" cellpadding="0" cellspacing="0" border="0" style="width:${WIDTH}px;max-width:${WIDTH}px;background:${CARD};border:1px solid ${HAIRLINE};border-radius:16px">
+<tr><td align="center" class="wdc-outer" style="padding:32px 12px">
+<table role="presentation" class="wdc-wrap wdc-card" width="${WIDTH}" cellpadding="0" cellspacing="0" border="0" style="width:${WIDTH}px;max-width:${WIDTH}px;background:${CARD};border:1px solid ${HAIRLINE};border-radius:16px;overflow:hidden">
 
-<tr><td bgcolor="${NAVY}" class="wdc-pad" style="padding:24px 32px;background:${NAVY};border-radius:16px 16px 0 0">
-  <a href="${SITE_URL}" style="text-decoration:none"><img src="${ASSETS}/logo-white.png" width="152" height="50" alt="We Dig Creativity" style="display:block;width:152px;height:50px;border:0;color:#ffffff;font-family:${DISPLAY};font-size:18px;font-weight:700"></a>
-</td></tr>
+<tr><td bgcolor="${NAVY}" class="wdc-pad" style="padding:24px 40px;${bandBg(NAVY)}"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+<td valign="middle"><a href="${SITE_URL}" style="text-decoration:none"><img src="${ASSETS}/logo-white-accent.png" width="148" height="47" alt="We Dig Creativity" style="display:block;width:148px;height:47px;border:0;color:#ffffff;font-family:${DISPLAY};font-size:18px;font-weight:700"></a></td>
+<td valign="middle" align="right" style="font-family:${BODY};font-size:13px;line-height:1.4;color:${HERO_SUB}">${hero.label ? keep(escapeHtml(hero.label)) : ""}</td></tr></table></td></tr>
+<tr><td height="3" style="height:3px;line-height:3px;font-size:0;${bandBg(ORANGE)}">&nbsp;</td></tr>
+${heroBand(hero)}
 
-<tr><td class="wdc-pad" style="padding:32px 32px 8px">
-  <h1 class="wdc-ink" style="margin:0 0 18px;font-family:${DISPLAY};font-size:26px;line-height:1.25;font-weight:700;color:${INK}">${escapeHtml(input.heading)}</h1>
+<tr><td class="wdc-pad" style="padding:36px 40px 16px">
+  <h1 class="wdc-ink wdc-h1" style="margin:0 0 20px;font-family:${DISPLAY};font-size:28px;line-height:1.15;font-weight:700;letter-spacing:-0.02em;color:${INK}">${escapeHtml(input.heading)}</h1>
   ${input.blocks.join("\n  ")}
 </td></tr>
 
-<tr><td class="wdc-pad" style="padding:8px 32px 32px">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td class="wdc-hair" style="border-top:1px solid ${HAIRLINE};padding-top:28px">
-    <a href="${SITE_URL}" style="text-decoration:none"><img src="${ASSETS}/logo-navy.png" width="122" height="40" alt="We Dig Creativity" class="wdc-logo-light" style="display:block;width:122px;height:40px;border:0;margin:0 0 20px;color:${NAVY};font-family:${DISPLAY};font-size:16px;font-weight:700"></a>
-    <!--[if !mso]><!--><a href="${SITE_URL}" style="text-decoration:none"><img src="${ASSETS}/logo-white.png" width="122" height="40" alt="" class="wdc-logo-dark" style="display:none;width:122px;height:40px;border:0;margin:0 0 20px"></a><!--<![endif]-->
-    ${socialRow()}
-    ${why}
-    <p class="wdc-muted" style="margin:0 0 4px;font-family:${BODY};font-size:13px;line-height:1.6;color:${MUTED}">&copy; ${year} ${escapeHtml(COMPANY_NAME)}</p>
-    <p class="wdc-muted" style="margin:0 0 16px;font-family:${BODY};font-size:13px;line-height:1.6;color:${MUTED}">${escapeHtml(LOCATION)}</p>
-    <p class="wdc-muted" style="margin:0 0 16px;font-family:${BODY};font-size:13px;line-height:1.6;color:${MUTED}">This email was sent to ${RECIPIENT_SLOT}.${unsubscribe}</p>
-    <p class="wdc-muted" style="margin:0;font-family:${BODY};font-size:12px;line-height:1.6;color:${MUTED}">${escapeHtml(REGISTERED_NAME)}, ${escapeHtml(REGISTRATION_NO)}, registered with the ${escapeHtml(REGISTRAR)}.</p>
+<tr><td class="wdc-soft wdc-line wdc-pad" style="padding:32px 40px;background:${SOFT};border-top:1px solid ${HAIRLINE}">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 20px"><tr><td valign="middle">
+    <a href="${SITE_URL}" style="text-decoration:none;display:inline-block"><img class="wdc-ico-l" src="${ASSETS}/logo-color.png" width="132" height="42" alt="We Dig Creativity" style="display:inline-block;width:132px;height:42px;border:0;color:${NAVY};font-family:${DISPLAY};font-size:16px;font-weight:700"><!--[if !mso]><!--><img class="wdc-ico-d" src="${ASSETS}/logo-white-accent.png" width="132" height="42" alt="" style="display:none;width:132px;height:42px;border:0"><!--<![endif]--></a>
+    <p class="wdc-muted" style="margin:8px 0 0;font-family:${BODY};font-size:13px;line-height:1.5;color:${MUTED}">${escapeHtml(MOTTO)}</p>
+  </td></tr></table>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 4px"><tr>
+    <td class="wdc-col" width="50%" valign="top" style="padding:0 16px 0 0">
+      ${footGroup("Call or WhatsApp", `${link(`tel:${PHONE_TEL}`, escapeHtml(PHONE_DISPLAY))} <span class="wdc-muted" style="color:${MUTED}">&middot;</span> ${link(WHATSAPP_URL, "WhatsApp", true)}`)}
+      ${footGroup("Email", link(`mailto:${CONTACT_EMAIL}`, escapeHtml(CONTACT_EMAIL)))}
+    </td>
+    <td class="wdc-col" width="50%" valign="top">
+      ${footGroup("Visit", escapeHtml(STUDIO_ADDRESS))}
+      ${socialRow()}
+    </td>
+  </tr></table>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td class="wdc-line" style="border-top:1px solid ${HAIRLINE};padding-top:16px">
+    <p class="wdc-muted" style="margin:0 0 6px;font-family:${BODY};font-size:12px;line-height:1.6;color:${MUTED}">${why}</p>
+    <p class="wdc-muted" style="margin:0;font-family:${BODY};font-size:12px;line-height:1.6;color:${MUTED}">&copy; ${year} ${escapeHtml(REGISTERED_NAME)} &middot; ${escapeHtml(REGISTRATION_NO)}</p>
   </td></tr></table>
 </td></tr>
 
@@ -489,10 +635,11 @@ function textShell(body: string, options: { unsubscribe?: boolean } = {}) {
   const tail = [
     "",
     "--",
-    "We Dig Creativity",
+    `We Dig Creativity. ${MOTTO}.`,
+    `Call or WhatsApp: ${PHONE_DISPLAY}`,
+    `Email: ${CONTACT_EMAIL}`,
+    `Visit: ${STUDIO_ADDRESS}`,
     SITE_URL.replace(/^https?:\/\//, ""),
-    CONTACT_EMAIL,
-    LOCATION,
     "",
     LEGAL_LINE,
   ];
@@ -516,29 +663,24 @@ export function enquiryReceiptEmail(input: { firstName: string; topic: string })
     /* The enquirer asked us a question; they did not ask for this copy. That
        is the whole test for `unsubscribe`, and this is the clearest case. */
     unsubscribe: true,
-    text: textShell(`Hi ${firstName},
+    text: textShell(`Got it, ${firstName}. Thanks for writing.
 
-Your message about ${topic} reached us, and somebody on the team will read it
-properly rather than reply automatically. You can expect an answer within the
-same working day.
+Your message about ${topic} is with us. A real person reads every message
+here, and you will hear back from us the same working day.
 
-If anything has changed since you wrote, or you left something out, reply to
-this email and it lands on the same thread.
-
-Thank you for getting in touch.
+Forgot something? Reply to this email. It lands in the same thread.
 
 The WDC team`, { unsubscribe: true }),
     html: shell({
       title: "We received your message",
       preheader: `Your message about ${topic} is with us. We reply the same working day.`,
-      heading: "Your message is with us.",
-      why: "You get this because you sent us a message on the site.",
+      heading: `Got it, ${firstName}. Thanks for writing.`,
+      hero: { icon: "inbox", label: "Enquiry", title: "Message received", sub: `About ${topic}` },
+      why: "You sent us a message on our site.",
       unsubscribe: true,
       blocks: [
-        p(`Hi ${escapeHtml(firstName)},`),
-        p(`Your message about <b>${escapeHtml(topic)}</b> reached us, and somebody on the team will read it properly rather than reply automatically. You can expect an answer within the same working day.`),
-        p("If anything has changed since you wrote, or you left something out, reply to this email and it lands on the same thread."),
-        small("A copy was sent automatically so you know the form worked."),
+        p(`Your message about <b>${escapeHtml(topic)}</b> is with us. A real person reads every message here, and you will hear back from us the same working day.`),
+        small("Forgot something? Reply to this email. It lands in the same thread."),
       ],
     }),
   };
@@ -556,34 +698,34 @@ export function onboardingInvitationEmail(input: {
   const { name, service, url, expiresInDays } = input;
   return {
     subject: `Start your ${service} project with WDC`,
-    text: textShell(`Hi ${name},
+    text: textShell(`Let's get started, ${name}.
 
-Welcome aboard. Before we start on your ${service} project we need the brief in
-your own words: what the work has to achieve, who it is for, and what already
-exists that we should build on.
+Before we start on your ${service} project, tell us about the work in your own
+words: what it has to achieve, who it is for, and what already exists.
 
-The form is here, and you can leave it and come back to it on any device:
+Open the form here. It takes about ten minutes, and your answers save as you go,
+so you can stop and come back on any device:
 
 ${url}
 
-It takes about ten minutes if you have the details to hand, and rather less if
-you answer "I'm not sure, please advise me" wherever you would rather we took
-the decision. That is a real answer, and you can change it later.
+Not sure about a question? Answer "I'm not sure, please advise me" and we will
+recommend. That is a real answer, and you can change it later.
 
-The link works for ${expiresInDays} days. If it expires, reply to this email
-and we will send a fresh one.
+The link works for ${expiresInDays} days. If it runs out, reply and we will send a
+fresh one.
 
 The WDC team`),
     html: shell({
       title: "Start your project",
       preheader: `Your ${service} onboarding form is ready. It takes about ten minutes.`,
-      heading: "Welcome aboard. Tell us about the work.",
+      heading: `Let's get started, ${name}.`,
+      hero: { icon: "clipboard", label: "Onboarding", title: `Your ${service} brief`, sub: "About ten minutes" },
       blocks: [
-        p(`Hi ${escapeHtml(name)},`),
-        p(`Before we start on your <b>${escapeHtml(service)}</b> project we need the brief in your own words: what the work has to achieve, who it is for, and what already exists that we should build on.`),
-        action("Open the onboarding form", url),
-        p(`It takes about ten minutes if you have the details to hand, and rather less if you answer <i>&ldquo;I'm not sure, please advise me&rdquo;</i> wherever you would rather we took the decision. That is a real answer, and you can change it later.`),
-        small(`You can leave the form and come back to it on any device. The link works for ${expiresInDays} days &mdash; if it expires, reply to this email and we will send a fresh one.`),
+        p(`Before we start on your <b>${escapeHtml(service)}</b> project, tell us about the work in your own words: what it has to achieve, who it is for, and what already exists.`),
+        p("It takes about ten minutes. Your answers save as you go, so you can stop and come back on any device."),
+        action("Open the onboarding form", url, { icon: "arrow-right" }),
+        p(`Not sure about a question? Answer <i>&ldquo;I'm not sure, please advise me&rdquo;</i> and we will recommend. That is a real answer, and you can change it later.`),
+        small(`The link works for ${expiresInDays} days. If it runs out, reply and we will send a fresh one.`),
       ],
     }),
   };
@@ -609,7 +751,7 @@ export function onboardingReminderEmail(input: {
     /* A reminder is the definition of mail the recipient did not ask for
        today, whatever they agreed to last week. */
     unsubscribe: true,
-    text: textShell(`Hi ${name},
+    text: textShell(`Almost there, ${name}.
 
 Your onboarding form for the ${service} project is still open. ${where}
 
@@ -617,24 +759,23 @@ Pick up where you left off:
 
 ${url}
 
-This link expires ${deadline}. There is no rush from our side beyond that -- we
-simply cannot schedule the work until we know what it is.
+The link expires ${deadline}. We can plan your project as soon as we know what it is.
 
-If the project is on hold, or is not going ahead after all, reply and say so
-and we will stop reminding you.
+Project on hold, or not going ahead? Reply and say so, and we will stop reminding you.
 
 The WDC team`, { unsubscribe: true }),
     html: shell({
       title: "Your brief is still open",
       preheader: `${where} The link expires ${deadline}.`,
-      heading: "Your brief is still open.",
+      heading: `Almost there, ${name}.`,
+      hero: { icon: "bell", label: "Reminder", title: "Your brief is still open", sub: `The link expires ${deadline}` },
+      why: "You have an open onboarding brief with us.",
       unsubscribe: true,
       blocks: [
-        p(`Hi ${escapeHtml(name)},`),
         p(`Your onboarding form for the <b>${escapeHtml(service)}</b> project is still open. ${escapeHtml(where)}`),
-        action("Pick up where you left off", url),
-        p(`This link expires ${escapeHtml(deadline)}. There is no rush from our side beyond that &mdash; we simply cannot schedule the work until we know what it is.`),
-        small("If the project is on hold, or is not going ahead after all, reply and say so and we will stop reminding you."),
+        action("Pick up where you left off", url, { icon: "arrow-right" }),
+        p(`The link expires ${escapeHtml(deadline)}. We can plan your project as soon as we know what it is.`),
+        small("Project on hold, or not going ahead? Reply and say so, and we will stop reminding you."),
       ],
     }),
   };
@@ -662,19 +803,19 @@ export function onboardingNextStepsEmail(input: { name: string; service: string;
     /* They asked for the work, not for this message, which is the test the
        enquiry receipt uses too. */
     unsubscribe: true,
-    text: textShell(`Hi ${name},
+    text: textShell(`Brief received. Thank you, ${name}.
 
-Thank you for completing the onboarding form for your ${service} project${forWhom}.
-Your answers are saved and the brief is with the team.
+Your onboarding form for the ${service} project${forWhom} is saved, and the
+brief is with the team.
 
 What happens next:
 
-1. Somebody on the team reads your brief properly. Anything you marked "I'm not
-   sure, please advise me" is ours to recommend, and we will explain why.
-2. We come back to you with any questions, then the proposed scope and price.
+1. We read your brief properly. Anything you marked "I'm not sure, please
+   advise me" is ours to recommend, and we will explain why.
+2. We come back with any questions, then the proposed scope and price.
 3. Once you are happy with both, we agree a start date and begin.
 
-How we will stay in touch: project communication may happen through the client
+How we stay in touch: project communication may happen through the client
 dashboard, direct chat by email, a WhatsApp project group where that suits the
 work, or another channel we agree with you. Reply and tell us what you prefer.
 
@@ -686,12 +827,13 @@ The WDC team`, { unsubscribe: true }),
     html: shell({
       title: "Your brief is with us",
       preheader: `Your ${service} brief is saved. Here is what happens next.`,
-      heading: "Thank you. Your brief is with us.",
-      why: "You get this because you sent us a brief on the site.",
+      heading: `Brief received. Thank you, ${name}.`,
+      hero: { icon: "check-circle", label: "Onboarding", title: "Your brief is with us", sub: `${service}${forWhom}`, track: { stages: stageNames("web"), now: 1 } },
+      why: "You sent us a brief on our site.",
       unsubscribe: true,
       blocks: [
-        p(`Hi ${escapeHtml(name)},`),
-        p(`Thank you for completing the onboarding form for your <b>${escapeHtml(service)}</b> project${escapeHtml(forWhom)}. Your answers are saved and the brief is with the team.`),
+        p(`Your onboarding form for the <b>${escapeHtml(service)}</b> project${escapeHtml(forWhom)} is saved, and the brief is with the team.`),
+        subhead("What happens next"),
         panel([
           ["First", "We read your brief properly, and recommend on anything you asked us to advise on."],
           ["Then", "We come back with any questions, then the proposed scope and price."],
@@ -718,39 +860,39 @@ export function quoteEmail(input: {
   const { clientName, quoteNumber, projectTitle, lines, totals, validUntil, url } = input;
   return {
     subject: `Quote ${quoteNumber} - ${projectTitle}`,
-    text: textShell(`Hi ${clientName},
+    text: textShell(`Your quote is ready, ${clientName}.
 
-Here is our quote for ${projectTitle}, reference ${quoteNumber}.
+Here is the full picture for ${projectTitle}, reference ${quoteNumber}. Read it
+through, ask anything, and accept it when you are happy.
 
 ${moneyLinesText(lines, totals)}
 
-This quote holds until ${emailDate(validUntil)}. It covers the work described
-above and nothing else; anything added later is quoted separately before it
-starts, so there are no surprises on the invoice.
+This quote holds until ${emailDate(validUntil)}. It covers the work above and
+nothing else; anything added later is quoted separately before it starts, so
+there are no surprises on the invoice.
 
 Read it in full and accept it here:
 
 ${url}
 
-If something in the scope is wrong, or you want a line taken out, say so and we
-will re-issue rather than argue about it later.
+Something in the scope wrong, or a line you want out? Say so and we will
+re-issue it.
 
 The WDC team`),
     html: shell({
       title: `Quote ${quoteNumber}`,
       preheader: `${projectTitle}, ${naira(totals.total)}, valid until ${emailDate(validUntil)}.`,
-      heading: projectTitle,
+      heading: `Your quote is ready, ${clientName}.`,
+      hero: { icon: "file-text", label: "Quote", title: `Quote ${quoteNumber}`, sub: projectTitle },
       blocks: [
-        p(`Hi ${escapeHtml(clientName)},`),
-        p("Here is our quote for the work as we understand it."),
+        p(`Here is the full picture for <b>${escapeHtml(projectTitle)}</b>. Read it through, ask anything, and accept it when you are happy.`),
         moneyTable(lines, totals),
         panel([
-          ["Quote reference", quoteNumber],
+          ["Quote", quoteNumber],
           ["Valid until", emailDate(validUntil)],
         ]),
-        action("Read and accept the quote", url),
-        p("This quote covers the work described above and nothing else. Anything added later is quoted separately before it starts, so there are no surprises on the invoice."),
-        small("If something in the scope is wrong, or you want a line taken out, say so and we will re-issue rather than argue about it later."),
+        action("Read and accept the quote", url, { icon: "file-text" }),
+        small("This quote covers the work above and nothing else. Anything added later is quoted separately before it starts, so there are no surprises on the invoice. Something wrong? Say so and we will re-issue it."),
       ],
     }),
   };
@@ -776,12 +918,11 @@ export async function invoiceEmail(input: {
   const qr = await documentQr(url);
 
   const rows: [string, string][] = [
-    ["Invoice number", number],
+    ["Invoice", number],
     ["Issued", emailDate(issued)],
     ["Due", emailDate(due)],
   ];
   if (paid > 0) rows.push(["Already paid", naira(paid)]);
-  rows.push([partPaid ? "Balance outstanding" : "Amount due", naira(outstanding)]);
 
   const paidLine = paid > 0 ? `  Already paid: ${naira(paid)}\n` : "";
   const dueLabel = partPaid ? "Balance outstanding" : "Amount due";
@@ -789,7 +930,7 @@ export async function invoiceEmail(input: {
   return {
     subject: `Invoice ${number} - ${naira(outstanding)} due ${emailDate(due)}`,
     attachments: [qr.attachment],
-    text: textShell(`Hi ${clientName},
+    text: textShell(`${partPaid ? "Balance outstanding on your invoice" : "Your invoice is ready"}, ${clientName}.
 
 This is invoice ${number} for ${projectTitle}.
 
@@ -798,12 +939,11 @@ ${paidLine}  ${dueLabel}: ${naira(outstanding)}
 
 Issued ${emailDate(issued)}, due ${emailDate(due)}.
 
-You can read the invoice and pay it here:
+Read the invoice and pay it here. Card and bank transfer both work:
 
 ${url}
 
-Card and bank transfer both work through that link. If you would rather send a
-direct transfer, or pay by cash or POS, tell us which and we will record it
+Rather pay by direct transfer, cash or POS? Tell us which and we will record it
 against this invoice so your statement stays straight.
 
 The WDC team`),
@@ -811,14 +951,15 @@ The WDC team`),
       title: `Invoice ${number}`,
       preheader: `${naira(outstanding)} due ${emailDate(due)} for ${projectTitle}.`,
       heading: partPaid ? "Balance outstanding on your invoice" : "Your invoice is ready",
+      hero: { icon: "file-text", label: "Invoice", title: `Invoice ${number}`, sub: projectTitle },
       blocks: [
-        p(`Hi ${escapeHtml(clientName)},`),
-        p(`This is invoice <b>${escapeHtml(number)}</b> for ${escapeHtml(projectTitle)}.`),
+        p(`Hi ${escapeHtml(clientName)}, this is invoice <b>${escapeHtml(number)}</b> for ${escapeHtml(projectTitle)}. Card and bank transfer both work through the button.`),
         moneyTable(lines, totals),
         panel(rows),
-        action("Read and pay the invoice", url),
+        figure(naira(outstanding), { label: dueLabel, note: `Due ${emailDate(due)}` }),
+        action("Read and pay the invoice", url, { icon: "credit-card", pay: true }),
         qr.html,
-        p("Card and bank transfer both work through that link. If you would rather send a direct transfer, or pay by cash or POS, tell us which and we will record it against this invoice so your statement stays straight."),
+        small("Rather pay by direct transfer, cash or POS? Tell us which and we will record it against this invoice so your statement stays straight."),
       ],
     }),
   };
@@ -848,9 +989,10 @@ export async function receiptEmail(input: {
   return {
     subject: `Receipt ${receiptNumber} - ${naira(amount)} received`,
     attachments: [qr.attachment],
-    text: textShell(`Hi ${clientName},
+    text: textShell(`Paid. Thank you, ${clientName}.
 
-We have received ${naira(amount)} against invoice ${invoiceNumber}. Thank you.
+We have received ${naira(amount)} against invoice ${invoiceNumber}. Here is the
+proof, for your records.
 
   Receipt number: ${receiptNumber}
   Invoice: ${invoiceNumber}
@@ -864,29 +1006,29 @@ Your copy of the receipt is here:
 
 ${url}
 
-Keep it for your records. If any detail above does not match what you sent,
-reply to this email and we will look at it the same day.
+Any detail above not match what you sent? Reply and we will look at it the
+same day.
 
 The WDC team`),
     html: shell({
       title: `Receipt ${receiptNumber}`,
       preheader: `${naira(amount)} received against invoice ${invoiceNumber}.`,
       heading: `${naira(amount)} received. Thank you.`,
+      hero: { icon: "receipt", label: "Receipt", title: `Receipt ${receiptNumber}`, sub: settled ? "Paid in full" : `Invoice ${invoiceNumber}` },
       blocks: [
-        p(`Hi ${escapeHtml(clientName)},`),
-        p(`This confirms a payment against invoice <b>${escapeHtml(invoiceNumber)}</b>.`),
+        p(`Thank you, ${escapeHtml(clientName)}. We have your payment. Here is the proof, for your records.`),
         panel([
-          ["Receipt number", receiptNumber],
-          ["Invoice", invoiceNumber],
+          ["Receipt", receiptNumber],
+          ["Invoice", settled ? { html: `${escapeHtml(invoiceNumber)} &nbsp;${chip("Paid", "done")}` } : invoiceNumber],
           ["Amount received", naira(amount)],
           ["Method", method],
           ["Reference", reference],
           ["Received", emailDateTime(paidAt)],
           ["Balance", settled ? "Nothing further owed" : naira(balance)],
         ]),
-        action("Open your receipt", url),
+        action("Open your receipt", url, { icon: "download" }),
         qr.html,
-        small("Keep it for your records. If any detail above does not match what you sent, reply to this email and we will look at it the same day."),
+        small("Any detail above not match what you sent? Reply and we will look at it the same day."),
       ],
     }),
   };
@@ -904,36 +1046,45 @@ export function projectStageEmail(input: {
   url: string;
 }): Email {
   const { clientName, projectTitle, fromStage, toStage, note, url } = input;
+  const track = stageTrack(fromStage, toStage);
   return {
     subject: `${projectTitle} is now at ${toStage}`,
     /* A progress notice is useful mail, and it is still mail nobody asked for
        on the day it arrives. */
     unsubscribe: true,
-    text: textShell(`Hi ${clientName},
+    text: textShell(`Good news, ${clientName}. ${projectTitle} has moved on.
 
-${projectTitle} has moved from ${fromStage} to ${toStage}.
-${note ? `\n${note}\n` : ""}
-You can see where the project stands, and everything that has happened on it so
-far, here:
+It has gone from ${fromStage} to ${toStage}.
+${note ? `\nA note from your lead: ${note}\n` : ""}
+See where the project stands, and everything that has happened on it so far:
 
 ${url}
 
-Nothing is needed from you unless we have asked for it separately.
+Nothing is needed from you right now. We will shout when there is something
+to look at.
 
 The WDC team`, { unsubscribe: true }),
     html: shell({
       title: `${projectTitle} - ${toStage}`,
       preheader: `Moved from ${fromStage} to ${toStage}.`,
-      heading: `${projectTitle} is now at ${toStage}.`,
-      why: "You get project updates while we work on your project.",
+      heading: `Good news, ${clientName}. ${projectTitle} has moved on.`,
+      hero: {
+        icon: "layers", label: "Project update",
+        title: track ? `Stage ${track.now + 1} of ${track.stages.length}: ${toStage}` : `Now at ${toStage}`,
+        sub: projectTitle, track,
+      },
+      why: "You get updates on your project.",
       manage: "client",
       unsubscribe: true,
       blocks: [
-        p(`Hi ${escapeHtml(clientName)},`),
-        panel([["Was", fromStage], ["Now", toStage]]),
-        ...(note ? [p(escapeHtml(note))] : []),
-        action("See the project", url),
-        small("Nothing is needed from you unless we have asked for it separately."),
+        panel([
+          ["Was", { html: `${escapeHtml(fromStage)} &nbsp;${chip("Done", "done")}` }],
+          ["Now", { html: `${escapeHtml(toStage)} &nbsp;${chip("In progress", "now")}` }],
+        ]),
+        ...(note ? [quote("Your lead", "A note on this stage", note)] : []),
+        subhead("What we need from you"),
+        p("Nothing right now. We will shout when there is something to look at."),
+        action("View project", url, { icon: "arrow-right" }),
       ],
     }),
   };
@@ -949,9 +1100,9 @@ export function supportReplyEmail(input: { clientName: string; subject: string; 
     /* An answer to their own question, and still switchable with the rest of
        the project messages. */
     unsubscribe: true,
-    text: textShell(`Hi ${clientName},
+    text: textShell(`Good news, ${clientName}. ${author} replied.
 
-${author} replied to "${subject}":
+About "${subject}":
 
 ${reply}
 
@@ -963,15 +1114,14 @@ The WDC team`, { unsubscribe: true }),
     html: shell({
       title: `Re: ${subject}`,
       preheader: reply.slice(0, 120),
-      heading: "We replied to your question.",
-      why: "You get this because you asked us a question in your portal.",
+      heading: `Good news, ${clientName}. ${author} replied.`,
+      hero: { icon: "message", label: "Support", title: `${author} replied`, sub: subject },
+      why: "You asked us a question in your portal.",
       manage: "client",
       unsubscribe: true,
       blocks: [
-        p(`Hi ${escapeHtml(clientName)},`),
-        panel([["About", subject], ["From", author]]),
-        p(escapeHtml(reply).replace(/\n/g, "<br>")),
-        action("Read and reply", url),
+        quote(author, `About ${subject}`, reply),
+        action("Read and reply", url, { icon: "reply" }),
       ],
     }),
   };
@@ -980,7 +1130,7 @@ The WDC team`, { unsubscribe: true }),
 /** For the studio: a client opened a question, or answered one. */
 export function supportNoticeEmail(input: { company: string; subject: string; body: string; opened: boolean; url: string }): Email {
   const { company, subject, body, opened, url } = input;
-  const heading = opened ? `${company} asked a question.` : `${company} replied.`;
+  const heading = opened ? `${company} has a question.` : `${company} replied.`;
   return {
     subject: `${opened ? "New question" : "Reply"} from ${company}: ${subject}`,
     text: textShell(`${heading}
@@ -996,12 +1146,12 @@ ${url}`),
       title: subject,
       preheader: body.slice(0, 120),
       heading,
+      hero: { icon: "message", label: "Support", title: opened ? "New question" : "New reply", sub: company },
       blocks: [
-        panel([["Client", company], ["About", subject]]),
-        p(escapeHtml(body).replace(/\n/g, "<br>")),
-        action("Answer it", url),
+        quote(company, `About ${subject}`, body),
+        action("Answer it", url, { icon: "reply" }),
       ],
-      why: "You get this because support notices are on.",
+      why: "Support notices are on in Settings.",
       manage: "staff",
     }),
   };
@@ -1009,7 +1159,7 @@ ${url}`),
 
 export function staffOnboardedEmail(input: { name: string; email: string; skipped: boolean; url: string }): Email {
   const { name, email, skipped, url } = input;
-  const heading = `${name} has joined the team.`;
+  const heading = `${name} is all set up.`;
   const how = skipped ? "Skipped the welcome and went straight in" : "Finished the welcome";
   return {
     subject: `${name} is on board`,
@@ -1027,12 +1177,13 @@ ${url}`),
       title: heading,
       preheader: `${how}.`,
       heading,
+      hero: { icon: "check-circle", label: "Team", title: "On board", sub: name },
       blocks: [
-        panel([["Name", name], ["Email", email], ["Welcome", skipped ? "Skipped" : "Finished"]]),
-        p("Their account is ready to use. You can change what they can see, or add them to a department, from the Users page."),
-        action("Open Users", url),
+        panel([["Name", name], ["Email", email], ["Welcome", { html: skipped ? `Skipped &nbsp;${chip("Skipped", "next")}` : `Finished &nbsp;${chip("Done", "done")}` }]]),
+        p("Their account is ready. Change what they can see, or add them to a department, from the Users page."),
+        action("Open Users", url, { icon: "users" }),
       ],
-      why: "You get this because staff notices are on.",
+      why: "Staff notices are on in Settings.",
       manage: "staff",
     }),
   };
@@ -1040,7 +1191,7 @@ ${url}`),
 
 export function paymentNoticeEmail(input: { company: string; amount: string; invoice: string; left: string; method: string; url: string }): Email {
   const { company, amount, invoice, left, method, url } = input;
-  const heading = `${company} paid ${amount}.`;
+  const heading = `Money in. ${company} paid ${amount}.`;
   return {
     subject: `Payment received: ${amount} from ${company}`,
     text: textShell(`${heading}
@@ -1054,12 +1205,12 @@ ${url}`),
       title: `Payment received from ${company}`,
       preheader: `${amount} against ${invoice}. ${left}`,
       heading,
+      hero: { icon: "receipt", label: "Payment", title: `${amount} received`, sub: company },
       blocks: [
-        figure(amount, { label: "Received" }),
         panel([["Client", company], ["Invoice", invoice], ["Paid by", method], ["Still owed", left]]),
-        action("Open the invoice", url),
+        action("Open the invoice", url, { icon: "file-text" }),
       ],
-      why: "You get this because payment notices are on.",
+      why: "Payment notices are on in Settings.",
       manage: "staff",
     }),
   };
@@ -1081,9 +1232,9 @@ export function invoiceVoidedEmail(input: {
   const { clientName, number, reason, url } = input;
   return {
     subject: `Invoice ${number} has been cancelled`,
-    text: textShell(`Hi ${clientName},
+    text: textShell(`That invoice is cancelled, ${clientName}.
 
-Invoice ${number} has been cancelled, so nothing is owed on it and its pay link no longer takes money.
+You owe nothing on invoice ${number}, and its pay link no longer takes money.
 
 Why: ${reason}
 
@@ -1091,21 +1242,21 @@ The invoice still opens, and says it is cancelled:
 
 ${url}
 
-If you have already paid it, or this is a surprise, reply to this email and we will sort it out the same day.
+Already paid it, or is this a surprise? Reply to this email and we will sort it out the same day.
 
 The WDC team`),
     html: shell({
       title: `Invoice ${number} cancelled`,
       preheader: `Nothing is owed on ${number}.`,
-      heading: "This invoice has been cancelled",
+      heading: "That invoice is cancelled.",
+      hero: { icon: "x-circle", label: "Invoice", title: `Invoice ${number}`, sub: "Cancelled" },
       blocks: [
-        p(`Hi ${escapeHtml(clientName)},`),
-        p(`Invoice <b>${escapeHtml(number)}</b> has been cancelled, so nothing is owed on it and its pay link no longer takes money.`),
-        panel([["Invoice", number], ["Why", reason], ["Owed now", naira(0)]]),
-        action("Open the invoice", url),
-        small("If you have already paid it, or this is a surprise, reply to this email and we will sort it out the same day."),
+        p(`Hi ${escapeHtml(clientName)}, you owe nothing on invoice <b>${escapeHtml(number)}</b>, and its pay link no longer takes money.`),
+        panel([["Invoice", { html: `${escapeHtml(number)} &nbsp;${chip("Cancelled", "bad")}` }], ["Why", reason], ["Owed now", naira(0)]]),
+        action("Open the invoice", url, { icon: "file-text" }),
+        small("Already paid it, or is this a surprise? Reply to this email and we will sort it out the same day."),
       ],
-      why: "You get this because an invoice we sent you was changed.",
+      why: "An invoice we sent you was changed.",
       manage: "client",
     }),
   };
@@ -1123,31 +1274,31 @@ export function paymentRefundedEmail(input: {
   const left = owedNow > 0 ? `${naira(owedNow)} is now owed on ${invoice}.` : `Nothing is owed on ${invoice}.`;
   return {
     subject: toCredit ? `${naira(amount)} is being held on your account` : `${naira(amount)} refunded`,
-    text: textShell(`Hi ${clientName},
+    text: textShell(`${toCredit ? "We are holding this for you" : "Your refund is on its way"}, ${clientName}.
 
 ${what}
 
 It was part of your payment ${receiptNo} against invoice ${invoice}. ${left}
 
-Your receipt has been updated to show it:
+Your receipt now shows it:
 
 ${url}
 
-If this does not match what you expected, reply to this email and we will look at it the same day.
+Not what you expected? Reply to this email and we will look at it the same day.
 
 The WDC team`),
     html: shell({
       title: toCredit ? "Held on your account" : "Refund",
       preheader: what,
-      heading: toCredit ? "We are holding this for you" : "We have sent a refund",
+      heading: toCredit ? "We are holding this for you." : "Your refund is on its way.",
+      hero: { icon: "undo", label: toCredit ? "Credit" : "Refund", title: `${naira(amount)} ${toCredit ? "held on account" : "refunded"}`, sub: `Receipt ${receiptNo}` },
       blocks: [
-        p(`Hi ${escapeHtml(clientName)},`),
-        figure(naira(amount), { label: toCredit ? "Held on account" : "Refunded", note: what }),
+        p(`Hi ${escapeHtml(clientName)}. ${escapeHtml(what)}`),
         panel([["Receipt", receiptNo], ["Invoice", invoice], ["Owed now", owedNow > 0 ? naira(owedNow) : "Nothing"]]),
-        action("Open your receipt", url),
-        small("The receipt now shows the refund. If this does not match what you expected, reply to this email and we will look at it the same day."),
+        action("Open your receipt", url, { icon: "download" }),
+        small("Not what you expected? Reply to this email and we will look at it the same day."),
       ],
-      why: "You get this because a payment you made was changed.",
+      why: "A payment you made was changed.",
       manage: "client",
     }),
   };
@@ -1162,11 +1313,11 @@ export function paymentReversedEmail(input: {
   const left = owedNow > 0 ? `${naira(owedNow)} is now owed on ${invoice}.` : `Nothing is owed on ${invoice}.`;
   return {
     subject: `Payment ${receiptNo} has been taken off ${invoice}`,
-    text: textShell(`Hi ${clientName},
+    text: textShell(`We took a payment off your invoice, ${clientName}.
 
-The payment of ${naira(amount)} recorded against invoice ${invoice} (receipt ${receiptNo}) has been taken off, so it no longer counts. ${left}
+The payment of ${naira(amount)} recorded against invoice ${invoice} (receipt ${receiptNo}) no longer counts. ${left}
 
-That usually means a transfer did not clear, or the payment was entered twice or against the wrong invoice. Your receipt still opens and now says reversed:
+That usually means a transfer did not clear, or the payment was entered twice or against the wrong invoice. No stress, it happens. Your receipt still opens and now says reversed:
 
 ${url}
 
@@ -1174,21 +1325,21 @@ The invoice:
 
 ${invoiceUrl}
 
-If you believe this is wrong, reply to this email and we will look at it the same day.
+Think this is wrong? Reply to this email and we will look at it the same day.
 
 The WDC team`),
     html: shell({
       title: `Payment ${receiptNo} reversed`,
       preheader: left,
-      heading: "A payment was taken off your invoice",
+      heading: "We took a payment off your invoice.",
+      hero: { icon: "alert", label: "Payment", title: "Payment reversed", sub: invoice },
       blocks: [
-        p(`Hi ${escapeHtml(clientName)},`),
-        p(`The payment of <b>${escapeHtml(naira(amount))}</b> recorded against invoice <b>${escapeHtml(invoice)}</b> has been taken off, so it no longer counts. That usually means a transfer did not clear, or the payment was entered twice or against the wrong invoice.`),
-        panel([["Receipt", `${receiptNo} (reversed)`], ["Invoice", invoice], ["Owed now", owedNow > 0 ? naira(owedNow) : "Nothing"]]),
-        action(owedNow > 0 ? "Open the invoice" : "Open your receipt", owedNow > 0 ? invoiceUrl : url),
-        small("Your receipt still opens and now says reversed. If you believe this is wrong, reply to this email and we will look at it the same day."),
+        p(`Hi ${escapeHtml(clientName)}. The payment of <b>${escapeHtml(naira(amount))}</b> recorded against invoice <b>${escapeHtml(invoice)}</b> no longer counts. That usually means a transfer did not clear, or the payment was entered twice or against the wrong invoice. No stress, it happens.`),
+        panel([["Receipt", { html: `${escapeHtml(receiptNo)} &nbsp;${chip("Reversed", "bad")}` }], ["Invoice", invoice], ["Owed now", owedNow > 0 ? naira(owedNow) : "Nothing"]]),
+        action(owedNow > 0 ? "Open the invoice" : "Open your receipt", owedNow > 0 ? invoiceUrl : url, owedNow > 0 ? { icon: "credit-card", pay: true } : { icon: "download" }),
+        small("Your receipt still opens and now says reversed. Think this is wrong? Reply to this email and we will look at it the same day."),
       ],
-      why: "You get this because a payment you made was changed.",
+      why: "A payment you made was changed.",
       manage: "client",
     }),
   };
@@ -1204,30 +1355,30 @@ export function estimateSentEmail(input: {
   const { clientName, number, total, expires, notes, url } = input;
   return {
     subject: `Estimate ${number}: ${naira(total)}, holds until ${emailDate(expires)}`,
-    text: textShell(`Hi ${clientName},
+    text: textShell(`A quick estimate for you, ${clientName}.
 
-Here is our estimate ${number} for ${naira(total)}. The price holds until ${emailDate(expires)}.
+Estimate ${number} comes to ${naira(total)}. The price holds until ${emailDate(expires)}.
 ${notes ? `\n${notes}\n` : ""}
 Read it in full here:
 
 ${url}
 
-If something in the scope is wrong, or you want a line taken out, reply and we will re-issue it rather than argue about it later.
+Something in the scope wrong, or a line you want out? Reply and we will re-issue it.
 
 The WDC team`),
     html: shell({
       title: `Estimate ${number}`,
       preheader: `${naira(total)}, holds until ${emailDate(expires)}.`,
-      heading: "Your estimate is ready",
+      heading: `A quick estimate for you, ${clientName}.`,
+      hero: { icon: "file-text", label: "Estimate", title: `Estimate ${number}`, sub: `Holds until ${emailDate(expires)}` },
       blocks: [
-        p(`Hi ${escapeHtml(clientName)},`),
-        figure(naira(total), { label: "Estimate", note: `Holds until ${emailDate(expires)}` }),
         ...(notes ? [p(escapeHtml(notes))] : []),
+        figure(naira(total), { label: "Total", note: `Holds until ${emailDate(expires)}` }),
         panel([["Estimate", number], ["Holds until", emailDate(expires)]]),
-        action("Read the estimate", url),
-        small("If something in the scope is wrong, or you want a line taken out, reply and we will re-issue it rather than argue about it later."),
+        action("Read the estimate", url, { icon: "file-text" }),
+        small("Something in the scope wrong, or a line you want out? Reply and we will re-issue it."),
       ],
-      why: "You get this because the studio sent you an estimate.",
+      why: "The studio sent you an estimate.",
       manage: "client",
     }),
   };
@@ -1244,9 +1395,10 @@ export function estimateAnsweredEmail(input: {
       : `We have recorded your yes to estimate ${number}. Thank you.`
     : `We have recorded that estimate ${number} was not taken up. Thank you for looking at it.`;
   const link = accepted && invoiceUrl ? invoiceUrl : url;
+  const heading = accepted ? `Deal. Thank you, ${clientName}.` : `Noted. Thank you, ${clientName}.`;
   return {
     subject: accepted ? `Estimate ${number} accepted, thank you` : `Estimate ${number} recorded as declined`,
-    text: textShell(`Hi ${clientName},
+    text: textShell(`${heading}
 
 ${line}
 
@@ -1254,20 +1406,20 @@ ${accepted && invoiceUrl ? "Your invoice:" : "The estimate:"}
 
 ${link}
 
-If this is not what you meant, reply to this email and we will put it right.
+Not what you meant? Reply to this email and we will put it right.
 
 The WDC team`),
     html: shell({
       title: accepted ? `Estimate ${number} accepted` : `Estimate ${number} declined`,
       preheader: line,
-      heading: accepted ? "Thank you, that is agreed" : "We have noted your answer",
+      heading,
+      hero: { icon: accepted ? "check-circle" : "file-text", label: "Estimate", title: accepted ? "Estimate accepted" : "Estimate declined", sub: number },
       blocks: [
-        p(`Hi ${escapeHtml(clientName)},`),
         p(escapeHtml(line)),
-        action(accepted && invoiceUrl ? "Open your invoice" : "Open the estimate", link),
-        small("If this is not what you meant, reply to this email and we will put it right."),
+        action(accepted && invoiceUrl ? "Open your invoice" : "Open the estimate", link, { icon: "file-text" }),
+        small("Not what you meant? Reply to this email and we will put it right."),
       ],
-      why: "You get this because your answer to an estimate was recorded.",
+      why: "Your answer to an estimate was recorded.",
       manage: "client",
     }),
   };
@@ -1280,7 +1432,7 @@ export function estimateAnswerNoticeEmail(input: {
 }): Email {
   const naira=(amount:number)=>money(amount,input.currency??"NGN");
   const { company, number, accepted, by, total, invoiceNumber, note, url } = input;
-  const heading = `${company} ${accepted ? "accepted" : "declined"} ${number}.`;
+  const heading = accepted ? `${company} said yes to ${number}.` : `${company} declined ${number}.`;
   return {
     subject: `Estimate ${accepted ? "accepted" : "declined"}: ${company}, ${naira(total)}`,
     text: textShell(`${heading}
@@ -1294,12 +1446,13 @@ ${url}`),
       title: `Estimate ${accepted ? "accepted" : "declined"} by ${company}`,
       preheader: `${naira(total)}. ${accepted && invoiceNumber ? `Raised as ${invoiceNumber}.` : ""}`,
       heading,
+      hero: { icon: accepted ? "check-circle" : "x-circle", label: "Estimate", title: `${naira(total)} ${accepted ? "accepted" : "declined"}`, sub: company },
       blocks: [
-        figure(naira(total), { label: accepted ? "Accepted" : "Declined" }),
-        panel([["Client", company], ["Estimate", number], ["Answered by", by], ...(accepted && invoiceNumber ? [["Invoice", invoiceNumber] as [string, string]] : []), ...(note ? [["Note", note] as [string, string]] : [])]),
-        action("Open the estimate", url),
+        panel([["Client", company], ["Estimate", number], ["Answered by", by], ...(accepted && invoiceNumber ? [["Invoice", invoiceNumber] as [string, string]] : [])]),
+        ...(note ? [quote(by, `Note on ${number}`, note)] : []),
+        action("Open the estimate", url, { icon: "file-text" }),
       ],
-      why: "You get this because estimate notices are on.",
+      why: "Estimate notices are on in Settings.",
       manage: "staff",
     }),
   };
@@ -1316,32 +1469,29 @@ export function deliverableReadyEmail(input: {
   const { clientName, projectTitle, deliverable, url, respondBy } = input;
   return {
     subject: `${deliverable} is ready for your approval`,
-    text: textShell(`Hi ${clientName},
+    text: textShell(`${deliverable} is ready to see, ${clientName}.
 
-${deliverable} for ${projectTitle} is ready for you to look at.
-
-Open it here, leave any comments directly on it, and either approve it or send
-it back with changes:
+It is for ${projectTitle}. Open it, leave comments right on the work, then
+approve it or send it back with changes:
 
 ${url}
 
 ${respondBy ? `We have held ${emailDate(respondBy)} in the schedule for your answer. If it
-comes later than that, the stages after it move by the same amount -- which is
-the only reason we mention a date at all.` : "No review deadline has been recorded. Please agree a review date with your project lead."}
+comes later, the later stages move by the same number of days.` : "No review date is set yet. Please agree one with your project lead."}
 
 The WDC team`),
     html: shell({
       title: `${deliverable} is ready`,
       preheader: `${deliverable} for ${projectTitle} is ready for your approval.`,
-      heading: `${deliverable} is ready for you.`,
-      why: "You get this when something is ready for you to review.",
+      heading: `${deliverable} is ready to see, ${clientName}.`,
+      hero: { icon: "eye", label: "Review", title: "Ready for your review", sub: projectTitle },
+      why: "Something is ready for you to review.",
       manage: "client",
       blocks: [
-        p(`Hi ${escapeHtml(clientName)},`),
-        p(`${escapeHtml(deliverable)} for <b>${escapeHtml(projectTitle)}</b> is ready. Open it, leave any comments directly on it, and either approve it or send it back with changes.`),
-        action("Review and approve", url),
-        panel([["Project", projectTitle], ["Review date", respondBy ? emailDate(respondBy) : "Not yet agreed"]]),
-        p(respondBy ? `If your answer comes after ${escapeHtml(emailDate(respondBy))}, please agree the effect on later stages with your lead.` : "Please agree a review date with your project lead."),
+        p("Open it, leave comments right on the work, then approve it or send it back with changes."),
+        panel([["Deliverable", deliverable], ["Project", projectTitle], ["Review by", respondBy ? emailDate(respondBy) : "Not yet agreed"]]),
+        action("Review and approve", url, { icon: "eye" }),
+        small(respondBy ? `If your answer comes after ${escapeHtml(emailDate(respondBy))}, the later stages move by the same number of days.` : "No review date is set yet. Please agree one with your project lead."),
       ],
     }),
   };
@@ -1360,7 +1510,7 @@ export function signOffEmail(input: {
   const { clientName, projectTitle, deliverable, signedBy, signedAt, url } = input;
   return {
     subject: `Signed off: ${deliverable}`,
-    text: textShell(`Hi ${clientName},
+    text: textShell(`Signed, sealed, approved, ${clientName}.
 
 ${deliverable} on ${projectTitle} is signed off. This is your record of it.
 
@@ -1368,29 +1518,29 @@ ${deliverable} on ${projectTitle} is signed off. This is your record of it.
   Date: ${emailDateTime(signedAt)}
   Project: ${projectTitle}
 
-The signed record is kept with the project, and you can open it at any time:
+The signed record stays with the project, and you can open it at any time:
 
 ${url}
 
-Work on the next stage starts from here. If anything about this approval looks
-wrong, tell us before we build on it rather than after.
+We build the next stage on top of this. Something look wrong? Tell us now,
+before we build on it.
 
 The WDC team`),
     html: shell({
       title: `Signed off: ${deliverable}`,
       preheader: `${deliverable} was signed off by ${signedBy}.`,
-      heading: `${deliverable} is signed off.`,
+      heading: `Signed, sealed, approved, ${clientName}.`,
+      hero: { icon: "check-circle", label: "Approved", title: "Signed off", sub: deliverable },
       why: "You get a copy of every sign-off, for your records.",
       blocks: [
-        p(`Hi ${escapeHtml(clientName)},`),
-        p("This is your record of the approval."),
+        p(`<b>${escapeHtml(deliverable)}</b> is signed off. We build the next stage on top of it.`),
         panel([
           ["Signed off by", signedBy],
           ["Date", emailDateTime(signedAt)],
           ["Project", projectTitle],
         ]),
-        action("Open the signed record", url),
-        p("Work on the next stage starts from here. If anything about this approval looks wrong, tell us before we build on it rather than after."),
+        action("Open the signed record", url, { icon: "file-text" }),
+        small("Something look wrong? Tell us now, before we build on it."),
       ],
     }),
   };
@@ -1405,7 +1555,6 @@ export function passwordResetEmail(input: {
   expiresInMinutes: number;
 }): Email {
   const { name, url, expiresInMinutes } = input;
-  const greeting = name ? `Hi ${name},` : "Hello,";
   const life = expiresInMinutes === 60 ? "one hour" : `${expiresInMinutes} minutes`;
   return {
     subject: "Reset your We Dig Creativity password",
@@ -1413,31 +1562,26 @@ export function passwordResetEmail(input: {
        a message the recipient asked for seconds ago, and offering to
        unsubscribe from account security is how somebody loses access to their
        own account. `List-Unsubscribe` is for bulk mail; this is not bulk. */
-    text: textShell(`${greeting}
+    text: textShell(`New password? Easy${name ? `, ${name}` : ""}.
 
-Somebody asked to reset the password on your We Dig Creativity account. If that
-was you, open this link within ${life} and choose a new one:
+Open this link within ${life} and pick a new one. It works once:
 
 ${url}
 
-The link works once, and then stops working.
-
-If it was not you, nothing has happened and there is nothing you need to do.
-Your current password still works and nobody has been let in. If these keep
-arriving, reply and tell us -- that is worth knowing.
+If this was not you, ignore this email. Your password stays as it is and
+nobody has been let in. If these keep arriving, reply and tell us.
 
 The WDC team`),
     html: shell({
       title: "Reset your password",
       preheader: `Choose a new password. The link works once and expires in ${life}.`,
-      heading: "Reset your password",
+      heading: `New password? Easy${name ? `, ${name}` : ""}.`,
+      hero: { icon: "lock", label: "Security", title: "Password reset", sub: `The link works once, for ${life}` },
       why: "Security emails always arrive.",
       blocks: [
-        p(escapeHtml(greeting)),
-        p("Somebody asked to reset the password on your We Dig Creativity account. If that was you, choose a new one now."),
-        action("Choose a new password", url),
-        p(`The link works once, and expires in ${escapeHtml(life)}.`),
-        small("If it was not you, nothing has happened and there is nothing you need to do &mdash; your current password still works and nobody has been let in. If these keep arriving, reply and tell us."),
+        p(`Tap the button and pick a new one. The link works once and lasts ${escapeHtml(life)}.`),
+        action("Choose a new password", url, { icon: "lock" }),
+        small("If this was not you, ignore this email. Your password stays as it is and nobody has been let in. If these keep arriving, reply and tell us."),
       ],
     }),
   };
@@ -1462,44 +1606,39 @@ export function signInEmail(input: {
   code: string;
   expiresInMinutes: number;
 }): Email {
-  const { name, url, code, expiresInMinutes } = input;
-  const greeting = name ? `Hi ${name},` : "Hello,";
+  const { name, url, code: raw, expiresInMinutes } = input;
   const life = `${expiresInMinutes} minutes`;
-  const spaced = `${code.slice(0, 3)} ${code.slice(3)}`;
+  const spaced = `${raw.slice(0, 3)} ${raw.slice(3)}`;
   return {
     subject: `${spaced} is your We Dig Creativity sign-in code`,
     /* No unsubscribe, for the reason the reset email gives: somebody asked for
        this seconds ago, and it is account access, not bulk mail. */
-    text: textShell(`${greeting}
+    text: textShell(`Here is your way in${name ? `, ${name}` : ""}.
 
-Here is your sign-in link for We Dig Creativity. It works for ${life}:
+Open this link on the device you want to use. It works for ${life}:
 
 ${url}
 
-Signing in on a different device? Enter this code on the login page instead:
+Signing in on a different device? Type this code on the sign-in page instead:
 
 ${spaced}
 
-The link and the code work once. Using either one cancels the other.
+The link and the code each work once. Using either one cancels the other.
 
-If you did not ask to sign in, you can ignore this email. Nobody can get in
-without it.
+Did not ask for this? You can ignore it. Nobody gets in without it.
 
 The WDC team`),
     html: shell({
       title: "Your sign-in link",
       preheader: `Your code is ${spaced}. It works for ${life}.`,
-      heading: "Your sign-in link",
+      heading: `Here is your way in${name ? `, ${name}` : ""}.`,
+      hero: { icon: "key", label: "Sign in", title: "Your sign-in code", sub: `Works for ${life}` },
       why: "Security emails always arrive.",
       blocks: [
-        p(escapeHtml(greeting)),
-        p("Here is your link to sign in to We Dig Creativity. Open it on the device you want to use."),
-        action("Sign in to WDC", url),
-        p("Signing in on a different device? Enter this code on the login page instead:"),
-        `<p style="margin:0 0 20px;padding:16px 20px;background:${PAGE};border:1px solid ${HAIRLINE};border-radius:12px;` +
-          `font-family:${DISPLAY};font-size:32px;font-weight:700;letter-spacing:.18em;color:${NAVY};text-align:center">${escapeHtml(spaced)}</p>`,
-        p(`The link and the code each work once, for ${escapeHtml(life)}. Using either one cancels the other.`),
-        small("If you did not ask to sign in, you can ignore this email. Nobody can get in without it."),
+        p("Tap the button on the device you want to use. Signing in somewhere else? Type this code on the sign-in page instead."),
+        code(spaced),
+        action("Sign in to WDC", url, { icon: "log-in" }),
+        small(`The link and the code each work once, for ${escapeHtml(life)}. Using either one cancels the other. Did not ask for this? You can ignore it. Nobody gets in without it.`),
       ],
     }),
   };
@@ -1511,32 +1650,29 @@ The WDC team`),
  * inbox, is what proves the change is theirs.
  */
 export function passwordCodeEmail(input: { name?: string; code: string; expiresInMinutes: number }): Email {
-  const { name, code, expiresInMinutes } = input;
-  const greeting = name ? `Hi ${name},` : "Hello,";
-  const spaced = `${code.slice(0, 3)} ${code.slice(3)}`;
+  const { name, code: value, expiresInMinutes } = input;
+  const spaced = `${value.slice(0, 3)} ${value.slice(3)}`;
   return {
     subject: `${spaced} is your code to change your password`,
-    text: textShell(`${greeting}
+    text: textShell(`One quick check${name ? `, ${name}` : ""}.
 
-Enter this code to confirm your new We Dig Creativity password. It works for ${expiresInMinutes} minutes:
+Type this code on your account page to confirm your new We Dig Creativity password. It works for ${expiresInMinutes} minutes:
 
 ${spaced}
 
-If you did not ask to change your password, ignore this email and nothing changes. Someone may be signed in as you, so sign out your other devices from your account page.
+Did not ask to change your password? Ignore this email and nothing changes. Someone may be signed in as you, so sign out your other devices from your account page.
 
 The WDC team`),
     html: shell({
       title: "Confirm your new password",
       preheader: `Your code is ${spaced}. It works for ${expiresInMinutes} minutes.`,
-      heading: "Confirm your new password",
+      heading: `One quick check${name ? `, ${name}` : ""}.`,
+      hero: { icon: "shield", label: "Security", title: "Confirm your new password", sub: `Works for ${expiresInMinutes} minutes` },
       why: "Security emails always arrive.",
       blocks: [
-        p(escapeHtml(greeting)),
-        p("Enter this code on your account page to confirm your new password:"),
-        `<p style="margin:0 0 20px;padding:16px 20px;background:${PAGE};border:1px solid ${HAIRLINE};border-radius:12px;` +
-          `font-family:${DISPLAY};font-size:32px;font-weight:700;letter-spacing:.18em;color:${NAVY};text-align:center">${escapeHtml(spaced)}</p>`,
-        p(`It works once, for ${expiresInMinutes} minutes.`),
-        small("If you did not ask to change your password, ignore this email and nothing changes. Someone may be signed in as you, so sign out your other devices from your account page."),
+        p("Type this code on your account page to confirm your new password. It works once."),
+        code(spaced),
+        small("Did not ask to change your password? Ignore this email and nothing changes. Someone may be signed in as you, so sign out your other devices from your account page."),
       ],
     }),
   };
@@ -1564,17 +1700,17 @@ export function accountInvitationEmail(input: {
   expiresInDays: number;
 }): Email {
   const { name, email, url, role, invitedBy, expiresInDays } = input;
-  const greeting = name ? `Hi ${name},` : "Hello,";
   const life = `${expiresInDays} days`;
   const what = role === "staff"
     ? "an account on the We Dig Creativity studio admin"
     : "an account on your We Dig Creativity project portal, where you can follow your project, approve work and see your invoices";
+  const heading = role === "staff" ? `Welcome to the team${name ? `, ${name}` : ""}.` : `Your project has a home now${name ? `, ${name}` : ""}.`;
   const optional = role === "client"
     ? "\n\nAn account is optional. Everything still reaches you by email and the channels we agreed; the portal is there if you want it."
     : "";
   return {
     subject: role === "staff" ? "Your We Dig Creativity team account" : "Your We Dig Creativity project portal",
-    text: textShell(`${greeting}
+    text: textShell(`${heading}
 
 ${invitedBy} has set up ${what}.
 
@@ -1582,23 +1718,23 @@ Open this link to finish it. It works once, for ${life}:
 
 ${url}
 
-The account will be for ${email}. You can choose a password, or continue
-with Google if this address is a Google account.${optional}
+The account will be for ${email}. Choose a password, or continue with Google
+if this address is a Google account.${optional}
 
-If you were not expecting this, you can ignore it and nothing is created.
+Not expecting this? Ignore it and nothing is created.
 
 The WDC team`),
     html: shell({
       title: role === "staff" ? "Your team account" : "Your project portal",
       preheader: `Finish setting up your account for ${email}. The link works for ${life}.`,
-      heading: role === "staff" ? "Your team account is ready" : "Your project portal is ready",
+      heading,
+      hero: { icon: "user-plus", label: "Invitation", title: role === "staff" ? "Your team account" : "Your project portal", sub: `The link works for ${life}` },
       blocks: [
-        p(escapeHtml(greeting)),
         p(`${escapeHtml(invitedBy)} has set up ${escapeHtml(what)}.`),
-        action("Finish setting up", url),
-        p(`The account will be for <b>${escapeHtml(email)}</b>. You can choose a password, or continue with Google if this address is a Google account.`),
-        ...(role === "client" ? [p("An account is optional. Everything still reaches you by email and the channels we agreed; the portal is there if you want it.")] : []),
-        small(`The link works once, for ${escapeHtml(life)}. If you were not expecting this, you can ignore it and nothing is created.`),
+        p(`The account will be for <b>${escapeHtml(email)}</b>. Choose a password, or continue with Google if this address is a Google account.`),
+        action("Finish setting up", url, { icon: "user-plus" }),
+        ...(role === "client" ? [small("An account is optional. Everything still reaches you by email and the channels we agreed; the portal is there if you want it.")] : []),
+        small(`The link works once, for ${escapeHtml(life)}. Not expecting this? Ignore it and nothing is created.`),
       ],
     }),
   };
@@ -1629,37 +1765,34 @@ export function siteReportEmail(input: {
 }): Email {
   const { site, findings, scores, opportunities, url } = input;
   const ran = scores.length > 0;
-
   const scoreRows = scores.map((s) => [s.label, `${s.score} / 100`] as [string, string]);
   const findingRows = findings.map((f) => [f.label, f.detail] as [string, string]);
-
   const lighthouseText = ran
     ? `Lighthouse, run by Google on your live page:
+
 ${scoreRows.map(([label, value]) => `  - ${label}: ${value}`).join("\n")}
 
 ${opportunities.length ? `The biggest wins it found:\n${opportunities.map((o) => `  - ${o}`).join("\n")}` : "It found nothing large enough to be worth naming, which is rarer than you would think."}`
     : `The full Lighthouse run is queued rather than attached: we cap how many of
 those we ask Google for in a day, and today's are spent. Somebody here will run
 yours by hand and reply with it. Nothing above depends on it.`;
-
   return {
     subject: `Your site report: ${site}`,
-    /* No unsubscribe, for the reason written on the estimate above: they asked
-       for this one message, it is the thing they asked for, and nothing is
-       added to any list. */
-    text: textShell(`Hello,
+    /* No unsubscribe: they asked for this one message, it is the thing they
+       asked for, and nothing is added to any list. */
+    text: textShell(`Here is how your site is doing.
 
-Here is the report for ${site}, in full and in writing so you can forward it to
+The report for ${site}, in full and in writing, so you can forward it to
 whoever looks after the site.
 
 What we read off the page itself:
+
 ${findingRows.map(([label, detail]) => `  - ${label}: ${detail}`).join("\n")}
 
 ${lighthouseText}
 
-Every one of these is fixable, and most of them are an afternoon rather than a
-rebuild. Reply to this email if you would like us to do it, or to argue with any
-of it.
+Every one of these is fixable, and most are an afternoon rather than a rebuild.
+Reply if you would like us to do it, or to argue with any of it.
 
 ${url}
 
@@ -1667,25 +1800,26 @@ The WDC team`),
     html: shell({
       title: "Your site report",
       preheader: `The on-page findings for ${site}${ran ? ", with Lighthouse scores" : ""}.`,
-      heading: escapeHtml(site),
+      heading: "Here is how your site is doing.",
+      hero: { icon: "gauge", label: "Site report", title: site },
       blocks: [
-        p("Here is the report in full, so you can forward it to whoever looks after the site."),
-        p("<b>What we read off the page itself</b>"),
+        p("The report in full, so you can forward it to whoever looks after the site."),
+        subhead("On the page"),
         panel(findingRows),
         ...(ran
           ? [
-              p("<b>Lighthouse, run by Google on your live page</b>"),
+              subhead("Lighthouse scores"),
               panel(scoreRows),
               ...(opportunities.length
                 ? [small(`The biggest wins it found:<br>${opportunities.map((o) => `&bull; ${escapeHtml(o)}`).join("<br>")}`)]
                 : [small("It found nothing large enough to be worth naming, which is rarer than you would think.")]),
             ]
           : [
-              p("<b>The Lighthouse run is queued</b>"),
-              small("We cap how many of those we ask Google for in a day, and today&rsquo;s are spent. Somebody here will run yours by hand and reply with it &mdash; nothing above depends on it."),
+              subhead("The Lighthouse run is queued"),
+              small("We cap how many of those we ask Google for in a day, and today&rsquo;s are spent. Somebody here will run yours by hand and reply with it. Nothing above depends on it."),
             ]),
-        p("Every one of these is fixable, and most of them are an afternoon rather than a rebuild."),
-        action("Ask us to fix them", url),
+        p("Every one of these is fixable, and most are an afternoon rather than a rebuild."),
+        action("Ask us to fix them", url, { icon: "wrench" }),
       ],
     }),
   };
@@ -1707,7 +1841,7 @@ function heading(html: string) {
   return `<h2 class="wdc-ink" style="margin:0 0 12px;font-family:${DISPLAY};font-size:22px;line-height:1.3;font-weight:700;color:${INK}">${html}</h2>`;
 }
 function divider() {
-  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 20px"><tr><td class="wdc-hair" style="border-top:1px solid ${HAIRLINE};font-size:0;line-height:0">&nbsp;</td></tr></table>`;
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 20px"><tr><td class="wdc-line" style="border-top:1px solid ${HAIRLINE};font-size:0;line-height:0">&nbsp;</td></tr></table>`;
 }
 function space(px: number) {
   const h = Math.max(4, Math.min(80, Math.round(px)));
@@ -1730,6 +1864,7 @@ function columns(left: string, right: string) {
 export {
   shell as composeEmailHtml, p as emailP, small as emailSmall, action as emailButton, panel as emailPanel, figure as emailFigure,
   heading as emailHeading, divider as emailDivider, space as emailSpace, image as emailImage, columns as emailColumns, safeUrl as emailSafeUrl,
+  quote as emailQuote,
 };
 
 /* ====================================================== maintenance: back */
@@ -1744,24 +1879,25 @@ export function backOnlineEmail(): Email {
   const url = SITE_URL;
   return {
     subject: "We Dig Creativity is back online",
-    text: textShell(`Hello,
+    text: textShell(`We are back, and you are first to know.
 
-You asked us to tell you when our site was back. It is:
+You asked us to tell you when our site was up again. It is:
 
 ${url}
 
-This was the only message about it. We have deleted your address from
-that list, so you will not hear from us again unless you get in touch.
+This was the only message about it. We have deleted your address from that
+list, so you will not hear from us again unless you get in touch.
 
 The WDC team`),
     html: shell({
       title: "We are back online",
       preheader: "You asked us to tell you when the site was back. It is.",
-      heading: "We are back online.",
-      why: "You get this because you asked on our maintenance page to be told when the site was back. It was the only one.",
+      heading: "We are back, and you are first to know.",
+      hero: { icon: "globe", label: "Site news", title: "We are back", sub: SITE_URL.replace(/^https?:\/\//, "") },
+      why: "You asked on our maintenance page to hear when the site was back. This is the only email.",
       blocks: [
-        p("You asked us to tell you when our site was back. It is."),
-        action("Visit the site", url),
+        p("You asked us to tell you when our site was up again. It is."),
+        action("Visit the site", url, { icon: "globe" }),
         small("This was the only message about it. We have deleted your address from that list, so you will not hear from us again unless you get in touch."),
       ],
     }),
@@ -1778,7 +1914,7 @@ export function noticeAddressEmail(input: { url: string; by: string; hours: numb
   const { url, by, hours } = input;
   return {
     subject: "Confirm this address for We Dig Creativity notices",
-    text: textShell(`Hello,
+    text: textShell(`Is this inbox yours?
 
 ${by} asked for the studio's notices (new enquiries, briefs, tickets and
 payments) and clients' replies to come to this address. Nothing changes until
@@ -1786,21 +1922,20 @@ it is confirmed. If this is right, open this link within ${hours} hours:
 
 ${url}
 
-If you do not know what this is, ignore it: nothing changes, and the notices
-keep going where they go now.
+Do not know what this is? Ignore it. Nothing changes, and the notices keep
+going where they go now.
 
 The WDC team`),
     html: shell({
       title: "Confirm this address",
       preheader: `Nothing changes until this is confirmed. The link lasts ${hours} hours.`,
-      heading: "Confirm this address",
-      why: "Sent because this address was entered in the studio's email settings.",
+      heading: "Is this inbox yours?",
+      hero: { icon: "mail-check", label: "Settings", title: "Confirm this address", sub: `The link lasts ${hours} hours` },
+      why: "This address was entered in the studio's email settings.",
       blocks: [
-        p("Hello,"),
-        p(`${escapeHtml(by)} asked for the studio's notices (new enquiries, briefs, tickets and payments) and clients' replies to come to this address. Nothing changes until it is confirmed.`),
-        action("Confirm this address", url),
-        p(`The link works once and lasts ${hours} hours.`),
-        small("If you do not know what this is, ignore it: nothing changes, and the notices keep going where they go now."),
+        p(`${escapeHtml(by)} asked for the studio's notices (new enquiries, briefs, tickets and payments) and clients' replies to come to this address. Nothing changes until you confirm.`),
+        action("Confirm this address", url, { icon: "mail-check" }),
+        small(`The link works once and lasts ${hours} hours. Do not know what this is? Ignore it. Nothing changes, and the notices keep going where they go now.`),
       ],
     }),
   };
@@ -1811,25 +1946,25 @@ export function newsletterConfirmEmail(input: { url: string; hours: number }): E
   const { url, hours } = input;
   return {
     subject: "Confirm your subscription to We Dig Creativity",
-    text: textShell(`Hello,
+    text: textShell(`One tap and you are in.
 
-Somebody (we hope you) asked for the We Dig Creativity newsletter at this address. To be added, open this link within ${hours} hours:
+Somebody (we hope you) asked for the We Dig Creativity newsletter at this address. Confirm it is really you within ${hours} hours:
 
 ${url}
 
-If it was not you, ignore this and you will not be added. Nothing is sent until you confirm.
+We write when we have something worth your time. Did not sign up? Ignore this and you will not be added.
 
 The WDC team`),
     html: shell({
       title: "Confirm your subscription",
       preheader: "One press and you are on the list.",
-      heading: "Confirm your subscription",
-      why: "You are getting this because this address was typed into our newsletter box.",
+      heading: "One tap and you are in.",
+      hero: { icon: "mail-check", label: "Newsletter", title: "One step left", sub: `The link lasts ${hours} hours` },
+      why: "This address was typed into our newsletter box.",
       blocks: [
-        p("Somebody (we hope you) asked for the We Dig Creativity newsletter at this address. One press and you are on the list."),
-        action("Yes, subscribe me", url),
-        p(`The link works for ${hours} hours.`),
-        small("If it was not you, ignore this email. You will not be added, and nothing else is sent."),
+        p("Somebody (we hope you) asked for the We Dig Creativity newsletter at this address. Confirm it is really you and we will add you. We write when we have something worth your time."),
+        action("Yes, subscribe me", url, { icon: "mail-check" }),
+        small(`The link works for ${hours} hours. Did not sign up? Ignore this email. You will not be added, and nothing else is sent.`),
       ],
     }),
   };
@@ -1854,7 +1989,7 @@ export function clientWelcomeEmail(input: { name: string; company?: string; url:
     subject: "Welcome to your client portal",
     /* A notice to a client is theirs to switch off (project updates), so it carries the unsubscribe line. */
     unsubscribe: true,
-    text: textShell(`Hi ${name},
+    text: textShell(`You are in. Welcome, ${name}.
 
 Your portal account${company ? ` for ${company}` : ""} is ready. From it you can:
 
@@ -1871,20 +2006,20 @@ The WDC team`, { unsubscribe: true }),
     html: shell({
       title: "Welcome to your client portal",
       preheader: "Your account is ready. Here is what you can do with it.",
-      heading: "Your portal is ready.",
-      why: "You get this because you accepted our invitation.",
+      heading: `You are in. Welcome, ${name}.`,
+      hero: { icon: "check-circle", label: "Welcome", title: "Your portal is ready", sub: company },
+      why: "You accepted our invitation.",
       manage: "client",
       unsubscribe: true,
       blocks: [
-        p(`Hi ${escapeHtml(name)},`),
-        p(`Your portal account${company ? ` for <b>${escapeHtml(company)}</b>` : ""} is ready. From it you can:`),
+        p("Here is what you can do in your portal."),
         panel([
-          ["Follow", "each project and the stage it is at"],
-          ["Review", "work, comment on it, approve it or ask for changes"],
-          ["Pay", "invoices, and keep your receipts"],
-          ["Ask", "us a question and read our answer"],
+          ["Projects", "Follow each project and the stage it is at"],
+          ["Approvals", "Comment on work, approve it or ask for changes"],
+          ["Billing", "Pay invoices and keep your receipts"],
+          ["Support", "Ask us anything and read our answer"],
         ]),
-        action("Open your portal", url),
+        action("Open your portal", url, { icon: "arrow-right" }),
       ],
     }),
   };
@@ -1893,7 +2028,7 @@ The WDC team`, { unsubscribe: true }),
 /** For the studio: a client accepted their invitation and now has a portal account. */
 export function clientJoinedNoticeEmail(input: { name: string; email: string; company: string; url: string }): Email {
   const { name, email, company, url } = input;
-  const heading = `${name} joined the client portal.`;
+  const heading = `${name} is in the portal.`;
   return {
     subject: `${company}: ${name} joined the portal`,
     text: textShell(`${heading}
@@ -1901,19 +2036,20 @@ export function clientJoinedNoticeEmail(input: { name: string; email: string; co
 Client: ${company}
 Email: ${email}
 
-Their welcome email has gone out. Open the client in the admin:
+They can now see their projects and invoices. Their welcome email has gone out. Open the client in the admin:
 
 ${url}`),
     html: shell({
       title: heading,
       preheader: `${company} now has a portal account.`,
       heading,
+      hero: { icon: "user-plus", label: "Portal", title: "Joined the portal", sub: company },
       blocks: [
         panel([["Name", name], ["Email", email], ["Client", company]]),
-        p("They accepted their invitation and can now see their projects and invoices. Their welcome email has gone out."),
-        action("Open the client", url),
+        p("They can now see their projects and invoices. Their welcome email has gone out."),
+        action("Open the client", url, { icon: "arrow-right" }),
       ],
-      why: "You get this because portal sign-up notices are on.",
+      why: "Portal sign-up notices are on in Settings.",
       manage: "staff",
     }),
   };
@@ -1922,10 +2058,12 @@ ${url}`),
 /** For the studio: a staff member accepted their invitation. A second note follows only if they finish the welcome. */
 export function staffJoinedEmail(input: { name: string; email: string; url: string }): Email {
   const { name, email, url } = input;
-  const heading = `${name} accepted their invitation.`;
+  const heading = `Say hello to ${name}.`;
   return {
     subject: `${name} has joined the team`,
     text: textShell(`${heading}
+
+${name} accepted their invitation.
 
 Name: ${name}
 Email: ${email}
@@ -1939,12 +2077,13 @@ ${url}`),
       title: heading,
       preheader: "Their account is ready.",
       heading,
+      hero: { icon: "users", label: "Team", title: "New on the team", sub: name },
       blocks: [
-        panel([["Name", name], ["Email", email], ["Welcome", "Not finished yet"]]),
-        p("Their account is ready. You can change what they can see, or add them to a department, from the Users page. You will get one more note if they finish the welcome."),
-        action("Open Users", url),
+        panel([["Name", name], ["Email", email], ["Welcome", { html: `Not finished yet &nbsp;${chip("Pending", "next")}` }]]),
+        p("Their account is ready. Change what they can see, or add them to a department, from the Users page. You will get one more note if they finish the welcome."),
+        action("Open Users", url, { icon: "users" }),
       ],
-      why: "You get this because staff notices are on.",
+      why: "Staff notices are on in Settings.",
       manage: "staff",
     }),
   };
@@ -1953,7 +2092,7 @@ ${url}`),
 /** For the studio: a client asked for changes to a deliverable, with their note. */
 export function revisionRequestedNoticeEmail(input: { company: string; project: string; deliverable: string; note: string; by: string; url: string }): Email {
   const { company, project, deliverable, note, by, url } = input;
-  const heading = `${company} asked for changes.`;
+  const heading = `${company} asked for a few changes.`;
   return {
     subject: `Changes asked for: ${deliverable} (${company})`,
     text: textShell(`${heading}
@@ -1973,12 +2112,13 @@ ${url}`),
       title: heading,
       preheader: note.slice(0, 120),
       heading,
+      hero: { icon: "reply", label: "Review", title: "Changes asked for", sub: deliverable },
       blocks: [
-        panel([["Client", company], ["Project", project], ["Deliverable", deliverable], ["Asked by", by]]),
-        p(escapeHtml(note).replace(/\n/g, "<br>")),
-        action("Open the project", url),
+        quote(by, company, note),
+        panel([["Project", project], ["Deliverable", deliverable]]),
+        action("Open the project", url, { icon: "arrow-right" }),
       ],
-      why: "You get this because approval notices are on.",
+      why: "Approval notices are on in Settings.",
       manage: "staff",
     }),
   };
@@ -1987,10 +2127,12 @@ ${url}`),
 /** For the studio: a client approved a deliverable. (The client has their own sign-off confirmation.) */
 export function deliverableApprovedNoticeEmail(input: { company: string; project: string; deliverable: string; signedBy: string; url: string }): Email {
   const { company, project, deliverable, signedBy, url } = input;
-  const heading = `${company} approved ${deliverable}.`;
+  const heading = `Approved. On to the next one.`;
   return {
     subject: `Approved: ${deliverable} (${company})`,
     text: textShell(`${heading}
+
+${company} approved ${deliverable}.
 
 Project: ${project}
 Approved by: ${signedBy}
@@ -1999,14 +2141,15 @@ Open the project in the admin:
 
 ${url}`),
     html: shell({
-      title: heading,
+      title: `${company} approved ${deliverable}`,
       preheader: `${signedBy} signed it off.`,
       heading,
+      hero: { icon: "check-circle", label: "Approved", title: "Approved", sub: deliverable },
       blocks: [
         panel([["Client", company], ["Project", project], ["Deliverable", deliverable], ["Approved by", signedBy]]),
-        action("Open the project", url),
+        action("Open the project", url, { icon: "arrow-right" }),
       ],
-      why: "You get this because approval notices are on.",
+      why: "Approval notices are on in Settings.",
       manage: "staff",
     }),
   };
@@ -2020,11 +2163,11 @@ export function entryAssignedEmail(input: { clientName: string; form: string; pr
     subject: `We have your ${form}`,
     /* A notice to a client is theirs to switch off (project updates), so it carries the unsubscribe line. */
     unsubscribe: true,
-    text: textShell(`Hi ${name},
+    text: textShell(`Safe and sound, ${name}.
 
-We have picked up your ${form} and added it to your record${project ? `, under the project ${project}` : ""}. There is nothing you need to do.
+Your ${form} is now on your record${project ? `, under the project ${project}` : ""}. Nothing else is needed from you.
 
-You can follow what happens next in your portal:
+Follow what happens next in your portal:
 
 ${url}
 
@@ -2032,14 +2175,14 @@ The WDC team`, { unsubscribe: true }),
     html: shell({
       title: `We have your ${form}`,
       preheader: "It is on your record. Nothing is needed from you.",
-      heading: "We have it.",
-      why: "You get this because we added something to your record.",
+      heading: `Safe and sound, ${name}.`,
+      hero: { icon: "clipboard", label: "Record", title: "Saved to your record", sub: form },
+      why: "We added something to your record.",
       manage: "client",
       unsubscribe: true,
       blocks: [
-        p(`Hi ${escapeHtml(name)},`),
-        p(`We have picked up your <b>${escapeHtml(form)}</b> and added it to your record${project ? `, under the project <b>${escapeHtml(project)}</b>` : ""}. There is nothing you need to do.`),
-        action("Open your portal", url),
+        p(`Your <b>${escapeHtml(form)}</b> is now on your record${project ? `, under the project <b>${escapeHtml(project)}</b>` : ""}. Nothing else is needed from you.`),
+        action("Open your portal", url, { icon: "arrow-right" }),
       ],
     }),
   };
@@ -2050,7 +2193,7 @@ export type MeetingNoticeKind = "booked" | "cancelled" | "rescheduled";
 /** For the studio: a meeting was booked, cancelled or moved. The client's own meeting emails come from the booking service. */
 export function meetingNoticeEmail(input: { kind: MeetingNoticeKind; title: string; who: string; email: string; when: string; url: string }): Email {
   const { kind, title, who, email, when, url } = input;
-  const heading = `A meeting was ${kind}.`;
+  const heading = kind === "booked" ? "New meeting on the calendar." : kind === "rescheduled" ? "A meeting has moved." : "A meeting was cancelled.";
   return {
     subject: `Meeting ${kind}: ${who}`,
     text: textShell(`${heading}
@@ -2066,11 +2209,12 @@ ${url}`),
       title: heading,
       preheader: `${who}, ${when}.`,
       heading,
+      hero: { icon: "calendar", label: "Meetings", title: `Meeting ${kind}`, sub: when },
       blocks: [
         panel([["Meeting", title], ["With", email ? `${who} (${email})` : who], ["When", when]]),
-        action("Open meetings", url),
+        action("Open meetings", url, { icon: "calendar" }),
       ],
-      why: "You get this because meeting notices are on.",
+      why: "Meeting notices are on in Settings.",
       manage: "staff",
     }),
   };
@@ -2084,27 +2228,27 @@ export function ticketReceivedEmail(input: { clientName: string; subject: string
     subject: `We have your question: ${subject}`,
     /* A notice to a client is theirs to switch off (project updates), so it carries the unsubscribe line. */
     unsubscribe: true,
-    text: textShell(`Hi ${name},
+    text: textShell(`We have your question, ${name}.
 
-We have your question, "${subject}". We usually reply the same working day. The answer will be in your portal and in your inbox.
+"${subject}" is with the team now. We usually reply the same working day, in your portal and in your inbox.
 
-You can add to it, or see it, here:
+Add to it, or see it, here:
 
 ${url}
 
 The WDC team`, { unsubscribe: true }),
     html: shell({
-      title: `We have your question`,
+      title: "We have your question",
       preheader: "We usually reply the same working day.",
-      heading: "We have your question.",
-      why: "You get this because you asked us a question in your portal.",
+      heading: `We have your question, ${name}.`,
+      hero: { icon: "message", label: "Support", title: "Question received", sub: subject },
+      why: "You asked us a question in your portal.",
       manage: "client",
       unsubscribe: true,
       blocks: [
-        p(`Hi ${escapeHtml(name)},`),
-        p(`We have your question. We usually reply the same working day, and the answer will be in your portal and in your inbox.`),
+        p("It is with the team now. We usually reply the same working day, in your portal and in your inbox."),
         panel([["About", subject]]),
-        action("See your question", url),
+        action("See your question", url, { icon: "arrow-right" }),
       ],
     }),
   };
@@ -2116,18 +2260,18 @@ The WDC team`, { unsubscribe: true }),
 /** To the person: a device we have not seen signed in. */
 export function newDeviceEmail(input: { name?: string; device: string; when: Date; resetUrl: string }): Email {
   const { device, when, resetUrl } = input;
-  const hello = input.name ? `Hi ${firstWord(input.name)},` : "Hello,";
+  const heading = input.name ? `Was this you, ${firstWord(input.name)}?` : "Was this you?";
   const at = `${emailDateTime(when)} (WAT)`;
   return {
     subject: "New sign-in to your WDC account",
-    text: textShell(`${hello}
+    text: textShell(`${heading}
 
-Your account was just signed in to from a device we have not seen before.
+Your account just signed in from a device we have not seen before.
 
 Device: ${device}
 When: ${at}
 
-If that was you, there is nothing to do. If it was not, reset your password now. That also signs out every other device:
+If it was you, all good. Nothing else to do. If it was not, reset your password now. That also signs out every other device:
 
 ${resetUrl}
 
@@ -2137,14 +2281,14 @@ The WDC team`),
     html: shell({
       title: "New sign-in to your account",
       preheader: `${device}, ${at}.`,
-      heading: "New sign-in to your account",
+      heading,
+      hero: { icon: "phone", label: "Security", title: "New sign-in", sub: device },
       why: "This is a security notice, so it is always sent.",
       blocks: [
-        p(escapeHtml(hello)),
-        p("Your account was just signed in to from a device we have not seen before."),
+        p("Your account just signed in from a device we have not seen before. If it was you, all good. Nothing else to do."),
         panel([["Device", device], ["When", at]]),
-        p("If that was you, there is nothing to do. If it was not, reset your password now. That also signs out every other device."),
-        action("Reset my password", resetUrl),
+        action("Reset my password", resetUrl, { icon: "lock" }),
+        small("Not you? Reset your password now. That also signs out every other device."),
       ],
     }),
   };
@@ -2153,14 +2297,14 @@ The WDC team`),
 /** To the person: their password was changed, in the account or by a reset link. */
 export function passwordChangedEmail(input: { name?: string; when: Date; how: "changed" | "reset"; resetUrl: string }): Email {
   const { when, how, resetUrl } = input;
-  const hello = input.name ? `Hi ${firstWord(input.name)},` : "Hello,";
+  const heading = input.name ? `Your password is new, ${firstWord(input.name)}.` : "Your password is new.";
   const at = `${emailDateTime(when)} (WAT)`;
   const what = how === "reset" ? "Your password was reset with an emailed link." : "Your password was changed from your account settings.";
   return {
     subject: "Your WDC password was changed",
-    text: textShell(`${hello}
+    text: textShell(`${heading}
 
-${what} Your other devices were signed out.
+${what} We signed you out everywhere else, so only this device is still in.
 
 When: ${at}
 
@@ -2174,14 +2318,14 @@ The WDC team`),
     html: shell({
       title: "Your password was changed",
       preheader: `${what} Your other devices were signed out.`,
-      heading: "Your password was changed",
+      heading,
+      hero: { icon: "shield", label: "Security", title: "Password changed", sub: at },
       why: "This is a security notice, so it is always sent.",
       blocks: [
-        p(escapeHtml(hello)),
-        p(`${escapeHtml(what)} Your other devices were signed out.`),
+        p(`${escapeHtml(what)} We signed you out everywhere else, so only this device is still in.`),
         panel([["When", at]]),
-        p("If that was you, there is nothing to do. If it was not, reset your password again now."),
-        action("Reset my password", resetUrl),
+        action("Reset my password", resetUrl, { icon: "lock" }),
+        small("Not you? Reset it again now with the button above, then tell us."),
       ],
     }),
   };
@@ -2197,16 +2341,18 @@ export function workspaceNotificationEmail(input: {
   const detail = input.items?.length
     ? input.items.map((item) => `${item.title}\n${item.summary}\n${item.url}`).join("\n\n")
     : `${input.summary}${deadline ? `\n\nDue: ${deadline}` : ""}${input.invitationReminder?"":`\n\nOpen the record:\n${input.url}`}`;
+  const icon: TileIcon = input.invitationReminder ? "bell" : input.items?.length ? "list" : deadline ? "bell" : "layers";
   return {
     subject: input.title,
     text: textShell(`${input.title}\n\n${detail}${input.invitationReminder?"":"\n\nThe project record keeps the decision and its history. Change these optional emails in your personal dashboard preferences."}\n\nThe WDC team`),
     html: shell({
       title: input.title, preheader: input.summary.slice(0,180), heading: input.title,
-      why: input.invitationReminder?"You receive this because your unaccepted portal invitation expires soon. Client reminder preferences apply.":"You receive this because the project has an update for your role. You choose whether these updates arrive immediately, in a summary, or only in the dashboard.",
+      hero: { icon, label: input.items?.length ? "Summary" : deadline ? "Reminder" : "Project update", title: input.items?.length ? `${input.items.length} ${input.items.length === 1 ? "update" : "updates"}` : undefined, sub: deadline ? `Due ${deadline}` : undefined },
+      why: input.invitationReminder?"Your unaccepted portal invitation expires soon. Client reminder preferences apply.":"The project has an update for your role. You choose whether these arrive right away, in a summary, or only in the dashboard.",
       manage: input.invitationReminder?undefined:input.audience,
       blocks: input.items?.length
-        ? input.items.flatMap((item) => [p(`<strong>${escapeHtml(item.title)}</strong>`),p(escapeHtml(item.summary).replace(/\n/g,"<br>")),action("Open this record",item.url)])
-        : [p(escapeHtml(input.summary).replace(/\n/g,"<br>")),...(deadline?[panel([["Due",deadline]])]:[]),...(input.invitationReminder?[]:[action("Open the record",input.url),p("The project record keeps the decision and its history. Reading an email does not approve work or complete an action.")])],
+        ? input.items.flatMap((item) => [subhead(escapeHtml(item.title)),p(escapeHtml(item.summary).replace(/\n/g,"<br>")),action("Open this record",item.url,{ icon: "arrow-right" })])
+        : [p(escapeHtml(input.summary).replace(/\n/g,"<br>")),...(deadline?[panel([["Due",deadline]])]:[]),...(input.invitationReminder?[]:[action("Open the record",input.url,{ icon: "arrow-right" }),small("The project record keeps the decision and its history. Reading an email does not approve work or complete an action.")])],
     }),
   };
 }

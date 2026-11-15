@@ -59,7 +59,9 @@ export async function alertFailures(): Promise<"sent" | "none" | "off" | "duplic
       text: `${lines.join("\n")}\n\nEach one is in the message log, where it can be resent: ${link}`,
       html: composeEmailHtml({
         title: "Emails that did not go", preheader: `${n} ${n === 1 ? "email" : "emails"} from the site did not go.`,
-        heading: "Emails that did not go",
+        heading: "Some emails got stuck.",
+        hero: { icon: "alert", label: "Alert", title: `${n} ${n === 1 ? "email" : "emails"} did not go` },
+        why: "Failure alerts are on in Settings.",
         blocks: [emailPanel(rows.slice(0, 10).map((r) => [r.to_addr, `${r.subject}: ${r.error ?? "refused"}`] as [string, string])),
           emailP(`Each one is in the message log, where it can be resent: <a href="${link}">open the log</a>.`)],
       }),

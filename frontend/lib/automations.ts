@@ -187,7 +187,7 @@ async function execute(a: Automation, run: Run): Promise<void> {
         return;
       }
       const first = (contact?.name ?? "").trim().split(/\s+/)[0] ?? "";
-      const mail = renderDesign(s.design, { ...(await tagVars(run.contact_id)), "contact.first_name": first, "studio.name": COMPANY_NAME, "studio.email": CONTACT_EMAIL }, { unsubscribe: true, why: a.kind === "marketing" ? "You are getting this because you asked to hear from us." : "You are getting this because of your enquiry or project with us." });
+      const mail = renderDesign(s.design, { ...(await tagVars(run.contact_id)), "contact.first_name": first, "studio.name": COMPANY_NAME, "studio.email": CONTACT_EMAIL }, { unsubscribe: true, why: a.kind === "marketing" ? "You are getting this because you asked to hear from us." : "You are getting this because of your enquiry or project with us.", hero: { icon: "send", label: "Studio notes" } });
       /* The key is per person AND per step, so a retry after a crash cannot send twice and two steps never share one. */
       await sendLogged({ to: run.email, subject: s.subject ? renderDesign({ ...s.design, subject: s.subject }, {}, {}).subject : mail.subject, text: mail.text, html: mail.html, unsubscribe: true, unsubscribeUrl: unsubscribeUrl(run.email) ?? undefined },
         { summary: `Automation "${a.name}", ${s.name?.trim() || `step ${here.index + 1}`}.`, dedupeKey: `auto:${run.id}:${s.id}`, by: "Automation" });

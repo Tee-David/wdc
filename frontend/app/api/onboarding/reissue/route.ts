@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
       const mail = {
         to:draft.email,subject:"Your onboarding link",
         text:`Here is a fresh link to your unfinished WDC onboarding form: ${url}\n\nIt works for three days. Earlier resume links stop working. If you did not ask for this, you can ignore it.`,
-        html:composeEmailHtml({title:"Your onboarding link",preheader:"Continue your saved brief within three days.",heading:"Your onboarding link",blocks:[emailP("Continue your saved brief within three days. Earlier resume links stop working."),emailButton("Continue your brief",url),emailSmall("If you did not ask for this, you can ignore it.")]}),unsubscribe:false,
+        html:composeEmailHtml({title:"Your onboarding link",preheader:"Continue your saved brief within three days.",heading:"Here is a fresh link.",hero:{icon:"clipboard",label:"Onboarding",title:"A fresh link",sub:"The link works for three days"},why:"You asked for a new onboarding link.",blocks:[emailP("Continue your saved brief within three days. Earlier resume links stop working."),emailButton("Continue your brief",url),emailSmall("If you did not ask for this, you can ignore it.")]}),unsubscribe:false,
       };
       const log = {summary:`A fresh link to unfinished onboarding form ${draft.id}.`,dedupeKey:secretKey("onboarding-reissue",token)};
       const queued = await queueLogged({channel:"Email",to:mail.to,subject:mail.subject,...log},true);

@@ -31,13 +31,28 @@ export const CONTACT_EMAIL = "info@wedigcreativity.com.ng";
  *  city (AGENTS.md: the studio is meant to outgrow one). */
 export const LOCATION = "Nigeria";
 
+/** The studio's phone, which is also its WhatsApp line (owner, 2026-11-15). */
+export const PHONE_DISPLAY = "+234 708 704 1261";
+export const PHONE_TEL = "+2347087041261";
+export const WHATSAPP_URL = "https://wa.me/2347087041261";
+
 /**
- * The studio's own profiles, for the email footer's row of marks.
- *
- * EMPTY UNTIL THE REAL ADDRESSES ARE ADDED. Nothing in this repo says what
- * our handles are, and a guessed URL in every email we send is a link to
- * somebody else's account. The footer draws a mark only for an entry here,
- * and draws no row at all while the list is empty. Each `network` has a
+ * The studio's street address, for the email footer's "Visit" line. The owner
+ * gave the street on 2026-11-15; the number comes later. While STREET_NO is
+ * empty the address renders without one.
+ */
+export const STREET_NO = "";
+export const STREET = "Oseni Street, Lawanson, Lagos";
+export const STUDIO_ADDRESS = STREET_NO ? `${STREET_NO} ${STREET}` : STREET;
+
+/**
+ * The studio's own profiles, for the email footer's row of marks (owner,
+ * 2026-11-15). Settings > Business profile can override each one. The footer
+ * draws a mark only for an entry here or a saved setting. Each `network` has a
  * picture in public/email/ (scripts/build-email-assets.mjs).
  */
-export const SOCIAL_LINKS: { network: "x" | "linkedin" | "instagram" | "facebook" | "tiktok" | "youtube" | "behance" | "whatsapp"; label: string; url: string }[] = [];
+export const SOCIAL_LINKS: { network: "x" | "linkedin" | "instagram" | "facebook" | "tiktok" | "youtube" | "behance" | "whatsapp"; label: string; url: string }[] = [
+  { network: "facebook", label: "Facebook", url: "https://facebook.com/wedigcreativity" },
+  { network: "instagram", label: "Instagram", url: "https://instagram.com/wedigcreativity" },
+  { network: "x", label: "X", url: "https://x.com/wedigcreativity" },
+];

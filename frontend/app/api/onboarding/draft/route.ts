@@ -199,7 +199,7 @@ export async function POST(request: NextRequest) {
       to: requestedEmail,
       subject: "Continue your WDC onboarding form",
       text: `Your onboarding answers are saved. Continue within three days: ${resumeUrl}\n\nIf you did not request this link, you can ignore this email.`,
-      html: composeEmailHtml({title:"Your answers are saved",preheader:"Continue your onboarding form on any device within three days.",heading:"Your answers are saved",blocks:[emailP("Continue on any device within three days."),emailButton("Continue onboarding",resumeUrl),emailSmall("If you did not request this link, you can ignore this email.")]}),
+      html: composeEmailHtml({title:"Your answers are saved",preheader:"Continue your onboarding form on any device within three days.",heading:"Right where you left it.",hero:{icon:"clipboard",label:"Onboarding",title:"Your answers are saved",sub:"The link works for three days"},why:"You asked for a link to your saved form.",blocks:[emailP("Continue on any device within three days."),emailButton("Continue onboarding",resumeUrl),emailSmall("If you did not request this link, you can ignore this email.")]}),
     };
     const log = {summary:`A link to continue saved onboarding form ${draft.id}.`,dedupeKey:secretKey("onboarding-resume",linkToken)};
     try {

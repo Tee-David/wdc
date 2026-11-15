@@ -124,7 +124,9 @@ export async function sendDraftNudges(): Promise<NudgeCounts> {
         to: draft.email, subject, unsubscribe: false as const,
         text: `${hello}\n\nYou started the ${service} brief with us and your answers are saved. Pick up where you stopped: ${url}\n\nThe link works for three days.${off ? `\n\nNot useful? Stop these reminders: ${off}` : ""}`,
         html: composeEmailHtml({
-          title: subject, preheader: "Your answers are saved. Pick up where you stopped.", heading: "Pick up where you stopped",
+          title: subject, preheader: "Your answers are saved. Pick up where you stopped.", heading: "Your brief misses you.",
+          hero: { icon: "bell", label: "Onboarding", title: "Your brief is waiting", sub: `${service} brief` },
+          why: "You started a brief on our site.",
           blocks: [
             emailP(`${escapeHtml(hello)} you started the ${escapeHtml(service)} brief with us and your answers are saved. It takes a few minutes to finish.`),
             emailButton("Continue your brief", url),

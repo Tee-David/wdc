@@ -3,7 +3,7 @@ import "server-only";
 import { SERVICES } from "@/lib/services";
 import { CONTACT_EMAIL, SITE_URL } from "@/lib/site";
 import { escapeHtml, studioInbox } from "@/lib/email";
-import { composeEmailHtml, emailP, emailPanel, emailSmall, enquiryReceiptEmail, onboardingNextStepsEmail } from "@/lib/email-templates";
+import { composeEmailHtml, emailButton, emailP, emailPanel, emailQuote, emailSmall, enquiryReceiptEmail, onboardingNextStepsEmail } from "@/lib/email-templates";
 import type { FormDef } from "./registry";
 import type { Entry } from "./entries";
 
@@ -57,12 +57,14 @@ export function formEmail(form: FormDef, key: string, d: FormEmailData, opts: { 
       html: composeEmailHtml({
         title: `Website enquiry: ${d.topic}`,
         preheader: `${name} wrote about ${d.topic}.`,
-        heading: d.topic,
+        heading: `New enquiry from ${d.first || name || "the site"}.`,
+        hero: { icon: "inbox", label: "New enquiry", title: d.topic, sub: name ? `From ${name}` : undefined },
         blocks: [
+          emailQuote(name || d.email, d.email, d.message),
           emailPanel([["From", name], ["Email", d.email], ...(d.phone ? [["Phone", d.phone] as [string, string]] : [])]),
-          emailP(escapeHtml(d.message).replace(/\n/g, "<br>")),
-          ...(link ? [emailP(`<a href="${escapeHtml(link)}">Open it in the admin</a>`)] : []),
+          ...(link ? [emailButton("Open it in the admin", link, { icon: "arrow-right" })] : []),
         ],
+        why: "Studio notices for this form are on in Settings.",
       }),
     };
   }
@@ -85,7 +87,9 @@ export function formEmail(form: FormDef, key: string, d: FormEmailData, opts: { 
       html: composeEmailHtml({
         title: "You are on the list",
         preheader: "We write when we have something worth your time.",
-        heading: "You are on the list",
+        heading: `Welcome to the list${d.first ? `, ${d.first}` : ""}.`,
+        hero: { icon: "check-circle", label: "Newsletter", title: "You are on the list" },
+        why: "You subscribed on our site.",
         blocks: [
           emailP("We write when we have something worth your time: work we have shipped, what it cost, and what we learned. Not weekly, and never a digest of other people&rsquo;s links."),
           emailSmall(opts.unsubscribeUrl
@@ -104,8 +108,10 @@ export function formEmail(form: FormDef, key: string, d: FormEmailData, opts: { 
       html: composeEmailHtml({
         title: "New newsletter subscriber",
         preheader: `${d.email} subscribed from the ${d.source}.`,
-        heading: "New newsletter subscriber",
+        heading: "One more reader.",
+        hero: { icon: "mail-check", label: "Newsletter", title: "New subscriber", sub: `From the ${d.source}` },
         blocks: [emailPanel([["Email", d.email], ["Signed up from", d.source]])],
+        why: "Studio notices for this form are on in Settings.",
       }),
     };
   }
@@ -126,11 +132,13 @@ export function formEmail(form: FormDef, key: string, d: FormEmailData, opts: { 
         html: composeEmailHtml({
           title: `Onboarding brief: ${serviceName}`,
           preheader: `${who} submitted the ${serviceName} onboarding form.`,
-          heading: `New ${serviceName} brief`,
+          heading: "A fresh brief just landed.",
+          hero: { icon: "clipboard", label: "New brief", title: `New ${serviceName} brief`, sub: d.company || who },
           blocks: [
             emailPanel([["From", who], ...(d.email ? [["Email", d.email] as [string, string]] : []), ...(d.company ? [["Company", d.company] as [string, string]] : []), ["Brief", d.serial ? `#${d.serial}` : d.id]]),
-            ...(link ? [emailP(`<a href="${escapeHtml(link)}">Open it in the admin</a>`)] : []),
+            ...(link ? [emailButton("Open the brief", link, { icon: "arrow-right" })] : []),
           ],
+          why: "Studio notices for this form are on in Settings.",
         }),
       };
     }

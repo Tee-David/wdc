@@ -1,9 +1,18 @@
 import "server-only";
-import type { Email } from "@/lib/email-templates";
+import type { Email, Hero } from "@/lib/email-templates";
 import { renderDesign, type Vars } from "./email-design";
 import { activeDesign } from "./email-design-store";
 import { kindByKey } from "./email-registry";
 import { COMPANY_NAME, CONTACT_EMAIL } from "@/lib/site";
+
+/** The hero each builder kind wears, matching its coded template. */
+const HEROES: Record<string, Hero> = {
+  "enquiry-receipt": { icon: "inbox", label: "Enquiry" },
+  "support-reply": { icon: "message", label: "Support" },
+  "project-stage": { icon: "layers", label: "Project update" },
+  "deliverable-ready": { icon: "eye", label: "Review" },
+  newsletter: { icon: "send", label: "Studio notes" },
+};
 
 /**
  * Use the builder's design for this email when one is saved AND switched on,
@@ -15,7 +24,7 @@ export async function designed(kind: string, vars: Vars, fallback: () => Email):
     const design = await activeDesign(kind);
     const k = kindByKey(kind);
     if (!design || !k) return fallback();
-    return renderDesign(design, { "studio.name": COMPANY_NAME, "studio.email": CONTACT_EMAIL, ...vars }, { unsubscribe: k.unsubscribe, why: k.why, manage: k.manage });
+    return renderDesign(design, { "studio.name": COMPANY_NAME, "studio.email": CONTACT_EMAIL, ...vars }, { unsubscribe: k.unsubscribe, why: k.why, manage: k.manage, hero: HEROES[kind] });
   } catch {
     return fallback();
   }
