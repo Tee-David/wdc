@@ -232,7 +232,8 @@ function figure(value: string, opts: { label?: string; note?: string } = {}) {
 /** Gmail apps force-invert colours in dark mode but leave background images alone, so a same-colour gradient keeps a band its colour. */
 const bandBg = (c: string) => `background:${c};background-image:linear-gradient(${c},${c})`;
 /** Light text on a fixed band, wrapped so Gmail's inversion is undone (the classes only match inside Gmail, via u + .body). */
-const keep = (html: string) => html; // Gmail keeps light text light once the band behind it holds its colour; a blend wrapper only drew stray lines.
+/** Light text on a fixed band. Gmail apps darken it in forced dark mode; this block-level blend wrapper undoes that (its classes only match inside Gmail, via u + .body). It wraps whole blocks, never inline text, so no stray edges are drawn. */
+const keep = (html: string) => `<div class="wdc-gs"><div class="wdc-gd">${html}</div></div>`;
 
 function action(label: string, href: string, opts: { icon?: ButtonIcon; pay?: boolean } = {}) {
   const icon = opts.icon ?? "arrow-right";
@@ -244,8 +245,8 @@ function action(label: string, href: string, opts: { icon?: ButtonIcon; pay?: bo
     `<tr><td bgcolor="${fill}" class="${opts.pay ? "" : "wdc-btn"}" style="${bandBg(fill)};border-radius:10px">` +
     `<a class="${opts.pay ? "" : "wdc-btn-a"}" href="${safeUrl(href)}" style="display:block;padding:14px 24px;font-family:${BODY};font-size:16px;line-height:20px;` +
     `font-weight:600;color:#ffffff;text-decoration:none;border-radius:10px">` +
-    (opts.pay ? img("white", "", true) : img("white", "wdc-ico-l", true) + img("black", "wdc-ico-d", false)) +
-    `<span style="vertical-align:middle">${keep(escapeHtml(label))}</span></a>` +
+    keep((opts.pay ? img("white", "", true) : img("white", "wdc-ico-l", true) + img("black", "wdc-ico-d", false)) +
+      `<span style="vertical-align:middle">${escapeHtml(label)}</span>`) + `</a>` +
     `</td></tr></table>`
   );
 }
@@ -470,7 +471,7 @@ function tracker(track: NonNullable<Hero["track"]>) {
   return (
     `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:20px"><tr>${bar}</tr></table>` +
     `<div class="wdc-hide-sm"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>${labels}</tr></table></div>` +
-    `<!--[if !mso]><!--><div class="wdc-show-sm" style="display:none"><p style="margin:12px 0 0;font-family:${BODY};font-size:13px;line-height:1.5;color:${HERO_SUB}">${keep(escapeHtml(line))}</p></div><!--<![endif]-->`
+    `<!--[if !mso]><!--><div class="wdc-show-sm" style="display:none">${keep(`<p style="margin:0;padding-top:12px;font-family:${BODY};font-size:13px;line-height:1.5;color:${HERO_SUB}">${escapeHtml(line)}</p>`)}</div><!--<![endif]-->`
   );
 }
 
@@ -480,8 +481,8 @@ function heroBand(hero: Hero) {
 <td valign="top" style="padding:28px 0 ${hero.title ? 0 : 28}px"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td bgcolor="#ffffff" width="52" height="52" align="center" valign="middle" style="width:52px;height:52px;${bandBg("#ffffff")};border-radius:14px;line-height:0"><img src="${ASSETS}/tile-${hero.icon}.gif" width="32" height="32" alt="" style="display:block;width:32px;height:32px;border:0"></td></tr></table></td>
 <td class="wdc-hero-mark" align="right" valign="top" width="150" style="line-height:0;font-size:0"><img src="${ASSETS}/hero-mark.png" width="150" height="96" alt="" style="display:block;width:150px;height:96px;border:0"></td></tr></table></td></tr>
 ${hero.title ? `<tr><td bgcolor="${NAVY}" class="wdc-pad" style="padding:12px 40px 32px;${bandBg(NAVY)}">
-<p style="margin:0;font-family:${DISPLAY};font-size:21px;line-height:1.3;font-weight:700;color:#ffffff">${keep(escapeHtml(hero.title))}</p>
-${hero.sub ? `<p style="margin:4px 0 0;font-family:${BODY};font-size:14px;line-height:1.5;color:${HERO_SUB}">${keep(escapeHtml(hero.sub))}</p>` : ""}
+${keep(`<p style="margin:0;font-family:${DISPLAY};font-size:21px;line-height:1.3;font-weight:700;color:#ffffff">${escapeHtml(hero.title)}</p>`)}
+${hero.sub ? keep(`<p style="margin:0;padding-top:4px;font-family:${BODY};font-size:14px;line-height:1.5;color:${HERO_SUB}">${escapeHtml(hero.sub)}</p>`) : ""}
 ${hero.track ? tracker(hero.track) : ""}
 </td></tr>` : ""}`;
 }
@@ -519,6 +520,9 @@ const EMAIL_CSS = `
   /* Outlook.com and the Outlook apps mark their dark mode with these attributes. */
   ${Object.entries(DARK).filter(([, d]) => /^color:/.test(d) && !d.includes(";")).map(([s, d]) => `[data-ogsc] ${s}{${d} !important}`).join("\n  ")}
   ${Object.entries(DARK).filter(([, d]) => /^background/.test(d)).map(([s, d]) => `[data-ogsb] ${s}{${d.split(";")[0]} !important}`).join("\n  ")}
+  /* Gmail apps (forced dark): undo the text darkening on fixed bands. Only Gmail wraps the body in <u>. */
+  u + .body .wdc-gs{background:#000;mix-blend-mode:screen}
+  u + .body .wdc-gd{background:#000;mix-blend-mode:difference}
   [data-ogsc] .wdc-btn-a{color:#0a0a0a !important}
   [data-ogsc] .wdc-ico-l{display:none !important}
   [data-ogsc] .wdc-ico-d{display:inline-block !important}`;
@@ -598,7 +602,7 @@ ${heroBand(hero)}
 
 <tr><td class="wdc-soft wdc-line wdc-pad" style="padding:32px 40px;background:${SOFT};border-top:1px solid ${HAIRLINE}">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 20px"><tr><td valign="middle">
-    <a href="${SITE_URL}" style="text-decoration:none;display:inline-block"><img class="wdc-ico-l" src="${ASSETS}/logo-color.png" width="132" height="42" alt="We Dig Creativity" style="display:inline-block;width:132px;height:42px;border:0;color:${NAVY};font-family:${DISPLAY};font-size:16px;font-weight:700"><!--[if !mso]><!--><img class="wdc-ico-d" src="${ASSETS}/logo-white-accent.png" width="132" height="42" alt="" style="display:none;width:132px;height:42px;border:0"><!--<![endif]--></a>
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td bgcolor="${NAVY}" style="${bandBg(NAVY)};border-radius:12px;padding:10px 16px"><a href="${SITE_URL}" style="text-decoration:none;display:block"><img src="${ASSETS}/logo-white-accent.png" width="120" height="38" alt="We Dig Creativity" style="display:block;width:120px;height:38px;border:0;color:#ffffff;font-family:${DISPLAY};font-size:16px;font-weight:700"></a></td></tr></table>
     <p class="wdc-muted" style="margin:8px 0 0;font-family:${BODY};font-size:13px;line-height:1.5;color:${MUTED}">${escapeHtml(MOTTO)}</p>
   </td></tr></table>
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 4px"><tr>
