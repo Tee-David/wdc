@@ -90,6 +90,8 @@ export function requestOriginIsAllowed(request: NextRequest) {
   const allowed = new Set([
     request.nextUrl.origin,
     process.env.BETTER_AUTH_URL,
+    "https://wedigcreativity.com",
+    "https://www.wedigcreativity.com",
     "https://wedigcreativity.com.ng",
     "https://www.wedigcreativity.com.ng",
   ].filter(Boolean));

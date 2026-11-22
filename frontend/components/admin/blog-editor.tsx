@@ -126,7 +126,7 @@ function SearchPreview() {
   const slug = v.slug || slugify(v.title ?? "") || "post-address";
   return (
     <div ref={ref} className="adBlog__serp" aria-label="Search result preview">
-      <span className="adBlog__serpUrl">wedigcreativity.com.ng › blog › {slug}</span>
+      <span className="adBlog__serpUrl">wedigcreativity.com › blog › {slug}</span>
       <span className="adBlog__serpTitle">{title}</span>
       <span className="adBlog__serpDesc">{v.description || "The meta description appears here. Write it for somebody deciding whether to click."}</span>
     </div>

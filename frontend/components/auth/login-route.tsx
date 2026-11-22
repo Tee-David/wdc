@@ -54,7 +54,7 @@ export async function LoginRoute({ query, initialStep }: { query: Promise<AuthQu
         requested={requested}
         refused={completed ? "" : first(params.error)}
         initialStep={initialStep}
-        sender={process.env.SMTP_FROM_EMAIL?.trim() || "no-reply@wedigcreativity.com.ng"}
+        sender={process.env.SMTP_FROM_EMAIL?.trim() || "info@wedigcreativity.com"}
         completed={completed}
         previousSessionId={reauthenticate ? session?.session.id : undefined}
       />

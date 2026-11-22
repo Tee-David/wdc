@@ -94,6 +94,10 @@ export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL || SITE_URL,
   trustedOrigins: [
     SITE_URL,
+    "https://www.wedigcreativity.com",
+    /* The old domain 301s to SITE_URL, but a tab opened before the move still
+       posts from it until it reloads. */
+    "https://wedigcreativity.com.ng",
     "https://www.wedigcreativity.com.ng",
     "http://localhost:3000",
     "http://localhost:3100",

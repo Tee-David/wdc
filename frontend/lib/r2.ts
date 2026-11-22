@@ -340,7 +340,7 @@ export async function deleteObject({ config, key, timeoutMs = 8000 }: { config: 
  * have sent, from somewhere CORS does not apply, and read what R2 answers. The
  * result is the difference between "we could not reach the file store" -- which
  * sends somebody to check their wifi over a bucket setting -- and "the bucket
- * does not allow PUT from https://wedigcreativity.com.ng", which names the
+ * does not allow PUT from https://wedigcreativity.com", which names the
  * thing to change and where.
  *
  * A preflight is never signed: browsers strip credentials from it, so R2

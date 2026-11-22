@@ -32,7 +32,7 @@ const ALLOWED: Record<string, string> = {
   /* SVG IS A DOCUMENT FORMAT, NOT JUST AN IMAGE ONE -- it can carry a
      `<script>`. Safe today because every file uploaded through this route is
      served from R2's own domain, never rendered inline (an `<img>`/`<object>`
-     tag) from wedigcreativity.com.ng. It stays safe only as long as that
+     tag) from wedigcreativity.com. It stays safe only as long as that
      holds: an admin file preview that fetches this bytes-for-bytes and draws
      it inline ON OUR ORIGIN would run a client's uploaded script as us. See
      the same note beside the file links in `components/admin/delivery.tsx`. */

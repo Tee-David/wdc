@@ -46,7 +46,7 @@ export const FAQS: Faq[] = [
   },
   {
     q: "Where are you based, and who can you work with?",
-    a: "We work with brands wherever they are. Everything after the first conversation works well remotely, and our clients run across Nigeria and beyond. You can reach us at info@wedigcreativity.com.ng.",
+    a: "We work with brands wherever they are. Everything after the first conversation works well remotely, and our clients run across Nigeria and beyond. You can reach us at info@wedigcreativity.com.",
   },
   {
     q: "What do you build with?",

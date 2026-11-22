@@ -85,7 +85,7 @@ async function withFetch(handler, run) {
 const okOptionsResponse = (overrides = {}) => new Response(null, {
   status: 204,
   headers: {
-    "access-control-allow-origin": "https://wedigcreativity.com.ng",
+    "access-control-allow-origin": "https://wedigcreativity.com",
     "access-control-allow-methods": "GET, PUT, POST",
     "access-control-allow-headers": "content-type",
     ...overrides,
@@ -95,7 +95,7 @@ const okOptionsResponse = (overrides = {}) => new Response(null, {
 await withFetch(
   async () => new Response(null, { status: 204 }), // no CORS headers at all
   async () => {
-    const v = await probeCors({ config, origin: "https://wedigcreativity.com.ng" });
+    const v = await probeCors({ config, origin: "https://wedigcreativity.com" });
     report("no Access-Control-Allow-Origin at all reads as not configured for this origin", !v.ok);
   },
 );
@@ -103,7 +103,7 @@ await withFetch(
 await withFetch(
   async () => okOptionsResponse({ "access-control-allow-origin": "https://other-domain.example" }),
   async () => {
-    const v = await probeCors({ config, origin: "https://wedigcreativity.com.ng" });
+    const v = await probeCors({ config, origin: "https://wedigcreativity.com" });
     report("an origin that does not match this one is caught", !v.ok);
   },
 );
@@ -111,7 +111,7 @@ await withFetch(
 await withFetch(
   async () => okOptionsResponse({ "access-control-allow-methods": "GET, POST" }),
   async () => {
-    const v = await probeCors({ config, origin: "https://wedigcreativity.com.ng" });
+    const v = await probeCors({ config, origin: "https://wedigcreativity.com" });
     report("PUT missing from AllowedMethods is caught", !v.ok);
   },
 );
@@ -119,7 +119,7 @@ await withFetch(
 await withFetch(
   async () => okOptionsResponse({ "access-control-allow-headers": "x-requested-with" }),
   async () => {
-    const v = await probeCors({ config, origin: "https://wedigcreativity.com.ng" });
+    const v = await probeCors({ config, origin: "https://wedigcreativity.com" });
     report("content-type missing from AllowedHeaders is caught", !v.ok);
   },
 );
@@ -127,7 +127,7 @@ await withFetch(
 await withFetch(
   async () => okOptionsResponse(),
   async () => {
-    const v = await probeCors({ config, origin: "https://wedigcreativity.com.ng" });
+    const v = await probeCors({ config, origin: "https://wedigcreativity.com" });
     report("origin, PUT and content-type all present reads as configured", v.ok);
   },
 );
@@ -135,7 +135,7 @@ await withFetch(
 await withFetch(
   async () => { throw new Error("network unreachable"); },
   async () => {
-    const v = await probeCors({ config, origin: "https://wedigcreativity.com.ng" });
+    const v = await probeCors({ config, origin: "https://wedigcreativity.com" });
     report("the bucket not answering at all is caught rather than thrown", !v.ok);
   },
 );

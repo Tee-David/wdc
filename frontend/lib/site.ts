@@ -6,7 +6,7 @@
 export const SITE_URL = (() => {
   const env = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "");
   if (env) return env;
-  return "https://wedigcreativity.com.ng";
+  return "https://wedigcreativity.com";
 })();
 
 export const SITE_NAME = "We Dig Creativity";
@@ -26,7 +26,7 @@ export const REGISTERED_NAME = "WDC Solutions Hub";
 export const REGISTRATION_NO = "BN 8480926";
 export const REGISTRAR = "Corporate Affairs Commission (CAC), Nigeria";
 export const MOTTO = "Brilliant simplicity of thought";
-export const CONTACT_EMAIL = "info@wedigcreativity.com.ng";
+export const CONTACT_EMAIL = "info@wedigcreativity.com";
 /** Where the studio is, as the email footer says it. The country, never a
  *  city (AGENTS.md: the studio is meant to outgrow one). */
 export const LOCATION = "Nigeria";

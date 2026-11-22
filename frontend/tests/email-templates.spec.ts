@@ -43,7 +43,7 @@ import {
  * imports the same module the server does.
  */
 
-const URL_UNDER_TEST = "https://wedigcreativity.com.ng/portal/projects/atlas";
+const URL_UNDER_TEST = "https://wedigcreativity.com/portal/projects/atlas";
 const HOSTILE = `Ada & Sons <script>alert("x")</script>`;
 
 const LINES = [
@@ -145,7 +145,7 @@ test("every message has a plain-text alternative that reads as the message", asy
     const sentences = text.split("\n").filter((line) => !line.startsWith("  ") && /[a-z]{3,}.*\./.test(line));
     if (sentences.length < 3) failures.push(`${name}: text part has ${sentences.length} prose lines, so it reads as a field dump`);
     /* The footer the HTML carries, carried here too. */
-    if (!text.includes("wedigcreativity.com.ng")) failures.push(`${name}: text part has no footer`);
+    if (!text.includes("wedigcreativity.com")) failures.push(`${name}: text part has no footer`);
     if (!text.includes("BN 8480926")) failures.push(`${name}: text part has no legal line`);
   }
   expect(failures, failures.join("\n")).toEqual([]);
@@ -289,7 +289,7 @@ test("a hostile client name cannot inject markup", async () => {
 test("a link that is not ours never reaches an href", () => {
   const email = passwordResetEmail({ url: "javascript:alert(1)", expiresInMinutes: 60 });
   expect(email.html).not.toContain("javascript:");
-  expect(email.html).toContain('href="https://wedigcreativity.com.ng"');
+  expect(email.html).toContain('href="https://wedigcreativity.com"');
 });
 
 test("the onboarding next steps name every channel and keep the account optional", () => {

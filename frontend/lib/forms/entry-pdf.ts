@@ -284,7 +284,7 @@ export async function renderEntryPdf(input: EntryPdfInput): Promise<Uint8Array> 
   const pages = pdf.getPages();
   pages.forEach((p, i) => {
     p.drawLine({ start: { x: M, y: M + 16 }, end: { x: A4.w - M, y: M + 16 }, thickness: 0.6, color: C.rule });
-    const left = i === 0 ? "We Dig Creativity Solutions · wedigcreativity.com.ng" : input.running;
+    const left = i === 0 ? "We Dig Creativity Solutions · wedigcreativity.com" : input.running;
     p.drawText(drawable(reg, wrap(reg, left, 8.5, INNER - 90)[0] ?? ""), { x: M, y: M, size: 8.5, font: reg, color: C.dim });
     const right = `Page ${i + 1} of ${pages.length}`;
     p.drawText(right, { x: A4.w - M - reg.widthOfTextAtSize(right, 8.5), y: M, size: 8.5, font: reg, color: C.dim });

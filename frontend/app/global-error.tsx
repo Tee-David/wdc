@@ -21,7 +21,7 @@ export default function GlobalError({ reset }: { error: Error & { digest?: strin
             <a href="/" style={{ minHeight: 44, padding: "0 20px", display: "inline-flex", alignItems: "center", borderRadius: 10, border: "1px solid #fff", color: "#fff", fontWeight: 700, textDecoration: "none" }}>Go to the homepage</a>
           </div>
           <p style={{ marginTop: 24, fontSize: 14, color: "#c9cae8" }}>
-            Still stuck? Email <a href="mailto:info@wedigcreativity.com.ng" style={{ color: "#fff" }}>info@wedigcreativity.com.ng</a>.
+            Still stuck? Email <a href="mailto:info@wedigcreativity.com" style={{ color: "#fff" }}>info@wedigcreativity.com</a>.
           </p>
         </main>
       </body>

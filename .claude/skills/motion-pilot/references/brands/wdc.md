@@ -1,4 +1,4 @@
-# We Dig Creativity (wedigcreativity.com.ng)
+# We Dig Creativity (wedigcreativity.com)
 A creative studio: branding and design, SEO, websites, apps, software and AI, social and ads. Always "SEO", never "Search". "We Dig Creativity" means the studio loves creativity: never literal digging (no spades, earth or tunnels). No city names in copy.
 
 ## Tokens

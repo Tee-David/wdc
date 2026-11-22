@@ -57,7 +57,7 @@ const MAX_BYTES = 2 * 1024 * 1024;
 /** Truthful, and it says who to complain to. A fetcher that lies about being
     a browser is one somebody eventually blocks the whole company for. */
 const USER_AGENT =
-  "WeDigCreativityBot/1.0 (+https://wedigcreativity.com.ng; one page per request, on a visitor's explicit request)";
+  "WeDigCreativityBot/1.0 (+https://wedigcreativity.com; one page per request, on a visitor's explicit request)";
 
 export type FetchPageFailure =
   | UrlFailure

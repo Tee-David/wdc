@@ -1,3 +1,10 @@
+## Primary domain is wedigcreativity.com, 22 November 2026
+
+- `wedigcreativity.com` is the canonical domain for the site and for mail. It has its own Cloudflare zone (wdc account), the `wdc` tunnel serves both domains, and mail for both is on Truehost das131. The site now sends from `info@wedigcreativity.com` (SPF, DKIM, DMARC `p=none` in place).
+- `wedigcreativity.com.ng` stays registered and keeps its mailboxes. Its pages 301 to the same path on `.com`; `/api/` is left out of the redirect so a provider webhook still set on the old domain keeps working. Old addresses forward to the new ones.
+- Changed: `SITE_URL` and contact email defaults, Better Auth trusted origins and the onboarding origin check (both domains), the VM env (`NEXT_PUBLIC_SITE_URL`, `BETTER_AUTH_URL`, `SMTP_*`, `FLUTTERWAVE_WEBHOOK_URL`), Doppler `wdc/prd`, the autodeploy and cron host headers. Paystack and Flutterwave webhooks point at `.com` (owner, 2026-11-22). Steps and checks: `plans/domain-move-plan.md`.
+- Still owner-side: the Google OAuth client needs the `.com` origin and redirect URI; Search Console and Bing change of address.
+
 ## Zip deliverables, 28 October 2026
 
 - A deliverable version takes zips now, with PDF, images, video, design files (AI, EPS, PSD, Figma, InDesign), office documents and fonts, up to 250MB each and 10 per version (owner asked, 2026-10-28). Uploads go to the private bucket under the project (`deliverables/<projectId>/`), not the public media library, and are read through the same short-lived signed Open and Download links. Older versions keep their media-library files. Rules: `lib/deliverable-upload-rules.ts`, checked by `npm run check:deliverable-upload`; the action asks the bucket that each file arrived, under the same project, before recording it.

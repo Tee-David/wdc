@@ -250,7 +250,7 @@ export default async function PaymentDone({
             {outcome.overpaid ? (
               <p className="doc__said">
                 This invoice was already paid, so the extra is held as credit and comes off your next invoice.
-                If you would rather have it back, write to info@wedigcreativity.com.ng and we will refund it.
+                If you would rather have it back, write to info@wedigcreativity.com and we will refund it.
               </p>
             ) : null}
             <p className="doc__actions">
@@ -279,7 +279,7 @@ export default async function PaymentDone({
         <footer className="doc__foot">
           <small>
             Questions about this go to{" "}
-            <a href="mailto:info@wedigcreativity.com.ng">info@wedigcreativity.com.ng</a>.
+            <a href="mailto:info@wedigcreativity.com">info@wedigcreativity.com</a>.
             {reference ? <> Quote reference <b>{reference}</b>.</> : null}
           </small>
         </footer>

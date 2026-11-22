@@ -1,5 +1,5 @@
 [Unit]
-Description=We Dig Creativity website (wedigcreativity.com.ng)
+Description=We Dig Creativity website (wedigcreativity.com)
 After=network-online.target
 Wants=network-online.target
 

@@ -10,7 +10,7 @@ web3aether, 92.5.43.199), in place of Vercel.
 | Env | `/etc/wdc/env` (root:wdc 640), copied from Vercel production; `MAIL_SECRETS_KEY` and `CRON_SECRET` from Doppler `wdc/prd` |
 | App | `wdc-web.service`, `next start` on 127.0.0.1:3410, memory cap 1.5 GB |
 | Ingress | Cloudflare Tunnel `wdc` (`wdc-cloudflared.service`, token in `/etc/wdc/tunnel.env`). No open ports. |
-| DNS | Cloudflare zone `wedigcreativity.com.ng` (wdc account). `@` and `www` are proxied CNAMEs to the tunnel; `www` redirects to the apex. Mail records copied from Vercel DNS. |
+| DNS | Cloudflare zones `wedigcreativity.com` (primary since 2026-11-22) and `wedigcreativity.com.ng` (wdc account). In both, `@` and `www` are proxied CNAMEs to the tunnel and `www` redirects to the apex. `.com.ng` pages 301 to `.com` (not `/api/`). Mail for both domains is on Truehost das131 (`mail.<domain>`, DNS only). |
 | Cron | `wdc-cron-daily.timer` (03:40 UTC) calls `/api/cron/daily` with `CRON_SECRET`. On since the cutover (2026-11-08 00:18 UTC); Vercel no longer hosts wdc. |
 
 ## Deploy

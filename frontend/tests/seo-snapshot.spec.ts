@@ -52,7 +52,7 @@ const FIXTURE = {
     { id: "schema", label: "Structured data", verdict: "weak", detail: "No valid JSON-LD on the page." },
   ],
   headline: "2 things are actively costing you here, and 4 more could be doing more.",
-  ours: { url: "https://wedigcreativity.com.ng", bytes: 420_000 },
+  ours: { url: "https://wedigcreativity.com", bytes: 420_000 },
 };
 
 async function checkWithFixture(page: import("@playwright/test").Page) {

@@ -22,7 +22,7 @@ import { meetingTime, parseMeetingNotice } from "../lib/meetings/notice";
  *   no unsubscribe on anything the person cannot sensibly unsubscribe from.
  */
 
-const SITE = "https://wedigcreativity.com.ng";
+const SITE = "https://wedigcreativity.com";
 const HOSTILE = `Ada & Sons <script>alert("x")</script>`;
 const WHEN = new Date("2026-10-08T09:30:00Z");
 

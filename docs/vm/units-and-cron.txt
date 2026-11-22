@@ -2,7 +2,7 @@
 # Replaces the Vercel cron (40 3 * * * UTC) for /api/cron/daily.
 set -euo pipefail
 set -a; . /etc/wdc/env; set +a
-curl -fsS -m 300 -H "Authorization: Bearer $CRON_SECRET" -H "Host: wedigcreativity.com.ng" http://127.0.0.1:3410/api/cron/daily
+curl -fsS -m 300 -H "Authorization: Bearer $CRON_SECRET" -H "Host: wedigcreativity.com" http://127.0.0.1:3410/api/cron/daily
 [Unit]
 Description=wdc daily cron at 03:40 UTC
 
@@ -13,7 +13,7 @@ Persistent=true
 [Install]
 WantedBy=timers.target
 [Unit]
-Description=Cloudflare Tunnel for wdc (wedigcreativity.com.ng)
+Description=Cloudflare Tunnel for wdc (wedigcreativity.com)
 After=network-online.target
 Wants=network-online.target
 

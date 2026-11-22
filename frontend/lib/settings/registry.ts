@@ -86,7 +86,7 @@ const emails = (raw: string) => {
 };
 
 /** Where a new form entry's studio notice goes unless that form names its own (owner, 2026-11-01). */
-export const FORM_NOTICE_DEFAULT = "info@wedigcreativity.com.ng, wedigcreativity@gmail.com";
+export const FORM_NOTICE_DEFAULT = "info@wedigcreativity.com, wedigcreativity@gmail.com";
 
 export const SETTINGS: SettingDef[] = [
   {key:"finance.currencies",label:"Document currencies",note:"NGN and USD start enabled; amounts are never converted automatically.",shipped:()=>'["NGN","USD"]',parse:raw=>{try{return {ok:true,value:JSON.stringify(parseCurrencies(raw))}}catch(error){return {ok:false,error:error instanceof Error?error.message:"Choose supported currencies."}}},revalidate:["/admin/settings/general","/admin/money"]},
