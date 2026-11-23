@@ -25,6 +25,15 @@ LOOPS=(
   "realtors-story|rp-story.mov|0.5|wide"
   "wdc-preloader-ink|wdc-preloader-ink.mp4|0|logo|5.27"
   "wdc-preloader-blueprint|wdc-preloader-blueprint.mp4|0|logo|5.52"
+  # OOUSUG NextGen Summit (2026-11-23): the delivered client films, kept in
+  # wdc-projects/projects/oousug-nextgen, copied into SRC under these names.
+  # Stills in public/work/oousug: flyer = the master flyer scaled to 900 wide;
+  # film-* = frames of the main film at 6.0, 24.6, 41.5, 54.5 and 64 s
+  # (720x1280); profile-* = frame 15 s of each profile film (900x900).
+  "oousug-drop|OOUSUG_NextGen_Main.mp4|3.6|tall"
+  "oousug-cards|OOUSUG_NextGen_Main.mp4|22.2|tall"
+  "oousug-flyer|OOUSUG_NextGen_Main.mp4|56.2|tall"
+  "oousug-profile|profile_odjenima.mp4|3.2|square"
 )
 
 for row in "${LOOPS[@]}"; do
@@ -34,6 +43,7 @@ for row in "${LOOPS[@]}"; do
     tall) scale="scale=-2:640" ;;
     post) scale="scale=-2:640" ;;
     logo) scale="crop=ih*2/3:ih*2/3,scale=640:640" ;;
+    square) scale="scale=512:512" ;;
   esac
   ffmpeg -v error -y -ss "$start" -t "${secs:-4}" -i "$SRC/$file" -an \
     -vf "fps=24,$scale,format=yuv420p" \

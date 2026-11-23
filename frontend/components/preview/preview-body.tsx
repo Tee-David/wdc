@@ -7,8 +7,10 @@ import { PROJECTS, type Project } from "@/lib/projects";
 import SiteModal from "./site-modal";
 import { FAQS, type Faq } from "@/lib/faq";
 import { TESTIMONIALS } from "@/lib/testimonials";
-import { caseBySlug, caseHref } from "@/lib/work";
+import { caseHref } from "@/lib/work";
 import Proof from "@/components/sections/proof";
+import ToolsMarquee from "@/components/sections/tools-marquee";
+import Testimonials from "./testimonials";
 import FaqAccordion from "@/components/ui/faq-accordion";
 import { CONTACT_EMAIL } from "@/lib/site";
 import { ENQUIRY_DRAFT_KEY } from "@/lib/contact";
@@ -96,10 +98,7 @@ const WHY = [
    The sector and city come from the case study, so there is nothing here that
    is not already recorded somewhere else on the site. No job titles: none were
    given, and making one up is the same lie in a smaller font. */
-const QUOTES = TESTIMONIALS.map((t) => {
-  const cs = caseBySlug(t.slug);
-  return { ...beforeAfter(t.text), n: t.client, r: cs ? `${cs.sector} · ${cs.location}` : "", href: caseHref(t.slug) };
-});
+const QUOTES = TESTIMONIALS.map((t) => ({ ...beforeAfter(t.text), n: t.client }));
 
 /* Nearly every quote is a problem the client had, then what changed, and the
    change is always the last sentence. So the words stay exactly as given and
@@ -112,22 +111,6 @@ function beforeAfter(text: string) {
   return { before: text.slice(0, at), after: text.slice(at) };
 }
 
-
-/* Two letters, from words that actually start with one. Real client names
-   carry punctuation as separate tokens -- "TAB — The Ajoks Brand", "Millcon &
-   Millcon Consult Limited" -- and taking the first character of the first two
-   space-separated tokens produced badges reading "T—" and "M&". Filtering to
-   tokens that begin with a letter or digit gives "TT" and "MM".
-
-   A one-word name takes its own first two characters rather than a single
-   letter, so "TraxStaff" is "TR" and every badge in the row is the same
-   width. */
-const initials = (name: string) => {
-  const words = name.split(/\s+/).filter((w) => /^[\p{L}\p{N}]/u.test(w));
-  if (words.length === 0) return "?";
-  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
-  return (words[0][0] + words[1][0]).toUpperCase();
-};
 
 /**
  * The service icons.
@@ -181,7 +164,6 @@ function Icon({ slug, delay }: { slug: string; delay: number }) {
 
 export default function PreviewBody({ faqs = FAQS }: { faqs?: Faq[] }) {
   const [active, setActive] = useState(0);
-  const [quotesPaused, setQuotesPaused] = useState(false);
   const track = useRef<HTMLDivElement | null>(null);
   const pinWrap = useRef<HTMLDivElement | null>(null);
   const pinTrack = useRef<HTMLDivElement | null>(null);
@@ -656,56 +638,18 @@ export default function PreviewBody({ faqs = FAQS }: { faqs?: Faq[] }) {
         <div className="pv-wrap">
           <div className="pv-head pv-reveal">
             <span className="pv-eyebrow">Testimonials</span>
-            <h2 className="pv-mix"><b>Trusted by brands</b> that dig deeper</h2>
+            <h2 className="pv-mix">Hear it from <b>the teams we work with</b></h2>
             <p className="pv-lede">
-              Founders and teams who care about speed, clarity and results.
+              In their own words, about the work and what changed after it.
             </p>
           </div>
-          {/* A MARQUEE AGAIN (the owner's ask), with what made the last one
-              fail fixed: a real Pause button (WCAG 2.2.2, and the only pause
-              a phone has), a pause on hover and on keyboard focus, stopped
-              off screen, and still under reduced motion, where the rows
-              become a swipeable strip. The quotes are split across the two
-              rows, so each is read once; the copy that makes the loop
-              seamless is hidden from screen readers and from Tab. */}
-          <div className={`pv-marqs pv-reveal${quotesPaused ? " is-paused" : ""}`}>
-            <div className="pv-marqs__bar">
-              <button type="button" className="pv-marqs__pause" aria-pressed={quotesPaused}
-                onClick={() => setQuotesPaused((v) => !v)}>
-                {quotesPaused
-                  ? <><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" /></svg> Play</>
-                  : <><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor" /></svg> Pause</>}
-                <span className="sr-only"> the moving testimonials</span>
-              </button>
-            </div>
-            {[QUOTES.slice(0, Math.ceil(QUOTES.length / 2)), QUOTES.slice(Math.ceil(QUOTES.length / 2))].map((row, r) => (
-              <div className={`pv-marq${r ? " pv-marq--rev" : ""}`} key={r}>
-                <div className="pv-mtrack">
-                  {[0, 1].map((dup) => (
-                    <ul className="pv-mgroup" key={dup} aria-hidden={dup === 1 || undefined} inert={dup === 1 || undefined}>
-                      {row.map((t) => (
-                        <li key={t.n}>
-                          <figure className="pv-tcard">
-                            <blockquote>
-                              <p>&ldquo;{t.before}<em>{t.after}</em>&rdquo;</p>
-                            </blockquote>
-                            <figcaption className="pv-tcard__by">
-                              <span className="pv-tcard__av" aria-hidden="true">{initials(t.n)}</span>
-                              {/* The name alone, on one line beside the initials: the
-                                  owner's call (2026-09-26). The role line and the case
-                                  study link made the foot of every card busy. */}
-                              <b className="pv-tcard__who">{t.n}</b>
-                            </figcaption>
-                          </figure>
-                        </li>
-                      ))}
-                    </ul>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+          <Testimonials quotes={QUOTES} />
         </div>
+      </section>
+
+      {/* The tools close the proof run (owner, 2026-11-23); the row under the hero shows the clients. */}
+      <section className="pv-sec pv-sec--tools" aria-label="Tools we work with">
+        <ToolsMarquee />
       </section>
 
       {/* ---------------- FAQ ---------------- */}

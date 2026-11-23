@@ -1,10 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import ClientMarquee from "@/components/sections/client-marquee";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { LogoGlyph } from "@/components/ui/logo-glyph";
-import LogoLoop from "@/components/ui/logo-loop";
-import { LOGOS } from "@/lib/logos";
 
 /**
  * THE HOMEPAGE FILM, and the hero that frames it.
@@ -347,49 +345,6 @@ function PlayToggle({ playing, onToggle }: { playing: boolean; onToggle: () => v
   );
 }
 
-/* THE TOOLS, UNDER THE HERO RATHER than in it. They sat along the bottom of
-   the photograph, which was one more thing in a hero the owner wanted calmer;
-   on the page's own ground they read as the first line of proof, directly
-   above the figures. Same rail the intro hands its logos to. */
-const MARQUEE_LOGOS = LOGOS.map((entry) => ({
-  title: entry.name,
-  ariaLabel: entry.name,
-  node: (
-    <span className="group flex shrink-0 items-center gap-2 text-muted transition-colors duration-300 hover:text-foreground">
-      <LogoGlyph
-        entry={entry}
-        mono
-        className="h-[1em] w-[1em] opacity-80 transition-opacity duration-300 group-hover:opacity-100"
-      />
-      <span className="text-sm font-medium leading-none">{entry.name}</span>
-    </span>
-  ),
-}));
-
-function LogoMarquee() {
-  return (
-    /* CLIPPED SIDEWAYS HERE, because the rail does not clip itself: its track
-       is several copies wide, and the hero section that used to hold it was
-       doing the clipping. Without this the page was 20,000px wide. */
-    <div id="hero-marquee" className="mx-auto w-full max-w-[1280px] overflow-x-clip px-4 pt-10 md:px-6 md:pt-12 lg:px-10">
-      <p className="mb-5 text-center text-xs font-semibold uppercase tracking-[0.25em] text-muted">
-        Powering brands with the world&apos;s best tools
-      </p>
-      <LogoLoop
-        logos={MARQUEE_LOGOS}
-        speed={90}
-        direction="left"
-        logoHeight={26}
-        gap={44}
-        pauseOnHover
-        scaleOnHover
-        fadeOut
-        ariaLabel="Tools and platforms WDC works with"
-      />
-    </div>
-  );
-}
-
 export function Hero() {
   const sectionRef = useRef<HTMLElement>(null);
   const film = useFilm(sectionRef);
@@ -540,7 +495,7 @@ export function Hero() {
         </div>
       </section>
 
-      <LogoMarquee />
+      <ClientMarquee />
     </>
   );
 }
