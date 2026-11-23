@@ -20,7 +20,6 @@
 }
 .adSet__nav a:hover { background: var(--ad-bg); color: var(--ad-ink); }
 .adSet__nav a[aria-current="page"] { background: var(--ad-nav-on); color: var(--ad-nav-on-ink); font-weight: 600; }
-.dark .adSet__nav a[aria-current="page"] { color: #fff; }
 .adSet__nav a:focus-visible { outline: 2px solid var(--ad-focus); outline-offset: 2px; }
 .adSet__glyph { width: 1.1rem; height: 1.1rem; flex: none; }
 .adSet__nav .adSet__text b { font-weight: inherit; font-size: .92rem; }

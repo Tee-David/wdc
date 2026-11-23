@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Link2 } from "lucide-react";
 import { assignEntry } from "@/lib/admin/actions";
 import { SERVICES } from "@/lib/services";
@@ -16,7 +17,7 @@ import { DialogButton } from "../dialog";
  * again (assignEntry in lib/admin/actions.ts).
  */
 export function AssignEntry({
-  formKey, entryId, names = {}, needsService, current, suggestedClientId, label = "Assign",
+  formKey, entryId, names = {}, needsService, current, suggestedClientId, label = "Assign", startOpen = false,
 }: {
   formKey: string;
   entryId: string;
@@ -28,10 +29,20 @@ export function AssignEntry({
   /** A client already on the books with this email or phone. */
   suggestedClientId?: string;
   label?: string;
+  /** Opened by a link (`?assign=1`, the brief's deck card). */
+  startOpen?: boolean;
 }) {
+  const router = useRouter();
   const existing = current?.clientId ?? suggestedClientId ?? "";
+  /* Closing drops `assign` from the address, so the deck's button, which links
+     to it again, still opens the sheet a second time. */
+  const dropParam = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("assign");
+    router.replace(`${url.pathname}${url.search}`, { scroll: false });
+  };
   return (
-    <DialogButton label={label} title="Assign this entry" icon={Link2} tone="plain">
+    <DialogButton label={label} title="Assign this entry" icon={Link2} tone="plain" startOpen={startOpen} onClosed={startOpen ? dropParam : undefined}>
       {() => <AssignBody {...{ formKey, entryId, names, needsService, current, existing }} />}
     </DialogButton>
   );

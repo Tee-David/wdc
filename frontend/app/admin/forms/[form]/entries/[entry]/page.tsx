@@ -236,7 +236,7 @@ export default async function EntryPage({ params, searchParams }: Props) {
   if (!entry.read && !(await readOnlySupportPresent())) after(() => markRead(form, entry.id).catch(() => undefined));
 
   const f = readFilters(form, sp);
-  const listQuery = new URLSearchParams(Object.entries(sp).flatMap(([k, v]) => (typeof v === "string" && k !== "hide" ? [[k, v]] : []))).toString();
+  const listQuery = new URLSearchParams(Object.entries(sp).flatMap(([k, v]) => (typeof v === "string" && k !== "hide" && k !== "assign" ? [[k, v]] : []))).toString();
   const [filteredIds, events, messages] = await Promise.all([
     entryIds(form, f).catch(() => [] as string[]),
     eventsFor(entry.id).catch(() => [] as EntryEvent[]),
@@ -267,6 +267,9 @@ export default async function EntryPage({ params, searchParams }: Props) {
   /* The note's "not sure" line says what the advice cards already say. */
   const watch = (brief ? scopeNote(brief, displayAnswers(brief, entry.answers)).watch : []).filter((w) => !(advice.length && /not sure/i.test(w)));
   const deck: DeckItem[] = [];
+  /* Assigning is a sheet, so the card's buttons open it rather than scroll to the Details card. */
+  const assignHref = `?${listQuery ? `${listQuery}&` : ""}assign=1`;
+  const asking = sp.assign === "1";
   if (brief && !entry.draft) {
     for (const a of advice.slice(0, 3)) deck.push({
       id: `advice-${a.key}`, kind: "Advice asked", tone: "live", label: a.step, title: a.label,
@@ -276,7 +279,7 @@ export default async function EntryPage({ params, searchParams }: Props) {
     if (!assigned) deck.push({
       id: "client", kind: "Client", tone: "warn", title: matched ? `Link this brief to ${matched.company}` : "Link this brief to a client",
       body: matched ? "The email or phone matches an existing client, so the same record and portal carry on." : "Until it is linked, the work and the portal have nowhere to start.",
-      primary: { label: matched ? `Open ${matched.company}` : "Assign it", href: matched ? `/admin/clients/${matched.id}` : "#entry-details" }, secondary: { label: "Assign here", href: "#entry-details" },
+      primary: { label: matched ? `Open ${matched.company}` : "Assign it", href: matched ? `/admin/clients/${matched.id}` : assignHref }, secondary: { label: "Assign here", href: assignHref },
     });
     if (watch.length) deck.push({
       id: "watch", kind: "Worth a look", tone: "neutral", title: watch[0],
@@ -338,7 +341,7 @@ export default async function EntryPage({ params, searchParams }: Props) {
 
       <Workbench railLabel="About this entry" rail={<>
           {count ? <RailCard title="How complete"><CompleteRing answered={count.answered} total={count.total} advice={advice.length} /></RailCard> : null}
-          <div id="entry-details" style={{ display: "contents" }}><RailCard title="Details">
+          <RailCard title="Details">
             <dl className="adForms__dl">
               {entry.serial ? <div><dt>Number</dt><dd>{form.noun} #{entry.serial}</dd></div> : null}
               <div><dt>{form.source === "newsletter" ? "Subscribed" : "Received"}</dt><dd>{time(entry.at)}</dd></div>
@@ -357,7 +360,7 @@ export default async function EntryPage({ params, searchParams }: Props) {
                       ? <span className="ad__dim">Not assigned. This email or phone matches <Link href={`/admin/clients/${matched.id}`}>{matched.company}</Link>, so assign it there and the same client portal is used.</span>
                       : <span className="ad__dim">Not a client yet</span>}
                   {!entry.draft ? (
-                    <> <AssignEntry
+                    <> <AssignEntry key={asking ? "asking" : "idle"} startOpen={asking}
                       label={client ? "Change" : "Assign"} formKey={form.key} entryId={entry.id}
                       names={{ ...(client ? { [client.id]: client.company } : {}), ...(matched ? { [matched.id]: matched.company } : {}), ...(project ? { [project.id]: project.title } : {}) }}
                       needsService={!form.service} current={assigned} suggestedClientId={matched?.id} /></>
@@ -367,7 +370,7 @@ export default async function EntryPage({ params, searchParams }: Props) {
               {project ? <div><dt>Project</dt><dd><Link href={`/admin/projects/${project.id}`}>{project.title}</Link></dd></div> : null}
               <div><dt>Entry id</dt><dd className="ad__dim" style={{ fontSize: ".78rem" }}>{entry.id}</dd></div>
             </dl>
-          </RailCard></div>
+          </RailCard>
 
           {form.source !== "newsletter" ? (
             <RailCard title="Emails about this entry"><div data-tour="entry-emails">

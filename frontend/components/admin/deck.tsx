@@ -185,7 +185,16 @@ export function Deck({
       window.localStorage.setItem(key, JSON.stringify({ ...saved, [item.id]: until }));
     } catch { /* a blocked store only means snoozes do not survive a reload */ }
     stamp(e, item.id, "snooze");
-    setNote(`Snoozed. It comes back ${label.toLowerCase()}.`);
+    /* A TOAST, NOT THE CARD'S NOTE: the note belongs to the card on show, and
+       after a snooze that is the NEXT card, which then read as snoozed itself. */
+    toast(`Snoozed. It comes back ${label.toLowerCase()}.`, "good", { label: "Undo", run: () => {
+      try {
+        const saved = JSON.parse(window.localStorage.getItem(key) ?? "{}") as Record<string, number>;
+        delete saved[item.id];
+        window.localStorage.setItem(key, JSON.stringify(saved));
+      } catch { /* see above */ }
+      window.dispatchEvent(new Event(event));
+    } });
     later(() => { setLeaving(null); window.dispatchEvent(new Event(event)); }, 520);
   };
 

@@ -122,7 +122,7 @@ export function Dialog({
  * `close` lets the form inside call it without the caller wiring state.
  */
 export function DialogButton({
-  label, title, children, tone = "primary", icon: Icon, wide, dataTour, startOpen = false, iconOnly = false, shortLabel,
+  label, title, children, tone = "primary", icon: Icon, wide, dataTour, startOpen = false, iconOnly = false, shortLabel, onClosed,
 }: {
   label: string;
   title: string;
@@ -139,8 +139,11 @@ export function DialogButton({
   iconOnly?: boolean;
   /** A shorter label for narrow phones (below 420px); the full one shows everywhere else. */
   shortLabel?: string;
+  /** Called after it closes, by Cancel, Esc or the form finishing. */
+  onClosed?: () => void;
 }) {
   const [open, setOpen] = useState(startOpen);
+  const close = () => { setOpen(false); onClosed?.(); };
   return (
     <>
       <button
@@ -154,8 +157,8 @@ export function DialogButton({
         {Icon ? <Icon aria-hidden={true} /> : null}
         {iconOnly && Icon ? null : shortLabel ? <span className="ad__btnTxt"><span className="ad__lblLong">{label}</span><span className="ad__lblShort">{shortLabel}</span></span> : <span className="ad__btnTxt">{label}</span>}
       </button>
-      <Dialog open={open} onClose={() => setOpen(false)} title={title} wide={wide}>
-        {open ? children(() => setOpen(false)) : null}
+      <Dialog open={open} onClose={close} title={title} wide={wide}>
+        {open ? children(close) : null}
       </Dialog>
     </>
   );
